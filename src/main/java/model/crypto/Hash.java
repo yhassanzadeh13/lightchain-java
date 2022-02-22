@@ -4,10 +4,10 @@ public abstract class Hash {
   /**
    * Actual value of hash in bytes.
    */
-  private final byte[] value;
+  private final byte[] bytes;
 
   protected Hash(byte[] hashValue) {
-    this.value = hashValue;
+    this.bytes = hashValue;
   }
 
   /**
