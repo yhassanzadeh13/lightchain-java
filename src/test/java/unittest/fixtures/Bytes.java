@@ -5,14 +5,15 @@ import java.util.Random;
 public class Bytes {
   private final static Random random = new Random();
 
-  public static byte[] ByteArrayFixture(int length) {
-    byte[] fixtureByte = new byte[length];
-
-    for (int i = 0; i < length; i++) {
-      fixtureByte[i] = ByteFixture();
-    }
-
-    return fixtureByte;
+  /**
+   * Generates a random byte array.
+   * @param length length of byte array.
+   * @return random byte array.
+   */
+  public static byte[] ByteArrayFixture(int length){
+    byte[] arr = new byte[length];
+    random.nextBytes(arr);
+    return arr;
   }
 
 

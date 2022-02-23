@@ -1,7 +1,11 @@
 package protocol.transaction;
 
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+import unittest.fixtures.Identifier;
+
 public class ValidatorTest {
-  // Note: except actual implementation of Validator, mock everything else, and use fixtures when needed. 
+  // Note: except actual implementation of Validator, mock everything else, and use fixtures when needed.
   //
   // TODO: a single individual test function for each of these scenarios:
   // 1. isCorrect fails since reference block id does not represent a valid snap shot (i.e., null snapshot).
@@ -18,4 +22,10 @@ public class ValidatorTest {
   //
   // 10. senderHashEnoughBalance fails when sender has a balance lower than transaction amount.
   // 11. senderHashEnoughBalance passes when sender has a balance greater than or equal to the transaction amount.
+
+  @Test
+  public void Test(){
+    Assertions.assertTrue(true);
+    System.out.println(Identifier.IdentifierFixture().toString());
+  }
 }
