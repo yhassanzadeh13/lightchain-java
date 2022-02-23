@@ -11,7 +11,7 @@ public abstract class Hash {
    */
   private final byte[] bytes;
 
-  public Hash(byte[] hashValue) {
+  public Hash(final byte[] hashValue) {
     this.bytes = hashValue;
   }
 
