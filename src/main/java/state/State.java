@@ -9,7 +9,7 @@ import model.lightchain.Identifier;
 public interface State {
   /**
    * Fetches snapshot at the given finalized block id.
-   * 
+   *
    * @param identifier identifier of corresponding block for snapshot.
    * @return the snapshot of the local node at the given finalized block id, or null of such snapshot does not exist.
    */

@@ -39,7 +39,7 @@ public interface Validator {
    *
    * @param transaction the transaction under validation.
    * @return true if sender has a greater than or equal balance than the amount of transaction, and false otherwise.
-   * The balance of sender must be checked at the snapshot of the reference block of the transaction. 
+   * The balance of sender must be checked at the snapshot of the reference block of the transaction.
    */
   boolean senderHasEnoughBalance(Transaction transaction);
 }

@@ -1,8 +1,6 @@
 package model;
 
-import java.io.Serializable;
-
-import model.crypto.Hash;
+import model.lightchain.Identifier;
 
 /**
  * Entity represents the unit of data model in LightChain. Everything meant to be sent over the network, stored
@@ -10,9 +8,10 @@ import model.crypto.Hash;
  */
 public abstract class Entity {
   /**
-   * Computes the collision resistant hash value of entity in bytes.
-   * @return hash object for entity.
+   * Computes the collision resistant hash value of entity.
+   *
+   * @return identifier representation of hash value for entity.
    */
-  public abstract Hash Hash();
+  public abstract Identifier id();
 }
 
