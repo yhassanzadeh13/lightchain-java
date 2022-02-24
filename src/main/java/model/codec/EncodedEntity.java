@@ -8,12 +8,12 @@ public class EncodedEntity {
   private final String type;
 
   public EncodedEntity(byte[] bytes, String type) {
-    this.bytes = bytes;
+    this.bytes = bytes.clone();
     this.type = type;
   }
 
   public byte[] getBytes() {
-    return bytes;
+    return bytes.clone();
   }
 
   public String getType() {

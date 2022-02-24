@@ -32,6 +32,10 @@ public class Transaction extends model.Entity {
    */
   private Signature signature;
 
+  public void setSignature(Signature signature) {
+    this.signature = signature;
+  }
+
   /**
    * Constructor of the transaction.
    *

@@ -16,7 +16,7 @@ public class Identifier {
   }
 
   public byte[] getBytes() {
-    return this.value;
+    return this.value.clone();
   }
 
   /**
