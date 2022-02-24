@@ -25,14 +25,14 @@ public abstract class Hash {
    * @param other the other hash object to compare.
    * @return +1 if this hash value is greater than other hash value, 0 if both hash values are equal and -1 otherwise.
    */
-  abstract boolean compare(Hash other);
+  public abstract boolean compare(Hash other);
 
   /**
    * Converts a hash value to its corresponding identifier type.
    *
    * @return Identifier representation of the hash value.
    */
-  abstract Identifier toIdentifier();
+  public abstract Identifier toIdentifier();
 }
 
 
