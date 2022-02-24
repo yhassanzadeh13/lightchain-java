@@ -55,4 +55,24 @@ public class Transaction extends model.Entity {
   public String type() {
     return EntityType.TYPE_TRANSACTION;
   }
+
+  public Identifier getReferenceBlockId() {
+    return referenceBlockId;
+  }
+
+  public Identifier getSender() {
+    return sender;
+  }
+
+  public Identifier getReceiver() {
+    return receiver;
+  }
+
+  public double getAmount() {
+    return amount;
+  }
+
+  public Signature getSignature() {
+    return signature;
+  }
 }
