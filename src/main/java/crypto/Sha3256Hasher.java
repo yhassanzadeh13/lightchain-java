@@ -6,9 +6,10 @@ import model.crypto.Hash;
 /**
  * Implements SHA3-256 hashing functionality.
  */
-public class SHA3256Hasher implements Hasher {
+public class Sha3256Hasher implements Hasher {
   /**
    * Computes hash of the given encoded entity.
+   * 
    * @param e input encoded entity.
    * @return SHA3-256 hash object of the entity.
    */
