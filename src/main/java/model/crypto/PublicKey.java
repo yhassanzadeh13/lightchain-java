@@ -9,7 +9,7 @@ public abstract class PublicKey {
   private final byte[] bytes;
 
   public PublicKey(byte[] bytes) {
-    this.bytes = bytes;
+    this.bytes = bytes.clone();
   }
 
   /**

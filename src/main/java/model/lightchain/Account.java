@@ -24,7 +24,7 @@ public class Account {
   /**
    * The identifier of last finalized block that changed (balance of) this account.
    */
-  private Identifier lastBlockId;
+  private final Identifier lastBlockId;
 
   /**
    * Constructor of an Account.
@@ -38,5 +38,21 @@ public class Account {
     this.publicKey = publicKey;
     this.lastBlockId = lastBlockId;
     this.balance = 0;
+  }
+
+  public Identifier getIdentifier() {
+    return identifier;
+  }
+
+  public PublicKey getPublicKey() {
+    return publicKey;
+  }
+
+  public double getBalance() {
+    return balance;
+  }
+
+  public Identifier getLastBlockId() {
+    return lastBlockId;
   }
 }
