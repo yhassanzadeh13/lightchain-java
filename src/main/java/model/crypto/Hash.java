@@ -11,8 +11,8 @@ public abstract class Hash {
    */
   private final byte[] bytes;
 
-  public Hash(final byte[] hashValue) {
-    this.bytes = hashValue;
+  public Hash(byte[] hashValue) {
+    this.bytes = hashValue.clone();
   }
 
   public Hash(Identifier identifier) {
