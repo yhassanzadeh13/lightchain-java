@@ -12,11 +12,11 @@ public class Identifier {
   private final byte[] value;
 
   public Identifier(byte[] value) {
-    this.value = value;
+    this.value = value.clone();
   }
 
   public byte[] getBytes() {
-    return this.value;
+    return this.value.clone();
   }
 
   /**
