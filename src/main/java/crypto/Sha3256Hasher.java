@@ -9,12 +9,12 @@ import model.crypto.Hash;
 public class Sha3256Hasher implements Hasher {
   /**
    * Computes hash of the given encoded entity.
-   * 
+   *
    * @param e input encoded entity.
    * @return SHA3-256 hash object of the entity.
    */
   @Override
-  public Hash ComputeHash(EncodedEntity e) {
+  public Hash computeHash(EncodedEntity e) {
     // TODO: implement it
     return null;
   }
