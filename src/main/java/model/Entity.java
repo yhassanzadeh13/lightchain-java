@@ -29,6 +29,6 @@ public abstract class Entity {
    *
    * @return type of this entity.
    */
-  public abstract String Type();
+  public abstract String type();
 }
 

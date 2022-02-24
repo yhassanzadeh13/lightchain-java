@@ -52,7 +52,7 @@ public class Transaction extends model.Entity {
    *
    * @return type of this entity.
    */
-  public String Type() {
+  public String type() {
     return EntityType.TYPE_TRANSACTION;
   }
 }
