@@ -18,7 +18,7 @@ public abstract class Entity {
    */
   public Identifier id() {
     JsonEncoder c = new JsonEncoder();
-    EncodedEntity e = c.Encode(this);
+    EncodedEntity e = c.encode(this);
     Sha3256Hasher h = new Sha3256Hasher();
     Hash hash = h.computeHash(e);
     return hash.toIdentifier();
