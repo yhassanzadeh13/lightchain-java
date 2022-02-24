@@ -24,5 +24,11 @@ public abstract class Entity {
     return hash.toIdentifier();
   }
 
+  /**
+   * Type of this entity.
+   *
+   * @return type of this entity.
+   */
+  public abstract String Type();
 }
 

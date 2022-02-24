@@ -1,5 +1,6 @@
 package model.lightchain;
 
+import model.codec.EntityType;
 import model.crypto.Signature;
 
 /**
@@ -35,9 +36,9 @@ public class Transaction extends model.Entity {
    * Constructor of the transaction.
    *
    * @param referenceBlockId identifier of a finalized block that this transaction refers to its snapshot.
-   * @param sender identifier of the sender of this transaction.
-   * @param receiver identifier of the receiver of this transaction.
-   * @param amount amount of LightChain tokens that this transaction transfers from sender to receiver.
+   * @param sender           identifier of the sender of this transaction.
+   * @param receiver         identifier of the receiver of this transaction.
+   * @param amount           amount of LightChain tokens that this transaction transfers from sender to receiver.
    */
   public Transaction(Identifier referenceBlockId, Identifier sender, Identifier receiver, double amount) {
     this.referenceBlockId = referenceBlockId;
@@ -46,8 +47,12 @@ public class Transaction extends model.Entity {
     this.amount = amount;
   }
 
-  public Identifier id() {
-    // TODO: must be implemented.
-    return null;
+  /**
+   * Type of this entity.
+   *
+   * @return type of this entity.
+   */
+  public String Type() {
+    return EntityType.TYPE_TRANSACTION;
   }
 }
