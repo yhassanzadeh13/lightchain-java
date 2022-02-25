@@ -2,7 +2,7 @@ package protocol.transaction;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-import unittest.fixtures.Identifier;
+import unittest.fixtures.IdentifierFixture;
 
 public class ValidatorTest {
   // Note: except actual implementation of Validator, mock everything else, and use fixtures when needed.
@@ -26,6 +26,6 @@ public class ValidatorTest {
   @Test
   public void Test(){
     Assertions.assertTrue(true);
-    System.out.println(Identifier.IdentifierFixture().toString());
+    System.out.println(IdentifierFixture.NewIdentifier().toString());
   }
 }
