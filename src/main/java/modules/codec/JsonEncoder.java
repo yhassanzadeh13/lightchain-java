@@ -1,11 +1,11 @@
 package modules.codec;
 
-import com.fasterxml.jackson.core.JsonGenerationException;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import model.Entity;
 import model.codec.EncodedEntity;
+import java.lang.*;
 
 import java.io.IOException;
 
@@ -24,7 +24,7 @@ public class JsonEncoder implements Codec {
     try {
       ObjectMapper mapper = new ObjectMapper();
       byte[] bytes = mapper.writeValueAsString(e).getBytes();
-      String type = e.type();
+      String type = e.getClass().getCanonicalName();
       return new EncodedEntity(bytes, type);
     }
     catch (JsonProcessingException ex) {
@@ -44,7 +44,8 @@ public class JsonEncoder implements Codec {
     try {
       ObjectMapper mapper = new ObjectMapper();
       String json = new String(e.getBytes());
-      return mapper.readValue(json, Entity.class);
+      JavaType a = mapper.getTypeFactory().constructFromCanonical(e.getType());
+      return mapper.readValue(json, a);
     }
     catch (IOException ex) {
       ex.printStackTrace();
