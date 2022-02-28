@@ -7,7 +7,6 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 public class JsonEncoderTest {
-    // TODO: Define a TestEntity that extends Entity with some dummy member fields (e.g., int, String, and double.) then tes a round-trip encoding.
 
     @Test
     public void Test(){
