@@ -5,7 +5,6 @@ import model.fixture.TestEntity;
 import modules.codec.JsonEncoder;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-import unittest.fixtures.IdentifierFixture;
 
 public class JsonEncoderTest {
     // TODO: Define a TestEntity that extends Entity with some dummy member fields (e.g., int, String, and double.) then tes a round-trip encoding.
