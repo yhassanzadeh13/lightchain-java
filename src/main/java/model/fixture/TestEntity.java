@@ -1,69 +1,92 @@
 package model.fixture;
 
-import model.Entity;
-
 import java.util.Objects;
 
+import model.Entity;
 
+/**
+ * Represents a test entity.
+ */
 public class TestEntity extends Entity {
-    private int i;
-    private String s;
-    private double d;
-    private String type;
+  private int testInt;
+  private String testString;
+  private double testDouble;
+  private String testType;
 
-    public TestEntity() {
+  public TestEntity() {
 
+  }
+
+  /**
+   * Constructor of a TestEntity.
+   *
+   * @param testInt dummy int variable.
+   * @param testString dummy String variable.
+   * @param testDouble dummy double variable.
+   * @param testType dummy String variable.
+   */
+  public TestEntity(int testInt, String testString, double testDouble, String testType) {
+    this.testInt = testInt;
+    this.testString = testString;
+    this.testDouble = testDouble;
+    this.testType = testType;
+  }
+
+  public int getTestInt() {
+    return testInt;
+  }
+
+  public void setTestInt(int testInt) {
+    this.testInt = testInt;
+  }
+
+  public String getTestString() {
+    return testString;
+  }
+
+  public void setTestString(String testString) {
+    this.testString = testString;
+  }
+
+  public double getTestDouble() {
+    return testDouble;
+  }
+
+  public void setTestDouble(double testDouble) {
+    this.testDouble = testDouble;
+  }
+
+  public String getTestType() {
+    return testType;
+  }
+
+  public void setTestType(String testType) {
+    this.testType = testType;
+  }
+
+  @Override
+  public String type() {
+    return testType;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
     }
-    public TestEntity(int i, String s, double d, String t) {
-        this.i = i;
-        this.s = s;
-        this.d = d;
-        this.type = t;
+    if (o == null || getClass() != o.getClass()) {
+      return false;
     }
+    TestEntity that = (TestEntity) o;
+    boolean intEquals = testInt == that.testInt;
+    int doubleEquals = Double.compare(that.testDouble, testDouble);
+    boolean stringEquals = Objects.equals(testString, that.testString);
+    boolean typeEquals = Objects.equals(testType, that.testType);
+    return  intEquals && doubleEquals == 0 && stringEquals && typeEquals;
+  }
 
-    public int getI() {
-        return i;
-    }
-
-    public String getS() {
-        return s;
-    }
-
-    public double getD() {
-        return d;
-    }
-
-    public String getType() {
-        return type;
-    }
-
-    public void setI(int i) {
-        this.i = i;
-    }
-
-    public void setS(String s) {
-        this.s = s;
-    }
-
-    public void setD(double d) {
-        this.d = d;
-    }
-
-    public void setType(String t) {
-        this.type = t;
-    }
-
-    @Override
-    public String type() {
-        return type;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        TestEntity that = (TestEntity) o;
-        return i == that.i && Double.compare(that.d, d) == 0 && Objects.equals(s, that.s) && Objects.equals(type, that.type);
-    }
-
+  @Override
+  public int hashCode() {
+    return Objects.hash(testInt, testString, testDouble, testType);
+  }
 }

@@ -22,13 +22,13 @@ public class Sha3256HasherTest {
         Hash hash = hasher.computeHash(encodedEntity);
         Identifier identifier = hash.toIdentifier();
         byte[] bytes = identifier.getBytes();
-        Assertions.assertEquals(bytes.length, 32);
+        Assertions.assertEquals(32, bytes.length);
     }
 
     // testing of the same entity for 100 times to check if they are the same
     @RepeatedTest(100)
     public void Test2() {
-        String hashHex = "f3fcd655fe716612ac0dd15dc9fadfafe6b85c051f52a8df337d0bc206ffa98f"; // ran test manually and got this hash
+        String hashHex = "02a1b9e8174477e593adb5f8b6bcb1a98a4c6dc908bc7e5c406812a7f2fc0629"; // ran test manually and got this hash
         TestEntity testEntity = new TestEntity(0, "test String", 3.1415, "test");
         JsonEncoder encoder = new JsonEncoder();
         EncodedEntity encodedEntity = encoder.encode(testEntity);
