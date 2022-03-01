@@ -21,13 +21,13 @@ public class Sha3256Hasher implements Hasher {
   public Hash computeHash(EncodedEntity e) {
     // TODO: implement it
     MessageDigest md;
+    String algorithm = "SHA-256";
     try {
-      md = MessageDigest.getInstance("SHA3-256");
+      md = MessageDigest.getInstance(algorithm);
       byte[] hashValue = md.digest(e.getBytes());
       return new Sha3256Hash(hashValue);
     } catch (NoSuchAlgorithmException ex) {
-      ex.printStackTrace();
+      throw new IllegalStateException(algorithm + "algorithm not found.", ex);
     }
-    return null;
   }
 }

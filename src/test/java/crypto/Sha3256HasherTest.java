@@ -28,7 +28,7 @@ public class Sha3256HasherTest {
     // testing of the same entity for 100 times to check if they are the same
     @RepeatedTest(100)
     public void Test2() {
-        String hashHex = "02a1b9e8174477e593adb5f8b6bcb1a98a4c6dc908bc7e5c406812a7f2fc0629"; // ran test manually and got this hash
+        String hashHex = "f525bc45a50506970ea62def81a337d649250aaf2e4b0214c17b0df339ece1ee"; // ran test manually and got this hash
         TestEntity testEntity = new TestEntity(0, "test String", 3.1415, "test");
         JsonEncoder encoder = new JsonEncoder();
         EncodedEntity encodedEntity = encoder.encode(testEntity);
@@ -36,7 +36,7 @@ public class Sha3256HasherTest {
         Hash hash = hasher.computeHash(encodedEntity);
         Identifier identifier = hash.toIdentifier();
         byte[] bytes = identifier.getBytes();
-        Assertions.assertEquals(Hex.encodeHexString(bytes), hashHex);
+        Assertions.assertEquals(hashHex, Hex.encodeHexString(bytes));
     }
 
     // testing of the different entities for 100 times to check if they are NOT the same

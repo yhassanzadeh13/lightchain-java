@@ -27,9 +27,8 @@ public class JsonEncoder implements Codec {
       String type = e.getClass().getCanonicalName();
       return new EncodedEntity(bytes, type);
     } catch (JsonProcessingException ex) {
-      ex.printStackTrace();
+      throw new IllegalStateException("Failed to encode Entity to JSON", ex);
     }
-    return null;
   }
 
   /**
@@ -46,8 +45,7 @@ public class JsonEncoder implements Codec {
       JavaType a = mapper.getTypeFactory().constructFromCanonical(e.getType());
       return mapper.readValue(json, a);
     } catch (IOException ex) {
-      ex.printStackTrace();
+      throw new IllegalStateException("Failed to encode Entity to JSON", ex);
     }
-    return null;
   }
 }
