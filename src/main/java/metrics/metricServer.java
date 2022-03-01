@@ -13,14 +13,18 @@ public class metricServer {
         try {
             server = new HTTPServer(8081);
         } catch (IOException e) {
-            e.printStackTrace();
+            throw new IllegalStateException("could not start metrics server:\t" + e);
         }
 
     }
 
     public static void Terminate() {
 
-        server.stop();
+        try {
+            server.stop();
+        } catch (Exception e) {
+            throw new IllegalStateException("could not stop metrics server:\t" + e);
+        }
 
     }
 
