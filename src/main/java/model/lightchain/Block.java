@@ -35,7 +35,10 @@ public class Block extends model.Entity {
    * @param transactions set of validated transactions that this block carries.
    * @param signature signature of the proposer over the hash of this block.
    */
-  public Block(Identifier previousBlockId, Identifier proposer, ValidatedTransaction[] transactions, Signature signature) {
+  public Block(Identifier previousBlockId,
+               Identifier proposer,
+               ValidatedTransaction[] transactions,
+               Signature signature) {
     this.previousBlockId = previousBlockId;
     this.proposer = proposer;
     this.transactions = transactions;
