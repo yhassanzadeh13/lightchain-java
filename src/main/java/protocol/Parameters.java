@@ -1,5 +1,8 @@
 package protocol;
 
+/**
+ * Encapsulated LightChain's operational parameters. 
+ */
 public class Parameters {
   /**
    * Maximum number of validated transactions a block can carry on.
@@ -14,7 +17,7 @@ public class Parameters {
    */
   public static final int VALIDATOR_THRESHOLD = 10;
   /**
-   * Maximum number of validators' signature a block or transaction must have to be considered as validated. 
+   * Maximum number of validators' signature a block or transaction must have to be considered as validated.
    */
   public static final int SIGNATURE_THRESHOLD = 10;
 }
