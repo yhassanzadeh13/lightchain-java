@@ -15,11 +15,12 @@ import java.util.Random;
 
 import static org.mockito.Mockito.*;
 public class ValidatorTest {
-  // Note: except actual implementation of Validator, mock everything else, and use fixtures when needed.
-  //
-  // TODO: a single individual test function for each of these scenarios:
-  Random random = new Random();
-  // 1. isCorrect fails since reference block id does not represent a valid snap shot (i.e., null snapshot).
+  private final static Random random = new Random();
+
+
+  /**
+   * Evaluates the transaction validation fails when reference block id points to an invalid (null) snapshot.
+   */
   @Test
   public void isCorrectFail_NullSnapshot(){
     // Arrange
@@ -28,11 +29,11 @@ public class ValidatorTest {
 
     /// State & Snapshot
     State mockState = mock(State.class);
-    Snapshot mockSnapshot = mock(Snapshot.class);
-    //when(mockState.atBlockId(referenceBlockId)).thenReturn(mockSnapshot);
-   // when(mockSnapshot.getAccount(sender))
+    // Snapshot mockSnapshot = mock(Snapshot.class);
+    when(mockState.atBlockId(transaction.getReferenceBlockId())).thenReturn(null);
 
-    Validator verifier = new TransactionVerifier();
+
+    Validator verifier = new TransactionVerifier(mockState);
 
     // Act
     boolean result = verifier.isCorrect(transaction);
@@ -63,7 +64,7 @@ public class ValidatorTest {
     when(mockSnapshot.getAccount(receiver)).thenReturn(receiverAccount);
 
     // Act
-    Validator verifier = new TransactionVerifier();
+    Validator verifier = new TransactionVerifier(mockState);
     boolean result = verifier.isCorrect(transaction);
     Assertions.assertTrue(result);
   }
@@ -93,7 +94,7 @@ public class ValidatorTest {
     when(mockSenderSnapshot.getReferenceBlockId()).thenReturn(mockLastBlockID);
     when(mockSenderSnapshot.getReferenceBlockHeight()).thenReturn(mockLastHeight);
     // Act
-    Validator verifier = new TransactionVerifier();
+    Validator verifier = new TransactionVerifier(mockState);
     boolean result = verifier.isSound(transaction);
 
     // Assert
@@ -123,7 +124,7 @@ public class ValidatorTest {
     when(mockSenderSnapshot.getReferenceBlockId()).thenReturn(mockLastBlockID);
     when(mockSenderSnapshot.getReferenceBlockHeight()).thenReturn(mockLastHeight);
     // Act
-    Validator verifier = new TransactionVerifier();
+    Validator verifier = new TransactionVerifier(mockState);
     boolean result = verifier.isSound(transaction);
 
     // Assert
@@ -149,7 +150,7 @@ public class ValidatorTest {
     when(mockSnapshot.getAccount(sender)).thenReturn(senderAccount);
 
     // Act
-    Validator verifier = new TransactionVerifier();
+    Validator verifier = new TransactionVerifier(mockState);
     boolean result = verifier.senderHasEnoughBalance(transaction);
     Assertions.assertFalse(result);
     //
@@ -174,7 +175,7 @@ public class ValidatorTest {
     when(mockSnapshot.getAccount(sender)).thenReturn(senderAccount);
 
     // Act
-    Validator verifier = new TransactionVerifier();
+    Validator verifier = new TransactionVerifier(mockState);
     boolean result = verifier.senderHasEnoughBalance(transaction);
     Assertions.assertTrue(result);
     //
