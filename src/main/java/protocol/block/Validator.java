@@ -50,8 +50,9 @@ public interface Validator {
    *
    * @param block the block under validation.
    * @return true if all transactions included in the block are validated, i.e., have a minimum of signature threshold
-   * as specified by LightChain protocol. Signatures are verified based on the public key of signers at the snapshot
+   * as specified by LightChain protocol. Signatures are verified based on the public key of validators at the snapshot
    * of the previous block id.
+   * Also, all validators of each transaction has minimum stake at the previous block id of this block.
    */
   boolean allTransactionsValidated(Block block);
 
