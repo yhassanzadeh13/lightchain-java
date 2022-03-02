@@ -26,6 +26,6 @@ public abstract class Signature {
   }
 
   public byte[] getBytes() {
-    return bytes;
+    return bytes.clone();
   }
 }
