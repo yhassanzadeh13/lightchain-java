@@ -29,11 +29,11 @@ public class ValidatedTransaction extends Transaction {
                               Signature[] certificates) {
 
     super(referenceBlockId, sender, receiver, amount);
-    this.certificates = certificates;
+    this.certificates = certificates.clone();
   }
 
   public Signature[] getCertificates() {
-    return certificates;
+    return certificates.clone();
   }
 
   @Override
