@@ -1,7 +1,7 @@
 package protocol;
 
 /**
- * Encapsulated LightChain's operational parameters. 
+ * Encapsulated LightChain's operational parameters.
  */
 public class Parameters {
   /**
@@ -20,4 +20,9 @@ public class Parameters {
    * Maximum number of validators' signature a block or transaction must have to be considered as validated.
    */
   public static final int SIGNATURE_THRESHOLD = 10;
+  /**
+   * Minimum stake a node needed in terms of LightChain tokens in order to be eligible to propose a block, as well
+   * as to validate a transaction or block.
+   */
+  public static final int MINIMUM_STAKE = 10;
 }
