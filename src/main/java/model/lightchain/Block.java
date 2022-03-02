@@ -41,7 +41,7 @@ public class Block extends model.Entity {
                Signature signature) {
     this.previousBlockId = previousBlockId;
     this.proposer = proposer;
-    this.transactions = transactions;
+    this.transactions = transactions.clone();
     this.signature = signature;
   }
 
@@ -63,7 +63,7 @@ public class Block extends model.Entity {
   }
 
   public ValidatedTransaction[] getTransactions() {
-    return transactions;
+    return transactions.clone();
   }
 
   public Signature getSignature() {
