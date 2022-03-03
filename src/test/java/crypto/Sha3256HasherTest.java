@@ -2,20 +2,22 @@ package crypto;
 
 import model.codec.EncodedEntity;
 import model.crypto.Hash;
-import model.fixture.TestEntity;
 import model.lightchain.Identifier;
 import modules.codec.JsonEncoder;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.Test;
 import org.apache.commons.codec.binary.Hex;
+import unittest.fixtures.EntityFixture;
 
 public class Sha3256HasherTest {
 
-    // length test of the hash
+    /**
+     * Test if the hash is 32 bytes long
+     */
     @Test
     public void Test1() {
-        TestEntity testEntity = new TestEntity(2022, "Hello World!", 3.14, "test type");
+        EntityFixture testEntity = new EntityFixture();
         JsonEncoder encoder = new JsonEncoder();
         EncodedEntity encodedEntity = encoder.encode(testEntity);
         Sha3256Hasher hasher = new Sha3256Hasher();
@@ -25,35 +27,41 @@ public class Sha3256HasherTest {
         Assertions.assertEquals(32, bytes.length);
     }
 
-    // testing of the same entity for 100 times to check if they are the same
-    @RepeatedTest(100)
+    /**
+     * Test if the hash is the same for the same entity
+     */
+    @Test
     public void Test2() {
-        String hashHex = "f525bc45a50506970ea62def81a337d649250aaf2e4b0214c17b0df339ece1ee"; // ran test manually and got this hash
-        TestEntity testEntity = new TestEntity(0, "test String", 3.1415, "test");
+        EntityFixture testEntity = new EntityFixture();
         JsonEncoder encoder = new JsonEncoder();
         EncodedEntity encodedEntity = encoder.encode(testEntity);
         Sha3256Hasher hasher = new Sha3256Hasher();
-        Hash hash = hasher.computeHash(encodedEntity);
-        Identifier identifier = hash.toIdentifier();
-        byte[] bytes = identifier.getBytes();
-        Assertions.assertEquals(hashHex, Hex.encodeHexString(bytes));
+        Hash hash1 = hasher.computeHash(encodedEntity);
+        for (int i = 0; i < 100; i++) {
+            Hash hash2 = hasher.computeHash(encodedEntity);
+            Assertions.assertEquals(hash1.compare(hash2), Hash.EQUAL);
+        }
     }
 
-    // testing of the different entities for 100 times to check if they are NOT the same
-    @RepeatedTest(100)
+    /**
+     * Test if the hash is different for different entities
+     */
+    @Test
     public void Test3() {
-        TestEntity testEntity1 = new TestEntity(1, "test String1", 3.1, "test1");
-        TestEntity testEntity2 = new TestEntity(2, "test String2", 3.141, "test2");
         JsonEncoder encoder = new JsonEncoder();
+        Sha3256Hasher hasher = new Sha3256Hasher();
+        EntityFixture testEntity1 = new EntityFixture();
+        EntityFixture testEntity2 = new EntityFixture();
         EncodedEntity encodedEntity1 = encoder.encode(testEntity1);
         EncodedEntity encodedEntity2 = encoder.encode(testEntity2);
-        Sha3256Hasher hasher = new Sha3256Hasher();
         Hash hash1 = hasher.computeHash(encodedEntity1);
         Hash hash2 = hasher.computeHash(encodedEntity2);
-        Identifier identifier1 = hash1.toIdentifier();
-        Identifier identifier2 = hash2.toIdentifier();
-        byte[] bytes1 = identifier1.getBytes();
-        byte[] bytes2 = identifier2.getBytes();
-        Assertions.assertNotEquals(Hex.encodeHexString(bytes1), Hex.encodeHexString(bytes2));
+        for (int i = 0; i < 100; i++) {
+            Assertions.assertNotEquals(hash1.compare(hash2), Hash.EQUAL);
+            hash1 = hash2;
+            testEntity2 = new EntityFixture();
+            encodedEntity2 = encoder.encode(testEntity2);
+            hash2 = hasher.computeHash(encodedEntity2);
+        }
     }
 }

@@ -11,6 +11,7 @@ import model.crypto.Sha3256Hash;
  * Implements SHA3-256 hashing functionality.
  */
 public class Sha3256Hasher implements Hasher {
+
   /**
    * Computes hash of the given encoded entity.
    *
@@ -20,10 +21,9 @@ public class Sha3256Hasher implements Hasher {
   @Override
   public Hash computeHash(EncodedEntity e) {
     // TODO: implement it
-    MessageDigest md;
     String algorithm = "SHA-256";
     try {
-      md = MessageDigest.getInstance(algorithm);
+      MessageDigest md = MessageDigest.getInstance(algorithm);
       byte[] hashValue = md.digest(e.getBytes());
       return new Sha3256Hash(hashValue);
     } catch (NoSuchAlgorithmException ex) {

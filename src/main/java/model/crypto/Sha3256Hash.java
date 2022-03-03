@@ -9,6 +9,11 @@ import model.lightchain.Identifier;
 public class Sha3256Hash extends Hash {
   private final byte[] bytes;
 
+  /**
+   * Constructs a SHA3-256 hash object from a byte array.
+   *
+   * @param hashValue the byte array to construct the hash from
+   */
   public Sha3256Hash(byte[] hashValue) {
     super(hashValue);
     if (hashValue.length != 32) {
@@ -17,6 +22,11 @@ public class Sha3256Hash extends Hash {
     this.bytes = hashValue.clone();
   }
 
+  /**
+   * Constructs a SHA3-256 hash object from an identifier.
+   *
+   * @param identifier the identifier to construct the hash from
+   */
   public Sha3256Hash(Identifier identifier) {
     super(identifier);
     if (identifier.getBytes().length != 32) {

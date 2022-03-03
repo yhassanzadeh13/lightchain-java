@@ -10,6 +10,9 @@ public abstract class Hash {
    * Actual value of hash in bytes.
    */
   private final byte[] bytes;
+  public static final int EQUAL = 0;
+  public static final int LESS = -1;
+  public static final int GREATER = 1;
 
   public Hash(byte[] hashValue) {
     this.bytes = hashValue.clone();
