@@ -16,7 +16,7 @@ public class Sha3256HasherTest {
      * Test if the hash is 32 bytes long
      */
     @Test
-    public void Test1() {
+    public void TestHashLength() {
         EntityFixture testEntity = new EntityFixture();
         JsonEncoder encoder = new JsonEncoder();
         EncodedEntity encodedEntity = encoder.encode(testEntity);
@@ -31,7 +31,7 @@ public class Sha3256HasherTest {
      * Test if the hash is the same for the same entity
      */
     @Test
-    public void Test2() {
+    public void TestHashingSameEntity() {
         EntityFixture testEntity = new EntityFixture();
         JsonEncoder encoder = new JsonEncoder();
         EncodedEntity encodedEntity = encoder.encode(testEntity);
@@ -47,7 +47,7 @@ public class Sha3256HasherTest {
      * Test if the hash is different for different entities
      */
     @Test
-    public void Test3() {
+    public void TestHashingDifferentEntities() {
         JsonEncoder encoder = new JsonEncoder();
         Sha3256Hasher hasher = new Sha3256Hasher();
         EntityFixture testEntity1 = new EntityFixture();
