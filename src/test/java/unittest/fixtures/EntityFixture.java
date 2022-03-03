@@ -64,15 +64,4 @@ public class EntityFixture extends Entity {
     return result;
   }
 
-  @Override
-  public String toString() {
-    return "EntityFixture{" +
-            "id=" + id +
-            ", testInt=" + testInt +
-            ", testString='" + testString + '\'' +
-            ", testDouble=" + testDouble +
-            ", testBytes=" + Arrays.toString(testBytes) +
-            ", testHashArray=" + Arrays.toString(testHashArray) +
-            '}';
-  }
 }
