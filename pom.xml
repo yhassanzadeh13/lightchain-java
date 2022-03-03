@@ -144,22 +144,13 @@
             <version>v1.0.0</version>
         </dependency>
 
-        <!-- Jackson Dependencies for JSON Encoding/Decoding -->
+        <!-- Gson Dependencies for JSON Encoding/Decoding -->
         <dependency>
-            <groupId>com.fasterxml.jackson.core</groupId>
-            <artifactId>jackson-core</artifactId>
-            <version>2.13.1</version>
+            <groupId>com.google.code.gson</groupId>
+            <artifactId>gson</artifactId>
+            <version>2.9.0</version>
         </dependency>
-        <dependency>
-            <groupId>com.fasterxml.jackson.core</groupId>
-            <artifactId>jackson-databind</artifactId>
-            <version>2.13.1</version>
-        </dependency>
-        <dependency>
-            <groupId>com.fasterxml.jackson.core</groupId>
-            <artifactId>jackson-annotations</artifactId>
-            <version>2.13.1</version>
-        </dependency>
+
 
         <!-- Apache Commons Codec for byteR -->
         <dependency>

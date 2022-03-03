@@ -32,46 +32,6 @@ public class EntityFixture extends Entity {
     this.testHashArray = new Sha3256Hash[32];
   }
 
-  public Identifier getId() {
-    return id;
-  }
-
-  public int getTestInt() {
-    return testInt;
-  }
-
-  public void setTestInt(int testInt) {
-    this.testInt = testInt;
-  }
-
-  public String getTestString() {
-    return testString;
-  }
-
-  public void setTestString(String testString) {
-    this.testString = testString;
-  }
-
-  public double getTestDouble() {
-    return testDouble;
-  }
-
-  public void setTestDouble(double testDouble) {
-    this.testDouble = testDouble;
-  }
-
-  public byte[] getTestBytes() {
-    return testBytes;
-  }
-
-  public void setTestBytes(byte[] testBytes) {
-    this.testBytes = testBytes;
-  }
-
-  public Sha3256Hash[] getTestHashArray() {
-    return testHashArray;
-  }
-
   public void setTestHashArray(Sha3256Hash[] testHashArray) {
     this.testHashArray = testHashArray;
   }
@@ -91,7 +51,7 @@ public class EntityFixture extends Entity {
     if (this == o) return true;
     if (o == null || getClass() != o.getClass()) return false;
     EntityFixture that = (EntityFixture) o;
-    return testInt == that.testInt && Double.compare(that.testDouble, testDouble) == 0 && id.equals(that.id)
+    return testInt == that.testInt && Double.compare(that.testDouble, testDouble) == 0 && id.comparedTo(that.id) == 0
             && testString.equals(that.testString) && Arrays.equals(testBytes, that.testBytes)
             && Arrays.equals(testHashArray, that.testHashArray);
   }
@@ -102,5 +62,17 @@ public class EntityFixture extends Entity {
     result = 31 * result + Arrays.hashCode(testBytes);
     result = 31 * result + Arrays.hashCode(testHashArray);
     return result;
+  }
+
+  @Override
+  public String toString() {
+    return "EntityFixture{" +
+            "id=" + id +
+            ", testInt=" + testInt +
+            ", testString='" + testString + '\'' +
+            ", testDouble=" + testDouble +
+            ", testBytes=" + Arrays.toString(testBytes) +
+            ", testHashArray=" + Arrays.toString(testHashArray) +
+            '}';
   }
 }

@@ -1,11 +1,9 @@
 package modules.codec;
 
-import java.io.IOException;
+import java.lang.reflect.Type;
 import java.nio.charset.StandardCharsets;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JavaType;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.gson.Gson;
 import model.Entity;
 import model.codec.EncodedEntity;
 
@@ -21,14 +19,10 @@ public class JsonEncoder implements Codec {
    */
   @Override
   public EncodedEntity encode(Entity e) {
-    try {
-      ObjectMapper mapper = new ObjectMapper();
-      byte[] bytes = mapper.writeValueAsString(e).getBytes(StandardCharsets.UTF_8);
-      String type = e.getClass().getCanonicalName();
-      return new EncodedEntity(bytes, type);
-    } catch (JsonProcessingException ex) {
-      throw new IllegalStateException("Failed to encode Entity to JSON", ex);
-    }
+    Gson gson = new Gson();
+    byte[] bytes = gson.toJson(e).getBytes(StandardCharsets.UTF_8);
+    String type = e.getClass().getCanonicalName();
+    return new EncodedEntity(bytes, type);
   }
 
   /**
@@ -38,14 +32,10 @@ public class JsonEncoder implements Codec {
    * @return original Entity type.
    */
   @Override
-  public Entity decode(EncodedEntity e) {
-    try {
-      ObjectMapper mapper = new ObjectMapper();
-      String json = new String(e.getBytes(), StandardCharsets.UTF_8);
-      JavaType a = mapper.getTypeFactory().constructFromCanonical(e.getType());
-      return mapper.readValue(json, a);
-    } catch (IOException ex) {
-      throw new IllegalStateException("Failed to encode Entity to JSON", ex);
-    }
+  public Entity decode(EncodedEntity e) throws ClassNotFoundException {
+    Gson gson = new Gson();
+    String json = new String(e.getBytes().clone(), StandardCharsets.UTF_8);
+    return gson.fromJson(json, (Type) Class.forName(e.getType()));
+
   }
 }

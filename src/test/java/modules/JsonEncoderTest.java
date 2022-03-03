@@ -9,7 +9,7 @@ import unittest.fixtures.EntityFixture;
 public class JsonEncoderTest {
 
   @Test
-  public void TestEncodingRoundTrip() {
+  public void TestEncodingRoundTrip() throws ClassNotFoundException {
     JsonEncoder encoder = new JsonEncoder();
     EntityFixture entity = new EntityFixture();
     Entity entityChanged = encoder.decode(encoder.encode(entity));

@@ -7,7 +7,7 @@ import model.lightchain.Identifier;
  * the cryptographic hash function used in LightChain.
  */
 public class Sha3256Hash extends Hash {
-  private final byte[] bytes;
+  private final byte[] hashBytes;
 
   /**
    * Constructs a SHA3-256 hash object from a byte array.
@@ -19,7 +19,7 @@ public class Sha3256Hash extends Hash {
     if (hashValue.length != 32) {
       throw new IllegalArgumentException("Hash value must be 32 bytes long.");
     }
-    this.bytes = hashValue.clone();
+    this.hashBytes = hashValue.clone();
   }
 
   /**
@@ -32,7 +32,7 @@ public class Sha3256Hash extends Hash {
     if (identifier.getBytes().length != 32) {
       throw new IllegalArgumentException("Identifier must be 32 bytes long.");
     }
-    this.bytes = identifier.getBytes();
+    this.hashBytes = identifier.getBytes();
   }
 
   @Override
@@ -42,6 +42,6 @@ public class Sha3256Hash extends Hash {
 
   @Override
   public Identifier toIdentifier() {
-    return new Identifier(this.bytes);
+    return new Identifier(this.hashBytes);
   }
 }
