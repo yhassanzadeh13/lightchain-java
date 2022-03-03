@@ -12,6 +12,8 @@ import model.crypto.Sha3256Hash;
  */
 public class Sha3256Hasher implements Hasher {
 
+  private static final String HASH_ALG_SHA_3_256 = "SHA3-256";
+
   /**
    * Computes hash of the given encoded entity.
    *
@@ -21,13 +23,12 @@ public class Sha3256Hasher implements Hasher {
   @Override
   public Hash computeHash(EncodedEntity e) {
     // TODO: implement it
-    String algorithm = "SHA-256";
     try {
-      MessageDigest md = MessageDigest.getInstance(algorithm);
+      MessageDigest md = MessageDigest.getInstance(HASH_ALG_SHA_3_256);
       byte[] hashValue = md.digest(e.getBytes());
       return new Sha3256Hash(hashValue);
     } catch (NoSuchAlgorithmException ex) {
-      throw new IllegalStateException(algorithm + "algorithm not found.", ex);
+      throw new IllegalStateException(HASH_ALG_SHA_3_256 + "algorithm not found.", ex);
     }
   }
 }
