@@ -40,13 +40,23 @@ public class Account {
     this.balance = 0;
   }
 
-  public Identifier getIdentifier() {return identifier;}
+  public Identifier getIdentifier() {
+    return identifier;
+  }
 
-  public PublicKey getPublicKey() {return publicKey;}
+  public PublicKey getPublicKey() {
+    return publicKey;
+  }
 
-  public double getBalance() {return balance;}
+  public double getBalance() {
+    return balance;
+  }
 
-  public void setBalance(double balance) {this.balance = balance;}
+  public void setBalance(double balance) {
+    this.balance = balance;
+  }
 
-  public Identifier getLastBlockId() {return lastBlockId;}
+  public Identifier getLastBlockId() {
+    return lastBlockId;
+  }
 }

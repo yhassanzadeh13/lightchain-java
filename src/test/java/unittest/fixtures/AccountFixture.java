@@ -24,8 +24,6 @@ public class AccountFixture extends Account {
      * Creates an Account using randomly created PublicKey and LastBlockId.
      */
     public AccountFixture(Identifier identifier) {
-        super(identifier,
-                Mockito.mock(PublicKey.class, Mockito.withSettings().useConstructor(Bytes.ByteArrayFixture(32))),
-                IdentifierFixture.NewIdentifier());
+        super(identifier, Mockito.mock(PublicKey.class, Mockito.withSettings().useConstructor(Bytes.byteArrayFixture(32))), IdentifierFixture.NewIdentifier());
     }
 }
