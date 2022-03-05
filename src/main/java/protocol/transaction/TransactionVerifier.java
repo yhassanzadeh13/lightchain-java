@@ -9,7 +9,7 @@ import state.Snapshot;
 import state.State;
 
 /**
- * Represents a verifier class that is used to verify a Transaction is valid
+ * Represents a verifier class that is used to verify a Transaction is valid.
  */
 public class TransactionVerifier implements Validator {
   /**
@@ -19,7 +19,8 @@ public class TransactionVerifier implements Validator {
 
   /**
    * Constructor of a TransactionVerifier.
-   * @param state
+   *
+   * @param state Current state used in the verifier.
    */
   public TransactionVerifier(State state) {
     this.state = state;
@@ -54,7 +55,7 @@ public class TransactionVerifier implements Validator {
       return false;
     }
 
-    return transaction.getAmount()>0;
+    return transaction.getAmount() > 0;
     // Amount is not positive.
   }
 
