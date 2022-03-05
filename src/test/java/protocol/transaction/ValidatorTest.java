@@ -1,5 +1,6 @@
 package protocol.transaction;
 
+import model.crypto.Signature;
 import model.lightchain.Account;
 import model.lightchain.Identifier;
 import model.lightchain.Transaction;
@@ -8,15 +9,11 @@ import org.junit.jupiter.api.Test;
 import state.Snapshot;
 import state.State;
 import unittest.fixtures.AccountFixture;
-import unittest.fixtures.IdentifierFixture;
 import unittest.fixtures.TransactionFixture;
 
-import java.util.Random;
 
 import static org.mockito.Mockito.*;
 public class ValidatorTest {
-  private final static Random random = new Random();
-
 
   /**
    * Evaluates the transaction validation fails when reference block id points to an invalid (null) snapshot.
@@ -24,15 +21,14 @@ public class ValidatorTest {
   @Test
   public void isCorrectFail_NullSnapshot(){
     // Arrange
-    /// Identifiers
+    /// Transaction
     Transaction transaction = TransactionFixture.NewTransaction();
 
-    /// State & Snapshot
+    /// State & Snapshot Mocking
     State mockState = mock(State.class);
-    // Snapshot mockSnapshot = mock(Snapshot.class);
     when(mockState.atBlockId(transaction.getReferenceBlockId())).thenReturn(null);
 
-
+    /// Verifier
     Validator verifier = new TransactionVerifier(mockState);
 
     // Act
@@ -42,143 +38,358 @@ public class ValidatorTest {
     Assertions.assertFalse(result);
   }
 
-  // 2. isCorrect fails since sender does not refer to a valid account at the snapshot of reference block.
-  // 3. isCorrect fails since receiver does not refer to a valid account at the snapshot of reference block.
-  // 4. isCorrect fails since amount is negative (and also a case for zero).
-  // 5. isCorrect passes when all conditions satisfied.
+  /**
+   * Evaluates the transaction validation fails when sender identifier does not refer to a valid account at the
+   * snapshot of reference block.
+   */
+  @Test
+  public void isCorrectFail_NullSender(){
+    // Arrange
+    /// Transaction
+    Transaction transaction = TransactionFixture.NewTransaction();
+
+    /// State & Snapshot Mocking
+    State mockState = mock(State.class);
+    Snapshot mockSnapshot = mock(Snapshot.class);
+    when(mockState.atBlockId(transaction.getReferenceBlockId())).thenReturn(mockSnapshot);
+    when(mockSnapshot.getAccount(transaction.getSender())).thenReturn(null);
+
+    /// Verifier
+    Validator verifier = new TransactionVerifier(mockState);
+
+    // Act
+    boolean result = verifier.isCorrect(transaction);
+
+    // Assert
+    Assertions.assertFalse(result);
+  }
+
+  /**
+   * Evaluates the transaction validation fails when receiver identifier does not refer to a valid account at the
+   * snapshot of reference block.
+   */
+  @Test
+  public void isCorrectFail_NullReceiver(){
+    // Arrange
+    /// Transaction
+    Transaction transaction = TransactionFixture.NewTransaction();
+
+    /// State & Snapshot Mocking
+    State mockState = mock(State.class);
+    Snapshot mockSnapshot = mock(Snapshot.class);
+    Account senderAccount = new AccountFixture(transaction.getSender());
+    when(mockState.atBlockId(transaction.getReferenceBlockId())).thenReturn(mockSnapshot);
+    when(mockSnapshot.getAccount(transaction.getSender())).thenReturn(senderAccount);
+    when(mockSnapshot.getAccount(transaction.getReceiver())).thenReturn(null);
+
+    /// Verifier
+    Validator verifier = new TransactionVerifier(mockState);
+
+    // Act
+    boolean result = verifier.isCorrect(transaction);
+
+    // Assert
+    Assertions.assertFalse(result);
+  }
+
+  /**
+   * Evaluates the transaction validation fails when the amount sent by receiver is 0.
+   */
+  @Test
+  public void isCorrectFail_ZeroAmount(){
+    // Arrange
+    /// Transaction
+    double amount = 0;
+    Transaction transaction = TransactionFixture.NewTransaction(amount);
+
+    /// State & Snapshot Mocking
+    State mockState = mock(State.class);
+    Snapshot mockSnapshot = mock(Snapshot.class);
+    when(mockState.atBlockId(transaction.getReferenceBlockId())).thenReturn(mockSnapshot);
+
+    /// Verifier
+    Validator verifier = new TransactionVerifier(mockState);
+
+    // Act
+    boolean result = verifier.isCorrect(transaction);
+
+    // Assert
+    Assertions.assertFalse(result);
+  }
+
+  /**
+   * Evaluates the transaction validation fails when the amount sent by receiver is negative.
+   */
+  @Test
+  public void isCorrectFail_NegativeAmount(){
+    // Arrange
+    /// Transaction
+    double amount = -10;
+    Transaction transaction = TransactionFixture.NewTransaction(amount);
+
+    /// State & Snapshot Mocking
+    State mockState = mock(State.class);
+    Snapshot mockSnapshot = mock(Snapshot.class);
+    when(mockState.atBlockId(transaction.getReferenceBlockId())).thenReturn(mockSnapshot);
+
+    /// Verifier
+    Validator verifier = new TransactionVerifier(mockState);
+
+    // Act
+    boolean result = verifier.isCorrect(transaction);
+
+    // Assert
+    Assertions.assertFalse(result);
+  }
+
+  /**
+   * Evaluates the transaction validation passes when all conditions, i.e.
+   * 1- Reference block id is a valid and finalized block
+   * 2- The sender and receiver both refer to valid accounts at the snapshot of the reference block id
+   * 3- Amount value is non-negative
+   * are satisfied.
+   */
   @Test
   public void isCorrectPass(){
     // Arrange
-    /// Identifiers
+    /// Transaction
     Transaction transaction = TransactionFixture.NewTransaction();
-    Identifier sender = transaction.getSender();
-    Account senderAccount = new AccountFixture(sender);
-    Identifier receiver = transaction.getReceiver();
-    Account receiverAccount = new AccountFixture(receiver);
-    Identifier referenceBlockID = transaction.getReferenceBlockId();
-    /// State & Snapshot
+
+    /// State & Snapshot Mocking
     State mockState = mock(State.class);
     Snapshot mockSnapshot = mock(Snapshot.class);
-    when(mockState.atBlockId(referenceBlockID)).thenReturn(mockSnapshot);
-    when(mockSnapshot.getAccount(sender)).thenReturn(senderAccount);
-    when(mockSnapshot.getAccount(receiver)).thenReturn(receiverAccount);
+    Account senderAccount = new AccountFixture(transaction.getSender());
+    Account receiverAccount = new AccountFixture(transaction.getReceiver());
+    when(mockState.atBlockId(transaction.getReferenceBlockId())).thenReturn(mockSnapshot);
+    when(mockSnapshot.getAccount(transaction.getSender())).thenReturn(senderAccount);
+    when(mockSnapshot.getAccount(transaction.getReceiver())).thenReturn(receiverAccount);
+
+    /// Verifier
+    Validator verifier = new TransactionVerifier(mockState);
 
     // Act
-    Validator verifier = new TransactionVerifier(mockState);
     boolean result = verifier.isCorrect(transaction);
+
+    // Assert
     Assertions.assertTrue(result);
   }
 
-  //
-  // 6. isSound fails since reference block has a lower height (and also case for equal) than the last block of sender account.
+  /**
+   * Evaluates the transaction validation fails when the reference block has a lower height than the
+   * last block of sender account.
+   */
   @Test
   public void isSoundFail_LowerHeight(){
     // Arrange
-    /// Identifiers
+    /// Transaction
     Transaction transaction = TransactionFixture.NewTransaction();
-    Identifier sender = transaction.getSender();
-    Account senderAccount = new AccountFixture(sender);
-    Identifier referenceBlockID = transaction.getReferenceBlockId();
-    /// State & Snapshot
-    Identifier mockLastBlockID = mock(Identifier.class);
-    Snapshot mockSenderSnapshot = mock(Snapshot.class);
-    byte[] mockBytes = new byte[32];
-    random.nextBytes(mockBytes);
-    long mockLastHeight = random.nextLong()+10;
+
+    /// State & Snapshot Mocking
     State mockState = mock(State.class);
     Snapshot mockSnapshot = mock(Snapshot.class);
-    when(mockState.atBlockId(referenceBlockID)).thenReturn(mockSnapshot);
-    when(mockSnapshot.getReferenceBlockHeight()).thenReturn(random.nextLong());
+    Snapshot mockLastSnapshot = mock(Snapshot.class);
+    Snapshot mockLastSnapshot_EqualHeight = mock(Snapshot.class);
+    Identifier sender = transaction.getSender();
+    Account senderAccount = new AccountFixture(sender);
+    Account senderAccountEqualHeight = new AccountFixture(sender);
+    when(mockState.atBlockId(transaction.getReferenceBlockId())).thenReturn(mockSnapshot);
     when(mockSnapshot.getAccount(sender)).thenReturn(senderAccount);
+    when(mockState.atBlockId(senderAccount.getLastBlockId())).thenReturn(mockLastSnapshot);
+    when(mockState.atBlockId(senderAccountEqualHeight.getLastBlockId())).thenReturn(mockLastSnapshot_EqualHeight);
+    when(mockSnapshot.getReferenceBlockHeight()).thenReturn(1L);
+    when(mockLastSnapshot.getReferenceBlockHeight()).thenReturn(10L);
 
-    when(mockSenderSnapshot.getReferenceBlockId()).thenReturn(mockLastBlockID);
-    when(mockSenderSnapshot.getReferenceBlockHeight()).thenReturn(mockLastHeight);
-    // Act
+    /// Verifier
     Validator verifier = new TransactionVerifier(mockState);
+
+    // Act
     boolean result = verifier.isSound(transaction);
 
     // Assert
     Assertions.assertFalse(result);
   }
-  // 7. isSound passes since reference block has a higher height than the last block of the sender account.
+
+  /**
+   * Evaluates the transaction validation fails when the reference block has an equal height with the
+   * last block of sender account.
+   */
+  @Test
+  public void isSoundFail_EqualHeight(){
+    // Arrange
+    /// Transaction
+    Transaction transaction = TransactionFixture.NewTransaction();
+
+    /// State & Snapshot Mocking
+    State mockState = mock(State.class);
+    Snapshot mockSnapshot = mock(Snapshot.class);
+    Snapshot mockLastSnapshot = mock(Snapshot.class);
+    Snapshot mockLastSnapshot_EqualHeight = mock(Snapshot.class);
+    Identifier sender = transaction.getSender();
+    Account senderAccount = new AccountFixture(sender);
+    Account senderAccountEqualHeight = new AccountFixture(sender);
+    when(mockState.atBlockId(transaction.getReferenceBlockId())).thenReturn(mockSnapshot);
+    when(mockSnapshot.getAccount(sender)).thenReturn(senderAccount);
+    when(mockState.atBlockId(senderAccount.getLastBlockId())).thenReturn(mockLastSnapshot);
+    when(mockState.atBlockId(senderAccountEqualHeight.getLastBlockId())).thenReturn(mockLastSnapshot_EqualHeight);
+    when(mockSnapshot.getReferenceBlockHeight()).thenReturn(1L);
+    when(mockLastSnapshot.getReferenceBlockHeight()).thenReturn(1L);
+
+    /// Verifier
+    Validator verifier = new TransactionVerifier(mockState);
+
+    // Act
+    boolean result = verifier.isSound(transaction);
+
+    // Assert
+    Assertions.assertFalse(result);
+  }
+
+  /**
+   * Evaluates the transaction validation passes when the reference block has a larger height than the
+   * last block of sender account.
+   */
   @Test
   public void isSoundPass(){
     // Arrange
-    /// Identifiers
+    /// Transaction
     Transaction transaction = TransactionFixture.NewTransaction();
-    Identifier sender = transaction.getSender();
-    Account senderAccount = new AccountFixture(sender);
-    Identifier referenceBlockID = transaction.getReferenceBlockId();
-    /// State & Snapshot
-    Identifier mockLastBlockID = mock(Identifier.class);
-    Snapshot mockSenderSnapshot = mock(Snapshot.class);
-    byte[] mockBytes = new byte[32];
-    random.nextBytes(mockBytes);
-    long mockLastHeight = random.nextLong();
+
+    /// State & Snapshot Mocking
     State mockState = mock(State.class);
     Snapshot mockSnapshot = mock(Snapshot.class);
-    when(mockState.atBlockId(referenceBlockID)).thenReturn(mockSnapshot);
-    when(mockSnapshot.getReferenceBlockHeight()).thenReturn(random.nextLong()+10);
+    Snapshot mockLastSnapshot = mock(Snapshot.class);
+    Identifier sender = transaction.getSender();
+    Account senderAccount = new AccountFixture(sender);
+    when(mockState.atBlockId(transaction.getReferenceBlockId())).thenReturn(mockSnapshot);
     when(mockSnapshot.getAccount(sender)).thenReturn(senderAccount);
+    when(mockState.atBlockId(senderAccount.getLastBlockId())).thenReturn(mockLastSnapshot);
+    when(mockSnapshot.getReferenceBlockHeight()).thenReturn(10L);
+    when(mockLastSnapshot.getReferenceBlockHeight()).thenReturn(9L);
 
-    when(mockSenderSnapshot.getReferenceBlockId()).thenReturn(mockLastBlockID);
-    when(mockSenderSnapshot.getReferenceBlockHeight()).thenReturn(mockLastHeight);
-    // Act
+    /// Verifier
     Validator verifier = new TransactionVerifier(mockState);
+
+    // Act
     boolean result = verifier.isSound(transaction);
 
     // Assert
     Assertions.assertTrue(result);
   }
-  // 8. isAuthenticated fails since transaction signature verification against its sender public key fails.
-  // 9. isAuthenticated passes when transaction signature verification against its sender public key passes.
-  //
-  // 10. senderHasEnoughBalance fails when sender has a balance lower than transaction amount.
+
+  /**
+   * Evaluates the transaction validation fails when the transaction signature verification against
+   * its sender public key fails.
+   */
+  @Test
+  public void isAuthenticatedFail_SignatureVerification(){
+    // Arrange
+    /// Transaction
+    Transaction transaction = TransactionFixture.NewTransaction();
+
+    /// State & Snapshot Mocking
+    State mockState = mock(State.class);
+    Snapshot mockSnapshot = mock(Snapshot.class);
+    Identifier sender = transaction.getSender();
+    Account senderAccount = new AccountFixture(sender);
+    Signature signature = transaction.getSignature();
+    when(mockState.atBlockId(transaction.getReferenceBlockId())).thenReturn(mockSnapshot);
+    when(mockSnapshot.getAccount(sender)).thenReturn(senderAccount);
+    when(mockSnapshot.getAccount(sender).getPublicKey().verifySignature(transaction,signature)).thenReturn(false);
+
+    /// Verifier
+    Validator verifier = new TransactionVerifier(mockState);
+
+    // Act
+    boolean result = verifier.isAuthenticated(transaction);
+
+    // Assert
+    Assertions.assertFalse(result);
+  }
+
+  /**
+   * Evaluates the transaction validation passes when the transaction signature verification against
+   * its sender public key passes.
+   */
+  @Test
+  public void isAuthenticatedPass(){
+    // Arrange
+    /// Transaction
+    Transaction transaction = TransactionFixture.NewTransaction();
+
+    /// State & Snapshot Mocking
+    State mockState = mock(State.class);
+    Snapshot mockSnapshot = mock(Snapshot.class);
+    Identifier sender = transaction.getSender();
+    Account senderAccount = new AccountFixture(sender);
+    Signature signature = transaction.getSignature();
+    when(mockState.atBlockId(transaction.getReferenceBlockId())).thenReturn(mockSnapshot);
+    when(mockSnapshot.getAccount(sender)).thenReturn(senderAccount);
+    when(mockSnapshot.getAccount(sender).getPublicKey().verifySignature(transaction,signature)).thenReturn(true);
+
+    /// Verifier
+    Validator verifier = new TransactionVerifier(mockState);
+
+    // Act
+    boolean result = verifier.isAuthenticated(transaction);
+
+    // Assert
+    Assertions.assertTrue(result);
+  }
+
+  /**
+   * Evaluates the transaction validation fails when the sender balance has a lower amount than the transaction amount.
+   */
   @Test
   public void senderHasEnoughBalanceFail(){
     // Arrange
-    /// Identifiers
+    /// Transaction
     Transaction transaction = TransactionFixture.NewTransaction();
-    Identifier sender = transaction.getSender();
-    Account senderAccount = new AccountFixture(sender);
-    Identifier referenceBlockID = transaction.getReferenceBlockId();
 
-    /// State & Snapshot
+    /// State & Snapshot Mocking
     State mockState = mock(State.class);
     Snapshot mockSnapshot = mock(Snapshot.class);
-    when(mockState.atBlockId(referenceBlockID)).thenReturn(mockSnapshot);
+    Identifier sender = transaction.getSender();
+    Account senderAccount = new AccountFixture(sender);
+    senderAccount.setBalance(0);
+    when(mockState.atBlockId(transaction.getReferenceBlockId())).thenReturn(mockSnapshot);
     when(mockSnapshot.getAccount(sender)).thenReturn(senderAccount);
 
-    // Act
+    /// Verifier
     Validator verifier = new TransactionVerifier(mockState);
+
+    // Act
     boolean result = verifier.senderHasEnoughBalance(transaction);
+
+    // Assert
     Assertions.assertFalse(result);
-    //
   }
-  // 11. senderHasEnoughBalance passes when sender has a balance greater than or equal to the transaction amount.
+
+  /**
+   * Evaluates the transaction validation fails when the sender balance has a greater amount than the transaction amount.
+   */
   @Test
   public void senderHasEnoughBalancePass(){
     // Arrange
-    /// Identifiers
+    /// Transaction
     Transaction transaction = TransactionFixture.NewTransaction();
-    Identifier sender = transaction.getSender();
-    Account senderAccount = new AccountFixture(sender);
-    Identifier referenceBlockID = transaction.getReferenceBlockId();
-    // TODO: don't we need a balance setter function for the accounts?
-    // They all start with zero balance with no setters to use. Since AccountFixture uses Account constructor,
-    // balance is always zero so this test will fail at this moment.
 
-    /// State & Snapshot
+    /// State & Snapshot Mocking
     State mockState = mock(State.class);
     Snapshot mockSnapshot = mock(Snapshot.class);
-    when(mockState.atBlockId(referenceBlockID)).thenReturn(mockSnapshot);
+    Identifier sender = transaction.getSender();
+    Account senderAccount = new AccountFixture(sender);
+    senderAccount.setBalance(1000);
+    when(mockState.atBlockId(transaction.getReferenceBlockId())).thenReturn(mockSnapshot);
     when(mockSnapshot.getAccount(sender)).thenReturn(senderAccount);
 
-    // Act
+    /// Verifier
     Validator verifier = new TransactionVerifier(mockState);
+
+    // Act
     boolean result = verifier.senderHasEnoughBalance(transaction);
+
+    // Assert
     Assertions.assertTrue(result);
-    //
   }
 
 }

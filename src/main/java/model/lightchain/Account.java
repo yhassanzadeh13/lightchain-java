@@ -19,7 +19,7 @@ public class Account {
   /**
    * Account balance in LightChain tokens.
    */
-  private final double balance;
+  private double balance;
 
   /**
    * The identifier of last finalized block that changed (balance of) this account.
@@ -27,45 +27,28 @@ public class Account {
   private final Identifier lastBlockId;
 
   /**
-   * amount of LightChain tokens this account locks in the system in order to be eligible to propose
-   * a block or validate transactions and blocks.
-   */
-  private final int stake;
-
-  /**
    * Constructor of an Account.
    *
    * @param identifier unique identifier of the account.
    * @param publicKey public key of the account owner.
    * @param lastBlockId identifier of the last block id that changed this account (or genesis id at bootstrap time).
-   * @param stake amount of LightChain tokens this account locks in the system in order to be eligible to propose
-   *              a block or validate transactions and blocks.
    */
-  public Account(Identifier identifier, PublicKey publicKey, Identifier lastBlockId, int stake) {
+  public Account(Identifier identifier, PublicKey publicKey, Identifier lastBlockId) {
     this.identifier = identifier;
     this.publicKey = publicKey;
     this.lastBlockId = lastBlockId;
-    this.stake = stake;
     this.balance = 0;
   }
 
-  public Identifier getIdentifier() {
-    return identifier;
-  }
+  public Identifier getIdentifier() {return identifier;}
 
-  public PublicKey getPublicKey() {
-    return publicKey;
-  }
+  public PublicKey getPublicKey() {return publicKey;}
 
-  public double getBalance() {
-    return balance;
-  }
+  public double getBalance() {return balance;}
+
+  public void setBalance(double balance) {this.balance = balance;}
 
   public Identifier getLastBlockId() {
     return lastBlockId;
-  }
-
-  public int getStake() {
-    return stake;
   }
 }
