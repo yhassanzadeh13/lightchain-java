@@ -5,6 +5,12 @@ import model.lightchain.Transaction;
 
 import java.util.Random;
 public class TransactionFixture extends Transaction {
+
+    /**
+     * Random object to create random amounts.
+     */
+    private static final Random RANDOM = new Random();
+
     /**
      * Constructor of the transaction.
      *
@@ -22,11 +28,11 @@ public class TransactionFixture extends Transaction {
      * and transaction amount.
      * @return random Transaction object
      */
-    public static model.lightchain.Transaction NewTransaction() {
-        Identifier sender = IdentifierFixture.NewIdentifier();
-        Identifier receiver = IdentifierFixture.NewIdentifier();
-        Identifier referenceBlockId = IdentifierFixture.NewIdentifier();
-        double amount = new Random().nextDouble()+0.01;
+    public static model.lightchain.Transaction newTransaction() {
+        Identifier sender = IdentifierFixture.newIdentifier();
+        Identifier receiver = IdentifierFixture.newIdentifier();
+        Identifier referenceBlockId = IdentifierFixture.newIdentifier();
+        double amount = RANDOM.nextDouble()+0.01;
         return new model.lightchain.Transaction(sender, receiver, referenceBlockId, amount);
     }
 
@@ -36,10 +42,10 @@ public class TransactionFixture extends Transaction {
      * @param amount Transaction amount for the random Transaction object
      * @return random Transaction object
      */
-    public static model.lightchain.Transaction NewTransaction(double amount) {
-        Identifier sender = IdentifierFixture.NewIdentifier();
-        Identifier receiver = IdentifierFixture.NewIdentifier();
-        Identifier referenceBlockId = IdentifierFixture.NewIdentifier();
+    public static model.lightchain.Transaction newTransaction(double amount) {
+        Identifier sender = IdentifierFixture.newIdentifier();
+        Identifier receiver = IdentifierFixture.newIdentifier();
+        Identifier referenceBlockId = IdentifierFixture.newIdentifier();
         return new model.lightchain.Transaction(sender, receiver, referenceBlockId, amount);
     }
 }

@@ -9,7 +9,7 @@ public class EntityFixture extends Entity {
 
   public EntityFixture() {
     super();
-    this.id = IdentifierFixture.NewIdentifier();
+    this.id = IdentifierFixture.newIdentifier();
   }
 
   @Override

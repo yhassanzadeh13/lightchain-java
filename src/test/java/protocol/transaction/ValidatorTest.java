@@ -22,7 +22,7 @@ public class ValidatorTest {
   public void isCorrectFail_NullSnapshot(){
     // Arrange
     /// Transaction
-    Transaction transaction = TransactionFixture.NewTransaction();
+    Transaction transaction = TransactionFixture.newTransaction();
 
     /// State & Snapshot Mocking
     State mockState = mock(State.class);
@@ -46,7 +46,7 @@ public class ValidatorTest {
   public void isCorrectFail_NullSender(){
     // Arrange
     /// Transaction
-    Transaction transaction = TransactionFixture.NewTransaction();
+    Transaction transaction = TransactionFixture.newTransaction();
 
     /// State & Snapshot Mocking
     State mockState = mock(State.class);
@@ -72,7 +72,7 @@ public class ValidatorTest {
   public void isCorrectFail_NullReceiver(){
     // Arrange
     /// Transaction
-    Transaction transaction = TransactionFixture.NewTransaction();
+    Transaction transaction = TransactionFixture.newTransaction();
 
     /// State & Snapshot Mocking
     State mockState = mock(State.class);
@@ -100,7 +100,7 @@ public class ValidatorTest {
     // Arrange
     /// Transaction
     double amount = 0;
-    Transaction transaction = TransactionFixture.NewTransaction(amount);
+    Transaction transaction = TransactionFixture.newTransaction(amount);
 
     /// State & Snapshot Mocking
     State mockState = mock(State.class);
@@ -125,7 +125,7 @@ public class ValidatorTest {
     // Arrange
     /// Transaction
     double amount = -10;
-    Transaction transaction = TransactionFixture.NewTransaction(amount);
+    Transaction transaction = TransactionFixture.newTransaction(amount);
 
     /// State & Snapshot Mocking
     State mockState = mock(State.class);
@@ -153,7 +153,7 @@ public class ValidatorTest {
   public void isCorrectPass(){
     // Arrange
     /// Transaction
-    Transaction transaction = TransactionFixture.NewTransaction();
+    Transaction transaction = TransactionFixture.newTransaction();
 
     /// State & Snapshot Mocking
     State mockState = mock(State.class);
@@ -182,7 +182,7 @@ public class ValidatorTest {
   public void isSoundFail_LowerHeight(){
     // Arrange
     /// Transaction
-    Transaction transaction = TransactionFixture.NewTransaction();
+    Transaction transaction = TransactionFixture.newTransaction();
 
     /// State & Snapshot Mocking
     State mockState = mock(State.class);
@@ -217,7 +217,7 @@ public class ValidatorTest {
   public void isSoundFail_EqualHeight(){
     // Arrange
     /// Transaction
-    Transaction transaction = TransactionFixture.NewTransaction();
+    Transaction transaction = TransactionFixture.newTransaction();
 
     /// State & Snapshot Mocking
     State mockState = mock(State.class);
@@ -252,7 +252,7 @@ public class ValidatorTest {
   public void isSoundPass(){
     // Arrange
     /// Transaction
-    Transaction transaction = TransactionFixture.NewTransaction();
+    Transaction transaction = TransactionFixture.newTransaction();
 
     /// State & Snapshot Mocking
     State mockState = mock(State.class);
@@ -284,7 +284,7 @@ public class ValidatorTest {
   public void isAuthenticatedFail_SignatureVerification(){
     // Arrange
     /// Transaction
-    Transaction transaction = TransactionFixture.NewTransaction();
+    Transaction transaction = TransactionFixture.newTransaction();
 
     /// State & Snapshot Mocking
     State mockState = mock(State.class);
@@ -314,7 +314,7 @@ public class ValidatorTest {
   public void isAuthenticatedPass(){
     // Arrange
     /// Transaction
-    Transaction transaction = TransactionFixture.NewTransaction();
+    Transaction transaction = TransactionFixture.newTransaction();
 
     /// State & Snapshot Mocking
     State mockState = mock(State.class);
@@ -343,7 +343,7 @@ public class ValidatorTest {
   public void senderHasEnoughBalanceFail(){
     // Arrange
     /// Transaction
-    Transaction transaction = TransactionFixture.NewTransaction();
+    Transaction transaction = TransactionFixture.newTransaction();
 
     /// State & Snapshot Mocking
     State mockState = mock(State.class);
@@ -371,7 +371,7 @@ public class ValidatorTest {
   public void senderHasEnoughBalancePass(){
     // Arrange
     /// Transaction
-    Transaction transaction = TransactionFixture.NewTransaction();
+    Transaction transaction = TransactionFixture.newTransaction();
 
     /// State & Snapshot Mocking
     State mockState = mock(State.class);
