@@ -32,7 +32,7 @@ public class TransactionFixture extends Transaction {
         Identifier sender = IdentifierFixture.newIdentifier();
         Identifier receiver = IdentifierFixture.newIdentifier();
         Identifier referenceBlockId = IdentifierFixture.newIdentifier();
-        double amount = RANDOM.nextDouble()+0.01;
+        double amount = Math.abs(RANDOM.nextInt()) + 1;
         return new model.lightchain.Transaction(sender, receiver, referenceBlockId, amount);
     }
 
