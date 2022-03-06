@@ -3,7 +3,7 @@ package unittest.fixtures;
 import java.util.Random;
 
 /**
- * Byte Fixture class that creates random objects to be used in testing.
+ * Byte Fixture class that creates random byte objects to be used in testing.
  */
 public class Bytes {
   private static final Random random = new Random();
