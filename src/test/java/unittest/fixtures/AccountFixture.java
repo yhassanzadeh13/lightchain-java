@@ -1,6 +1,5 @@
 package unittest.fixtures;
 
-import javassist.bytecode.ByteArray;
 import model.crypto.PublicKey;
 import model.lightchain.Account;
 import model.lightchain.Identifier;
@@ -15,7 +14,7 @@ public class AccountFixture extends Account {
      * @param lastBlockId identifier of the last block id that changed this account (or genesis id at bootstrap time).
      */
     public AccountFixture(Identifier identifier, PublicKey publicKey, Identifier lastBlockId) {
-        super(identifier, publicKey, lastBlockId);
+        super(identifier, publicKey, lastBlockId, stake);
     }
     /**
      * Constructor of an Account.
@@ -24,6 +23,6 @@ public class AccountFixture extends Account {
      * Creates an Account using randomly created PublicKey and LastBlockId.
      */
     public AccountFixture(Identifier identifier) {
-        super(identifier, Mockito.mock(PublicKey.class, Mockito.withSettings().useConstructor(Bytes.byteArrayFixture(32))), IdentifierFixture.newIdentifier());
+        super(identifier, Mockito.mock(PublicKey.class, Mockito.withSettings().useConstructor(Bytes.byteArrayFixture(32))), IdentifierFixture.newIdentifier(), stake);
     }
 }

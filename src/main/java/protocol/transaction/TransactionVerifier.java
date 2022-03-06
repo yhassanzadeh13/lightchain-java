@@ -56,7 +56,6 @@ public class TransactionVerifier implements Validator {
     }
 
     return transaction.getAmount() > 0;
-    // Amount is not positive.
   }
 
   /**
@@ -89,15 +88,10 @@ public class TransactionVerifier implements Validator {
    */
   @Override
   public boolean isAuthenticated(Transaction transaction) {
-    Identifier referenceBlockId = transaction.getReferenceBlockId();
-    Snapshot snapshot = state.atBlockId(referenceBlockId);
-
-    Identifier sender = transaction.getSender();
-    Account senderAccount = snapshot.getAccount(sender);
-    PublicKey publicKey = senderAccount.getPublicKey();
-
-    Signature signature = transaction.getSignature();
-    return publicKey.verifySignature(transaction, signature);
+    return state.atBlockId(transaction.getReferenceBlockId()).
+        getAccount(transaction.getSender()).
+        getPublicKey().
+        verifySignature(transaction, transaction.getSignature());
   }
 
   /**
@@ -109,14 +103,9 @@ public class TransactionVerifier implements Validator {
    */
   @Override
   public boolean senderHasEnoughBalance(Transaction transaction) {
-    Identifier referenceBlockId = transaction.getReferenceBlockId();
-    Snapshot snapshot = state.atBlockId(referenceBlockId);
+    Snapshot snapshot = state.atBlockId(transaction.getReferenceBlockId());
+    Account senderAccount = snapshot.getAccount(transaction.getSender());
 
-    Identifier sender = transaction.getSender();
-    Account senderAccount = snapshot.getAccount(sender);
-    double balance = senderAccount.getBalance();
-    double amount = transaction.getAmount();
-
-    return balance >= amount;
+    return senderAccount.getBalance() >= transaction.getAmount();
   }
 }
