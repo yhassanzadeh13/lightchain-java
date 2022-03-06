@@ -34,6 +34,7 @@ public class Account {
 
   /**
    * Constructor of an Account.
+   * 
    *  @param identifier unique identifier of the account.
    * @param publicKey public key of the account owner.
    * @param lastBlockId identifier of the last block id that changed this account (or genesis id at bootstrap time).
