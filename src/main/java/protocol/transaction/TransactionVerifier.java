@@ -1,7 +1,5 @@
 package protocol.transaction;
 
-import model.crypto.PublicKey;
-import model.crypto.Signature;
 import model.lightchain.Account;
 import model.lightchain.Identifier;
 import model.lightchain.Transaction;
@@ -88,10 +86,10 @@ public class TransactionVerifier implements Validator {
    */
   @Override
   public boolean isAuthenticated(Transaction transaction) {
-    return state.atBlockId(transaction.getReferenceBlockId()).
-        getAccount(transaction.getSender()).
-        getPublicKey().
-        verifySignature(transaction, transaction.getSignature());
+    return state.atBlockId(transaction.getReferenceBlockId())
+        .getAccount(transaction.getSender())
+        .getPublicKey()
+        .verifySignature(transaction, transaction.getSignature());
   }
 
   /**
