@@ -1,5 +1,7 @@
 package model.crypto;
 
+import java.util.Arrays;
+
 import model.lightchain.Identifier;
 
 /**
@@ -7,6 +9,7 @@ import model.lightchain.Identifier;
  * the cryptographic hash function used in LightChain.
  */
 public class Sha3256Hash extends Hash {
+  public static final int Size = 32;
   private final byte[] hashBytes;
 
   /**
@@ -16,7 +19,7 @@ public class Sha3256Hash extends Hash {
    */
   public Sha3256Hash(byte[] hashValue) {
     super(hashValue);
-    if (hashValue.length != 32) {
+    if (hashValue.length != Size) {
       throw new IllegalArgumentException("hash value must be 32 bytes long");
     }
     this.hashBytes = hashValue.clone();
@@ -29,7 +32,7 @@ public class Sha3256Hash extends Hash {
    */
   public Sha3256Hash(Identifier identifier) {
     super(identifier);
-    if (identifier.getBytes().length != 32) {
+    if (identifier.getBytes().length != Size) {
       throw new IllegalArgumentException("identifier must be 32 bytes long");
     }
     this.hashBytes = identifier.getBytes();
@@ -43,5 +46,22 @@ public class Sha3256Hash extends Hash {
   @Override
   public Identifier toIdentifier() {
     return new Identifier(this.hashBytes);
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+    Sha3256Hash that = (Sha3256Hash) o;
+    return Arrays.equals(hashBytes, that.hashBytes);
+  }
+
+  @Override
+  public int hashCode() {
+    return Arrays.hashCode(hashBytes);
   }
 }
