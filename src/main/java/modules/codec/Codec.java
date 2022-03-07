@@ -21,5 +21,5 @@ public interface Codec {
    * @param e input EncodedEntity.
    * @return original Entity type.
    */
-  Entity decode(EncodedEntity e);
+  Entity decode(EncodedEntity e) throws ClassNotFoundException;
 }
