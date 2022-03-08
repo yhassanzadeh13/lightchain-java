@@ -37,11 +37,6 @@ public class EntityFixture extends Entity {
   }
 
   @Override
-  public Identifier id() {
-    return this.id;
-  }
-
-  @Override
   public boolean equals(Object o) {
     if (this == o) return true;
     if (o == null || getClass() != o.getClass()) return false;
