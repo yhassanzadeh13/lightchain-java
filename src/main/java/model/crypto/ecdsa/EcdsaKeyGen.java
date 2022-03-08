@@ -4,9 +4,16 @@ import model.crypto.KeyGen;
 import model.crypto.PrivateKey;
 import model.crypto.PublicKey;
 
-public class EcdsaKeyGen extends KeyGen {
-  public EcdsaKeyGen(PrivateKey privateKey, PublicKey publicKey) {
-    super(privateKey, publicKey);
+public class EcdsaKeyGen implements KeyGen {
+
+  @Override
+  public PrivateKey getPrivateKey() {
+    return null;
+  }
+
+  @Override
+  public PublicKey getPublicKey() {
+    return null;
   }
 
   /**
