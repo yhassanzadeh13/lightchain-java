@@ -1,7 +1,9 @@
 package model.crypto.ecdsa;
 
+import crypto.Sha3256Hasher;
 import model.Entity;
 import model.codec.EncodedEntity;
+import model.crypto.Sha3256Hash;
 import modules.codec.JsonEncoder;
 
 import java.security.*;
@@ -56,8 +58,10 @@ public class EcdsaPublicKey extends model.crypto.PublicKey {
       throw new IllegalStateException("key is invalid", ex);
     }
     EncodedEntity encodedEntity = encoder.encode(e);
+    Sha3256Hasher hasher = new Sha3256Hasher();
+    Sha3256Hash hash = hasher.computeHash(encodedEntity);
     try {
-      ecdsaVerify.update(encodedEntity.getBytes());
+      ecdsaVerify.update(hash.getHashBytes());
       return ecdsaVerify.verify(s.getBytes());
     } catch (SignatureException ex) {
       throw new IllegalStateException("signature is not initialed correctly.", ex);

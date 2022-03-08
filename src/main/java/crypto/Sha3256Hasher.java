@@ -21,7 +21,7 @@ public class Sha3256Hasher implements Hasher {
    * @return SHA3-256 hash object of the entity.
    */
   @Override
-  public Hash computeHash(EncodedEntity e) {
+  public Sha3256Hash computeHash(EncodedEntity e) {
     // TODO: implement it
     try {
       MessageDigest md = MessageDigest.getInstance(HASH_ALG_SHA_3_256);

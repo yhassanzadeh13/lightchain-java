@@ -10,4 +10,5 @@ public class PrivateKeyFixture extends EcdsaPrivateKey {
     super(bytes);
     this.bytes = bytes.clone();
   }
+
 }
