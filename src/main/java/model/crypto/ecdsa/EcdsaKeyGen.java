@@ -1,19 +1,45 @@
 package model.crypto.ecdsa;
 
 import model.crypto.KeyGen;
-import model.crypto.PrivateKey;
-import model.crypto.PublicKey;
+
+import java.security.*;
+import java.security.spec.ECGenParameterSpec;
 
 public class EcdsaKeyGen implements KeyGen {
 
-  @Override
-  public PrivateKey getPrivateKey() {
-    return null;
+  private static final String ellipticCurve = "secp256r1";
+  private static final String SIGN_ALG_SHA_3_256_WITH_ECDSA = "SHA3-256withECDSA";
+  private final EcdsaPrivateKey privateKey;
+  private final EcdsaPublicKey publicKey;
+
+  public EcdsaKeyGen(){
+    ECGenParameterSpec ecSpec = new ECGenParameterSpec(ellipticCurve);
+    KeyPairGenerator g = null;
+    try {
+      g = KeyPairGenerator.getInstance("EC");
+    } catch (NoSuchAlgorithmException e) {
+      throw new IllegalStateException(SIGN_ALG_SHA_3_256_WITH_ECDSA + " algorithm not found.", e);
+    }
+    try {
+      g.initialize(ecSpec, new SecureRandom());
+    } catch (InvalidAlgorithmParameterException e) {
+      throw new IllegalStateException(ellipticCurve + " algorithm parameter not found.", e);
+    }
+    KeyPair keypair = g.generateKeyPair();
+    PublicKey publicKey = keypair.getPublic();
+    PrivateKey privateKey = keypair.getPrivate();
+    this.publicKey = new EcdsaPublicKey(publicKey.getEncoded());
+    this.privateKey = new EcdsaPrivateKey(privateKey.getEncoded());
   }
 
   @Override
-  public PublicKey getPublicKey() {
-    return null;
+  public model.crypto.ecdsa.EcdsaPrivateKey getPrivateKey() {
+    return this.privateKey;
+  }
+
+  @Override
+  public model.crypto.ecdsa.EcdsaPublicKey getPublicKey() {
+    return this.publicKey;
   }
 
   /**
@@ -23,6 +49,6 @@ public class EcdsaKeyGen implements KeyGen {
    */
   @Override
   public String getAlgorithm() {
-    return null;
+    return SIGN_ALG_SHA_3_256_WITH_ECDSA;
   }
 }

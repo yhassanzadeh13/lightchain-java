@@ -1,16 +1,13 @@
 package unittest.fixtures;
 
-import model.Entity;
-import model.crypto.PrivateKey;
-import model.crypto.Signature;
 
-public class PrivateKeyFixture extends PrivateKey {
+import model.crypto.ecdsa.EcdsaPrivateKey;
+
+public class PrivateKeyFixture extends EcdsaPrivateKey {
+  private final byte[] bytes;
+
   public PrivateKeyFixture(byte[] bytes) {
     super(bytes);
-  }
-
-  @Override
-  public Signature signEntity(Entity e) {
-    return null;
+    this.bytes = bytes.clone();
   }
 }

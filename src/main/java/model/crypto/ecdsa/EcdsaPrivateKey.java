@@ -1,13 +1,17 @@
 package model.crypto.ecdsa;
 
 import model.Entity;
+import model.codec.EncodedEntity;
+import modules.codec.JsonEncoder;
 
-import java.security.NoSuchAlgorithmException;
-import java.security.Signature;
+import java.security.*;
+import java.security.spec.EncodedKeySpec;
+import java.security.spec.InvalidKeySpecException;
+import java.security.spec.PKCS8EncodedKeySpec;
 
 public class EcdsaPrivateKey extends model.crypto.PrivateKey {
 
-  private static final String SIGN_ALG_SHA_3_256_ECDSA = "SHA3-256withECDSA";
+  private static final String SIGN_ALG_SHA_3_256_WITH_ECDSA = "SHA3-256withECDSA";
   private final byte[] privateKeyBytes;
 
   public EcdsaPrivateKey(byte[] bytes) {
@@ -23,11 +27,43 @@ public class EcdsaPrivateKey extends model.crypto.PrivateKey {
    */
   @Override
   public model.crypto.Signature signEntity(Entity e) {
+    Signature ecdsaSign;
+    KeyFactory keyFactory;
+    PrivateKey privateKey;
+    JsonEncoder encoder = new JsonEncoder();
+    byte[] signatureBytes;
     try {
-      Signature ecdsaSign = Signature.getInstance(SIGN_ALG_SHA_3_256_ECDSA);
+      ecdsaSign = Signature.getInstance(SIGN_ALG_SHA_3_256_WITH_ECDSA);
     } catch (NoSuchAlgorithmException ex) {
-      throw new IllegalStateException(SIGN_ALG_SHA_3_256_ECDSA + "algorithm not found.", ex);
+      throw new IllegalStateException(SIGN_ALG_SHA_3_256_WITH_ECDSA + "algorithm not found.", ex);
     }
-    return null;
+    try {
+      keyFactory = KeyFactory.getInstance("EC");
+    } catch (NoSuchAlgorithmException ex) {
+      throw new IllegalStateException(SIGN_ALG_SHA_3_256_WITH_ECDSA + "algorithm not found.", ex);
+    }
+    EncodedKeySpec privateKeySpec = new PKCS8EncodedKeySpec(privateKeyBytes);
+    try {
+      privateKey = keyFactory.generatePrivate(privateKeySpec);
+    } catch (InvalidKeySpecException ex) {
+      throw new IllegalStateException("key spec is invalid.", ex);
+    }
+    try {
+      ecdsaSign.initSign(privateKey);
+    } catch (InvalidKeyException ex) {
+      throw new IllegalStateException("key is invalid", ex);
+    }
+    EncodedEntity encodedEntity = encoder.encode(e);
+    try {
+      ecdsaSign.update(encodedEntity.getBytes());
+      signatureBytes = ecdsaSign.sign();
+    } catch (SignatureException ex) {
+      throw new IllegalStateException("signature is not initialed correctly.", ex);
+    }
+    return new EcdsaSignature(signatureBytes, e.id());
+  }
+
+  public byte[] getPrivateKeyBytes() {
+    return privateKeyBytes;
   }
 }

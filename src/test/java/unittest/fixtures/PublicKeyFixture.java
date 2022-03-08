@@ -1,16 +1,14 @@
 package unittest.fixtures;
 
-import model.Entity;
-import model.crypto.PublicKey;
-import model.crypto.Signature;
 
-public class PublicKeyFixture extends PublicKey {
+import model.crypto.ecdsa.EcdsaPublicKey;
+
+public class PublicKeyFixture extends EcdsaPublicKey {
+  private final byte[] bytes;
+
   public PublicKeyFixture(byte[] bytes) {
     super(bytes);
+    this.bytes = bytes.clone();
   }
 
-  @Override
-  public boolean verifySignature(Entity e, Signature s) {
-    return false;
-  }
 }
