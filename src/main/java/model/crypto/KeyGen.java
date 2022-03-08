@@ -32,5 +32,5 @@ public abstract class KeyGen {
    *
    * @return name of algorithm that is used to generate keys.
    */
-  abstract String getAlgorithm();
+  public abstract String getAlgorithm();
 }
