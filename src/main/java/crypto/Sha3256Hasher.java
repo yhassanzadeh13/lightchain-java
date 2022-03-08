@@ -4,7 +4,6 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
 import model.codec.EncodedEntity;
-import model.crypto.Hash;
 import model.crypto.Sha3256Hash;
 
 /**

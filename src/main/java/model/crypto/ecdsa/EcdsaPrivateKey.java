@@ -1,16 +1,20 @@
 package model.crypto.ecdsa;
 
-import crypto.Sha3256Hasher;
-import model.Entity;
-import model.codec.EncodedEntity;
-import model.crypto.Sha3256Hash;
-import modules.codec.JsonEncoder;
 
 import java.security.*;
 import java.security.spec.EncodedKeySpec;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
 
+import crypto.Sha3256Hasher;
+import model.Entity;
+import model.codec.EncodedEntity;
+import model.crypto.Sha3256Hash;
+import modules.codec.JsonEncoder;
+
+/**
+ * ECDSA private key implementation.
+ */
 public class EcdsaPrivateKey extends model.crypto.PrivateKey {
 
   private static final String SIGN_ALG_SHA_3_256_WITH_ECDSA = "SHA3-256withECDSA";
@@ -32,7 +36,6 @@ public class EcdsaPrivateKey extends model.crypto.PrivateKey {
     Signature ecdsaSign;
     KeyFactory keyFactory;
     PrivateKey privateKey;
-    JsonEncoder encoder = new JsonEncoder();
     byte[] signatureBytes;
     try {
       ecdsaSign = Signature.getInstance(SIGN_ALG_SHA_3_256_WITH_ECDSA);
@@ -55,6 +58,7 @@ public class EcdsaPrivateKey extends model.crypto.PrivateKey {
     } catch (InvalidKeyException ex) {
       throw new IllegalStateException("key is invalid", ex);
     }
+    JsonEncoder encoder = new JsonEncoder();
     EncodedEntity encodedEntity = encoder.encode(e);
     Sha3256Hasher hasher = new Sha3256Hasher();
     Sha3256Hash hash = hasher.computeHash(encodedEntity);

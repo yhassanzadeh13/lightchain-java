@@ -1,10 +1,13 @@
 package model.crypto.ecdsa;
 
-import model.crypto.KeyGen;
-
 import java.security.*;
 import java.security.spec.ECGenParameterSpec;
 
+import model.crypto.KeyGen;
+
+/**
+ * This class generates an ECDSA key pair.
+ */
 public class EcdsaKeyGen implements KeyGen {
 
   private static final String ellipticCurve = "secp256r1";
@@ -12,7 +15,10 @@ public class EcdsaKeyGen implements KeyGen {
   private final EcdsaPrivateKey privateKey;
   private final EcdsaPublicKey publicKey;
 
-  public EcdsaKeyGen(){
+  /**
+   * Constructor for ECDSA key generation.
+   */
+  public EcdsaKeyGen() {
     ECGenParameterSpec ecSpec = new ECGenParameterSpec(ellipticCurve);
     KeyPairGenerator g = null;
     try {
