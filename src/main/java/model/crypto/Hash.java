@@ -10,6 +10,9 @@ public abstract class Hash {
    * Actual value of hash in bytes.
    */
   private final byte[] bytes;
+  public static final int EQUAL = 0;
+  public static final int LESS = -1;
+  public static final int GREATER = 1;
 
   public Hash(byte[] hashValue) {
     this.bytes = hashValue.clone();
@@ -25,7 +28,7 @@ public abstract class Hash {
    * @param other the other hash object to compare.
    * @return +1 if this hash value is greater than other hash value, 0 if both hash values are equal and -1 otherwise.
    */
-  public abstract boolean compare(Hash other);
+  public abstract int compare(Hash other);
 
   /**
    * Converts a hash value to its corresponding identifier type.

@@ -10,27 +10,27 @@ public class Transaction extends model.Entity {
   /**
    * The identifier of a finalized block that this transaction refers to its snapshot.
    */
-  private final Identifier referenceBlockId;
+  protected final Identifier referenceBlockId;
 
   /**
    * The identifier of the sender of this transaction.
    */
-  private final Identifier sender;
+  protected final Identifier sender;
 
   /**
    * The identifier of the receiver of this transaction.
    */
-  private final Identifier receiver;
+  protected final Identifier receiver;
 
   /**
    * The amount of LightChain tokens that this transaction transfers from sender to receiver.
    */
-  private final double amount;
+  protected final double amount;
 
   /**
    * Valid cryptographic signature of sender that authorizes this transaction.
    */
-  private Signature signature;
+  protected Signature signature;
 
   public void setSignature(Signature signature) {
     this.signature = signature;
