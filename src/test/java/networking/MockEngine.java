@@ -12,5 +12,6 @@ public class MockEngine implements Engine {
   @Override
   public void process(Entity e) throws IllegalArgumentException {
     // TODO: put e.Id() in the set.
+    receivedEntityIds.add(e.id());
   }
 }
