@@ -1,5 +1,9 @@
 package integration.localnet;
 
+import io.prometheus.client.exporter.HTTPServer;
+import io.prometheus.client.Counter;
+import io.prometheus.client.Gauge;
+
 import com.github.dockerjava.api.DockerClient;
 import com.github.dockerjava.api.command.*;
 import com.github.dockerjava.api.model.*;

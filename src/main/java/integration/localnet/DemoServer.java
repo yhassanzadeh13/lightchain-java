@@ -2,9 +2,9 @@ package integration.localnet;
 
 import java.io.IOException;
 
-//import io.prometheus.client.exporter.HTTPServer;
-//import io.prometheus.client.Counter;
-//import io.prometheus.client.Gauge;
+import io.prometheus.client.exporter.HTTPServer;
+import io.prometheus.client.Counter;
+import io.prometheus.client.Gauge;
 
 public class DemoServer {
 
