@@ -24,18 +24,33 @@ public class EcdsaTest {
   }
 
   /**
+   * Test of ECDSA signing and verification with manipulated Entity.
+   */
+  @Test
+  public void TestEntityChange() {
+    EntityFixture e = new EntityFixture();
+    EntityFixture entityManipulated = new EntityFixture();
+    EcdsaKeyGen keyGen = new KeyGenFixture();
+    PrivateKeyFixture privateKey = new PrivateKeyFixture(keyGen.getPrivateKey().getPrivateKeyBytes());
+    SignatureFixture signature = new SignatureFixture(privateKey.signEntity(e).getBytes(), e.id());
+    PublicKeyFixture publicKey = new PublicKeyFixture(keyGen.getPublicKey().getPublicKeyBytes());
+    boolean test = publicKey.verifySignature(entityManipulated, signature);
+    Assertions.assertFalse(test);
+  }
+
+  /**
    * Test of ECDSA signing and verification with manipulated PublicKey.
    */
   @Test
   public void TestPublicKeyChange() {
     EntityFixture e = new EntityFixture();
     EcdsaKeyGen keyGen = new KeyGenFixture();
+    EcdsaKeyGen keyGenManipulated = new KeyGenFixture();
     PrivateKeyFixture privateKey = new PrivateKeyFixture(keyGen.getPrivateKey().getPrivateKeyBytes());
     SignatureFixture signature = new SignatureFixture(privateKey.signEntity(e).getBytes(), e.id());
-    byte[] publicKeyBytes = keyGen.getPublicKey().getPublicKeyBytes();
-    publicKeyBytes[0] = (byte) (publicKeyBytes[0] + 1);
-    PublicKeyFixture publicKey = new PublicKeyFixture(publicKeyBytes);
-    boolean test = publicKey.verifySignature(e, signature);
+    byte[] publicKeyManipulatedBytes = keyGenManipulated.getPublicKey().getPublicKeyBytes();
+    PublicKeyFixture publicKeyManipulated = new PublicKeyFixture(publicKeyManipulatedBytes);
+    boolean test = publicKeyManipulated.verifySignature(e, signature);
     Assertions.assertFalse(test);
   }
 
@@ -46,10 +61,10 @@ public class EcdsaTest {
   public void TestSignatureChange() {
     EntityFixture e = new EntityFixture();
     EcdsaKeyGen keyGen = new KeyGenFixture();
-    PrivateKeyFixture privateKey = new PrivateKeyFixture(keyGen.getPrivateKey().getPrivateKeyBytes());
-    byte[] signatureBytes = privateKey.signEntity(e).getBytes();
-    signatureBytes[0] = (byte) (signatureBytes[0] + 1);
-    SignatureFixture signature = new SignatureFixture(signatureBytes, e.id());
+    EcdsaKeyGen keyGenManipulated = new KeyGenFixture();
+    byte[] privateKeyManipulatedBytes = keyGenManipulated.getPrivateKey().getPrivateKeyBytes();
+    PrivateKeyFixture privateKeyManipulated = new PrivateKeyFixture(privateKeyManipulatedBytes);
+    SignatureFixture signature = new SignatureFixture(privateKeyManipulated.signEntity(e).getBytes(), e.id());
     PublicKeyFixture publicKey = new PublicKeyFixture(keyGen.getPublicKey().getPublicKeyBytes());
     boolean test = publicKey.verifySignature(e, signature);
     Assertions.assertFalse(test);
