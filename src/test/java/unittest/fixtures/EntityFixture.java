@@ -12,11 +12,11 @@ public class EntityFixture extends Entity {
   private static final String TYPE_FIXTURE_ENTITY = "fixture-entity-type";
   private static final Random rand = new Random();
   private final Identifier id;
-  private int testInt;
-  private String testString;
-  private double testDouble;
-  private byte[] testBytes;
-  private Sha3256Hash[] testHashArray;
+  private final int testInt;
+  private final String testString;
+  private final double testDouble;
+  private final byte[] testBytes;
+  private final Sha3256Hash[] testHashArray;
 
   public EntityFixture() {
     super();
@@ -26,15 +26,10 @@ public class EntityFixture extends Entity {
     rand.nextBytes(bytesString);
     this.testString = new String(bytesString);
     this.testDouble = rand.nextDouble();
-    byte[] bytesTest = new byte[32];
-    rand.nextBytes(bytesTest);
-    this.testBytes = bytesTest;
-    this.testHashArray = new Sha3256Hash[32];
+    this.testBytes = Bytes.ByteArrayFixture(32).clone();
+    this.testHashArray = Sha3256HashFixture.NewSha3256HashArray();
   }
 
-  public void setTestHashArray(Sha3256Hash[] testHashArray) {
-    this.testHashArray = testHashArray;
-  }
 
   @Override
   public String type() {
@@ -51,9 +46,9 @@ public class EntityFixture extends Entity {
     if (this == o) return true;
     if (o == null || getClass() != o.getClass()) return false;
     EntityFixture that = (EntityFixture) o;
-    return testInt == that.testInt && Double.compare(that.testDouble, testDouble) == 0 && id.comparedTo(that.id) == 0
-            && testString.equals(that.testString) && Arrays.equals(testBytes, that.testBytes)
-            && Arrays.equals(testHashArray, that.testHashArray);
+    return testInt == that.testInt && Double.compare(that.testDouble, testDouble) == 0
+            && id.comparedTo(that.id) == 0 && testString.equals(that.testString)
+            && Arrays.equals(testBytes, that.testBytes) && Arrays.equals(testHashArray, that.testHashArray);
   }
 
   @Override
@@ -63,5 +58,4 @@ public class EntityFixture extends Entity {
     result = 31 * result + Arrays.hashCode(testHashArray);
     return result;
   }
-
 }
