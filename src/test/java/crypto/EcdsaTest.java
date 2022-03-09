@@ -1,9 +1,6 @@
 package crypto;
 
-import model.codec.EncodedEntity;
-import model.crypto.Sha3256Hash;
 import model.crypto.ecdsa.EcdsaKeyGen;
-import modules.codec.JsonEncoder;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import unittest.fixtures.*;
