@@ -15,16 +15,14 @@ import com.github.dockerjava.httpclient5.ApacheDockerHttpClient;
 import com.github.dockerjava.transport.DockerHttpClient;
 import com.github.dockerjava.api.model.Ports;
 
-import java.io.File;
-import java.time.Duration;
+import java.io.*;
+import java.time.*;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 public class Main {
 
   public static void main(String[] args) throws InterruptedException {
-
-    System.out.println("f");
 
     DockerClientConfig config = DefaultDockerClientConfig.createDefaultConfigBuilder().build();
 
@@ -56,50 +54,50 @@ public class Main {
 
     // Prometheus
 //
-//    dockerClient.pullImageCmd("prom/prometheus")
-//            .withTag("main")
-//            .exec(new PullImageResultCallback())
-//            .awaitCompletion(30, TimeUnit.SECONDS);
-//
-//    Ports promPortBindings = new Ports();
-//    promPortBindings.bind(ExposedPort.tcp(9090), Ports.Binding.bindPort(9090));
-//
-//    CreateContainerResponse promContainer =
-//            dockerClient
-//                    .createContainerCmd("prom/prometheus:main")
-//                    .withTty(true)
-//                    .withPortBindings(promPortBindings)
-//                    .exec();
-//
-//    dockerClient
-//            .startContainerCmd(promContainer.getId())
-//            .exec();
+    dockerClient.pullImageCmd("prom/prometheus")
+            .withTag("main")
+            .exec(new PullImageResultCallback())
+            .awaitCompletion(60, TimeUnit.SECONDS);
+
+    Ports promPortBindings = new Ports();
+    promPortBindings.bind(ExposedPort.tcp(9090), Ports.Binding.bindPort(9090));
+
+    CreateContainerResponse promContainer =
+            dockerClient
+                    .createContainerCmd("prom/prometheus:main")
+                    .withTty(true)
+                    .withPortBindings(promPortBindings)
+                    .exec();
+
+    dockerClient
+            .startContainerCmd(promContainer.getId())
+            .exec();
 //
 //    // Grafana
 //
-//    dockerClient.pullImageCmd("grafana/grafana")
-//            .withTag("main")
-//            .exec(new PullImageResultCallback())
-//            .awaitCompletion(30, TimeUnit.SECONDS);
-//
-//    Ports grafanaPortBindings = new Ports();
-//    grafanaPortBindings.bind(ExposedPort.tcp(3000), Ports.Binding.bindPort(3000));
-//
-//    CreateContainerResponse grafanaContainer =
-//            dockerClient
-//                    .createContainerCmd("grafana/grafana:main")
-//                    .withTty(true)
-//                    .withPortBindings(grafanaPortBindings)
-//                    .exec();
-//
-//    dockerClient
-//            .startContainerCmd(grafanaContainer.getId())
-//            .exec();
+    dockerClient.pullImageCmd("grafana/grafana")
+            .withTag("main")
+            .exec(new PullImageResultCallback())
+            .awaitCompletion(60, TimeUnit.SECONDS);
+
+    Ports grafanaPortBindings = new Ports();
+    grafanaPortBindings.bind(ExposedPort.tcp(3000), Ports.Binding.bindPort(3000));
+
+    CreateContainerResponse grafanaContainer =
+            dockerClient
+                    .createContainerCmd("grafana/grafana:main")
+                    .withTty(true)
+                    .withPortBindings(grafanaPortBindings)
+                    .exec();
+
+    dockerClient
+            .startContainerCmd(grafanaContainer.getId())
+            .exec();
 
     // HTTP Server
 
     String imageId = dockerClient.buildImageCmd()
-            .withDockerfile(new File("src/main/java/integration/localnet/Dockerfile"))
+            .withDockerfile(new File("./Dockerfile"))
             .withPull(true)
             .exec(new BuildImageResultCallback())
             .awaitImageId();
@@ -117,9 +115,6 @@ public class Main {
     dockerClient
             .startContainerCmd(serverContainer.getId())
             .exec();
-
-
-
 
   }
 
