@@ -21,16 +21,16 @@ public class TableSnapshot implements state.Snapshot {
 
   @Override
   public Identifier getReferenceBlockId() {
-    return null;
+    return rootBlockId;
   }
 
   @Override
   public long getReferenceBlockHeight() {
-    return 0;
+    return rootBlockHeight;
   }
 
   @Override
   public Account getAccount(Identifier identifier) {
-    return null;
+    return table.get(identifier);
   }
 }

@@ -11,9 +11,13 @@ import state.Snapshot;
 public class TableState implements state.State {
   private Hashtable<Identifier, Snapshot> table;
 
+  public TableState(Hashtable<Identifier, Snapshot> table) {
+    this.table = table;
+  }
+
   @Override
   public Snapshot atBlockId(Identifier identifier) {
-    return null;
+    return table.get(identifier);
   }
 
   @Override
