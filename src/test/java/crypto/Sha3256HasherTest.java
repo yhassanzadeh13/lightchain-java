@@ -1,4 +1,3 @@
-        EncodedEntity encodedEntity1 = encoder.encode(testEntity1);
 package crypto;
 
 import model.codec.EncodedEntity;
