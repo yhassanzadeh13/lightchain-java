@@ -20,7 +20,7 @@ public class ValidatorTest {
    * Evaluates the transaction validation fails when reference block id points to an invalid (null) snapshot.
    */
   @Test
-  public void isCorrectFail_NullSnapshot() {
+  public void testTransactionIsNotValid_NullSnapshot() {
     // Arrange
     /// Transaction
     Transaction transaction = TransactionFixture.newTransaction();
@@ -54,6 +54,9 @@ public class ValidatorTest {
     Snapshot mockSnapshot = mock(Snapshot.class);
     when(mockState.atBlockId(transaction.getReferenceBlockId())).thenReturn(mockSnapshot);
     when(mockSnapshot.getAccount(transaction.getSender())).thenReturn(null);
+
+    Account receiverAccount = new AccountFixture(transaction.getReceiver());
+    when(mockSnapshot.getAccount(transaction.getReceiver())).thenReturn(receiverAccount);
 
     /// Verifier
     Validator verifier = new TransactionVerifier(mockState);
@@ -109,6 +112,13 @@ public class ValidatorTest {
     Snapshot mockSnapshot = mock(Snapshot.class);
     when(mockState.atBlockId(transaction.getReferenceBlockId())).thenReturn(mockSnapshot);
 
+    Account senderAccount = new AccountFixture(transaction.getSender());
+    Account receiverAccount = new AccountFixture(transaction.getReceiver());
+
+    when(mockState.atBlockId(transaction.getReferenceBlockId())).thenReturn(mockSnapshot);
+    when(mockSnapshot.getAccount(transaction.getSender())).thenReturn(senderAccount);
+    when(mockSnapshot.getAccount(transaction.getReceiver())).thenReturn(receiverAccount);
+
     /// Verifier
     Validator verifier = new TransactionVerifier(mockState);
 
@@ -133,6 +143,13 @@ public class ValidatorTest {
     State mockState = mock(State.class);
     Snapshot mockSnapshot = mock(Snapshot.class);
     when(mockState.atBlockId(transaction.getReferenceBlockId())).thenReturn(mockSnapshot);
+
+    Account senderAccount = new AccountFixture(transaction.getSender());
+    Account receiverAccount = new AccountFixture(transaction.getReceiver());
+
+    when(mockState.atBlockId(transaction.getReferenceBlockId())).thenReturn(mockSnapshot);
+    when(mockSnapshot.getAccount(transaction.getSender())).thenReturn(senderAccount);
+    when(mockSnapshot.getAccount(transaction.getReceiver())).thenReturn(receiverAccount);
 
     /// Verifier
     Validator verifier = new TransactionVerifier(mockState);
