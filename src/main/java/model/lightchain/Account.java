@@ -67,4 +67,6 @@ public class Account {
   public Identifier getLastBlockId() {
     return lastBlockId;
   }
+
+  public int getStake() { return this.stake; }
 }
