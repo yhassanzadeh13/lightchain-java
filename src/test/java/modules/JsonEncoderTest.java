@@ -1,3 +1,4 @@
+import unittest.fixtures.EntityFixture;
 package modules;
 
 import model.Entity;

@@ -1,3 +1,4 @@
+    }
 package model.crypto;
 
 import java.util.Arrays;
