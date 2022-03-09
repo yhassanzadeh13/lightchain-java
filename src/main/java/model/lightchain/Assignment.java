@@ -10,11 +10,11 @@ public class Assignment {
   private Identifiers validators;
 
   /**
-   * Adds validator to assignment
+   * Adds validator to assignment.
    *
    * @param validator identifier of validator.
    */
-  public void Add(Identifier validator) {
+  public void add(Identifier validator) {
     this.validators.add(validator);
   }
 }
