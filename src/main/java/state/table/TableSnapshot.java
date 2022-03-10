@@ -11,19 +11,18 @@ import model.lightchain.Identifier;
 public class TableSnapshot implements state.Snapshot {
   private final Identifier rootBlockId;
   private final long rootBlockHeight;
-  private final Hashtable<Identifier, Account> table;
+  private Hashtable<Identifier, Account> table;
 
   /**
    * Constructor of TableSnapShot.
    *
    * @param rootBlockId root block id representing this snapshot.
    * @param rootBlockHeight root block height of this snapshot.
-   * @param table table of accounts.
    */
-  public TableSnapshot(Identifier rootBlockId, long rootBlockHeight, Hashtable<Identifier, Account> table) {
+  public TableSnapshot(Identifier rootBlockId, long rootBlockHeight) {
     this.rootBlockId = rootBlockId;
     this.rootBlockHeight = rootBlockHeight;
-    this.table = table;
+    this.table = new Hashtable<>();
   }
 
   @Override
