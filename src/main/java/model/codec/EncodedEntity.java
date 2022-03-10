@@ -7,6 +7,7 @@ public class EncodedEntity {
   private final byte[] bytes;
   private final String type;
 
+  // EncodedEntity(id.getBytes() || byte(i), "assignment")
   public EncodedEntity(byte[] bytes, String type) {
     this.bytes = bytes.clone();
     this.type = type;
