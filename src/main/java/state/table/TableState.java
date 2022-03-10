@@ -9,10 +9,15 @@ import state.Snapshot;
  * Implements a simplified hash table-based model of the protocol state.
  */
 public class TableState implements state.State {
+  /**
+   * Table of root block id as the key, and snapshot at the root block id as the value.
+   */
   private Hashtable<Identifier, Snapshot> table;
 
-  public TableState(Hashtable<Identifier, Snapshot> table) {
-    this.table = table;
+  // TODO: implement add method to add snapshot at given block id.
+
+  public TableState() {
+    this.table = new Hashtable<>();
   }
 
   @Override

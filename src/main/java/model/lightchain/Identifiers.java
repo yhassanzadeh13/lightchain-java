@@ -8,8 +8,8 @@ import java.util.ArrayList;
 public class Identifiers {
   private final ArrayList<Identifier> identifiers;
 
-  public Identifiers(ArrayList<Identifier> identifiers) {
-    this.identifiers = (ArrayList<Identifier>) identifiers.clone();
+  public Identifiers() {
+    this.identifiers = new ArrayList<>();
   }
 
   public void add(Identifier identifier) {

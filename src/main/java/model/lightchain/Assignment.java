@@ -10,6 +10,13 @@ public class Assignment {
   private Identifiers validators;
 
   /**
+   * Default constructor.
+   */
+  public Assignment() {
+    this.validators = new Identifiers();
+  }
+
+  /**
    * Adds validator to assignment.
    *
    * @param validator identifier of validator.
