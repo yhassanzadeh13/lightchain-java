@@ -39,7 +39,7 @@ public class Sha3256Hash extends Hash {
   }
 
   public byte[] getHashBytes() {
-    return hashBytes;
+    return hashBytes.clone();
   }
 
   @Override

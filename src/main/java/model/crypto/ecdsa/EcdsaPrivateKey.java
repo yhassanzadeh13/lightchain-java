@@ -72,6 +72,6 @@ public class EcdsaPrivateKey extends model.crypto.PrivateKey {
   }
 
   public byte[] getPrivateKeyBytes() {
-    return privateKeyBytes;
+    return privateKeyBytes.clone();
   }
 }
