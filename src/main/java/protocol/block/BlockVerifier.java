@@ -1,8 +1,8 @@
 package protocol.block;
 
-import model.crypto.PublicKey;
+import java.util.ArrayList;
+
 import model.crypto.Signature;
-import model.lightchain.Account;
 import model.lightchain.Block;
 import model.lightchain.Identifier;
 import model.lightchain.ValidatedTransaction;
@@ -11,6 +11,10 @@ import protocol.transaction.TransactionVerifier;
 import state.Snapshot;
 import state.State;
 
+
+/**
+ * Represents a verifier class that is used to verify a block is valid.
+ */
 public class BlockVerifier implements Validator {
   /**
    * Unique State that the block is in.
@@ -23,7 +27,6 @@ public class BlockVerifier implements Validator {
   public BlockVerifier(State state) {
     this.state = state;
   }
-
 
   /**
    * Validates block parameters are all correct.
@@ -40,10 +43,8 @@ public class BlockVerifier implements Validator {
       return false;
     }
     int transactions = block.getTransactions().length;
-    if (transactions < Parameters.MIN_TRANSACTIONS_NUM || transactions > Parameters.MAX_TRANSACTIONS_NUM) {
-          return false;
-    }
-    return true;
+
+    return transactions >= Parameters.MIN_TRANSACTIONS_NUM && transactions <= Parameters.MAX_TRANSACTIONS_NUM;
   }
 
   /**
@@ -86,7 +87,19 @@ public class BlockVerifier implements Validator {
    */
   @Override
   public boolean allTransactionsValidated(Block block) {
-    return false;
+    for (ValidatedTransaction transaction : block.getTransactions()) {
+      if (transaction.getCertificates().length < Parameters.SIGNATURE_THRESHOLD) {
+        return false;
+      }
+      for (Signature signature : transaction.getCertificates()) {
+        if (state.atBlockId(block.getPreviousBlockId())
+            .getAccount(signature.getSignerId())
+            .getStake() < Parameters.MINIMUM_STAKE) {
+          return false;
+        }
+      }
+    }
+    return true;
   }
 
   /**
@@ -95,8 +108,8 @@ public class BlockVerifier implements Validator {
   @Override
   public boolean allTransactionsSound(Block block) {
     TransactionVerifier verifier = new TransactionVerifier(state);
-    for (ValidatedTransaction transaction: block.getTransactions()) {
-      if (!verifier.isSound(transaction)){
+    for (ValidatedTransaction transaction : block.getTransactions()) {
+      if (!verifier.isSound(transaction)) {
         return false;
       }
     }
@@ -105,13 +118,16 @@ public class BlockVerifier implements Validator {
 
   /**
    * Checks no two validated transactions included in this block have the same sender.
-   *
-   * @param block the block under validation.
-   * @return true if no two validated transactions included in this block have the same sender. False otherwise.
    */
   @Override
   public boolean noDuplicateSender(Block block) {
-    return false;
-    
+    ArrayList<Identifier> senders = new ArrayList<>();
+    for (ValidatedTransaction transaction : block.getTransactions()) {
+      if (senders.contains(transaction.getSender())) {
+        return false;
+      }
+      senders.add(transaction.getSender());
+    }
+    return true;
   }
 }
