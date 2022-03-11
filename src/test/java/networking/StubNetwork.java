@@ -12,16 +12,15 @@ import protocol.Engine;
 import unittest.fixtures.IdentifierFixture;
 
 public class StubNetwork implements Network {
-  private ConcurrentHashMap<String, Engine> engines;
-  private ConcurrentHashMap<String, Conduit> conduits;
-  private Hub hub;
-  private Identifier identifier;
-
+  private final ConcurrentHashMap<String, Engine> engines;
+  private final ConcurrentHashMap<String, Conduit> conduits;
+  private final Hub hub;
+  private final Identifier identifier;
 
 
   public StubNetwork(Hub hub) {
     this.engines = new ConcurrentHashMap<>();
-    this.conduits= new ConcurrentHashMap<>();
+    this.conduits = new ConcurrentHashMap<>();
     this.hub = hub;
     this.identifier = IdentifierFixture.NewIdentifier();
     this.hub.registerNetwork(identifier, this);
@@ -30,9 +29,10 @@ public class StubNetwork implements Network {
   public Identifier id() {
     return this.identifier;
   }
+
   public void sendUnicast(String ch, StubNetwork stubNetworkR, Entity entity) throws LightChainNetworkingException {
     Conduit conduit = conduits.get(ch);
-    conduit.unicast(entity,stubNetworkR.id());
+    conduit.unicast(entity, stubNetworkR.id());
 
   }
 

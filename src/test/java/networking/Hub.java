@@ -7,19 +7,20 @@ import model.lightchain.Identifier;
 import network.Network;
 
 public class Hub {
-  private ConcurrentHashMap<Identifier, Network> networks;
-  private ConcurrentHashMap<Identifier, Entity> entities;
+  private final ConcurrentHashMap<Identifier, Network> networks;
+  private final ConcurrentHashMap<Identifier, Entity> entities;
 
   public Hub() {
-    this.networks=new ConcurrentHashMap<>();
-    this.entities=new ConcurrentHashMap<>();
+    this.networks = new ConcurrentHashMap<>();
+    this.entities = new ConcurrentHashMap<>();
   }
 
   public void registerNetwork(Identifier key, Network network) {
-    networks.put( key,  network);
+    networks.put(key, network);
 
   }
-  public  StubNetwork getNetwork(Identifier key){
+
+  public StubNetwork getNetwork(Identifier key) {
 
     return (StubNetwork) networks.get(key);
 
