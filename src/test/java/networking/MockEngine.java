@@ -8,22 +8,21 @@ import model.lightchain.Identifier;
 import protocol.Engine;
 
 public class MockEngine implements Engine {
-  private final Set<Identifier> receivedEntityIds;
+  private Set<Identifier> receivedEntityIds;
 
   public MockEngine() {
     this.receivedEntityIds = new HashSet<>();
   }
 
   @Override
-  public String toString() {
-    return "MockEngine{" +
-        "receivedEntityIds=" + receivedEntityIds +
-        '}';
-  }
-
-  @Override
   public void process(Entity e) throws IllegalArgumentException {
     // TODO: put e.Id() in the set.
     receivedEntityIds.add(e.id());
+  }
+
+  public boolean hasReceived(Entity e) {
+    Identifier id = e.id();
+    boolean ok = this.receivedEntityIds.contains(id);
+    return ok;
   }
 }

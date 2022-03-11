@@ -21,9 +21,7 @@ public class Hub {
   }
 
   public StubNetwork getNetwork(Identifier key) {
-
     return (StubNetwork) networks.get(key);
-
   }
 
 }

@@ -3,8 +3,10 @@ package networking;
 import java.util.ArrayList;
 import java.util.Hashtable;
 
+import model.Entity;
 import model.exceptions.LightChainNetworkingException;
 import network.Conduit;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import protocol.Engine;
@@ -28,16 +30,23 @@ public class StubNetworkTest {
     Hub hub = new Hub();
 
     StubNetwork network1 = new StubNetwork(hub);
-    Engine A1 = new MockEngine();
-    network1.register(A1, channel1);
+    MockEngine A1 = new MockEngine();
+    Conduit c1 = network1.register(A1, channel1);
 
     StubNetwork network2 = new StubNetwork(hub);
-    Engine A2 = new MockEngine();
+    MockEngine A2 = new MockEngine();
     network2.register(A2, channel1);
 
 
-    network1.sendUnicast();
+    Entity entity = new EntityFixture();
 
+    try {
+      c1.unicast(entity, network2.id());
+    } catch (LightChainNetworkingException e) {
+      Assertions.fail();
+    }
+
+    Assertions.assertTrue(A2.hasReceived(entity));
   }
 
 

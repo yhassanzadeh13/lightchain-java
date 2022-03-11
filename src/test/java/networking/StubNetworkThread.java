@@ -16,14 +16,14 @@ public class StubNetworkThread extends Thread{
         this.ch = ch;
     }
 
-    @Override
-    public void run() {
-        try {
-
-            stubNetworkT.sendUnicast(ch,stubNetworkR,entity);
-        } catch (LightChainNetworkingException e) {
-            e.printStackTrace();
-        }
-
-    }
+//    @Override
+//    public void run() {
+//        try {
+//
+//            // stubNetworkT.sendUnicast(ch,stubNetworkR,entity);
+//        } catch (LightChainNetworkingException e) {
+//            e.printStackTrace();
+//        }
+//
+//    }
 }
