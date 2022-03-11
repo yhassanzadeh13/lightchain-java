@@ -72,7 +72,7 @@ public class StubNetwork implements Network {
   }
 
   public void deliverEntity(String ch, Entity en) {
-    System.out.println(ch);
+
 
     Engine engine = engines.get(ch);
     engine.process(en);
