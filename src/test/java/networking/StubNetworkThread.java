@@ -19,7 +19,6 @@ public class StubNetworkThread extends Thread{
     @Override
     public void run() {
         try {
-            System.out.println(ch);
 
             stubNetworkT.sendUnicast(ch,stubNetworkR,entity);
         } catch (LightChainNetworkingException e) {

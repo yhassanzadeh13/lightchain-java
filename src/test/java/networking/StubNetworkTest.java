@@ -29,17 +29,17 @@ public class StubNetworkTest {
         StubNetwork stubNetwork1 = new StubNetwork(hub);
         StubNetwork stubNetwork2 = new StubNetwork(hub);
         String channelA1="ChannelA1";
-        String channelB1="ChannelB1";
+
         Engine A1 = new MockEngine();
         Engine B1 = new MockEngine();
         stubNetwork1.register(A1, channelA1);
-        stubNetwork2.register(B1,channelB1);
+        stubNetwork2.register(B1,channelA1);
         EntityFixture e1 = new EntityFixture();
         EntityFixture e2 = new EntityFixture();
         StubNetworkThread t1 = new StubNetworkThread(stubNetwork1,stubNetwork2,e1,channelA1);
         t1.start();
         //c1.unicast(e1, stubNetwork2.id());
-        //System.out.println(e1.id());
-        //System.out.println(B1);
+        System.out.println(e1.id());
+        System.out.println(B1);
     }
 }
