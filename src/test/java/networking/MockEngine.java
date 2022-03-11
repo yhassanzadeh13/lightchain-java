@@ -8,7 +8,7 @@ import model.lightchain.Identifier;
 import protocol.Engine;
 
 public class MockEngine implements Engine {
-  private Set<Identifier> receivedEntityIds;
+  private final Set<Identifier> receivedEntityIds;
 
   public MockEngine() {
     this.receivedEntityIds = new HashSet<>();
@@ -17,8 +17,8 @@ public class MockEngine implements Engine {
   @Override
   public String toString() {
     return "MockEngine{" +
-            "receivedEntityIds=" + receivedEntityIds +
-            '}';
+        "receivedEntityIds=" + receivedEntityIds +
+        '}';
   }
 
   @Override
