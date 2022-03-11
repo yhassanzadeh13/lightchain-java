@@ -30,20 +30,19 @@ public class StubNetwork implements Network {
     return this.identifier;
   }
 
-  public void sendUnicast(String ch, StubNetwork stubNetworkR, Entity entity) throws LightChainNetworkingException {
+  private void sendUnicast(String ch, StubNetwork stubNetworkR, Entity entity) throws LightChainNetworkingException {
     Conduit conduit = conduits.get(ch);
     conduit.unicast(entity, stubNetworkR.id());
-
   }
 
   @Override
   public Conduit register(Engine en, String channel) throws IllegalStateException {
+    // TODO: this should be a separate class.
     Conduit conduit = new Conduit() {
       @Override
       public void unicast(Entity e, Identifier target) throws LightChainNetworkingException {
         StubNetwork net = hub.getNetwork(target);
         net.deliverEntity(channel, e);
-
       }
 
       @Override
@@ -56,6 +55,8 @@ public class StubNetwork implements Network {
         return null;
       }
     };
+
+
     try {
       if (engines.containsKey(channel)) {
         throw new IllegalStateException();
@@ -72,10 +73,7 @@ public class StubNetwork implements Network {
   }
 
   public void deliverEntity(String ch, Entity en) {
-
-
     Engine engine = engines.get(ch);
     engine.process(en);
-
   }
 }
