@@ -61,4 +61,21 @@ public class ValidatedTransactionFixture extends ValidatedTransaction {
     }
     return new ValidatedTransactionFixture(referenceBlockId, sender, receiver, amount, certificates);
   }
+  /**
+   * Constructor of the validated transactions with randomly generated parameters and given sender identifier.
+   *
+   * @param certificatesSize size of the certificates array.
+   * @return random ValidatedTransaction object.
+   */
+  public static ValidatedTransaction newValidatedTransaction(int certificatesSize) {
+    Identifier referenceBlockId = IdentifierFixture.newIdentifier();
+    Identifier sender = IdentifierFixture.newIdentifier();
+    Identifier receiver = IdentifierFixture.newIdentifier();
+    double amount = random.nextInt() + 1;
+    Signature[] certificates = new Signature[certificatesSize];
+    for (int i = 0; i < certificatesSize; i++) {
+      certificates[i] = new SignatureFixture(Bytes.byteArrayFixture(32), null);
+    }
+    return new ValidatedTransactionFixture(referenceBlockId, sender, receiver, amount, certificates);
+  }
 }
