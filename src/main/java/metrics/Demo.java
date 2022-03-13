@@ -44,7 +44,7 @@ public class Demo {
         Thread.sleep(1000);
         finalizedBlockCount.inc(1);
         currentBlockCount.inc(1);
-      } catch(InterruptedException ex) {
+      } catch (InterruptedException ex) {
         System.err.println("Thread sleep issue");
         Thread.currentThread().interrupt();
         break;
