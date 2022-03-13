@@ -10,6 +10,8 @@ import com.github.dockerjava.core.DockerClientImpl;
 import com.github.dockerjava.httpclient5.ApacheDockerHttpClient;
 import com.github.dockerjava.transport.DockerHttpClient;
 import com.github.dockerjava.api.model.Ports;
+
+import java.io.File;
 import java.time.*;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
@@ -62,29 +64,50 @@ public class Main {
       CreateVolumeResponse volume = dockerClient.createVolumeCmd().withName("grafana_volume").exec();
     }
 
+    // Network
+
+    List<Network> networks = dockerClient.listNetworksCmd().exec();
+    boolean networkFound = false;
+
+    for (Network n : networks) {
+      System.out.println(n.getName());
+      if(n.getName().equals("network")){
+        networkFound=true;
+      }
+    }
+
+    if(!networkFound){
+      CreateNetworkResponse networkResponse
+              = dockerClient.createNetworkCmd()
+              .withName("network")
+              .withDriver("bridge")
+              .exec();
+    }
+
     // HTTP Server
 
-//    String imageId = dockerClient.buildImageCmd()
-//            .withDockerfile(new File("./Dockerfile"))
-//            .withPull(true)
-//            .exec(new BuildImageResultCallback())
-//            .awaitImageId();
-//
-//    Ports serverPortBindings = new Ports();
-//    serverPortBindings.bind(ExposedPort.tcp(8080), Ports.Binding.bindPort(8080));
-//
-//    CreateContainerResponse serverContainer =
-//            dockerClient
-//                    .createContainerCmd(imageId)
-//                    .withBinds(Bind.parse("server_volume" + ":" + "/app"))
-//                    .withName("server")
-//                    .withTty(true)
-//                    .withPortBindings(serverPortBindings)
-//                    .exec();
-//
-//    dockerClient
-//            .startContainerCmd(serverContainer.getId())
-//            .exec();
+    String imageId = dockerClient.buildImageCmd()
+            .withDockerfile(new File("./Dockerfile"))
+            .withPull(true)
+            .exec(new BuildImageResultCallback())
+            .awaitImageId();
+
+    Ports serverPortBindings = new Ports();
+    serverPortBindings.bind(ExposedPort.tcp(8080), Ports.Binding.bindPort(8080));
+
+    CreateContainerResponse serverContainer =
+            dockerClient
+                    .createContainerCmd(imageId)
+                    .withBinds(Bind.parse("server_volume" + ":" + "/app"))
+                    .withName("server")
+                    .withNetworkMode("network")
+                    .withTty(true)
+                    .withPortBindings(serverPortBindings)
+                    .exec();
+
+    dockerClient
+            .startContainerCmd(serverContainer.getId())
+            .exec();
 
     // Prometheus
 
@@ -105,6 +128,7 @@ public class Main {
                     .createContainerCmd("prom/prometheus:main")
                     .withBinds(promBinds)
                     .withName("prometheus")
+                    .withNetworkMode("network")
                     .withTty(true)
                     .withPortBindings(promPortBindings)
                     .exec();
@@ -131,13 +155,14 @@ public class Main {
     CreateContainerResponse grafanaContainer =
             dockerClient
                     .createContainerCmd("grafana/grafana:main")
+                    .withBinds(grafBinds)
+                    .withName("grafana")
+                    .withNetworkMode("network")
+                    .withTty(true)
+                    .withPortBindings(grafanaPortBindings)
                     .withEnv("GF_SECURITY_ADMIN_USER=${ADMIN_USER:-admin}")
                     .withEnv("GF_SECURITY_ADMIN_PASSWORD=${ADMIN_PASSWORD:-admin}")
                     .withEnv("GF_USERS_ALLOW_SIGN_UP=false")
-                    .withBinds(grafBinds)
-                    .withName("grafana")
-                    .withTty(true)
-                    .withPortBindings(grafanaPortBindings)
                     .exec();
 
     dockerClient
