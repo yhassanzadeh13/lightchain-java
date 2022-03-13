@@ -131,6 +131,9 @@ public class Main {
     CreateContainerResponse grafanaContainer =
             dockerClient
                     .createContainerCmd("grafana/grafana:main")
+                    .withEnv("GF_SECURITY_ADMIN_USER=${ADMIN_USER:-admin}")
+                    .withEnv("GF_SECURITY_ADMIN_PASSWORD=${ADMIN_PASSWORD:-admin}")
+                    .withEnv("GF_USERS_ALLOW_SIGN_UP=false")
                     .withBinds(grafBinds)
                     .withName("grafana")
                     .withTty(true)
