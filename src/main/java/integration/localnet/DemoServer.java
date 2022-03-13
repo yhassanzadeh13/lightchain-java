@@ -1,6 +1,7 @@
 package integration.localnet;
 
 import java.io.IOException;
+import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
 import io.prometheus.client.Counter;
@@ -23,6 +24,8 @@ public class DemoServer {
    */
   public static void main(String[] args) {
 
+    Random r = new Random();
+
     try {
       server = new HTTPServer(8080);
     } catch (IOException e) {
@@ -33,7 +36,7 @@ public class DemoServer {
       while (true) {
         TimeUnit.SECONDS.sleep(5);
         demoServerQueryCount.inc(1);
-        demoServerQueryGauge.set((int) (Math.random() * 100));
+        demoServerQueryGauge.set(r.nextInt(100));
       }
     } catch (InterruptedException e) {
       throw new IllegalStateException("could not start metrics server:\t" + e);
