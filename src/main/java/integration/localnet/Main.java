@@ -49,7 +49,6 @@ public class Main {
     boolean grafVolumeFound = false;
 
     for (InspectVolumeResponse v : volumes) {
-      System.out.println(v.getMountpoint());
       if (v.getName().equals("server_volume")) {
         serverVolumeFound = true;
       } else if (v.getName().equals("prometheus_volume")) {
@@ -77,7 +76,6 @@ public class Main {
     boolean networkFound = false;
 
     for (Network n : networks) {
-      System.out.println(n.getName());
       if (n.getName().equals("network")) {
         networkFound = true;
       }
