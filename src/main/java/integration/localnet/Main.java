@@ -1,23 +1,30 @@
 package integration.localnet;
 
-import com.github.dockerjava.api.DockerClient;
-import com.github.dockerjava.api.command.*;
-import com.github.dockerjava.api.model.*;
-import com.github.dockerjava.core.DefaultDockerClientConfig;
-import com.github.dockerjava.core.DockerClientBuilder;
-import com.github.dockerjava.core.DockerClientConfig;
-import com.github.dockerjava.core.DockerClientImpl;
-import com.github.dockerjava.httpclient5.ApacheDockerHttpClient;
-import com.github.dockerjava.transport.DockerHttpClient;
-import com.github.dockerjava.api.model.Ports;
-
 import java.io.File;
 import java.time.*;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
+import com.github.dockerjava.api.DockerClient;
+import com.github.dockerjava.api.command.*;
+import com.github.dockerjava.api.model.*;
+import com.github.dockerjava.core.DefaultDockerClientConfig;
+import com.github.dockerjava.core.DockerClientConfig;
+import com.github.dockerjava.core.DockerClientImpl;
+import com.github.dockerjava.httpclient5.ApacheDockerHttpClient;
+import com.github.dockerjava.transport.DockerHttpClient;
+
+/**
+ *  Main Runner Class for orchestrating the building of the HTTP Server, Prometheus, and Grafana
+ *  components of the TestNet. This class also utilizes the Java Docker API in order to containerize
+ *  the three components and build up the necessary supporting infrastructure.
+ */
 public class Main {
 
+  /** main function.
+   *
+   * @param args standart Java args
+   */
   public static void main(String[] args) throws InterruptedException {
 
     DockerClientConfig config = DefaultDockerClientConfig.createDefaultConfigBuilder().build();
@@ -71,12 +78,12 @@ public class Main {
 
     for (Network n : networks) {
       System.out.println(n.getName());
-      if(n.getName().equals("network")){
-        networkFound=true;
+      if (n.getName().equals("network")) {
+        networkFound = true;
       }
     }
 
-    if(!networkFound){
+    if (!networkFound) {
       CreateNetworkResponse networkResponse
               = dockerClient.createNetworkCmd()
               .withName("network")
@@ -149,8 +156,10 @@ public class Main {
 
     List<Bind> grafBinds = new ArrayList<Bind>();
     grafBinds.add(Bind.parse("grafana_volume" + ":" + "/var/lib/grafana"));
-    grafBinds.add(Bind.parse(System.getProperty("user.dir") + "/grafana/provisioning/dashboards" + ":" + "/etc/grafana/provisioning/dashboards"));
-    grafBinds.add(Bind.parse(System.getProperty("user.dir") + "/grafana/provisioning/datasources" + ":" + "/etc/grafana/provisioning/datasources"));
+    grafBinds.add(Bind.parse(System.getProperty("user.dir") + "/grafana/provisioning/dashboards"
+            + ":" + "/etc/grafana/provisioning/dashboards"));
+    grafBinds.add(Bind.parse(System.getProperty("user.dir") + "/grafana/provisioning/datasources"
+            + ":" + "/etc/grafana/provisioning/datasources"));
 
     CreateContainerResponse grafanaContainer =
             dockerClient
