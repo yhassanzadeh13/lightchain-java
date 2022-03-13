@@ -1,6 +1,7 @@
 package integration.localnet;
 
 import java.io.IOException;
+import java.util.concurrent.TimeUnit;
 
 import io.prometheus.client.exporter.HTTPServer;
 import io.prometheus.client.Counter;
@@ -8,16 +9,13 @@ import io.prometheus.client.Gauge;
 
 public class DemoServer {
 
+  static final Counter demoServerQueryCount = Counter.build()
+          .name("localnet_demo_demo_server_query_count").help("Demo server query count").register();
+  static final Gauge demoServerQueryGauge = Gauge.build()
+          .name("localnet_demo_demo_server_query_gauge").help("Demo server query gauge").register();
   static HTTPServer server;
 
-  static final Counter finalizedBlockCount = Counter.build()
-          .name("consensus_proposal_finalized_block_count").help("Finalized block count").register();
-  static final Gauge currentBlockCount = Gauge.build()
-          .name("consensus_proposal_current_block_count").help("Current block count").register();
-
   public static void main(String[] args) {
-
-    System.out.println("yoo");
 
     try {
       server = new HTTPServer(8080);
@@ -25,8 +23,15 @@ public class DemoServer {
       throw new IllegalStateException("could not start metrics server:\t" + e);
     }
 
-    finalizedBlockCount.inc(32);
-    currentBlockCount.inc(12);
+    try {
+      while (true) {
+        TimeUnit.SECONDS.sleep(5);
+        demoServerQueryCount.inc(1);
+        demoServerQueryGauge.set((int) (Math.random() * 100));
+      }
+    } catch (InterruptedException e) {
+      throw new IllegalStateException("could not start metrics server:\t" + e);
+    }
 
   }
 
