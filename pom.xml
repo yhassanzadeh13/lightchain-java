@@ -28,37 +28,20 @@
         <pluginManagement>
             <plugins>
 
-<!--                <plugin>-->
-<!--                    <groupId>org.apache.maven.plugins</groupId>-->
-<!--                    <artifactId>maven-compiler-plugin</artifactId>-->
-<!--                    <version>3.8.0</version>-->
-<!--                    <configuration>-->
-<!--                        <debug>true</debug>-->
-<!--                        <verbose>true</verbose>-->
-<!--                        <compilerArgs>-->
-<!--                            <arg>-Xlint</arg>-->
-<!--                        </compilerArgs>-->
-<!--                        <source>9</source>-->
-<!--                        <target>9</target>-->
-<!--                    </configuration>-->
-<!--                </plugin>-->
-
-<!--                <plugin>-->
-<!--                    <groupId>org.apache.maven.plugins</groupId>-->
-<!--                    <artifactId>maven-shade-plugin</artifactId>-->
-<!--                    <version>2.1</version>-->
-<!--                    <executions>-->
-<!--                        <execution>-->
-<!--                            <phase>package</phase>-->
-<!--                            <goals>-->
-<!--                                <goal>shade</goal>-->
-<!--                            </goals>-->
-<!--                            <configuration>-->
-<!--                                <finalName>${project.build.finalName}-fatjar</finalName>-->
-<!--                            </configuration>-->
-<!--                        </execution>-->
-<!--                    </executions>-->
-<!--                </plugin>-->
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-compiler-plugin</artifactId>
+                    <version>3.8.0</version>
+                    <configuration>
+                        <debug>true</debug>
+                        <verbose>true</verbose>
+                        <compilerArgs>
+                            <arg>-Xlint</arg>
+                        </compilerArgs>
+                        <source>9</source>
+                        <target>9</target>
+                    </configuration>
+                </plugin>
 
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
@@ -130,18 +113,6 @@
                         <failThreshold>Low</failThreshold>
                     </configuration>
                 </plugin>
-
-<!--                <plugin>-->
-<!--                    <groupId>org.apache.maven.plugins</groupId>-->
-<!--                    <artifactId>maven-jar-plugin</artifactId>-->
-<!--                    <configuration>-->
-<!--                        <archive>-->
-<!--                            <manifest>-->
-<!--                                <mainClass>integration.localnet.DemoServer</mainClass>-->
-<!--                            </manifest>-->
-<!--                        </archive>-->
-<!--                    </configuration>-->
-<!--                </plugin>-->
 
             </plugins>
         </pluginManagement>
