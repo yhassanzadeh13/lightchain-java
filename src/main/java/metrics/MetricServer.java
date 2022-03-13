@@ -10,6 +10,7 @@ import io.prometheus.client.exporter.HTTPServer;
 public class MetricServer {
 
   static HTTPServer server;
+  private static final int SERVER_PORT = 8081;
 
   /**
    * Initiates the Prometheus Exposer HTTP Server.
@@ -17,7 +18,7 @@ public class MetricServer {
   public static void start() {
 
     try {
-      server = new HTTPServer(8081);
+      server = new HTTPServer(SERVER_PORT);
     } catch (IOException e) {
       throw new IllegalStateException("could not start metrics server:\t" + e);
     }

@@ -8,11 +8,9 @@ import io.prometheus.client.Gauge;
  */
 public class Demo {
 
-  static LightChainCollector collector = new LightChainCollector();
-  static Counter finalizedBlockCount = collector.counter().register("finalized_block_count",
-          "consensus", "proposal", "Finalized block count");
-  static Gauge currentBlockCount = collector.gauge().register("current_block_count",
-          "consensus", "proposal", "Finalized block count");
+  static LightChainCollector collector;
+  static Counter finalizedBlockCount;
+  static Gauge currentBlockCount;
 
   /**
    * main function.
@@ -21,9 +19,37 @@ public class Demo {
    */
   public static void main(String[] args) {
 
-    MetricServer.start();
-    finalizedBlockCount.inc(32);
-    currentBlockCount.inc(12);
+    try {
+
+      collector = new LightChainCollector();
+
+      finalizedBlockCount = collector.counter().register("finalized_block_count",
+              "consensus", "proposal", "Finalized block count");
+
+      currentBlockCount = collector.gauge().register("current_block_count",
+              "consensus", "proposal", "Finalized block count");
+
+    } catch (Exception ex) {
+      System.err.println("Could not initialize the metrics");
+    }
+
+    try {
+      MetricServer.start();
+    } catch (Exception ex) {
+      System.err.println("Could not start the Metric Server");
+    }
+
+    while (true) {
+      try {
+        Thread.sleep(1000);
+        finalizedBlockCount.inc(1);
+        currentBlockCount.inc(1);
+      } catch(InterruptedException ex) {
+        System.err.println("Thread sleep issue");
+        Thread.currentThread().interrupt();
+        break;
+      }
+    }
 
   }
 
