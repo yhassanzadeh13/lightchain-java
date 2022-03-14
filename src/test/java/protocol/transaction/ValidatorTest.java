@@ -124,6 +124,9 @@ public class ValidatorTest {
     boolean result = verifier.isCorrect(transaction);
 
     // Assert
+    // fixture sanity check
+    Assertions.assertEquals(0, transaction.getAmount());
+
     Assertions.assertFalse(result);
   }
 
@@ -154,6 +157,9 @@ public class ValidatorTest {
     boolean result = verifier.isCorrect(transaction);
 
     // Assert
+    // fixture sanity check
+    Assertions.assertTrue(transaction.getAmount() < 0);
+
     Assertions.assertFalse(result);
   }
 
