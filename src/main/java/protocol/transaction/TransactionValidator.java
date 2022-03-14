@@ -7,20 +7,20 @@ import state.Snapshot;
 import state.State;
 
 /**
- * Represents a verifier class that is used to verify a Transaction is valid.
+ * Represents a validator class that is used to validate a Transaction is valid.
  */
-public class TransactionVerifier implements Validator {
+public class TransactionValidator implements Validator {
   /**
    * Unique State that the transaction is in.
    */
   private final State state;
 
   /**
-   * Constructor of a TransactionVerifier.
+   * Constructor.
    *
-   * @param state Current state used in the verifier.
+   * @param state Current state used in the validator.
    */
-  public TransactionVerifier(State state) {
+  public TransactionValidator(State state) {
     this.state = state;
   }
 
