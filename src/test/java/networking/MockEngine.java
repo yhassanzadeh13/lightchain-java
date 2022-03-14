@@ -2,27 +2,37 @@ package networking;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import model.Entity;
 import model.lightchain.Identifier;
 import protocol.Engine;
 
 public class MockEngine implements Engine {
-  private Set<Identifier> receivedEntityIds;
+  private final ReentrantReadWriteLock lock;
+  private final Set<Identifier> receivedEntityIds;
 
   public MockEngine() {
     this.receivedEntityIds = new HashSet<>();
+    this.lock = new ReentrantReadWriteLock();
   }
 
   @Override
   public void process(Entity e) throws IllegalArgumentException {
-    // TODO: put e.Id() in the set.
+    lock.writeLock();
+
     receivedEntityIds.add(e.id());
+
+    lock.writeLock();
   }
 
   public boolean hasReceived(Entity e) {
+    lock.readLock();
+
     Identifier id = e.id();
     boolean ok = this.receivedEntityIds.contains(id);
+
+    lock.readLock();
     return ok;
   }
 }
