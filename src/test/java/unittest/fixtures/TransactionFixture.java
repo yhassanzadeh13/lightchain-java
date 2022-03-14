@@ -63,4 +63,5 @@ public class TransactionFixture extends Transaction {
         double amount = Math.abs(RANDOM.nextInt()) + 1;
         return new model.lightchain.Transaction(sender, receiver, referenceBlockId, amount);
     }
+
 }

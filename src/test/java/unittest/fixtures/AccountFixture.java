@@ -7,6 +7,7 @@ import org.mockito.Mockito;
 import protocol.Parameters;
 
 public class AccountFixture extends Account {
+
   /**
    * Constructor of an Account.
    *
