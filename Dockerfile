@@ -9,4 +9,4 @@ FROM openjdk:17
 COPY --from=build /app/target/lightchain-sdp-1.0-SNAPSHOT-jar-with-dependencies.jar .
 COPY prometheus /app/prometheus/
 EXPOSE 8080
-ENTRYPOINT ["java", "-jar", "lightchain-sdp-1.0-SNAPSHOT-jar-with-dependencies.jar"]
+ENTRYPOINT ["java", "-cp", "lightchain-sdp-1.0-SNAPSHOT-jar-with-dependencies.jar", "integration.localnet.DemoServer"]
