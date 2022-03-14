@@ -1,5 +1,9 @@
 package modules.codec;
 
+import java.lang.reflect.Type;
+import java.nio.charset.StandardCharsets;
+
+import com.google.gson.Gson;
 import model.Entity;
 import model.codec.EncodedEntity;
 
@@ -15,7 +19,10 @@ public class JsonEncoder implements Codec {
    */
   @Override
   public EncodedEntity encode(Entity e) {
-    return null;
+    Gson gson = new Gson();
+    byte[] bytes = gson.toJson(e).getBytes(StandardCharsets.UTF_8);
+    String type = e.getClass().getCanonicalName();
+    return new EncodedEntity(bytes, type);
   }
 
   /**
@@ -25,7 +32,10 @@ public class JsonEncoder implements Codec {
    * @return original Entity type.
    */
   @Override
-  public Entity decode(EncodedEntity e) {
-    return null;
+  public Entity decode(EncodedEntity e) throws ClassNotFoundException {
+    Gson gson = new Gson();
+    String json = new String(e.getBytes().clone(), StandardCharsets.UTF_8);
+    return gson.fromJson(json, (Type) Class.forName(e.getType()));
+
   }
 }
