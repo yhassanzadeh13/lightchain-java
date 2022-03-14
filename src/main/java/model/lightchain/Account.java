@@ -71,6 +71,6 @@ public class Account {
   }
 
   public int getStake() {
-
+    return this.stake;
   }
 }
