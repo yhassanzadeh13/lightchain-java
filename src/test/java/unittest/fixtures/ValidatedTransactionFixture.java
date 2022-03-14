@@ -35,8 +35,8 @@ public class ValidatedTransactionFixture extends ValidatedTransaction {
     Identifier referenceBlockId = IdentifierFixture.newIdentifier();
     Identifier sender = IdentifierFixture.newIdentifier();
     Identifier receiver = IdentifierFixture.newIdentifier();
-    double amount = random.nextInt() + 1;
-    int certificatesSize = random.nextInt(Parameters.SIGNATURE_THRESHOLD) + Parameters.SIGNATURE_THRESHOLD;
+    double amount = 100;
+    int certificatesSize = Parameters.SIGNATURE_THRESHOLD + 2;
     Signature[] certificates = new Signature[certificatesSize];
     for (int i = 0; i < certificatesSize; i++) {
       certificates[i] = new SignatureFixture(Bytes.byteArrayFixture(32), null);
@@ -53,14 +53,15 @@ public class ValidatedTransactionFixture extends ValidatedTransaction {
   public static ValidatedTransaction newValidatedTransaction(Identifier sender) {
     Identifier referenceBlockId = IdentifierFixture.newIdentifier();
     Identifier receiver = IdentifierFixture.newIdentifier();
-    double amount = random.nextInt() + 1;
-    int certificatesSize = random.nextInt(Parameters.SIGNATURE_THRESHOLD) + Parameters.SIGNATURE_THRESHOLD;
+    double amount = 100;
+    int certificatesSize = 2 + Parameters.SIGNATURE_THRESHOLD;
     Signature[] certificates = new Signature[certificatesSize];
     for (int i = 0; i < certificatesSize; i++) {
       certificates[i] = new SignatureFixture(Bytes.byteArrayFixture(32), null);
     }
     return new ValidatedTransactionFixture(referenceBlockId, sender, receiver, amount, certificates);
   }
+
   /**
    * Constructor of the validated transactions with randomly generated parameters and given sender identifier.
    *
@@ -71,7 +72,7 @@ public class ValidatedTransactionFixture extends ValidatedTransaction {
     Identifier referenceBlockId = IdentifierFixture.newIdentifier();
     Identifier sender = IdentifierFixture.newIdentifier();
     Identifier receiver = IdentifierFixture.newIdentifier();
-    double amount = random.nextInt() + 1;
+    double amount = 100;
     Signature[] certificates = new Signature[certificatesSize];
     for (int i = 0; i < certificatesSize; i++) {
       certificates[i] = new SignatureFixture(Bytes.byteArrayFixture(32), null);

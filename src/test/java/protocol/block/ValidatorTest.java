@@ -74,7 +74,7 @@ public class ValidatorTest {
   public void testBlockIsNotCorrect_ValidatedTransactionBelowMinimum() {
     //Arrange
     /// Block
-    int validatedTransactionSize = Math.max(Parameters.MIN_TRANSACTIONS_NUM - random.nextInt() - 1, 0);
+    int validatedTransactionSize = Math.max(Parameters.MIN_TRANSACTIONS_NUM  - 1, 0);
     Block block = BlockFixture.newBlock(validatedTransactionSize);
 
     /// State & Snapshot Mocking

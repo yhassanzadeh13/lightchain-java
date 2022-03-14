@@ -34,7 +34,7 @@ public class BlockFixture extends Block {
   public static Block newBlock() {
     Identifier previousBlockId = IdentifierFixture.newIdentifier();
     Identifier proposer = IdentifierFixture.newIdentifier();
-    int validatedTransactionsSize = random.nextInt(Parameters.MAX_TRANSACTIONS_NUM) + Parameters.MIN_TRANSACTIONS_NUM;
+    int validatedTransactionsSize = Parameters.MIN_TRANSACTIONS_NUM + 2;
     ValidatedTransaction[] transactions = new ValidatedTransaction[validatedTransactionsSize];
     for (int i = 0; i < validatedTransactionsSize; i++) {
       transactions[i] = ValidatedTransactionFixture.newValidatedTransaction();
@@ -59,6 +59,7 @@ public class BlockFixture extends Block {
     Signature signature = new SignatureFixture(Bytes.byteArrayFixture(32), null);
     return new BlockFixture(previousBlockId, proposer, transactions, signature);
   }
+
   /**
    * Returns a block with randomly generated values and given validated transactions.
    *
