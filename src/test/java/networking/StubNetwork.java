@@ -1,15 +1,14 @@
 package networking;
 
-import java.util.concurrent.ConcurrentHashMap;
-
 import model.Entity;
-import model.exceptions.LightChainDistributedStorageException;
 import model.exceptions.LightChainNetworkingException;
 import model.lightchain.Identifier;
 import network.Conduit;
 import network.Network;
 import protocol.Engine;
 import unittest.fixtures.IdentifierFixture;
+
+import java.util.concurrent.ConcurrentHashMap;
 
 public class StubNetwork implements Network {
   private final ConcurrentHashMap<String, Engine> engines;
@@ -36,27 +35,9 @@ public class StubNetwork implements Network {
   }
 
   @Override
-  public Conduit register(Engine en, String channel) throws IllegalStateException {
+  public MockConduit register(Engine en, String channel) throws IllegalStateException {
     // TODO: this should be a separate class.
-    Conduit conduit = new Conduit() {
-      @Override
-      public void unicast(Entity e, Identifier target) throws LightChainNetworkingException {
-        StubNetwork net = hub.getNetwork(target);
-        net.deliverEntity(channel, e);
-      }
-
-      @Override
-      public void put(Entity e) throws LightChainDistributedStorageException {
-
-      }
-
-      @Override
-      public Entity get(Identifier identifier) throws LightChainDistributedStorageException {
-        return null;
-      }
-    };
-
-
+    Conduit conduit = new MockConduit(channel,en, hub);
     try {
       if (engines.containsKey(channel)) {
         throw new IllegalStateException();
@@ -69,11 +50,11 @@ public class StubNetwork implements Network {
       ex.printStackTrace();
     }
 
-    return conduit;
+    return (MockConduit) conduit;
+  }
+    public Engine  getEngine(String ch){
+    Engine engine = engines.get(ch);
+    return engine;
   }
 
-  public void deliverEntity(String ch, Entity en) {
-    Engine engine = engines.get(ch);
-    engine.process(en);
-  }
 }

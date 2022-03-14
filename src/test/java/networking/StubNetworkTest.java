@@ -2,10 +2,12 @@ package networking;
 
 import java.util.ArrayList;
 import java.util.Hashtable;
+import java.util.concurrent.ConcurrentHashMap;
 
 import model.Entity;
 import model.exceptions.LightChainNetworkingException;
 import network.Conduit;
+import network.Network;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -13,6 +15,8 @@ import protocol.Engine;
 import unittest.fixtures.EntityFixture;
 
 public class StubNetworkTest {
+  private ArrayList<Network> networkArrayList;
+  private ConcurrentHashMap<Network,ArrayList<Conduit>> conduitConcurrentHashMap;
   // TODO: add a test for each of the following scenarios:
   // Use mock engines.
   // 1. Engine A (on one stub network) can send message to Engine B (on another stub network) through its StubNetwork, and the message is received by Engine B.
@@ -23,7 +27,28 @@ public class StubNetworkTest {
   // receives messages destinated for it (C receives all messages from A) and (D receives all messages from B). Note that A and C must be on the same channel, and B
   // and B must be on another same channel.
   // 5. Stub network throws an exception if an engine is registering itself on an already taken channel.
+  @BeforeEach
+ void  setup(){
+  this.networkArrayList = new ArrayList<Network>();
+  this.conduitConcurrentHashMap=new ConcurrentHashMap<Network, ArrayList<Conduit>>();
+  ArrayList<Conduit> conduitArrayList = new ArrayList<Conduit>();
 
+   String channel1 = "test-network-channel-1";
+   String channel2 = "test-network-channel-2";
+  Hub hub = new Hub();
+  for (int i =0; i<10; i++){
+    StubNetwork stubNetwork = new StubNetwork(hub);
+    Engine A1 =new MockEngine();
+    Engine A2= new MockEngine();
+    Conduit c1 =stubNetwork.register(A1,channel1);
+    Conduit c2 =stubNetwork.register(A2,channel2);
+    conduitArrayList.add(c1);
+    conduitArrayList.add(c2);
+    conduitConcurrentHashMap.put(stubNetwork,conduitArrayList);
+    networkArrayList.add(stubNetwork);
+  }
+
+ }
   @Test
   void TestTwoStubNetworks_TwoEngines(){
     String channel1 = "test-network-channel-1";
@@ -50,26 +75,13 @@ public class StubNetworkTest {
   }
 
 
-//  @Test
-//  void test() throws LightChainNetworkingException {
-//
-//    String channelA1 = "ChannelA1";
-//
-//    Engine A1 = new MockEngine();
-//    Engine B1 = new MockEngine();
-//    stubNetwork1.register(A1, channelA1);
-//    stubNetwork2.register(B1, channelA1);
-//    EntityFixture e1 = new EntityFixture();
-//    EntityFixture e2 = new EntityFixture();
-//    StubNetworkThread t1 = new StubNetworkThread(stubNetwork1, stubNetwork2, e1, channelA1);
-//    t1.start();
-//    //c1.unicast(e1, stubNetwork2.id());
-//    System.out.println(e1.id());
-//    System.out.println(B1);
-//  }
-//
-//  @Test
-//  void TestUnicastOneToAll_Sequentially() throws LightChainNetworkingException {
+
+
+  @Test
+  void TestUnicastOneToAll_Sequentially() throws LightChainNetworkingException {
+
+
+
 //    Conduit c1 = stubNetwork1.register(A1, channel1);
 //    EntityFixture e1 = new EntityFixture();
 //
@@ -108,9 +120,8 @@ public class StubNetworkTest {
 //    System.out.println(C2);
 //    System.out.println(D1);
 //    System.out.println(D2);
-//
-//
-//  }
+
+  }
 //
 //  @Test
 //  void TestUnicastOneToAll_Concurrently() {
