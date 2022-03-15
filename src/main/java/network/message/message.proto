@@ -1,0 +1,14 @@
+syntax = "proto3";
+
+package message;
+
+message Message {
+  bytes OriginId = 1;
+  repeated bytes TargetIds = 2;
+  bytes Payload = 3;
+  string Type = 4;
+}
+
+service Messenger {
+  rpc Deliver(stream Message) returns (google.protobuf.Empty) {}
+}
