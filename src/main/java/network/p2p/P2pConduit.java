@@ -8,7 +8,7 @@ import model.lightchain.Identifier;
 /**
  * Implements Conduit for grpc-based networking layer.
  */
-public class Conduit implements network.Conduit {
+public class P2pConduit implements network.Conduit {
   /**
    * Sends the Entity through the Network to the remote target.
    *

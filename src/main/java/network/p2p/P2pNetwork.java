@@ -6,7 +6,7 @@ import protocol.Engine;
 /**
  * Implements a grpc-based networking layer.
  */
-public class Network implements network.Network {
+public class P2pNetwork implements network.Network {
   /**
    * Registers an Engine to the Network by providing it with a Conduit.
    *
