@@ -19,8 +19,12 @@ public class Hub {
     networks.put(key, network);
 
   }
+  public  void transferEntity(Entity entity, Identifier identifier, String channel){
+    StubNetwork net =this.getNetwork(identifier);
+    net.receiveUnicast(entity,channel);
 
-  public StubNetwork getNetwork(Identifier key) {
+  }
+  private StubNetwork getNetwork(Identifier key) {
     return (StubNetwork) networks.get(key);
   }
 

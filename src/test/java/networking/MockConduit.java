@@ -5,18 +5,14 @@ import model.exceptions.LightChainDistributedStorageException;
 import model.exceptions.LightChainNetworkingException;
 import model.lightchain.Identifier;
 import network.Conduit;
-import network.Network;
-import protocol.Engine;
 
 public class MockConduit implements Conduit {
-    private String channel;
-    private Engine engine;
-    private Hub hub;
 
-    public MockConduit(String channel, Engine engine, Hub hub) {
-        this.channel = channel;
-        this.engine = engine;
-        this.hub = hub;
+    private final String channel;
+    private final Hub hub;
+    public MockConduit(String channel,Hub hub) {
+        this.channel=channel;
+        this.hub=hub;
     }
 
     /**
@@ -28,8 +24,9 @@ public class MockConduit implements Conduit {
      */
     @Override
     public void unicast(Entity e, Identifier target) throws LightChainNetworkingException {
-        StubNetwork net = hub.getNetwork(target);
-        deliverEntity(net,channel , e);
+        hub.transferEntity(e,target,channel);
+
+
     }
 
     /**
@@ -55,8 +52,5 @@ public class MockConduit implements Conduit {
     public Entity get(Identifier identifier) throws LightChainDistributedStorageException {
         return null;
     }
-    public void deliverEntity(StubNetwork network,String channel, Entity en) {
-        Engine eng =network.getEngine(channel);
-        eng.process(en);
-    }
+
 }
