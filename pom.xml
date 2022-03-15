@@ -79,6 +79,25 @@
                             <artifactId>checkstyle</artifactId>
                             <version>8.42</version>
                         </dependency>
+                        <!-- https://mvnrepository.com/artifact/com.google.protobuf/protobuf-java -->
+                        <dependency>
+                            <groupId>com.google.protobuf</groupId>
+                            <artifactId>protobuf-java</artifactId>
+                            <version>3.19.4</version>
+                        </dependency>
+                        <!-- https://mvnrepository.com/artifact/com.google.protobuf/protobuf-java-util -->
+                        <dependency>
+                            <groupId>com.google.protobuf</groupId>
+                            <artifactId>protobuf-java-util</artifactId>
+                            <version>3.19.4</version>
+                            <scope>runtime</scope>
+                        </dependency>
+                        <!-- https://mvnrepository.com/artifact/com.google.protobuf/protobuf-java -->
+                        <dependency>
+                            <groupId>com.google.protobuf</groupId>
+                            <artifactId>protobuf-java</artifactId>
+                            <version>3.19.4</version>
+                        </dependency>
                     </dependencies>
                 </plugin>
                 <plugin>
