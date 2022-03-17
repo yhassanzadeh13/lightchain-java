@@ -1,14 +1,9 @@
 package networking;
 
 import java.util.ArrayList;
-import java.util.Hashtable;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
-
 import model.Entity;
 import model.exceptions.LightChainNetworkingException;
 import network.Conduit;
