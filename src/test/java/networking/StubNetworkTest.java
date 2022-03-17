@@ -158,11 +158,9 @@ public class StubNetworkTest {
                     MockEngine E2 = (MockEngine) ((StubNetwork) network).getEngine(channel2);
 
                     if (!E1.hasReceived(entity)) {
-                        System.out.println("error1");
                         threadError.getAndIncrement();
                     }
                     if (E2.hasReceived(entity)) {
-                        System.out.println("error1");
                         threadError.getAndIncrement();
                     }
 
