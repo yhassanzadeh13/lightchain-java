@@ -20,13 +20,13 @@ public class EntityFixture extends Entity {
 
   public EntityFixture() {
     super();
-    this.id = IdentifierFixture.NewIdentifier();
+    this.id = IdentifierFixture.newIdentifier();
     this.testInt = rand.nextInt();
     byte[] bytesString = new byte[32];
     rand.nextBytes(bytesString);
     this.testString = new String(bytesString);
     this.testDouble = rand.nextDouble();
-    this.testBytes = Bytes.ByteArrayFixture(32).clone();
+    this.testBytes = Bytes.byteArrayFixture(32).clone();
     this.testHashArray = Sha3256HashFixture.NewSha3256HashArray();
   }
 

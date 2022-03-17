@@ -5,7 +5,7 @@ import model.crypto.Sha3256Hash;
 
 public class Sha3256HashFixture {
   public static model.crypto.Sha3256Hash NewSha3256Hash() {
-    byte[] bytes = Bytes.ByteArrayFixture(model.crypto.Sha3256Hash.Size);
+    byte[] bytes = Bytes.byteArrayFixture(model.crypto.Sha3256Hash.Size);
     return new model.crypto.Sha3256Hash(bytes);
   }
 
