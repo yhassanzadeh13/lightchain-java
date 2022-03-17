@@ -52,8 +52,12 @@ public class Identifier {
 
   @Override
   public boolean equals(Object o) {
-    if (this == o) return true;
-    if (!(o instanceof Identifier)) return false;
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof Identifier)) {
+      return false;
+    }
     Identifier that = (Identifier) o;
     return Arrays.equals(value, that.value);
   }
