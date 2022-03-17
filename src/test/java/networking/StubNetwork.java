@@ -21,7 +21,7 @@ public class StubNetwork implements Network {
         this.engines = new ConcurrentHashMap<>();
 
         this.hub = hub;
-        this.identifier = IdentifierFixture.NewIdentifier();
+        this.identifier = IdentifierFixture.newIdentifier();
         this.hub.registerNetwork(identifier, this);
     }
 
