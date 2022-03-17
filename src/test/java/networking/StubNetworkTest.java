@@ -248,6 +248,7 @@ public class StubNetworkTest {
             }
 
         }
+        Assertions.assertEquals(0, count);
 
     }
 
