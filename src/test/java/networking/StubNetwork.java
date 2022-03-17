@@ -53,7 +53,7 @@ public class StubNetwork implements Network {
         return conduit;
     }
 
-    private Engine getEngine(String ch) {
+    public Engine getEngine(String ch) {
         return engines.get(ch);
     }
 
