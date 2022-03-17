@@ -3,6 +3,7 @@ package networking;
 import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -20,7 +21,11 @@ import unittest.fixtures.EntityFixture;
 
 public class StubNetworkTest {
 
-    private ConcurrentHashMap<Network, ArrayList<Conduit>> conduitConcurrentHashMap;
+
+    private ArrayList<Network> networkArrayList;
+    private final String channel1 = "test-network-channel-1";
+    private final String channel2 = "test-network-channel-2";
+    private Hub hub;
 
     // TODO: add a test for each of the following scenarios:
     // Use mock engines.
@@ -35,21 +40,18 @@ public class StubNetworkTest {
     @BeforeEach
     void setup() {
 
-        this.conduitConcurrentHashMap = new ConcurrentHashMap<>();
 
-        String channel1 = "test-network-channel-1";
-        String channel2 = "test-network-channel-2";
-        Hub hub = new Hub();
-        for (int i = 0; i < 10; i++) {
-            ArrayList<Conduit> conduitArrayList = new ArrayList<>();
+        this.networkArrayList = new ArrayList<>();
+        hub = new Hub();
+        for (int i = 0; i < 9; i++) {
+
             StubNetwork stubNetwork = new StubNetwork(hub);
-            Engine A1 = new MockEngine();
-            Engine A2 = new MockEngine();
-            Conduit c1 = stubNetwork.register(A1, channel1);
-            Conduit c2 = stubNetwork.register(A2, channel2);
-            conduitArrayList.add(c1);
-            conduitArrayList.add(c2);
-            conduitConcurrentHashMap.put(stubNetwork, conduitArrayList);
+            Engine E1 = new MockEngine();
+            Engine E2 = new MockEngine();
+            stubNetwork.register(E1, channel1);
+            stubNetwork.register(E2, channel2);
+            networkArrayList.add(stubNetwork);
+
 
         }
 
@@ -89,7 +91,7 @@ public class StubNetworkTest {
         String channel1 = "test-network-channel-1";
 
         Thread[] unicastThreads = new Thread[concurrencyDegree];
-        Hub hub = new Hub();
+
 
         StubNetwork network1 = new StubNetwork(hub);
         MockEngine A1 = new MockEngine();
@@ -100,7 +102,6 @@ public class StubNetworkTest {
         network2.register(A2, channel1);
 
 
-
         for (int i = 0; i < concurrencyDegree; i++) {
             unicastThreads[i] = new Thread(() -> {
                 Entity entity = new EntityFixture();
@@ -131,33 +132,50 @@ public class StubNetworkTest {
 
         Assertions.assertEquals(0, threadError.get());
     }
+
+    @Test
     void TestUnicastOneToAll_Concurrently() {
-        int concurrencyDegree = 100;
+        int concurrencyDegree = 9;
         AtomicInteger threadError = new AtomicInteger();
         CountDownLatch countDownLatch = new CountDownLatch(concurrencyDegree);
-        Iterator<ConcurrentHashMap.Entry<Network,ArrayList<Conduit>>> itr =conduitConcurrentHashMap.entrySet().iterator();
+        StubNetwork network1 = new StubNetwork(hub);
+        MockEngine A1 = new MockEngine();
+        Conduit c1 = network1.register(A1, channel1);
+        Entity entity = new EntityFixture();
 
 
         Thread[] unicastThreads = new Thread[concurrencyDegree];
+        int count = 0;
+        for (Network network : networkArrayList) {
+            unicastThreads[count] = new Thread(() -> {
 
-
-
-        for (int i = 0; i < concurrencyDegree; i++) {
-            unicastThreads[i] = new Thread(() -> {
-                Entity entity = new EntityFixture();
 
                 try {
-                    c1.unicast(entity, network2.id());
-                    if (!A2.hasReceived(entity)) {
+
+
+                    c1.unicast(entity, ((StubNetwork) network).id());
+                    MockEngine E1 = (MockEngine) ((StubNetwork) network).getEngine(channel1);
+                    MockEngine E2 = (MockEngine) ((StubNetwork) network).getEngine(channel2);
+
+                    if (!E1.hasReceived(entity)) {
+                        System.out.println("error1");
+                        threadError.getAndIncrement();
+                    }
+                    if (E2.hasReceived(entity)) {
+                        System.out.println("error1");
                         threadError.getAndIncrement();
                     }
 
                     countDownLatch.countDown();
                 } catch (LightChainNetworkingException e) {
+
                     threadError.getAndIncrement();
                 }
             });
+            count++;
+
         }
+
 
         for (Thread t : unicastThreads) {
             t.start();
@@ -172,7 +190,6 @@ public class StubNetworkTest {
 
         Assertions.assertEquals(0, threadError.get());
     }
-
 
 
 }

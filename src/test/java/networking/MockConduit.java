@@ -5,7 +5,9 @@ import model.exceptions.LightChainDistributedStorageException;
 import model.exceptions.LightChainNetworkingException;
 import model.lightchain.Identifier;
 import network.Conduit;
-
+/**
+ * MockConduit represents the Networking interface that is exposed to an Engine.
+ */
 public class MockConduit implements Conduit {
 
     private final String channel;
