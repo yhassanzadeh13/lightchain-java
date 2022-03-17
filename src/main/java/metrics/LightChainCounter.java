@@ -5,7 +5,6 @@ import io.prometheus.client.Counter;
 /**
  * LightChain Counter is the LightChain implementation of the Counter Collector interface.
  */
-
 public class LightChainCounter implements CounterCollector {
   /**
    * Registers a counter collector.
@@ -23,6 +22,12 @@ public class LightChainCounter implements CounterCollector {
   @Override
   public Counter register(String name, String namespace, String subsystem, String helpMessage)
           throws IllegalArgumentException {
-    return Counter.build().namespace(namespace).subsystem(subsystem).name(name).help(helpMessage).register();
+    return Counter
+            .build()
+            .namespace(namespace)
+            .subsystem(subsystem)
+            .name(name)
+            .help(helpMessage)
+            .register();
   }
 }

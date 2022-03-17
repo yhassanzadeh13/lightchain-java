@@ -5,7 +5,6 @@ import io.prometheus.client.Gauge;
 /**
  * LightChain Gauge is the LightChain implementation of the Gauge Collector interface.
  */
-
 public class LightChainGauge implements GaugeCollector {
   /**
    *  Registers a gauge collector.
@@ -23,6 +22,12 @@ public class LightChainGauge implements GaugeCollector {
   @Override
   public Gauge register(String name, String namespace, String subsystem, String helpMessage)
           throws IllegalArgumentException {
-    return Gauge.build().namespace(namespace).subsystem(subsystem).name(name).help(helpMessage).register();
+    return Gauge
+            .build()
+            .namespace(namespace)
+            .subsystem(subsystem)
+            .name(name)
+            .help(helpMessage)
+            .register();
   }
 }

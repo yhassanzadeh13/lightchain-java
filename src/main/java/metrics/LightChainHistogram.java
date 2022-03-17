@@ -5,7 +5,6 @@ import io.prometheus.client.Histogram;
 /**
  * LightChain Histogram is the LightChain implementation of the Histogram Collector interface.
  */
-
 public class LightChainHistogram implements HistogramCollector {
   /**
    * Registers a histogram collector.
@@ -23,7 +22,13 @@ public class LightChainHistogram implements HistogramCollector {
   @Override
   public Histogram register(String name, String namespace, String subsystem,
                             String helpMessage, double[] buckets) throws IllegalArgumentException {
-    return Histogram.build().namespace(namespace).subsystem(subsystem).name(name).help(helpMessage).register();
+    return Histogram
+            .build()
+            .namespace(namespace)
+            .subsystem(subsystem)
+            .name(name)
+            .help(helpMessage)
+            .register();
   }
 
 }

@@ -5,23 +5,29 @@ package metrics;
  */
 public class LightChainCollector implements Collector {
 
-  HistogramCollector lightChainHistogram = new LightChainHistogram();
-  GaugeCollector lightChainGauge = new LightChainGauge();
-  CounterCollector lightChainCounter = new LightChainCounter();
+  HistogramCollector lightChainHistogram;
+  GaugeCollector lightChainGauge;
+  CounterCollector lightChainCounter;
+
+  public LightChainCollector() {
+    this.lightChainHistogram = new LightChainHistogram();
+    this.lightChainGauge = new LightChainGauge();
+    this.lightChainCounter = new LightChainCounter();
+  }
 
   @Override
   public HistogramCollector histogram() {
-    return lightChainHistogram;
+    return this.lightChainHistogram;
   }
 
   @Override
   public GaugeCollector gauge() {
-    return lightChainGauge;
+    return this.lightChainGauge;
   }
 
   @Override
   public CounterCollector counter() {
-    return lightChainCounter;
+    return this.lightChainCounter;
   }
 
 }
