@@ -16,15 +16,18 @@ public class MockEngine implements Engine {
     private final Set<Identifier> receivedEntityIds;
 
 
-
     public MockEngine() {
         this.receivedEntityIds = new HashSet<>();
         this.lock = new ReentrantReadWriteLock();
     }
 
 
-
-
+    /**
+     * Called by Network whenever an Entity is arrived for this engine.
+     *
+     * @param e the arrived Entity from the network.
+     * @throws IllegalArgumentException any unhappy path taken on processing the Entity.
+     */
 
     @Override
     public void process(Entity e) throws IllegalArgumentException {
