@@ -28,7 +28,6 @@ public class MockConduit implements Conduit {
     public void unicast(Entity e, Identifier target) throws LightChainNetworkingException {
         hub.transferEntity(e,target,channel);
 
-
     }
 
     /**

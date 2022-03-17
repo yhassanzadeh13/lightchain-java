@@ -7,25 +7,27 @@ import model.lightchain.Identifier;
 import network.Network;
 
 public class Hub {
-  private final ConcurrentHashMap<Identifier, Network> networks;
-  private final ConcurrentHashMap<Identifier, Entity> entities;
+    private final ConcurrentHashMap<Identifier, Network> networks;
+    private final ConcurrentHashMap<Identifier, Entity> entities;
 
-  public Hub() {
-    this.networks = new ConcurrentHashMap<>();
-    this.entities = new ConcurrentHashMap<>();
-  }
+    public Hub() {
+        this.networks = new ConcurrentHashMap<>();
+        this.entities = new ConcurrentHashMap<>();
+    }
 
-  public void registerNetwork(Identifier key, Network network) {
-    networks.put(key, network);
+    public void registerNetwork(Identifier key, Network network) {
+        networks.put(key, network);
 
-  }
-  public  void transferEntity(Entity entity, Identifier identifier, String channel){
-    StubNetwork net =this.getNetwork(identifier);
-    net.receiveUnicast(entity,channel);
+    }
 
-  }
-  private StubNetwork getNetwork(Identifier key) {
-    return (StubNetwork) networks.get(key);
-  }
+    public void transferEntity(Entity entity, Identifier identifier, String channel) {
+        StubNetwork net = this.getNetwork(identifier);
+        net.receiveUnicast(entity, channel);
+
+    }
+
+    private StubNetwork getNetwork(Identifier key) {
+        return (StubNetwork) networks.get(key);
+    }
 
 }

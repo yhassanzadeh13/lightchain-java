@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+
 import model.Entity;
 import model.exceptions.LightChainNetworkingException;
 import network.Conduit;
@@ -71,6 +72,7 @@ public class StubNetworkTest {
         try {
             c1.unicast(entity, network2.id());
         } catch (LightChainNetworkingException e) {
+
             Assertions.fail();
         }
 
@@ -129,6 +131,34 @@ public class StubNetworkTest {
     }
 
     @Test
+    void TestUnicastOneToAll_Sequentially() {
+        StubNetwork network1 = new StubNetwork(hub);
+        MockEngine A1 = new MockEngine();
+        Conduit c1 = network1.register(A1, channel1);
+        Entity entity = new EntityFixture();
+        int count = 0;
+        for (Network network : networkArrayList) {
+            try {
+                c1.unicast(entity, ((StubNetwork) network).id());
+                MockEngine E1 = (MockEngine) ((StubNetwork) network).getEngine(channel1);
+                MockEngine E2 = (MockEngine) ((StubNetwork) network).getEngine(channel2);
+
+                if (!E1.hasReceived(entity)) {
+                    count++;
+                }
+                if (E2.hasReceived(entity)) {
+                    count++;
+                }
+            } catch (LightChainNetworkingException e) {
+
+                count++;
+            }
+
+        }
+        Assertions.assertEquals(0, count);
+    }
+
+    @Test
     void TestUnicastOneToAll_Concurrently() {
         int concurrencyDegree = 9;
         AtomicInteger threadError = new AtomicInteger();
@@ -183,6 +213,7 @@ public class StubNetworkTest {
 
         Assertions.assertEquals(0, threadError.get());
     }
+
 
 
 }

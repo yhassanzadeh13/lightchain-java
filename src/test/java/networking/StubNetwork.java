@@ -30,14 +30,19 @@ public class StubNetwork implements Network {
     }
 
 
-    public  void receiveUnicast(Entity entity, String channel){
-        Engine engine =getEngine(channel);
-        engine.process(entity);
+    public void receiveUnicast(Entity entity, String channel) {
+        Engine engine = getEngine(channel);
+        try {
+            engine.process(entity);
+        } catch (IllegalArgumentException e) {
+            throw new IllegalStateException("could not process the entity" + e);
+        }
     }
+
     @Override
     public Conduit register(Engine en, String channel) throws IllegalStateException {
         //
-        Conduit conduit = new MockConduit(channel,hub);
+        Conduit conduit = new MockConduit(channel, hub);
         try {
             if (engines.containsKey(channel)) {
                 throw new IllegalStateException();
@@ -45,9 +50,8 @@ public class StubNetwork implements Network {
             engines.put(channel, en);
 
 
-
-        } catch (Exception ex) {
-            ex.printStackTrace();
+        } catch (IllegalArgumentException ex) {
+            throw new IllegalStateException("could not register the engine" + ex);
         }
 
         return conduit;
