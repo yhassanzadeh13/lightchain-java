@@ -87,7 +87,6 @@ public class StubNetworkTest {
         AtomicInteger threadError = new AtomicInteger();
         CountDownLatch countDownLatch = new CountDownLatch(concurrencyDegree);
 
-        String channel1 = "test-network-channel-1";
 
         Thread[] unicastThreads = new Thread[concurrencyDegree];
 
@@ -124,6 +123,63 @@ public class StubNetworkTest {
 
         try {
             boolean doneOneTime = countDownLatch.await(60, TimeUnit.SECONDS);
+            Assertions.assertTrue(doneOneTime);
+        } catch (InterruptedException e) {
+            Assertions.fail();
+        }
+
+        Assertions.assertEquals(0, threadError.get());
+    }
+
+    @Test
+
+    void TestTwoStubNetworks_TwoEngines_Reply_ConcurrentMessages() {
+        int concurrencyDegree = 100;
+        AtomicInteger threadError = new AtomicInteger();
+        CountDownLatch countDownLatch = new CountDownLatch(concurrencyDegree);
+
+
+        Thread[] unicastThreads = new Thread[concurrencyDegree];
+
+
+        StubNetwork network1 = new StubNetwork(hub);
+        MockEngine A1 = new MockEngine();
+        Conduit c1 = network1.register(A1, channel1);
+
+        StubNetwork network2 = new StubNetwork(hub);
+        MockEngine A2 = new MockEngine();
+        Conduit c2=network2.register(A2, channel1);
+
+
+        for (int i = 0; i < concurrencyDegree; i++) {
+            unicastThreads[i] = new Thread(() -> {
+                Entity entity = new EntityFixture();
+                Entity entity2= new EntityFixture();
+                try {
+                    c1.unicast(entity, network2.id());
+                    if (!A2.hasReceived(entity)) {
+                        threadError.getAndIncrement();
+                    }
+
+                    c2.unicast(entity2,network1.id());
+                    if (!A1.hasReceived(entity2)) {
+                        threadError.getAndIncrement();
+
+                    }
+
+                    countDownLatch.countDown();
+                } catch (LightChainNetworkingException e) {
+                    threadError.getAndIncrement();
+                }
+            });
+        }
+
+        for (Thread t : unicastThreads) {
+            t.start();
+        }
+
+        try {
+            boolean doneOneTime = countDownLatch.await(360, TimeUnit.SECONDS);
             Assertions.assertTrue(doneOneTime);
         } catch (InterruptedException e) {
             Assertions.fail();
