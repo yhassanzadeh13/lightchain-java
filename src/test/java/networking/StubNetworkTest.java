@@ -215,21 +215,22 @@ public class StubNetworkTest {
 
         Assertions.assertEquals(0, threadError.get());
     }
+
     @Test
-    void TestUnicastOneToSome_Sequentially(){
+    void TestUnicastOneToSome_Sequentially() {
         StubNetwork network1 = new StubNetwork(hub);
         MockEngine A1 = new MockEngine();
         Conduit c1 = network1.register(A1, channel1);
         Entity entity = new EntityFixture();
-        int size= networkArrayList.size();
+        int size = networkArrayList.size();
         int count = 0;
-        List<Network> first=new ArrayList<>(networkArrayList.subList(0,size/2));
-        List<Network> second=new ArrayList<>(networkArrayList.subList(size/2,size));
-        Iterator<Network> first_it= first.iterator();
-        Iterator<Network> second_it= second.iterator();
+        List<Network> first = new ArrayList<>(networkArrayList.subList(0, size / 2));
+        List<Network> second = new ArrayList<>(networkArrayList.subList(size / 2, size));
+        Iterator<Network> first_it = first.iterator();
+        Iterator<Network> second_it = second.iterator();
         while (first_it.hasNext() && second_it.hasNext()) {
-            Network network_fh= first_it.next();
-            Network network_sh= second_it.next();
+            Network network_fh = first_it.next();
+            Network network_sh = second_it.next();
             try {
                 c1.unicast(entity, ((StubNetwork) network_fh).id());
                 MockEngine E1 = (MockEngine) ((StubNetwork) network_fh).getEngine(channel1);
@@ -252,6 +253,75 @@ public class StubNetworkTest {
 
     }
 
+    @Test
+    void TestUnicastOneToSome_Concurrently() {
+
+
+        int concurrencyDegree = 4;
+        AtomicInteger threadError = new AtomicInteger();
+        CountDownLatch countDownLatch = new CountDownLatch(concurrencyDegree);
+        StubNetwork network1 = new StubNetwork(hub);
+        MockEngine A1 = new MockEngine();
+        Conduit c1 = network1.register(A1, channel1);
+        Entity entity = new EntityFixture();
+        int size = networkArrayList.size();
+        List<Network> first = new ArrayList<>(networkArrayList.subList(0, size / 2));
+        List<Network> second = new ArrayList<>(networkArrayList.subList(size / 2, size));
+        Iterator<Network> first_it = first.iterator();
+        Iterator<Network> second_it = second.iterator();
+
+
+        Thread[] unicastThreads = new Thread[concurrencyDegree];
+        int count = 0;
+        while (first_it.hasNext() && second_it.hasNext()) {
+            Network network_fh = first_it.next();
+            Network network_sh = second_it.next();
+
+            unicastThreads[count] = new Thread(() -> {
+
+
+                try {
+
+
+                    c1.unicast(entity, ((StubNetwork) network_fh).id());
+                    MockEngine E1 = (MockEngine) ((StubNetwork) network_fh).getEngine(channel1);
+                    MockEngine E2 = (MockEngine) ((StubNetwork) network_fh).getEngine(channel2);
+                    MockEngine M1 = (MockEngine) ((StubNetwork) network_sh).getEngine(channel1);
+                    MockEngine M2 = (MockEngine) ((StubNetwork) network_sh).getEngine(channel2);
+
+                    if (!E1.hasReceived(entity)) {
+                        threadError.getAndIncrement();
+                    }
+                    if (E2.hasReceived(entity) || M1.hasReceived(entity) || M2.hasReceived(entity)) {
+                        threadError.getAndIncrement();
+                    }
+
+                    countDownLatch.countDown();
+                } catch (LightChainNetworkingException e) {
+
+                    threadError.getAndIncrement();
+                }
+            });
+            count++;
+
+        }
+
+
+        for (Thread t : unicastThreads) {
+            t.start();
+        }
+
+        try {
+            boolean doneOneTime = countDownLatch.await(60, TimeUnit.SECONDS);
+            Assertions.assertTrue(doneOneTime);
+        } catch (InterruptedException e) {
+            Assertions.fail();
+        }
+
+        Assertions.assertEquals(0, threadError.get());
+
+
+    }
 
 
 }
