@@ -5,14 +5,17 @@ import java.util.ArrayList;
 import model.lightchain.Identifier;
 import model.lightchain.Transaction;
 
+/**
+ * Represents a persistent key-value store for transactions on disk.
+ */
 public interface Transactions {
-  boolean Has(Identifier transactionId);
+  boolean has(Identifier transactionId);
 
-  boolean Add(Transaction transaction);
+  boolean add(Transaction transaction);
 
-  boolean Remove(Identifier transactionId);
+  boolean remove(Identifier transactionId);
 
-  Transaction Get(Identifier transactionId);
+  Transaction get(Identifier transactionId);
 
-  ArrayList<Transaction> All();
+  ArrayList<Transaction> all();
 }

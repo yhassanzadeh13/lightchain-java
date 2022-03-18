@@ -15,7 +15,7 @@ public interface Blocks {
    * @param blockId Identifier of block.
    * @return true if a block with that identifier exists, false otherwise.
    */
-  boolean Has(Identifier blockId);
+  boolean has(Identifier blockId);
 
   /**
    * Adds block to the database.
@@ -24,7 +24,7 @@ public interface Blocks {
    * @return true if block did not exist on the database, false if block is already in
    * database.
    */
-  boolean Add(Block block);
+  boolean add(Block block);
 
   /**
    * Removes block with given identifier.
@@ -33,7 +33,7 @@ public interface Blocks {
    * @return true if block exists on database and removed successfully, false if block does not exist on
    * database.
    */
-  boolean Remove(Identifier blockId);
+  boolean remove(Identifier blockId);
 
   /**
    * Returns the block with given identifier.
@@ -41,7 +41,7 @@ public interface Blocks {
    * @param blockId identifier of the block.
    * @return the block itself if exists and null otherwise.
    */
-  Block ById(Identifier blockId);
+  Block byId(Identifier blockId);
 
   /**
    * Returns the block with the given height.
@@ -49,12 +49,12 @@ public interface Blocks {
    * @param height height of the block.
    * @return the block itself if exists and null otherwise.
    */
-  Block AtHeight(int height);
+  Block atHeight(int height);
 
   /**
    * Returns all blocks stored in database.
    *
    * @return all stored blocks in database.
    */
-  ArrayList<Block> All();
+  ArrayList<Block> all();
 }

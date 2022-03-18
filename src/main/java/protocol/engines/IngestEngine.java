@@ -14,7 +14,6 @@ public class IngestEngine implements Engine {
    * the engine adds the block to its block storage database. The engine also adds HASH of all the transactions of
    * block into its "txHash" database. If any of these transactions already exists in the "pendingTx" database,
    * they will be removed from "pendingTx" (as they already included in a validated block).
-   *
    * If received entity is a transaction, the engine first checks whether the transaction has already
    * been included in a block by looking for the hash of transaction into its "txHash" database.
    * If the transaction is already included in a block, the engine discards it.
