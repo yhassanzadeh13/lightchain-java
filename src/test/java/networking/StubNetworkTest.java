@@ -322,6 +322,38 @@ public class StubNetworkTest {
 
 
     }
+    @Test
+    void TestUnicastOneToAll_Sequentially_TwoEngines(){
+        StubNetwork network1 = new StubNetwork(hub);
+        MockEngine A1 = new MockEngine();
+        MockEngine A2 = new MockEngine();
+        Conduit c1 = network1.register(A1, channel1);
+        Conduit c2 = network1.register(A2, channel2);
+        Entity entity1 = new EntityFixture();
+        Entity entity2 = new EntityFixture();
+        int count = 0;
+        for (Network network : networkArrayList) {
+            try {
+                c1.unicast(entity1, ((StubNetwork) network).id());
+                c2.unicast(entity2, ((StubNetwork) network).id());
+
+                MockEngine E1 = (MockEngine) ((StubNetwork) network).getEngine(channel1);
+                MockEngine E2 = (MockEngine) ((StubNetwork) network).getEngine(channel2);
+
+                if (!E1.hasReceived(entity1) ||!E2.hasReceived(entity2)) {
+                    count++;
+                }
+                if (E2.hasReceived(entity1)|| E1.hasReceived(entity2)) {
+                    count++;
+                }
+            } catch (LightChainNetworkingException e) {
+
+                count++;
+            }
+
+        }
+        Assertions.assertEquals(0, count);
+    }
 
 
 }
