@@ -9,7 +9,9 @@ import protocol.Engine;
 import unittest.fixtures.IdentifierFixture;
 
 import java.util.concurrent.ConcurrentHashMap;
-
+/**
+ * Network represents the networking layer of the LightChain node.
+ */
 public class StubNetwork implements Network {
     private final ConcurrentHashMap<String, Engine> engines;
 
@@ -38,7 +40,14 @@ public class StubNetwork implements Network {
             throw new IllegalStateException("could not process the entity" + e);
         }
     }
-
+    /**
+     * Registers an Engine to the Network by providing it with a Conduit.
+     *
+     * @param en the Engine to be registered.
+     * @param channel the unique channel corresponding to the Engine.
+     * @return unique Conduit object created to connect the Network to the Engine.
+     * @throws IllegalStateException if the channel is already taken by another Engine.
+     */
     @Override
     public Conduit register(Engine en, String channel) throws IllegalStateException {
         //
