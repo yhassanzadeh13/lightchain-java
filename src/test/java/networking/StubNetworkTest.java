@@ -179,7 +179,7 @@ public class StubNetworkTest {
         }
 
         try {
-            boolean doneOneTime = countDownLatch.await(360, TimeUnit.SECONDS);
+            boolean doneOneTime = countDownLatch.await(60, TimeUnit.SECONDS);
             Assertions.assertTrue(doneOneTime);
         } catch (InterruptedException e) {
             Assertions.fail();
@@ -234,7 +234,7 @@ public class StubNetworkTest {
         }
 
         try {
-            boolean doneOneTime = countDownLatch.await(240, TimeUnit.SECONDS);
+            boolean doneOneTime = countDownLatch.await(60, TimeUnit.SECONDS);
             Assertions.assertTrue(doneOneTime);
         } catch (InterruptedException e) {
             Assertions.fail();
@@ -242,7 +242,20 @@ public class StubNetworkTest {
 
         Assertions.assertEquals(0, threadError.get());
     }
+    @Test
+    void TestRegisterToOccupiedChannel(){
+        StubNetwork network1 = new StubNetwork(hub);
+        MockEngine A1 = new MockEngine();
+        network1.register(A1, channel1);
+        MockEngine B1 = new MockEngine();
+        try {
+            network1.register(B1, channel1);
+            Assertions.fail("fail! method was expected to throw an exception");
+        } catch (IllegalStateException e) {
 
+            //throw new IllegalStateException("could not register to channel since its already occupied");
+        }
+    }
     @Test
     void TestUnicastOneToAll_Sequentially() {
         StubNetwork network1 = new StubNetwork(hub);
