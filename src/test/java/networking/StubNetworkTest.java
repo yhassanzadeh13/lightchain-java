@@ -189,6 +189,61 @@ public class StubNetworkTest {
     }
 
     @Test
+    void TestTwoStubNetworks_FourEngines_ConcurrentMessages() {
+        int concurrencyDegree = 100;
+        AtomicInteger threadError = new AtomicInteger();
+        CountDownLatch countDownLatch = new CountDownLatch(concurrencyDegree);
+
+
+        Thread[] unicastThreads = new Thread[concurrencyDegree];
+
+
+        StubNetwork network1 = new StubNetwork(hub);
+        MockEngine A = new MockEngine();
+        Conduit c1A = network1.register(A, channel1);
+        MockEngine B = new MockEngine();
+        Conduit c1B = network1.register(B, channel2);
+
+        StubNetwork network2 = new StubNetwork(hub);
+        MockEngine C = new MockEngine();
+        MockEngine D = new MockEngine();
+        network2.register(C,channel1);
+        network2.register(D,channel2);
+
+
+        for (int i = 0; i < concurrencyDegree; i++) {
+            unicastThreads[i] = new Thread(() -> {
+                Entity entity1 = new EntityFixture();
+                Entity entity2 = new EntityFixture();
+                try {
+                    c1A.unicast(entity1, network2.id());
+                    c1B.unicast(entity2, network2.id());
+                    if (!C.hasReceived(entity1)|| C.hasReceived(entity2) || !D.hasReceived(entity2) || D.hasReceived(entity1)) {
+                        threadError.getAndIncrement();
+                    }
+
+                    countDownLatch.countDown();
+                } catch (LightChainNetworkingException e) {
+                    threadError.getAndIncrement();
+                }
+            });
+        }
+
+        for (Thread t : unicastThreads) {
+            t.start();
+        }
+
+        try {
+            boolean doneOneTime = countDownLatch.await(240, TimeUnit.SECONDS);
+            Assertions.assertTrue(doneOneTime);
+        } catch (InterruptedException e) {
+            Assertions.fail();
+        }
+
+        Assertions.assertEquals(0, threadError.get());
+    }
+
+    @Test
     void TestUnicastOneToAll_Sequentially() {
         StubNetwork network1 = new StubNetwork(hub);
         MockEngine A1 = new MockEngine();
