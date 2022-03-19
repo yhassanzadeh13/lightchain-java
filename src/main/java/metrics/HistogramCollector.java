@@ -20,4 +20,5 @@ public interface HistogramCollector {
    */
   Histogram register(String name, String namespace, String subsystem, String helpMessage, double[] buckets)
           throws IllegalArgumentException;
+
 }

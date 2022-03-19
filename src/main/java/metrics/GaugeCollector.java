@@ -19,4 +19,5 @@ public interface GaugeCollector {
    *                                  same name has already been registered.
    */
   Gauge register(String name, String namespace, String subsystem, String helpMessage) throws IllegalArgumentException;
+
 }

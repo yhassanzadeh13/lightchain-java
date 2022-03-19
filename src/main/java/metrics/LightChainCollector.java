@@ -9,6 +9,9 @@ public class LightChainCollector implements Collector {
   GaugeCollector lightChainGauge;
   CounterCollector lightChainCounter;
 
+  /**
+   * Constructor that instantiates the corresponding metrics objects.
+   */
   public LightChainCollector() {
     this.lightChainHistogram = new LightChainHistogram();
     this.lightChainGauge = new LightChainGauge();

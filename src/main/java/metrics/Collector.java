@@ -10,4 +10,5 @@ public interface Collector {
   GaugeCollector gauge();
 
   CounterCollector counter();
+
 }
