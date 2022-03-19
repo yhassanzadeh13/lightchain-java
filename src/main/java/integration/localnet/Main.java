@@ -25,7 +25,7 @@ public class Main {
    *
    * @param args standart Java args
    */
-  public static void main(String[] args) throws InterruptedException {
+  public static void main(String[] args) {
 
     DockerClientConfig config = DefaultDockerClientConfig.createDefaultConfigBuilder().build();
 
@@ -116,10 +116,15 @@ public class Main {
 
     // Prometheus
 
-    dockerClient.pullImageCmd("prom/prometheus")
-            .withTag("main")
-            .exec(new PullImageResultCallback())
-            .awaitCompletion(60, TimeUnit.SECONDS);
+    try {
+      dockerClient.pullImageCmd("prom/prometheus")
+              .withTag("main")
+              .exec(new PullImageResultCallback())
+              .awaitCompletion(60, TimeUnit.SECONDS);
+    } catch (InterruptedException ex) {
+      System.err.println("Interrupted Exception: Prometheus image could not be pulled, exiting program");
+      System.exit(1);
+    }
 
     Ports promPortBindings = new Ports();
     promPortBindings.bind(ExposedPort.tcp(9090), Ports.Binding.bindPort(9090));
@@ -144,10 +149,15 @@ public class Main {
 
     // Grafana
 
-    dockerClient.pullImageCmd("grafana/grafana")
-            .withTag("main")
-            .exec(new PullImageResultCallback())
-            .awaitCompletion(60, TimeUnit.SECONDS);
+    try {
+      dockerClient.pullImageCmd("grafana/grafana")
+              .withTag("main")
+              .exec(new PullImageResultCallback())
+              .awaitCompletion(60, TimeUnit.SECONDS);
+    } catch (InterruptedException ex) {
+      System.err.println("Interrupted Exception: Grafana image could not be pulled, exiting program");
+      System.exit(1);
+    }
 
     Ports grafanaPortBindings = new Ports();
     grafanaPortBindings.bind(ExposedPort.tcp(3000), Ports.Binding.bindPort(3000));
