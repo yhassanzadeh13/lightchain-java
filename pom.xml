@@ -151,12 +151,18 @@
             <version>2.9.0</version>
         </dependency>
 
-
         <!-- Apache Commons Codec for byteR -->
         <dependency>
             <groupId>commons-codec</groupId>
             <artifactId>commons-codec</artifactId>
             <version>1.15</version>
+        </dependency>
+
+        <!-- Dependency for Authenticated Dictionary with Skip Lists -->
+        <dependency>
+            <groupId>com.github.Sagolbah</groupId>
+            <artifactId>skiplist-dictionary</artifactId>
+            <version>55ab67cc5efc493deecf12c3ecc277c95afedab2</version>
         </dependency>
 
     </dependencies>
