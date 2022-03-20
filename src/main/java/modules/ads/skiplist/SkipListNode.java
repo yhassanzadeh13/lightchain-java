@@ -1,28 +1,19 @@
 package modules.ads.skiplist;
 
 import crypto.Sha3256Hasher;
-import model.Entity;
-import model.codec.EncodedEntity;
 import model.crypto.Sha3256Hash;
 import model.lightchain.Identifier;
 import modules.codec.JsonEncoder;
 
 public class SkipListNode {
+  private static final Sha3256Hasher hasher = new Sha3256Hasher();
+  private static final JsonEncoder encoder = new JsonEncoder();
   private Identifier identifier;
   private SkipListNode right;
   private SkipListNode down;
   private boolean isTower;
   private Sha3256Hash FV;
-  private static final Sha3256Hasher hasher = new Sha3256Hasher();
-  private static final JsonEncoder encoder = new JsonEncoder();
 
-  public SkipListNode(Identifier identifier) {
-    this.identifier = identifier;
-    this.right = null;
-    this.down = null;
-    this.isTower = true;
-    calculateFV();
-  }
 
   public SkipListNode(Identifier identifier, SkipListNode right, SkipListNode down, boolean isTower) {
     this.identifier = identifier;
@@ -32,12 +23,19 @@ public class SkipListNode {
     calculateFV();
   }
 
+  public SkipListNode() {
+    this.identifier = new Identifier(new byte[32]);
+    this.right = null;
+    this.down = null;
+    this.isTower = true;
+    calculateFV();
+  }
+
   public void calculateFV() {
     if (this.right == null) {
-      byte [] zeroHashBytes = new byte[32];
+      byte[] zeroHashBytes = new byte[32];
       this.FV = new Sha3256Hash(zeroHashBytes);
-    }
-    else if (this.down == null) {
+    } else if (this.down == null) {
       if (this.isTower) {
         this.FV = hasher.computeHash(this.identifier, right.getIdentifier());
       } else {
