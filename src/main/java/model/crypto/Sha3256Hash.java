@@ -38,6 +38,10 @@ public class Sha3256Hash extends Hash {
     this.hashBytes = identifier.getBytes();
   }
 
+  public byte[] getHashBytes() {
+    return hashBytes.clone();
+  }
+
   @Override
   public int compare(Hash other) {
     return this.toIdentifier().comparedTo(other.toIdentifier());

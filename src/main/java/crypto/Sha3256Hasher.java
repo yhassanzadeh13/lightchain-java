@@ -1,10 +1,11 @@
 package crypto;
 
+import java.io.ByteArrayOutputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.Arrays;
 
 import model.codec.EncodedEntity;
-import model.crypto.Hash;
 import model.crypto.Sha3256Hash;
 
 /**
@@ -13,6 +14,14 @@ import model.crypto.Sha3256Hash;
 public class Sha3256Hasher implements Hasher {
 
   private static final String HASH_ALG_SHA_3_256 = "SHA3-256";
+  private static final ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+
+  private static byte[] concat(final byte[] e1, final byte[] e2) {
+    byte[] res = new byte[e1.length + e2.length];
+    System.arraycopy(e1, 0, res, 0, e1.length);
+    System.arraycopy(e2, 0, res, e1.length, e2.length);
+    return res;
+  }
 
   /**
    * Computes hash of the given encoded entity.
@@ -21,11 +30,50 @@ public class Sha3256Hasher implements Hasher {
    * @return SHA3-256 hash object of the entity.
    */
   @Override
-  public Hash computeHash(EncodedEntity e) {
+  public Sha3256Hash computeHash(EncodedEntity e) {
     try {
       MessageDigest md = MessageDigest.getInstance(HASH_ALG_SHA_3_256);
       byte[] hashValue = md.digest(e.getBytes());
       return new Sha3256Hash(hashValue);
+    } catch (NoSuchAlgorithmException ex) {
+      throw new IllegalStateException(HASH_ALG_SHA_3_256 + "algorithm not found.", ex);
+    }
+  }
+
+  public Sha3256Hash computeHash(EncodedEntity e1, EncodedEntity e2) {
+    try {
+      MessageDigest md = MessageDigest.getInstance(HASH_ALG_SHA_3_256);
+      int compare = Arrays.compare(e1.getBytes(), e2.getBytes());
+      if (compare > 0) {
+        return new Sha3256Hash(md.digest(concat(e1.getBytes(), e2.getBytes())));
+      }
+      return new Sha3256Hash(md.digest(concat(e2.getBytes(), e1.getBytes())));
+    } catch (NoSuchAlgorithmException ex) {
+      throw new IllegalStateException(HASH_ALG_SHA_3_256 + "algorithm not found.", ex);
+    }
+  }
+
+  public Sha3256Hash computeHash(EncodedEntity e, Sha3256Hash h) {
+    try {
+      MessageDigest md = MessageDigest.getInstance(HASH_ALG_SHA_3_256);
+      int compare = Arrays.compare(e.getBytes(), h.getHashBytes());
+      if (compare > 0) {
+        return new Sha3256Hash(md.digest(concat(e.getBytes(), h.getHashBytes())));
+      }
+      return new Sha3256Hash(md.digest(concat(h.getHashBytes(), e.getBytes())));
+    } catch (NoSuchAlgorithmException ex) {
+      throw new IllegalStateException(HASH_ALG_SHA_3_256 + "algorithm not found.", ex);
+    }
+  }
+
+  public Sha3256Hash computeHash(Sha3256Hash h1, Sha3256Hash h2) {
+    try {
+      MessageDigest md = MessageDigest.getInstance(HASH_ALG_SHA_3_256);
+      int compare = Arrays.compare(h1.getHashBytes(), h2.getHashBytes());
+      if (compare > 0) {
+        return new Sha3256Hash(md.digest(concat(h1.getHashBytes(), h2.getHashBytes())));
+      }
+      return new Sha3256Hash(md.digest(concat(h2.getHashBytes(), h1.getHashBytes())));
     } catch (NoSuchAlgorithmException ex) {
       throw new IllegalStateException(HASH_ALG_SHA_3_256 + "algorithm not found.", ex);
     }
