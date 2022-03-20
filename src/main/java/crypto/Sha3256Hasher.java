@@ -7,6 +7,7 @@ import java.util.Arrays;
 
 import model.codec.EncodedEntity;
 import model.crypto.Sha3256Hash;
+import model.lightchain.Identifier;
 
 /**
  * Implements SHA3-256 hashing functionality.
@@ -40,31 +41,32 @@ public class Sha3256Hasher implements Hasher {
     }
   }
 
-  public Sha3256Hash computeHash(EncodedEntity e1, EncodedEntity e2) {
+  public Sha3256Hash computeHash(Identifier i, Sha3256Hash h) {
     try {
       MessageDigest md = MessageDigest.getInstance(HASH_ALG_SHA_3_256);
-      int compare = Arrays.compare(e1.getBytes(), e2.getBytes());
+      int compare = Arrays.compare(i.getBytes(), h.getHashBytes());
       if (compare > 0) {
-        return new Sha3256Hash(md.digest(concat(e1.getBytes(), e2.getBytes())));
+        return new Sha3256Hash(md.digest(concat(i.getBytes(), h.getHashBytes())));
       }
-      return new Sha3256Hash(md.digest(concat(e2.getBytes(), e1.getBytes())));
+      return new Sha3256Hash(md.digest(concat(h.getHashBytes(), i.getBytes())));
     } catch (NoSuchAlgorithmException ex) {
       throw new IllegalStateException(HASH_ALG_SHA_3_256 + "algorithm not found.", ex);
     }
   }
 
-  public Sha3256Hash computeHash(EncodedEntity e, Sha3256Hash h) {
+  public Sha3256Hash computeHash(Identifier i1, Identifier i2) {
     try {
       MessageDigest md = MessageDigest.getInstance(HASH_ALG_SHA_3_256);
-      int compare = Arrays.compare(e.getBytes(), h.getHashBytes());
+      int compare = Arrays.compare(i1.getBytes(), i2.getBytes());
       if (compare > 0) {
-        return new Sha3256Hash(md.digest(concat(e.getBytes(), h.getHashBytes())));
+        return new Sha3256Hash(md.digest(concat(i1.getBytes(), i2.getBytes())));
       }
-      return new Sha3256Hash(md.digest(concat(h.getHashBytes(), e.getBytes())));
+      return new Sha3256Hash(md.digest(concat(i2.getBytes(), i1.getBytes())));
     } catch (NoSuchAlgorithmException ex) {
       throw new IllegalStateException(HASH_ALG_SHA_3_256 + "algorithm not found.", ex);
     }
   }
+
 
   public Sha3256Hash computeHash(Sha3256Hash h1, Sha3256Hash h2) {
     try {

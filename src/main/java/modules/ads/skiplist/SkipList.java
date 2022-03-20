@@ -10,6 +10,14 @@ import modules.ads.AuthenticatedEntity;
  * that is capable of storing and retrieval of LightChain entities.
  */
 public class SkipList implements AuthenticatedDataStructure {
+  private SkipListNode root;
+  private SkipListNode currNode;
+
+  public SkipList(SkipListNode root) {
+    this.root = root;
+    this.currNode = root;
+  }
+
   @Override
   public AuthenticatedEntity put(Entity e) {
     return null;
@@ -17,6 +25,7 @@ public class SkipList implements AuthenticatedDataStructure {
 
   @Override
   public AuthenticatedEntity get(Identifier id) {
+
     return null;
   }
 }
