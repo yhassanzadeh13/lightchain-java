@@ -1,6 +1,30 @@
 package modules.ads;
 
+import org.junit.jupiter.api.Test;
+import unittest.fixtures.EntityFixture;
+import unittest.fixtures.SkipListFixture;
+
 public class SkipListTest {
+
+  @Test
+  public void tempTest() {
+    SkipListFixture skipListFixture = new SkipListFixture();
+    EntityFixture entityFixture1 = new EntityFixture();
+    EntityFixture entityFixture2 = new EntityFixture();
+    EntityFixture entityFixture3 = new EntityFixture();
+    EntityFixture entityFixture4 = new EntityFixture();
+    EntityFixture entityFixture5 = new EntityFixture();
+    skipListFixture.put(entityFixture1);
+    skipListFixture.put(entityFixture2);
+    /*
+    skipListFixture.put(entityFixture3);
+    skipListFixture.put(entityFixture4);
+    skipListFixture.put(entityFixture5);
+    */
+    System.out.println(skipListFixture);
+  }
+
+
   // TODO: writing tests to cover
   // 1. When putting a unique entity into skip list, we can recover it.
   // 2. Proof of membership for putting and getting an entity is the same.

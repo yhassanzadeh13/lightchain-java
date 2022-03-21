@@ -27,7 +27,15 @@ public class SkipListNode {
     this.identifier = new Identifier(new byte[32]);
     this.right = null;
     this.down = null;
-    this.isTower = true;
+    this.isTower = false;
+    calculateFV();
+  }
+
+  public SkipListNode(SkipListNode down) {
+    this.identifier = new Identifier(new byte[32]);
+    this.right = null;
+    this.down = down;
+    this.isTower = false;
     calculateFV();
   }
 
