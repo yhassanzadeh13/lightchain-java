@@ -13,6 +13,7 @@ public class SkipListNode {
   private SkipListNode down;
   private boolean isTower;
   private Sha3256Hash FV;
+  private boolean isDropDown;
 
 
   public SkipListNode(Identifier identifier, SkipListNode right, SkipListNode down, boolean isTower) {
@@ -20,6 +21,7 @@ public class SkipListNode {
     this.right = right;
     this.down = down;
     this.isTower = isTower;
+    this.isDropDown = false;
     calculateFV();
   }
 
@@ -28,6 +30,7 @@ public class SkipListNode {
     this.right = null;
     this.down = null;
     this.isTower = false;
+    this.isDropDown = false;
     calculateFV();
   }
 
@@ -36,6 +39,7 @@ public class SkipListNode {
     this.right = null;
     this.down = down;
     this.isTower = false;
+    this.isDropDown = false;
     calculateFV();
   }
 
@@ -56,6 +60,14 @@ public class SkipListNode {
         this.FV = hasher.computeHash(down.getFV(), right.getFV());
       }
     }
+  }
+
+  public boolean isDropDown() {
+    return isDropDown;
+  }
+
+  public void setDropDown(boolean dropDown) {
+    this.isDropDown = dropDown;
   }
 
   public Sha3256Hash getFV() {
