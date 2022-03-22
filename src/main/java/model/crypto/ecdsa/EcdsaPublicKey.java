@@ -33,7 +33,7 @@ public class EcdsaPublicKey extends model.crypto.PublicKey {
   public boolean verifySignature(Entity e, model.crypto.Signature s) {
     Signature ecdsaVerify;
     KeyFactory keyFactory;
-    PublicKey publicKey;
+    PublicKey ecdsaPublicKey;
     try {
       ecdsaVerify = Signature.getInstance(SIGN_ALG_SHA_3_256_WITH_ECDSA);
     } catch (NoSuchAlgorithmException ex) {
@@ -46,12 +46,12 @@ public class EcdsaPublicKey extends model.crypto.PublicKey {
     }
     EncodedKeySpec publicKeySpec = new X509EncodedKeySpec(this.bytes);
     try {
-      publicKey = keyFactory.generatePublic(publicKeySpec);
+      ecdsaPublicKey = keyFactory.generatePublic(publicKeySpec);
     } catch (InvalidKeySpecException ex) {
       throw new IllegalStateException("key spec is invalid", ex);
     }
     try {
-      ecdsaVerify.initVerify(publicKey);
+      ecdsaVerify.initVerify(ecdsaPublicKey);
     } catch (InvalidKeyException ex) {
       throw new IllegalStateException("key is invalid", ex);
     }
