@@ -17,7 +17,6 @@ import modules.codec.JsonEncoder;
  */
 public class EcdsaPrivateKey extends model.crypto.PrivateKey {
 
-  private static final String SIGN_ALG_SHA_3_256_WITH_ECDSA = "SHA3-256withECDSA";
   private static final String ELLIPTIC_CURVE = "EC";
   private final PrivateKey ecdsaPrivateKey;
 
@@ -50,7 +49,7 @@ public class EcdsaPrivateKey extends model.crypto.PrivateKey {
   public model.crypto.Signature signEntity(Entity e) {
     byte[] signatureBytes;
     try {
-      Signature ecdsaSign = Signature.getInstance(SIGN_ALG_SHA_3_256_WITH_ECDSA);
+      Signature ecdsaSign = Signature.getInstance(EcdsaSignature.SIGN_ALG_SHA_3_256_WITH_ECDSA);
       ecdsaSign.initSign(ecdsaPrivateKey);
       JsonEncoder encoder = new JsonEncoder();
       EncodedEntity encodedEntity = encoder.encode(e);
@@ -59,7 +58,7 @@ public class EcdsaPrivateKey extends model.crypto.PrivateKey {
       ecdsaSign.update(hash.getBytes());
       signatureBytes = ecdsaSign.sign();
     } catch (NoSuchAlgorithmException ex) {
-      throw new IllegalStateException(SIGN_ALG_SHA_3_256_WITH_ECDSA + "algorithm not found", ex);
+      throw new IllegalStateException(EcdsaSignature.SIGN_ALG_SHA_3_256_WITH_ECDSA + "algorithm not found", ex);
     } catch (InvalidKeyException ex) {
       throw new IllegalStateException("key is invalid", ex);
     } catch (SignatureException ex) {
