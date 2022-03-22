@@ -12,6 +12,7 @@ public class EcdsaKeyGen implements KeyGen {
 
   private static final String ellipticCurve = "secp256r1";
   private static final String SIGN_ALG_SHA_3_256_WITH_ECDSA = "SHA3-256withECDSA";
+  private static final SecureRandom secureRandom = new SecureRandom();
   private final EcdsaPrivateKey privateKey;
   private final EcdsaPublicKey publicKey;
 
@@ -23,7 +24,7 @@ public class EcdsaKeyGen implements KeyGen {
     KeyPairGenerator g = null;
     try {
       g = KeyPairGenerator.getInstance("EC");
-      g.initialize(ecSpec, new SecureRandom());
+      g.initialize(ecSpec, secureRandom);
     } catch (NoSuchAlgorithmException e) {
       throw new IllegalStateException(SIGN_ALG_SHA_3_256_WITH_ECDSA + " algorithm not found", e);
     } catch (InvalidAlgorithmParameterException e) {

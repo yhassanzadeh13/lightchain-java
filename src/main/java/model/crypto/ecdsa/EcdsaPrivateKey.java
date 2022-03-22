@@ -31,7 +31,7 @@ public class EcdsaPrivateKey extends model.crypto.PrivateKey {
     KeyFactory keyFactory;
     try {
       keyFactory = KeyFactory.getInstance(ELLIPTIC_CURVE);
-      EncodedKeySpec privateKeySpec = new PKCS8EncodedKeySpec(this.bytes);
+      EncodedKeySpec privateKeySpec = new PKCS8EncodedKeySpec(bytes);
       ecdsaPrivateKey = keyFactory.generatePrivate(privateKeySpec);
     } catch (NoSuchAlgorithmException e) {
       throw new IllegalStateException(ELLIPTIC_CURVE + "algorithm not found", e);
