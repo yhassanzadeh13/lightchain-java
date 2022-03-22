@@ -19,9 +19,25 @@ public class EcdsaPrivateKey extends model.crypto.PrivateKey {
 
   private static final String SIGN_ALG_SHA_3_256_WITH_ECDSA = "SHA3-256withECDSA";
   private static final String ELLIPTIC_CURVE = "EC";
+  private final PrivateKey ecdsaPrivateKey;
 
+  /**
+   * Constructs an Ecdsa private key from the given encoded private key.
+   *
+   * @param bytes encoded private key bytes.
+   */
   public EcdsaPrivateKey(byte[] bytes) {
     super(bytes);
+    KeyFactory keyFactory;
+    try {
+      keyFactory = KeyFactory.getInstance(ELLIPTIC_CURVE);
+      EncodedKeySpec privateKeySpec = new PKCS8EncodedKeySpec(this.bytes);
+      ecdsaPrivateKey = keyFactory.generatePrivate(privateKeySpec);
+    } catch (NoSuchAlgorithmException e) {
+      throw new IllegalStateException(ELLIPTIC_CURVE + "algorithm not found", e);
+    } catch (InvalidKeySpecException e) {
+      throw new IllegalStateException("key spec is invalid", e);
+    }
   }
 
   /**
@@ -32,15 +48,9 @@ public class EcdsaPrivateKey extends model.crypto.PrivateKey {
    */
   @Override
   public model.crypto.Signature signEntity(Entity e) {
-    Signature ecdsaSign;
-    KeyFactory keyFactory;
-    PrivateKey ecdsaPrivateKey;
     byte[] signatureBytes;
     try {
-      ecdsaSign = Signature.getInstance(SIGN_ALG_SHA_3_256_WITH_ECDSA);
-      keyFactory = KeyFactory.getInstance(ELLIPTIC_CURVE);
-      EncodedKeySpec privateKeySpec = new PKCS8EncodedKeySpec(this.bytes);
-      ecdsaPrivateKey = keyFactory.generatePrivate(privateKeySpec);
+      Signature ecdsaSign = Signature.getInstance(SIGN_ALG_SHA_3_256_WITH_ECDSA);
       ecdsaSign.initSign(ecdsaPrivateKey);
       JsonEncoder encoder = new JsonEncoder();
       EncodedEntity encodedEntity = encoder.encode(e);
@@ -50,8 +60,6 @@ public class EcdsaPrivateKey extends model.crypto.PrivateKey {
       signatureBytes = ecdsaSign.sign();
     } catch (NoSuchAlgorithmException ex) {
       throw new IllegalStateException(SIGN_ALG_SHA_3_256_WITH_ECDSA + "algorithm not found", ex);
-    } catch (InvalidKeySpecException ex) {
-      throw new IllegalStateException("key spec is invalid", ex);
     } catch (InvalidKeyException ex) {
       throw new IllegalStateException("key is invalid", ex);
     } catch (SignatureException ex) {
