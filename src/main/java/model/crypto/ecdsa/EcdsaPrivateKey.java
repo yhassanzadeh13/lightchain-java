@@ -39,34 +39,24 @@ public class EcdsaPrivateKey extends model.crypto.PrivateKey {
     byte[] signatureBytes;
     try {
       ecdsaSign = Signature.getInstance(SIGN_ALG_SHA_3_256_WITH_ECDSA);
-    } catch (NoSuchAlgorithmException ex) {
-      throw new IllegalStateException(SIGN_ALG_SHA_3_256_WITH_ECDSA + "algorithm not found.", ex);
-    }
-    try {
       keyFactory = KeyFactory.getInstance("EC");
-    } catch (NoSuchAlgorithmException ex) {
-      throw new IllegalStateException(SIGN_ALG_SHA_3_256_WITH_ECDSA + "algorithm not found.", ex);
-    }
-    EncodedKeySpec privateKeySpec = new PKCS8EncodedKeySpec(privateKeyBytes);
-    try {
+      EncodedKeySpec privateKeySpec = new PKCS8EncodedKeySpec(privateKeyBytes);
       privateKey = keyFactory.generatePrivate(privateKeySpec);
-    } catch (InvalidKeySpecException ex) {
-      throw new IllegalStateException("key spec is invalid.", ex);
-    }
-    try {
       ecdsaSign.initSign(privateKey);
-    } catch (InvalidKeyException ex) {
-      throw new IllegalStateException("key is invalid", ex);
-    }
-    JsonEncoder encoder = new JsonEncoder();
-    EncodedEntity encodedEntity = encoder.encode(e);
-    Sha3256Hasher hasher = new Sha3256Hasher();
-    Sha3256Hash hash = hasher.computeHash(encodedEntity);
-    try {
+      JsonEncoder encoder = new JsonEncoder();
+      EncodedEntity encodedEntity = encoder.encode(e);
+      Sha3256Hasher hasher = new Sha3256Hasher();
+      Sha3256Hash hash = hasher.computeHash(encodedEntity);
       ecdsaSign.update(hash.getBytes());
       signatureBytes = ecdsaSign.sign();
+    } catch (NoSuchAlgorithmException ex) {
+      throw new IllegalStateException(SIGN_ALG_SHA_3_256_WITH_ECDSA + "algorithm not found", ex);
+    } catch (InvalidKeySpecException ex) {
+      throw new IllegalStateException("key spec is invalid", ex);
+    } catch (InvalidKeyException ex) {
+      throw new IllegalStateException("key is invalid", ex);
     } catch (SignatureException ex) {
-      throw new IllegalStateException("signature is not initialed correctly.", ex);
+      throw new IllegalStateException("signature is not initialed correctly", ex);
     }
     return new EcdsaSignature(signatureBytes, e.id());
   }
