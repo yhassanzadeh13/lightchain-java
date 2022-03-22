@@ -34,14 +34,14 @@ public class EcdsaPrivateKey extends model.crypto.PrivateKey {
   public model.crypto.Signature signEntity(Entity e) {
     Signature ecdsaSign;
     KeyFactory keyFactory;
-    PrivateKey privateKey;
+    PrivateKey ecdsaPrivateKey;
     byte[] signatureBytes;
     try {
       ecdsaSign = Signature.getInstance(SIGN_ALG_SHA_3_256_WITH_ECDSA);
       keyFactory = KeyFactory.getInstance(ELLIPTIC_CURVE);
       EncodedKeySpec privateKeySpec = new PKCS8EncodedKeySpec(this.bytes);
-      privateKey = keyFactory.generatePrivate(privateKeySpec);
-      ecdsaSign.initSign(privateKey);
+      ecdsaPrivateKey = keyFactory.generatePrivate(privateKeySpec);
+      ecdsaSign.initSign(ecdsaPrivateKey);
       JsonEncoder encoder = new JsonEncoder();
       EncodedEntity encodedEntity = encoder.encode(e);
       Sha3256Hasher hasher = new Sha3256Hasher();
