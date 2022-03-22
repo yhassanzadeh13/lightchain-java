@@ -17,11 +17,9 @@ import modules.codec.JsonEncoder;
 public class EcdsaPublicKey extends model.crypto.PublicKey {
 
   private static final String SIGN_ALG_SHA_3_256_WITH_ECDSA = "SHA3-256withECDSA";
-  private final byte[] publicKeyBytes;
 
   public EcdsaPublicKey(byte[] bytes) {
     super(bytes);
-    this.publicKeyBytes = bytes.clone();
   }
 
   /**
@@ -46,7 +44,7 @@ public class EcdsaPublicKey extends model.crypto.PublicKey {
     } catch (NoSuchAlgorithmException ex) {
       throw new IllegalStateException(SIGN_ALG_SHA_3_256_WITH_ECDSA + " algorithm not found", ex);
     }
-    EncodedKeySpec publicKeySpec = new X509EncodedKeySpec(publicKeyBytes);
+    EncodedKeySpec publicKeySpec = new X509EncodedKeySpec(this.bytes);
     try {
       publicKey = keyFactory.generatePublic(publicKeySpec);
     } catch (InvalidKeySpecException ex) {
@@ -70,6 +68,6 @@ public class EcdsaPublicKey extends model.crypto.PublicKey {
   }
 
   public byte[] getPublicKeyBytes() {
-    return publicKeyBytes.clone();
+    return this.bytes.clone();
   }
 }

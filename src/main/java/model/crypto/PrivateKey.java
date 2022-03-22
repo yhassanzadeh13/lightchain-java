@@ -6,7 +6,7 @@ import model.Entity;
  * Represents abstract data type for the cryptographic private key used in LightChain.
  */
 public abstract class PrivateKey {
-  private final byte[] bytes;
+  protected final byte[] bytes;
 
   public PrivateKey(byte[] bytes) {
     this.bytes = bytes.clone();

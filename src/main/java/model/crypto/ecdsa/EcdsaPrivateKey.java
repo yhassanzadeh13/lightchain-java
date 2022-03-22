@@ -18,11 +18,9 @@ import modules.codec.JsonEncoder;
 public class EcdsaPrivateKey extends model.crypto.PrivateKey {
 
   private static final String SIGN_ALG_SHA_3_256_WITH_ECDSA = "SHA3-256withECDSA";
-  private final byte[] privateKeyBytes;
 
   public EcdsaPrivateKey(byte[] bytes) {
     super(bytes);
-    this.privateKeyBytes = bytes.clone();
   }
 
   /**
@@ -40,7 +38,7 @@ public class EcdsaPrivateKey extends model.crypto.PrivateKey {
     try {
       ecdsaSign = Signature.getInstance(SIGN_ALG_SHA_3_256_WITH_ECDSA);
       keyFactory = KeyFactory.getInstance("EC");
-      EncodedKeySpec privateKeySpec = new PKCS8EncodedKeySpec(privateKeyBytes);
+      EncodedKeySpec privateKeySpec = new PKCS8EncodedKeySpec(this.bytes);
       privateKey = keyFactory.generatePrivate(privateKeySpec);
       ecdsaSign.initSign(privateKey);
       JsonEncoder encoder = new JsonEncoder();
@@ -62,6 +60,6 @@ public class EcdsaPrivateKey extends model.crypto.PrivateKey {
   }
 
   public byte[] getPrivateKeyBytes() {
-    return privateKeyBytes.clone();
+    return this.bytes.clone();
   }
 }
