@@ -6,11 +6,7 @@ import java.security.spec.EncodedKeySpec;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
 
-import crypto.Sha3256Hasher;
 import model.Entity;
-import model.codec.EncodedEntity;
-import model.crypto.Sha3256Hash;
-import modules.codec.JsonEncoder;
 
 /**
  * ECDSA private key implementation.
@@ -50,11 +46,7 @@ public class EcdsaPrivateKey extends model.crypto.PrivateKey {
     try {
       Signature ecdsaSign = Signature.getInstance(EcdsaSignature.SIGN_ALG_SHA_3_256_WITH_ECDSA);
       ecdsaSign.initSign(ecdsaPrivateKey);
-      JsonEncoder encoder = new JsonEncoder();
-      EncodedEntity encodedEntity = encoder.encode(e);
-      Sha3256Hasher hasher = new Sha3256Hasher();
-      Sha3256Hash hash = hasher.computeHash(encodedEntity);
-      ecdsaSign.update(hash.getBytes());
+      ecdsaSign.update(e.id().getBytes());
       signatureBytes = ecdsaSign.sign();
     } catch (NoSuchAlgorithmException ex) {
       throw new IllegalStateException(EcdsaSignature.SIGN_ALG_SHA_3_256_WITH_ECDSA + "algorithm not found", ex);

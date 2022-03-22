@@ -5,11 +5,7 @@ import java.security.spec.EncodedKeySpec;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.X509EncodedKeySpec;
 
-import crypto.Sha3256Hasher;
 import model.Entity;
-import model.codec.EncodedEntity;
-import model.crypto.Sha3256Hash;
-import modules.codec.JsonEncoder;
 
 /**
  * Represents an ECDSA public key.
@@ -49,11 +45,7 @@ public class EcdsaPublicKey extends model.crypto.PublicKey {
     try {
       Signature ecdsaVerify = Signature.getInstance(EcdsaSignature.SIGN_ALG_SHA_3_256_WITH_ECDSA);
       ecdsaVerify.initVerify(ecdsaPublicKey);
-      JsonEncoder encoder = new JsonEncoder();
-      EncodedEntity encodedEntity = encoder.encode(e);
-      Sha3256Hasher hasher = new Sha3256Hasher();
-      Sha3256Hash hash = hasher.computeHash(encodedEntity);
-      ecdsaVerify.update(hash.getBytes());
+      ecdsaVerify.update(e.id().getBytes());
       return ecdsaVerify.verify(s.getBytes());
     } catch (NoSuchAlgorithmException ex) {
       throw new IllegalStateException(EcdsaSignature.SIGN_ALG_SHA_3_256_WITH_ECDSA + " algorithm not found", ex);
