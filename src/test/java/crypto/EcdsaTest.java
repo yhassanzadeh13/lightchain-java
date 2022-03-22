@@ -6,7 +6,8 @@ import model.crypto.ecdsa.EcdsaPublicKey;
 import model.crypto.ecdsa.EcdsaSignature;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-import unittest.fixtures.*;
+import unittest.fixtures.EntityFixture;
+import unittest.fixtures.KeyGenFixture;
 
 public class EcdsaTest {
 
@@ -17,9 +18,9 @@ public class EcdsaTest {
   public void TestVerificationRoundTrip() {
     EntityFixture e = new EntityFixture();
     EcdsaKeyGen keyGen = KeyGenFixture.newKeyGen();
-    EcdsaPrivateKey ecdsaPrivateKey = new EcdsaPrivateKey(keyGen.getPrivateKey().getPrivateKeyBytes());
+    EcdsaPrivateKey ecdsaPrivateKey = keyGen.getPrivateKey();
     EcdsaSignature signature = new EcdsaSignature(ecdsaPrivateKey.signEntity(e).getBytes(), e.id());
-    EcdsaPublicKey publicKey = new EcdsaPublicKey(keyGen.getPublicKey().getPublicKeyBytes());
+    EcdsaPublicKey publicKey = keyGen.getPublicKey();
     Assertions.assertTrue(publicKey.verifySignature(e, signature));
   }
 
@@ -31,9 +32,9 @@ public class EcdsaTest {
     EntityFixture e = new EntityFixture();
     EntityFixture entityManipulated = new EntityFixture();
     EcdsaKeyGen keyGen = KeyGenFixture.newKeyGen();
-    EcdsaPrivateKey ecdsaPrivateKey = new EcdsaPrivateKey(keyGen.getPrivateKey().getPrivateKeyBytes());
+    EcdsaPrivateKey ecdsaPrivateKey = keyGen.getPrivateKey();
     EcdsaSignature signature = new EcdsaSignature(ecdsaPrivateKey.signEntity(e).getBytes(), e.id());
-    EcdsaPublicKey publicKey = new EcdsaPublicKey(keyGen.getPublicKey().getPublicKeyBytes());
+    EcdsaPublicKey publicKey = keyGen.getPublicKey();
     Assertions.assertFalse(publicKey.verifySignature(entityManipulated, signature));
   }
 
@@ -45,10 +46,9 @@ public class EcdsaTest {
     EntityFixture e = new EntityFixture();
     EcdsaKeyGen keyGen = KeyGenFixture.newKeyGen();
     EcdsaKeyGen keyGenManipulated = KeyGenFixture.newKeyGen();
-    EcdsaPrivateKey ecdsaPrivateKey = new EcdsaPrivateKey(keyGen.getPrivateKey().getPrivateKeyBytes());
+    EcdsaPrivateKey ecdsaPrivateKey = keyGen.getPrivateKey();
     EcdsaSignature signature = new EcdsaSignature(ecdsaPrivateKey.signEntity(e).getBytes(), e.id());
-    byte[] publicKeyManipulatedBytes = keyGenManipulated.getPublicKey().getPublicKeyBytes();
-    EcdsaPublicKey publicKeyManipulated = new EcdsaPublicKey(publicKeyManipulatedBytes);
+    EcdsaPublicKey publicKeyManipulated = keyGenManipulated.getPublicKey();
     Assertions.assertFalse(publicKeyManipulated.verifySignature(e, signature));
   }
 
@@ -60,10 +60,9 @@ public class EcdsaTest {
     EntityFixture e = new EntityFixture();
     EcdsaKeyGen keyGen = KeyGenFixture.newKeyGen();
     EcdsaKeyGen keyGenManipulated = KeyGenFixture.newKeyGen();
-    byte[] privateKeyManipulatedBytes = keyGenManipulated.getPrivateKey().getPrivateKeyBytes();
-    EcdsaPrivateKey ecdsaPrivateKey = new EcdsaPrivateKey(privateKeyManipulatedBytes);
+    EcdsaPrivateKey ecdsaPrivateKey = keyGenManipulated.getPrivateKey();
     EcdsaSignature signature = new EcdsaSignature(ecdsaPrivateKey.signEntity(e).getBytes(), e.id());
-    EcdsaPublicKey publicKey = new EcdsaPublicKey(keyGen.getPublicKey().getPublicKeyBytes());
+    EcdsaPublicKey publicKey = keyGen.getPublicKey();
     Assertions.assertFalse(publicKey.verifySignature(e, signature));
   }
 

@@ -64,7 +64,4 @@ public class EcdsaPublicKey extends model.crypto.PublicKey {
     }
   }
 
-  public byte[] getPublicKeyBytes() {
-    return this.bytes.clone();
-  }
 }

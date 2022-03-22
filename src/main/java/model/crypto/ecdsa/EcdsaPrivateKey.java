@@ -66,7 +66,4 @@ public class EcdsaPrivateKey extends model.crypto.PrivateKey {
     return new EcdsaSignature(signatureBytes, e.id());
   }
 
-  public byte[] getPrivateKeyBytes() {
-    return this.bytes.clone();
-  }
 }
