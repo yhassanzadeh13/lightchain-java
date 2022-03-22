@@ -25,9 +25,9 @@ public class EcdsaKeyGen implements KeyGen {
       g = KeyPairGenerator.getInstance("EC");
       g.initialize(ecSpec, new SecureRandom());
     } catch (NoSuchAlgorithmException e) {
-      throw new IllegalStateException(SIGN_ALG_SHA_3_256_WITH_ECDSA + " algorithm not found.", e);
+      throw new IllegalStateException(SIGN_ALG_SHA_3_256_WITH_ECDSA + " algorithm not found", e);
     } catch (InvalidAlgorithmParameterException e) {
-      throw new IllegalStateException(ellipticCurve + " algorithm parameter not found.", e);
+      throw new IllegalStateException(ellipticCurve + " algorithm parameter not found", e);
     }
     KeyPair keypair = g.generateKeyPair();
     PublicKey publicKey = keypair.getPublic();

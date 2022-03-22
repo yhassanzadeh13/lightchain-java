@@ -39,18 +39,18 @@ public class EcdsaPublicKey extends model.crypto.PublicKey {
     try {
       ecdsaVerify = Signature.getInstance(SIGN_ALG_SHA_3_256_WITH_ECDSA);
     } catch (NoSuchAlgorithmException ex) {
-      throw new IllegalStateException(SIGN_ALG_SHA_3_256_WITH_ECDSA + " algorithm not found.", ex);
+      throw new IllegalStateException(SIGN_ALG_SHA_3_256_WITH_ECDSA + " algorithm not found", ex);
     }
     try {
       keyFactory = KeyFactory.getInstance("EC");
     } catch (NoSuchAlgorithmException ex) {
-      throw new IllegalStateException(SIGN_ALG_SHA_3_256_WITH_ECDSA + " algorithm not found.", ex);
+      throw new IllegalStateException(SIGN_ALG_SHA_3_256_WITH_ECDSA + " algorithm not found", ex);
     }
     EncodedKeySpec publicKeySpec = new X509EncodedKeySpec(publicKeyBytes);
     try {
       publicKey = keyFactory.generatePublic(publicKeySpec);
     } catch (InvalidKeySpecException ex) {
-      throw new IllegalStateException("key spec is invalid.", ex);
+      throw new IllegalStateException("key spec is invalid", ex);
     }
     try {
       ecdsaVerify.initVerify(publicKey);
@@ -65,7 +65,7 @@ public class EcdsaPublicKey extends model.crypto.PublicKey {
       ecdsaVerify.update(hash.getBytes());
       return ecdsaVerify.verify(s.getBytes());
     } catch (SignatureException ex) {
-      throw new IllegalStateException("signature is not initialed correctly.", ex);
+      throw new IllegalStateException("signature is not initialed correctly", ex);
     }
   }
 
