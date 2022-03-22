@@ -17,7 +17,6 @@ import modules.codec.JsonEncoder;
  */
 public class EcdsaPrivateKey extends model.crypto.PrivateKey {
 
-  private static final String ELLIPTIC_CURVE = "EC";
   private final PrivateKey ecdsaPrivateKey;
 
   /**
@@ -29,11 +28,11 @@ public class EcdsaPrivateKey extends model.crypto.PrivateKey {
     super(bytes);
     KeyFactory keyFactory;
     try {
-      keyFactory = KeyFactory.getInstance(ELLIPTIC_CURVE);
+      keyFactory = KeyFactory.getInstance(EcdsaSignature.ELLIPTIC_CURVE);
       EncodedKeySpec privateKeySpec = new PKCS8EncodedKeySpec(bytes);
       ecdsaPrivateKey = keyFactory.generatePrivate(privateKeySpec);
     } catch (NoSuchAlgorithmException e) {
-      throw new IllegalStateException(ELLIPTIC_CURVE + "algorithm not found", e);
+      throw new IllegalStateException(EcdsaSignature.ELLIPTIC_CURVE + "algorithm not found", e);
     } catch (InvalidKeySpecException e) {
       throw new IllegalStateException("key spec is invalid", e);
     }
