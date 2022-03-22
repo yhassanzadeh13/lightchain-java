@@ -18,6 +18,7 @@ import modules.codec.JsonEncoder;
 public class EcdsaPrivateKey extends model.crypto.PrivateKey {
 
   private static final String SIGN_ALG_SHA_3_256_WITH_ECDSA = "SHA3-256withECDSA";
+  private static final String ELLIPTIC_CURVE = "EC";
 
   public EcdsaPrivateKey(byte[] bytes) {
     super(bytes);
@@ -37,7 +38,7 @@ public class EcdsaPrivateKey extends model.crypto.PrivateKey {
     byte[] signatureBytes;
     try {
       ecdsaSign = Signature.getInstance(SIGN_ALG_SHA_3_256_WITH_ECDSA);
-      keyFactory = KeyFactory.getInstance("EC");
+      keyFactory = KeyFactory.getInstance(ELLIPTIC_CURVE);
       EncodedKeySpec privateKeySpec = new PKCS8EncodedKeySpec(this.bytes);
       privateKey = keyFactory.generatePrivate(privateKeySpec);
       ecdsaSign.initSign(privateKey);
