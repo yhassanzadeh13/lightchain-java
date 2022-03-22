@@ -63,7 +63,7 @@ public class EcdsaPrivateKey extends model.crypto.PrivateKey {
     Sha3256Hasher hasher = new Sha3256Hasher();
     Sha3256Hash hash = hasher.computeHash(encodedEntity);
     try {
-      ecdsaSign.update(hash.getHashBytes());
+      ecdsaSign.update(hash.getBytes());
       signatureBytes = ecdsaSign.sign();
     } catch (SignatureException ex) {
       throw new IllegalStateException("signature is not initialed correctly.", ex);

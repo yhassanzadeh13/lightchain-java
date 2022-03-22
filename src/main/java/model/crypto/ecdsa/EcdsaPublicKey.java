@@ -62,7 +62,7 @@ public class EcdsaPublicKey extends model.crypto.PublicKey {
     Sha3256Hasher hasher = new Sha3256Hasher();
     Sha3256Hash hash = hasher.computeHash(encodedEntity);
     try {
-      ecdsaVerify.update(hash.getHashBytes());
+      ecdsaVerify.update(hash.getBytes());
       return ecdsaVerify.verify(s.getBytes());
     } catch (SignatureException ex) {
       throw new IllegalStateException("signature is not initialed correctly.", ex);

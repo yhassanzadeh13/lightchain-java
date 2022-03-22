@@ -38,7 +38,7 @@ public class Sha3256Hash extends Hash {
     this.hashBytes = identifier.getBytes();
   }
 
-  public byte[] getHashBytes() {
+  public byte[] getBytes() {
     return hashBytes.clone();
   }
 
