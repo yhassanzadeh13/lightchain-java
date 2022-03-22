@@ -34,8 +34,7 @@ public class EcdsaTest {
     EcdsaPrivateKey ecdsaPrivateKey = new EcdsaPrivateKey(keyGen.getPrivateKey().getPrivateKeyBytes());
     EcdsaSignature signature = new EcdsaSignature(ecdsaPrivateKey.signEntity(e).getBytes(), e.id());
     EcdsaPublicKey publicKey = new EcdsaPublicKey(keyGen.getPublicKey().getPublicKeyBytes());
-    boolean test = publicKey.verifySignature(entityManipulated, signature);
-    Assertions.assertFalse(test);
+    Assertions.assertFalse(publicKey.verifySignature(entityManipulated, signature));
   }
 
   /**
@@ -50,8 +49,7 @@ public class EcdsaTest {
     EcdsaSignature signature = new EcdsaSignature(ecdsaPrivateKey.signEntity(e).getBytes(), e.id());
     byte[] publicKeyManipulatedBytes = keyGenManipulated.getPublicKey().getPublicKeyBytes();
     EcdsaPublicKey publicKeyManipulated = new EcdsaPublicKey(publicKeyManipulatedBytes);
-    boolean test = publicKeyManipulated.verifySignature(e, signature);
-    Assertions.assertFalse(test);
+    Assertions.assertFalse(publicKeyManipulated.verifySignature(e, signature));
   }
 
   /**
@@ -66,8 +64,7 @@ public class EcdsaTest {
     EcdsaPrivateKey ecdsaPrivateKey = new EcdsaPrivateKey(privateKeyManipulatedBytes);
     EcdsaSignature signature = new EcdsaSignature(ecdsaPrivateKey.signEntity(e).getBytes(), e.id());
     EcdsaPublicKey publicKey = new EcdsaPublicKey(keyGen.getPublicKey().getPublicKeyBytes());
-    boolean test = publicKey.verifySignature(e, signature);
-    Assertions.assertFalse(test);
+    Assertions.assertFalse(publicKey.verifySignature(e, signature));
   }
 
 }
