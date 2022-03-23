@@ -4,10 +4,10 @@ package metrics;
  * Collector of metrics for the LightChain implementation of Prometheus equivalents.
  */
 public class LightChainCollector implements Collector {
-
-  HistogramCollector lightChainHistogram;
-  GaugeCollector lightChainGauge;
-  CounterCollector lightChainCounter;
+  
+  private final HistogramCollector lightChainHistogram;
+  private final GaugeCollector lightChainGauge;
+  private final CounterCollector lightChainCounter;
 
   /**
    * Constructor that instantiates the corresponding metrics objects.
