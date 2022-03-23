@@ -21,9 +21,13 @@
     </repositories>
 
     <build>
+        <defaultGoal>clean install</defaultGoal>
+        <!-- Source directory configuration -->
+
         <sourceDirectory>src/main/java</sourceDirectory>
         <pluginManagement>
             <plugins>
+
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-compiler-plugin</artifactId>
@@ -38,6 +42,7 @@
                         <target>9</target>
                     </configuration>
                 </plugin>
+
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-assembly-plugin</artifactId>
@@ -57,11 +62,13 @@
                         </execution>
                     </executions>
                 </plugin>
+
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-surefire-plugin</artifactId>
                     <version>3.0.0-M5</version>
                 </plugin>
+
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-checkstyle-plugin</artifactId>
@@ -84,27 +91,9 @@
                             <artifactId>checkstyle</artifactId>
                             <version>8.42</version>
                         </dependency>
-                        <!-- https://mvnrepository.com/artifact/com.google.protobuf/protobuf-java -->
-                        <dependency>
-                            <groupId>com.google.protobuf</groupId>
-                            <artifactId>protobuf-java</artifactId>
-                            <version>3.19.4</version>
-                        </dependency>
-                        <!-- https://mvnrepository.com/artifact/com.google.protobuf/protobuf-java-util -->
-                        <dependency>
-                            <groupId>com.google.protobuf</groupId>
-                            <artifactId>protobuf-java-util</artifactId>
-                            <version>3.19.4</version>
-                            <scope>runtime</scope>
-                        </dependency>
-                        <!-- https://mvnrepository.com/artifact/com.google.protobuf/protobuf-java -->
-                        <dependency>
-                            <groupId>com.google.protobuf</groupId>
-                            <artifactId>protobuf-java</artifactId>
-                            <version>3.19.4</version>
-                        </dependency>
                     </dependencies>
                 </plugin>
+
                 <plugin>
                     <groupId>com.github.spotbugs</groupId>
                     <artifactId>spotbugs-maven-plugin</artifactId>
@@ -124,11 +113,37 @@
                         <failThreshold>Low</failThreshold>
                     </configuration>
                 </plugin>
+
             </plugins>
         </pluginManagement>
     </build>
 
     <dependencies>
+
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-simple</artifactId>
+            <version>2.0.0-alpha7</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>2.0.0-alpha7</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-shade-plugin</artifactId>
+            <version>3.2.4</version>
+            <type>maven-plugin</type>
+        </dependency>
+
+        <dependency>
+            <groupId>com.github.docker-java</groupId>
+            <artifactId>docker-java</artifactId>
+            <version>3.2.13</version>
+        </dependency>
         <!-- The client -->
         <dependency>
             <groupId>io.prometheus</groupId>
