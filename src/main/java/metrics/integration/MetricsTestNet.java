@@ -19,16 +19,25 @@ import com.github.dockerjava.transport.DockerHttpClient;
 
 public class MetricsTestNet {
   private static final String PROMETHEUS_VOLUME = "prometheus_volume";
-  private static final String GRAFANA_VOLUME = "grafana_volume";
+
   private static final String NETWORK_NAME = "network";
   private static final String NETWORK_DRIVER_NAME = "bridge";
+  private static final String MAIN_TAG = "main";
 
 
   // Grafana
+  private static final int GRAFANA_PORT = 3000;
+  private static final String GRAFANA = "grafana";
+  private static final String GRAFANA_VOLUME = "grafana_volume";
   private static final String GRAFANA_VOLUME_BINDING = "grafana_volume:/var/lib/grafana";
   private static final String GRAFANA_DASHBOARD_BINDING = "/grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards";
   private static final String GRAFANA_DATA_SOURCE_BINDING = "/grafana/provisioning/datasources:/etc/grafana/provisioning/datasources";
-
+  private static final String GRAFANA_IMAGE = "grafana/grafana";
+  private static final String GRAFANA_MAIN_CMD = "grafana/grafana:main";
+  private static final String USER_DIR = "user.dir";
+  private static final String GRAFANA_ADMIN_USER_NAME = "GF_SECURITY_ADMIN_USER=${ADMIN_USER:-admin}";
+  private static final String GRAFANA_ADMIN_PASSWORD = "GF_SECURITY_ADMIN_PASSWORD=${ADMIN_PASSWORD:-admin}";
+  private static final String GRAFANA_NO_SIGN_UP = "GF_USERS_ALLOW_SIGN_UP=false";
 
   private final DockerClient dockerClient;
 
@@ -130,14 +139,19 @@ public class MetricsTestNet {
     }
 
     // network does not exist, create one/
-    dockerClient.createNetworkCmd().withName(NETWORK_NAME).withDriver(MetricsTestNet.NETWORK_NAME).exec();
+    dockerClient.createNetworkCmd().withName(NETWORK_NAME).withDriver(NETWORK_DRIVER_NAME).exec();
   }
 
 
-  private CreateContainerResponse createGrafanaContainer() throws InterruptedException {
+  /**
+   * Creates and returns a Grafana container.
+   * @return create container response for grafana.
+   * @throws IllegalStateException when container creation faces an illegal state. 
+   */
+  private CreateContainerResponse createGrafanaContainer() throws IllegalStateException {
     try {
-      this.dockerClient.pullImageCmd("grafana/grafana")
-          .withTag("main")
+      this.dockerClient.pullImageCmd(GRAFANA_IMAGE)
+          .withTag(MAIN_TAG)
           .exec(new PullImageResultCallback())
           .awaitCompletion(60, TimeUnit.SECONDS);
     } catch (InterruptedException ex) {
@@ -145,12 +159,12 @@ public class MetricsTestNet {
     }
 
     Ports grafanaPortBindings = new Ports();
-    grafanaPortBindings.bind(ExposedPort.tcp(3000), Ports.Binding.bindPort(3000));
+    grafanaPortBindings.bind(ExposedPort.tcp(GRAFANA_PORT), Ports.Binding.bindPort(GRAFANA_PORT));
 
     List<Bind> grafBinds = new ArrayList<Bind>();
     grafBinds.add(Bind.parse(GRAFANA_VOLUME_BINDING));
-    grafBinds.add(Bind.parse(System.getProperty("user.dir") + GRAFANA_DASHBOARD_BINDING));
-    grafBinds.add(Bind.parse(System.getProperty("user.dir") + GRAFANA_DATA_SOURCE_BINDING));
+    grafBinds.add(Bind.parse(System.getProperty(USER_DIR) + GRAFANA_DASHBOARD_BINDING));
+    grafBinds.add(Bind.parse(System.getProperty(USER_DIR) + GRAFANA_DATA_SOURCE_BINDING));
 
     HostConfig hostConfig = new HostConfig()
         .withBinds(grafBinds)
@@ -158,12 +172,12 @@ public class MetricsTestNet {
         .withPortBindings(grafanaPortBindings);
 
     return this.dockerClient
-        .createContainerCmd("grafana/grafana:main")
-        .withName("grafana")
+        .createContainerCmd(GRAFANA_MAIN_CMD)
+        .withName(GRAFANA)
         .withTty(true)
-        .withEnv("GF_SECURITY_ADMIN_USER=${ADMIN_USER:-admin}")
-        .withEnv("GF_SECURITY_ADMIN_PASSWORD=${ADMIN_PASSWORD:-admin}")
-        .withEnv("GF_USERS_ALLOW_SIGN_UP=false")
+        .withEnv(GRAFANA_ADMIN_USER_NAME)
+        .withEnv(GRAFANA_ADMIN_PASSWORD)
+        .withEnv(GRAFANA_NO_SIGN_UP)
         .withHostConfig(hostConfig)
         .exec();
   }

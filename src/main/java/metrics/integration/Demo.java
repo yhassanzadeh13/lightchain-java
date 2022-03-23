@@ -26,7 +26,7 @@ public class Demo {
   /**
    * main function.
    *
-   * @param args standart Java args
+   * @param args standard Java args
    */
   public static void main(String[] args) {
     MetricsTestNet testNet = new MetricsTestNet();
