@@ -14,19 +14,29 @@ public class TableState implements state.State {
    */
   private Hashtable<Identifier, Snapshot> table;
 
-  // TODO: implement add method to add snapshot at given block id.
-
   public TableState() {
     this.table = new Hashtable<>();
   }
 
+  public void addSnapshot(Identifier blockId, Snapshot snapshot) {
+    this.table.put(blockId, snapshot);
+  }
+
   @Override
   public Snapshot atBlockId(Identifier identifier) {
-    return table.get(identifier);
+    return this.table.get(identifier);
   }
 
   @Override
   public Snapshot last() {
-    return null;
+    Identifier lastBlockId = null;
+    long maxHeight = 0L;
+    for (Snapshot snapshot : this.table.values()) {
+      if (snapshot.getReferenceBlockHeight() > maxHeight) {
+        lastBlockId = snapshot.getReferenceBlockId();
+        maxHeight = snapshot.getReferenceBlockHeight();
+      }
+    }
+    return this.table.get(lastBlockId);
   }
 }
