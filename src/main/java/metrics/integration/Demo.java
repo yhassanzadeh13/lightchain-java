@@ -1,15 +1,5 @@
 package metrics.integration;
 
-import java.time.*;
-import java.util.*;
-import java.util.concurrent.TimeUnit;
-
-import com.github.dockerjava.api.*;
-import com.github.dockerjava.api.command.*;
-import com.github.dockerjava.api.model.*;
-import com.github.dockerjava.core.*;
-import com.github.dockerjava.httpclient5.*;
-import com.github.dockerjava.transport.*;
 import io.prometheus.client.Counter;
 import io.prometheus.client.Gauge;
 import metrics.LightChainCollector;
@@ -45,13 +35,13 @@ public class Demo {
       collector = new LightChainCollector();
 
       finalizedBlockCount = collector.counter().register("finalized_block_count",
-              "consensus", "proposal", "Finalized block count");
+          "consensus", "proposal", "Finalized block count");
 
       currentBlockCount = collector.gauge().register("current_block_count",
-              "consensus", "proposal", "Finalized block count");
+          "consensus", "proposal", "Finalized block count");
 
     } catch (IllegalArgumentException ex) {
-      System.err.println("Could not initialize the metrics with the provided arguments" + ex.toString());
+      System.err.println("Could not initialize the metrics with the provided arguments" + ex);
       System.exit(1);
     }
 

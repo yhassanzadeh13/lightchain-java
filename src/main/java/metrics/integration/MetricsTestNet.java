@@ -17,30 +17,48 @@ import com.github.dockerjava.core.DockerClientImpl;
 import com.github.dockerjava.httpclient5.ApacheDockerHttpClient;
 import com.github.dockerjava.transport.DockerHttpClient;
 
+/**
+ * Creates a metrics collection network that is composed of a grafana and a prometheus containers.
+ * The grafana container is exposed at localhost:3000.
+ * The prometheus container is exposed at localhost:9090.
+ */
 public class MetricsTestNet {
-  private static final String PROMETHEUS_VOLUME = "prometheus_volume";
-
+  private final DockerClient dockerClient;
+  // common
+  private static final String MAIN_TAG = "main";
+  private static final String USER_DIR = "user.dir";
   private static final String NETWORK_NAME = "network";
   private static final String NETWORK_DRIVER_NAME = "bridge";
-  private static final String MAIN_TAG = "main";
 
+
+  // Prometheus
+  private static final int PROMETHEUS_PORT = 9090;
+  private static final String PROMETHEUS = "prometheus";
+  private static final String PROMETHEUS_IMAGE = "prom/prometheus";
+  private static final String PROMETHEUS_VOLUME = "prometheus_volume";
+  private static final String PROMETHEUS_MAIN_CMD = "prom/prometheus:main";
+  private static final String PROMETHEUS_VOLUME_BINDING_ETC = "/prometheus" + ":" + "/etc/prometheus";
+  private static final String PROMETHEUS_VOLUME_BINDING_VOLUME = "prometheus_volume" + ":" + "/prometheus";
 
   // Grafana
   private static final int GRAFANA_PORT = 3000;
   private static final String GRAFANA = "grafana";
   private static final String GRAFANA_VOLUME = "grafana_volume";
-  private static final String GRAFANA_VOLUME_BINDING = "grafana_volume:/var/lib/grafana";
-  private static final String GRAFANA_DASHBOARD_BINDING = "/grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards";
-  private static final String GRAFANA_DATA_SOURCE_BINDING = "/grafana/provisioning/datasources:/etc/grafana/provisioning/datasources";
   private static final String GRAFANA_IMAGE = "grafana/grafana";
   private static final String GRAFANA_MAIN_CMD = "grafana/grafana:main";
-  private static final String USER_DIR = "user.dir";
+  private static final String GRAFANA_NO_SIGN_UP = "GF_USERS_ALLOW_SIGN_UP=false";
+  private static final String GRAFANA_VOLUME_BINDING = "grafana_volume:/var/lib/grafana";
   private static final String GRAFANA_ADMIN_USER_NAME = "GF_SECURITY_ADMIN_USER=${ADMIN_USER:-admin}";
   private static final String GRAFANA_ADMIN_PASSWORD = "GF_SECURITY_ADMIN_PASSWORD=${ADMIN_PASSWORD:-admin}";
-  private static final String GRAFANA_NO_SIGN_UP = "GF_USERS_ALLOW_SIGN_UP=false";
+  private static final String GRAFANA_DASHBOARD_BINDING =
+      "/grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards";
+  private static final String GRAFANA_DATA_SOURCE_BINDING =
+      "/grafana/provisioning/datasources:/etc/grafana/provisioning/datasources";
 
-  private final DockerClient dockerClient;
 
+  /**
+   * Default constructor.
+   */
   public MetricsTestNet() {
     DockerClientConfig config = DefaultDockerClientConfig.createDefaultConfigBuilder().build();
 
@@ -55,6 +73,11 @@ public class MetricsTestNet {
     this.dockerClient = DockerClientImpl.getInstance(config, httpClient);
   }
 
+  /**
+   * Creates and runs a prometheus and grafana containers that are interconnected.
+   *
+   * @throws IllegalStateException when container creation faces an illegal state.
+   */
   public void run() throws IllegalStateException {
     // Volume check + create if absent
     this.createVolumesIfNotExist(dockerClient, PROMETHEUS_VOLUME);
@@ -64,34 +87,9 @@ public class MetricsTestNet {
     this.createNetworkIfNotExist();
 
     // Prometheus
-    try {
-      dockerClient.pullImageCmd("prom/prometheus")
-          .withTag("main")
-          .exec(new PullImageResultCallback())
-          .awaitCompletion(60, TimeUnit.SECONDS);
-    } catch (InterruptedException ex) {
-      throw new IllegalStateException("could not run prometheus container" + ex);
-    }
-
-    Ports promPortBindings = new Ports();
-    promPortBindings.bind(ExposedPort.tcp(9090), Ports.Binding.bindPort(9090));
-
-    List<Bind> promBinds = new ArrayList<Bind>();
-    promBinds.add(Bind.parse(System.getProperty("user.dir") + "/prometheus" + ":" + "/etc/prometheus"));
-    promBinds.add(Bind.parse("prometheus_volume" + ":" + "/prometheus"));
-
-    CreateContainerResponse promContainer =
-        dockerClient
-            .createContainerCmd("prom/prometheus:main")
-            .withBinds(promBinds)
-            .withName("prometheus")
-            .withNetworkMode("network")
-            .withTty(true)
-            .withPortBindings(promPortBindings)
-            .exec();
-
+    CreateContainerResponse prometheusContainer = createPrometheusContainer();
     dockerClient
-        .startContainerCmd(promContainer.getId())
+        .startContainerCmd(prometheusContainer.getId())
         .exec();
 
     // Grafana
@@ -145,8 +143,9 @@ public class MetricsTestNet {
 
   /**
    * Creates and returns a Grafana container.
+   *
    * @return create container response for grafana.
-   * @throws IllegalStateException when container creation faces an illegal state. 
+   * @throws IllegalStateException when container creation faces an illegal state.
    */
   private CreateContainerResponse createGrafanaContainer() throws IllegalStateException {
     try {
@@ -182,5 +181,39 @@ public class MetricsTestNet {
         .exec();
   }
 
+  /**
+   * Creates and returns a Prometheus container.
+   *
+   * @return create container response for prometheus.
+   * @throws IllegalStateException when container creation faces an illegal state.
+   */
+  private CreateContainerResponse createPrometheusContainer() throws IllegalStateException {
+    try {
+      this.dockerClient.pullImageCmd(PROMETHEUS_IMAGE)
+          .withTag(MAIN_TAG)
+          .exec(new PullImageResultCallback())
+          .awaitCompletion(60, TimeUnit.SECONDS);
+    } catch (InterruptedException ex) {
+      throw new IllegalStateException("could not run prometheus container" + ex);
+    }
 
+    Ports promPortBindings = new Ports();
+    promPortBindings.bind(ExposedPort.tcp(PROMETHEUS_PORT), Ports.Binding.bindPort(PROMETHEUS_PORT));
+
+    List<Bind> promBinds = new ArrayList<Bind>();
+    promBinds.add(Bind.parse(System.getProperty(USER_DIR) + PROMETHEUS_VOLUME_BINDING_ETC));
+    promBinds.add(Bind.parse(PROMETHEUS_VOLUME_BINDING_VOLUME));
+
+    HostConfig hostConfig = new HostConfig()
+        .withBinds(promBinds)
+        .withNetworkMode(NETWORK_NAME)
+        .withPortBindings(promPortBindings);
+
+    return this.dockerClient
+        .createContainerCmd(PROMETHEUS_MAIN_CMD)
+        .withName(PROMETHEUS)
+        .withTty(true)
+        .withHostConfig(hostConfig)
+        .exec();
+  }
 }
