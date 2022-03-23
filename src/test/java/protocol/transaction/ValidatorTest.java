@@ -30,6 +30,7 @@ public class ValidatorTest {
     when(mockState.atBlockId(transaction.getReferenceBlockId())).thenReturn(null);
 
     /// Verifier
+
     Validator verifier = new TransactionValidator(mockState);
 
     // Act
@@ -52,6 +53,7 @@ public class ValidatorTest {
     /// State & Snapshot Mocking
     State mockState = mock(State.class);
     Snapshot mockSnapshot = mock(Snapshot.class);
+
     Account receiverAccount = new AccountFixture(transaction.getReceiver());
 
     when(mockState.atBlockId(transaction.getReferenceBlockId())).thenReturn(mockSnapshot);
@@ -110,6 +112,7 @@ public class ValidatorTest {
     /// State & Snapshot Mocking
     State mockState = mock(State.class);
     Snapshot mockSnapshot = mock(Snapshot.class);
+
     Account senderAccount = new AccountFixture(transaction.getSender());
     Account receiverAccount = new AccountFixture(transaction.getReceiver());
 
@@ -126,7 +129,6 @@ public class ValidatorTest {
     // Assert
     // fixture sanity check
     Assertions.assertEquals(0, transaction.getAmount());
-
     Assertions.assertFalse(result);
   }
 
@@ -143,6 +145,7 @@ public class ValidatorTest {
     /// State & Snapshot Mocking
     State mockState = mock(State.class);
     Snapshot mockSnapshot = mock(Snapshot.class);
+
     Account senderAccount = new AccountFixture(transaction.getSender());
     Account receiverAccount = new AccountFixture(transaction.getReceiver());
 
@@ -152,14 +155,13 @@ public class ValidatorTest {
 
     /// Verifier
     Validator verifier = new TransactionValidator(mockState);
-
+    
     // Act
     boolean result = verifier.isCorrect(transaction);
 
     // Assert
     // fixture sanity check
     Assertions.assertTrue(transaction.getAmount() < 0);
-
     Assertions.assertFalse(result);
   }
 
@@ -189,7 +191,7 @@ public class ValidatorTest {
 
     /// Verifier
     Validator verifier = new TransactionValidator(mockState);
-
+    
     // Act
     boolean result = verifier.isCorrect(transaction);
 
