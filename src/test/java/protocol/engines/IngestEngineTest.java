@@ -33,7 +33,7 @@ public class IngestEngineTest {
   @Test
   public void testConcurrentSample(){
     AtomicInteger threadErrorCount = new AtomicInteger();
-    CountDownLatch done = new CountDownLatch();
+    CountDownLatch done = new CountDownLatch(1);
 
     Thread t = new Thread(()-> {
       // implement body of thread.
