@@ -2,8 +2,8 @@ package metrics.integration;
 
 import io.prometheus.client.Counter;
 import io.prometheus.client.Gauge;
-import metrics.LightChainCollector;
-import metrics.MetricServer;
+import metrics.collectors.LightChainCollector;
+import metrics.collectors.MetricServer;
 
 /**
  * Demonstrative class to set up a Prometheus server and create LightChain Counter and Gauge instances.

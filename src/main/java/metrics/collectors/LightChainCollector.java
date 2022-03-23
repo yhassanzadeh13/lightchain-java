@@ -1,10 +1,15 @@
-package metrics;
+package metrics.collectors;
+
+import metrics.Collector;
+import metrics.CounterCollector;
+import metrics.GaugeCollector;
+import metrics.HistogramCollector;
 
 /**
  * Collector of metrics for the LightChain implementation of Prometheus equivalents.
  */
 public class LightChainCollector implements Collector {
-  
+
   private final HistogramCollector lightChainHistogram;
   private final GaugeCollector lightChainGauge;
   private final CounterCollector lightChainCounter;

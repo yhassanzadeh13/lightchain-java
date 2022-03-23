@@ -1,6 +1,7 @@
-package metrics;
+package metrics.collectors;
 
 import io.prometheus.client.Gauge;
+import metrics.GaugeCollector;
 
 /**
  * LightChain Gauge is the LightChain implementation of the Gauge Collector interface.

@@ -1,6 +1,7 @@
-package metrics;
+package metrics.collectors;
 
 import io.prometheus.client.Histogram;
+import metrics.HistogramCollector;
 
 /**
  * LightChain Histogram is the LightChain implementation of the Histogram Collector interface.

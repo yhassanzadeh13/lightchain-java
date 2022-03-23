@@ -1,6 +1,7 @@
-package metrics;
+package metrics.collectors;
 
 import io.prometheus.client.Counter;
+import metrics.CounterCollector;
 
 /**
  * LightChain Counter is the LightChain implementation of the Counter Collector interface.

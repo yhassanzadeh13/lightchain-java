@@ -1,4 +1,4 @@
-package metrics;
+package metrics.collectors;
 
 import java.io.IOException;
 
