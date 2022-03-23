@@ -4,7 +4,6 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.junit.Assert;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -31,14 +30,15 @@ public class IngestEngineTest {
   // 19. Happy path of receiving a transaction and a block concurrently (block does contain the transaction).
 
   @Test
-  public void testConcurrentSample(){
+  public void testConcurrentSample() {
     AtomicInteger threadErrorCount = new AtomicInteger();
     CountDownLatch done = new CountDownLatch(1);
 
-    Thread t = new Thread(()-> {
+    Thread t = new Thread(() -> {
       // implement body of thread.
       // if some error happens that leads to test failure:
-      threadErrorCount.getAndIncrement();
+      // threadErrorCount.getAndIncrement();
+
       done.countDown();
     });
 

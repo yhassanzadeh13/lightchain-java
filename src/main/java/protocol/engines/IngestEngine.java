@@ -8,7 +8,6 @@ import protocol.Engine;
  * into the transactions and blocks storage pools.
  */
 public class IngestEngine implements Engine {
-
   /**
    * If received entity is a block, the engine runs block validation on it, and if it passes the validation,
    * the engine adds the block to its block storage database. The engine also adds HASH of all the transactions of
@@ -20,13 +19,10 @@ public class IngestEngine implements Engine {
    * Otherwise, it runs the transaction validation on it. If the transaction passes validation, it is added to the
    * "pendingTx" database, and otherwise is discarded.
    *
-   *
-   *
    * @param e the arrived Entity from the network, it should be either a transaction or a block.
    * @throws IllegalArgumentException when the arrived entity is neither a transaction nor a block.
    */
   @Override
   public void process(Entity e) throws IllegalArgumentException {
-
   }
 }
