@@ -6,6 +6,7 @@ import io.prometheus.client.Counter;
  * The CounterCollector interface is a base interface of counter collector to use for metric collector.
  */
 public interface CounterCollector {
+
   /**
    * Registers a counter collector.
    *
@@ -19,4 +20,5 @@ public interface CounterCollector {
    *                                  same name has already been registered.
    */
   Counter register(String name, String namespace, String subsystem, String helpMessage) throws IllegalArgumentException;
+
 }
