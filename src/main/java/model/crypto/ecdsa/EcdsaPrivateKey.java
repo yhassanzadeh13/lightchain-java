@@ -20,7 +20,7 @@ public class EcdsaPrivateKey extends model.crypto.PrivateKey {
    *
    * @param bytes encoded private key bytes.
    */
-  public EcdsaPrivateKey(byte[] bytes) throws IllegalStateException{
+  public EcdsaPrivateKey(byte[] bytes) throws IllegalStateException {
     super(bytes);
     KeyFactory keyFactory;
     try {
@@ -41,7 +41,7 @@ public class EcdsaPrivateKey extends model.crypto.PrivateKey {
    * @return a signature over entity e using private key.
    */
   @Override
-  public model.crypto.Signature signEntity(Entity e) throws IllegalStateException{
+  public model.crypto.Signature signEntity(Entity e) throws IllegalStateException {
     byte[] signatureBytes;
     try {
       Signature ecdsaSign = Signature.getInstance(EcdsaSignature.SIGN_ALG_SHA_3_256_WITH_ECDSA);
