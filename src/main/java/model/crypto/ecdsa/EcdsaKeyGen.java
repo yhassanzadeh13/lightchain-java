@@ -23,7 +23,7 @@ public class EcdsaKeyGen implements KeyGen {
     ECGenParameterSpec ecSpec = new ECGenParameterSpec(ellipticCurve);
     KeyPairGenerator g = null;
     try {
-      g = KeyPairGenerator.getInstance("EC");
+      g = KeyPairGenerator.getInstance(EcdsaSignature.ELLIPTIC_CURVE);
       g.initialize(ecSpec, secureRandom);
     } catch (NoSuchAlgorithmException e) {
       throw new IllegalStateException(SIGN_ALG_SHA_3_256_WITH_ECDSA + " algorithm not found", e);

@@ -19,7 +19,7 @@ public class EcdsaPublicKey extends model.crypto.PublicKey {
    *
    * @param bytes encoded public key bytes.
    */
-  public EcdsaPublicKey(byte[] bytes) {
+  public EcdsaPublicKey(byte[] bytes) throws IllegalStateException {
     super(bytes);
     KeyFactory keyFactory;
     try {
@@ -41,7 +41,7 @@ public class EcdsaPublicKey extends model.crypto.PublicKey {
    * @return true if s carries a valid signature over e against this public key, false otherwise.
    */
   @Override
-  public boolean verifySignature(Entity e, model.crypto.Signature s) {
+  public boolean verifySignature(Entity e, model.crypto.Signature s) throws IllegalStateException {
     try {
       Signature ecdsaVerify = Signature.getInstance(EcdsaSignature.SIGN_ALG_SHA_3_256_WITH_ECDSA);
       ecdsaVerify.initVerify(ecdsaPublicKey);

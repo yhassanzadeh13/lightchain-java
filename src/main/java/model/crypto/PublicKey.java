@@ -19,5 +19,5 @@ public abstract class PublicKey {
    * @param s digital signature over the entity.
    * @return true if s carries a valid signature over e against this public key, false otherwise.
    */
-  public abstract boolean verifySignature(Entity e, Signature s);
+  public abstract boolean verifySignature(Entity e, Signature s) throws IllegalStateException;
 }

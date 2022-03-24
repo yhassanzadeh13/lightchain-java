@@ -18,5 +18,5 @@ public abstract class PrivateKey {
    * @param e entity to sign.
    * @return a signature over entity e using private key.
    */
-  public abstract Signature signEntity(Entity e);
+  public abstract Signature signEntity(Entity e) throws IllegalStateException;
 }
