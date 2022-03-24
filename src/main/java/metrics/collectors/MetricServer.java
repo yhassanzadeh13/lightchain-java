@@ -31,7 +31,7 @@ public class MetricServer {
   public static void terminate() {
 
     try {
-      server.stop();
+      server.close();
     } catch (Exception e) {
       throw new IllegalStateException("could not stop metrics server:\t" + e);
     }
