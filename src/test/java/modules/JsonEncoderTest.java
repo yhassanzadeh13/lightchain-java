@@ -8,6 +8,9 @@ import unittest.fixtures.EntityFixture;
 
 public class JsonEncoderTest {
 
+  /**
+   * Round trip test of Json encoding and decoding.
+   */
   @Test
   public void TestEncodingRoundTrip() throws ClassNotFoundException {
     JsonEncoder encoder = new JsonEncoder();

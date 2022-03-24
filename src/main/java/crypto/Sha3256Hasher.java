@@ -4,7 +4,6 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
 import model.codec.EncodedEntity;
-import model.crypto.Hash;
 import model.crypto.Sha3256Hash;
 
 /**
@@ -21,7 +20,7 @@ public class Sha3256Hasher implements Hasher {
    * @return SHA3-256 hash object of the entity.
    */
   @Override
-  public Hash computeHash(EncodedEntity e) {
+  public Sha3256Hash computeHash(EncodedEntity e) {
     try {
       MessageDigest md = MessageDigest.getInstance(HASH_ALG_SHA_3_256);
       byte[] hashValue = md.digest(e.getBytes());
