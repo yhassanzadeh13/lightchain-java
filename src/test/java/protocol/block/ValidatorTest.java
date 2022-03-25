@@ -1,5 +1,8 @@
 package protocol.block;
 
+/**
+ * Encapsulates tests for block validation part of PoV consensus.
+ */
 public class ValidatorTest {
   // Note: except actual implementation of block Validator, mock everything else, and use fixtures when needed.
   //
@@ -17,7 +20,8 @@ public class ValidatorTest {
   // 9. isAuthenticated passes when block signature verification against its proposer public key passes.
   //
   // 10. proposerHashEnoughStake fails when proposer has a stake lower than minimum required stakes.
-  // 11. proposerHasEnoughStake passes when proposer has enough amount of stake greater than or equal to minimum required one.
+  // 11. proposerHasEnoughStake passes when proposer has enough amount of stake greater than or equal to
+  //     minimum required one.
   //
   // 12. allTransactionsValidated fails when there is at least one transaction that does not have a minimum number of
   //     certificates from staked validators that pass the signature verification.

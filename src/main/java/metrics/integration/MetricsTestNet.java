@@ -30,7 +30,6 @@ public class MetricsTestNet {
   private static final String NETWORK_NAME = "network";
   private static final String NETWORK_DRIVER_NAME = "bridge";
 
-
   // Prometheus
   private static final int PROMETHEUS_PORT = 9090;
   private static final String PROMETHEUS = "prometheus";
@@ -54,7 +53,6 @@ public class MetricsTestNet {
       "/grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards";
   private static final String GRAFANA_DATA_SOURCE_BINDING =
       "/grafana/provisioning/datasources:/etc/grafana/provisioning/datasources";
-
 
   /**
    * Default constructor.
@@ -139,7 +137,6 @@ public class MetricsTestNet {
     // network does not exist, create one/
     dockerClient.createNetworkCmd().withName(NETWORK_NAME).withDriver(NETWORK_DRIVER_NAME).exec();
   }
-
 
   /**
    * Creates and returns a Grafana container.

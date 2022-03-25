@@ -1,5 +1,6 @@
-
 package crypto;
+
+import java.util.Random;
 
 import model.crypto.Hash;
 import model.crypto.Sha3256Hash;
@@ -7,18 +8,20 @@ import model.lightchain.Identifier;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-import java.util.Random;
-
-
+/**
+ * Encapsulates tests for SHA3-256 hash.
+ */
 public class Sha3256HashTest {
-
+  /**
+   * Random generator object for the tests of this class.
+   */
   private static final Random rand = new Random();
 
   /**
-   * Test if the hashing of a random string is equal to the hashing of the same string
+   * Test if the hashing of a random string is equal to the hashing of the same string.
    */
   @Test
-  public void TestHashingSameThingTwice() {
+  public void testHashingSameThingTwice() {
     byte[] bytesString = new byte[32];
     rand.nextBytes(bytesString);
     Sha3256Hash hash1 = new Sha3256Hash(bytesString);
@@ -27,10 +30,10 @@ public class Sha3256HashTest {
   }
 
   /**
-   * Test if the hashing of two different strings with one is less than the other
+   * Test if the hashing of two different strings with one is less than the other.
    */
   @Test
-  public void TestHashingLess() {
+  public void testHashingLess() {
     String testHex1 = "e167f68d6563d75bb25f3aa49c29ef61";
     String testHex2 = "e167f68d6563d75bb25f3aa49c29ef62";
     Sha3256Hash hash1 = new Sha3256Hash(testHex1.getBytes().clone());
@@ -39,10 +42,10 @@ public class Sha3256HashTest {
   }
 
   /**
-   * Test if the hashing of two different strings with one is greater than the other
+   * Test if the hashing of two different strings with one is greater than the other.
    */
   @Test
-  public void TestHashingGreater() {
+  public void testHashingGreater() {
     String testHex1 = "e167f68d6563d75bb25f3aa49c29ef61";
     String testHex2 = "e167f68d6563d75bb25f3aa49c29ef60";
     Sha3256Hash hash1 = new Sha3256Hash(testHex1.getBytes().clone());
@@ -51,10 +54,10 @@ public class Sha3256HashTest {
   }
 
   /**
-   * Test if two constructors of Sha3256Hash output the same hash
+   * Test if two constructors of Sha3256Hash output the same hash.
    */
   @Test
-  public void TestHashingIdentifier() {
+  public void testHashingIdentifier() {
     String testHex = "e167f68d6563d75bb25f3aa49c29ef61";
     Identifier identifier1 = new Identifier(testHex.getBytes().clone());
     Sha3256Hash hash = new Sha3256Hash(identifier1.getBytes().clone());

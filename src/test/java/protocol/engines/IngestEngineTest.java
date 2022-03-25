@@ -7,6 +7,9 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
+/**
+ * Encapsulates tests for ingest engine implementation.
+ */
 public class IngestEngineTest {
   // TODO: a single individual test function for each of these scenarios:
   // 1. Happy path of receiving a valid single block.
@@ -15,9 +18,12 @@ public class IngestEngineTest {
   // 4. Happy path of receiving two duplicate blocks sequentially (the second duplicate block should be discarded).
   // 5. Happy path of receiving two duplicate blocks concurrently (the second duplicate block should be discarded).
   // 6. Happy path of receiving a valid block with shared transactions in pendingTx.
-  // 7. Happy path of receiving two valid blocks concurrently that each have some transactions in pendingTx (disjoint sets of transactions).
-  // 8. Happy path of receiving two valid blocks concurrently that each have some transactions in pendingTx (overlapping sets of transactions).
-  // 9. Happy path of receiving an already ingested block (i.e., block already added to blocks database), second block should be discarded right away.
+  // 7. Happy path of receiving two valid blocks concurrently that each have some transactions in pendingTx
+  //    (disjoint sets of transactions).
+  // 8. Happy path of receiving two valid blocks concurrently that each have some transactions in pendingTx
+  //    (overlapping sets of transactions).
+  // 9. Happy path of receiving an already ingested block (i.e., block already added to blocks database),
+  //    second block should be discarded right away.
   // 10. Happy path of receiving a valid transaction.
   // 11. Happy path of receiving two valid transactions sequentially.
   // 12. Happy path of receiving two valid transactions concurrently.

@@ -28,7 +28,6 @@ public class Demo {
       System.exit(1);
     }
 
-
     // Metric Server Initiation
     try {
 

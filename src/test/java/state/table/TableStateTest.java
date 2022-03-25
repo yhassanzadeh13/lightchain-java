@@ -1,5 +1,8 @@
 package state.table;
 
+/**
+ * Encapsulates tests for hash table implementation of protocol state.
+ */
 public class TableStateTest {
   // TODO: implementing a test covering each of the following scenarios.
   // 1. create a state with 10 snapshots. Each snapshot containing with 10 staked and 10 unstaked accounts. Then check

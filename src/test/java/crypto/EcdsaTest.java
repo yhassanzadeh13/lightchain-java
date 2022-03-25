@@ -9,13 +9,16 @@ import org.junit.jupiter.api.Test;
 import unittest.fixtures.EntityFixture;
 import unittest.fixtures.KeyGenFixture;
 
+/**
+ * Encapsulates tests for ECDSA signature implementation.
+ */
 public class EcdsaTest {
 
   /**
    * Round trip test of ECDSA signing and verification.
    */
   @Test
-  public void TestVerificationRoundTrip() {
+  public void testVerificationRoundTrip() {
     EntityFixture e = new EntityFixture();
     EcdsaKeyGen keyGen = KeyGenFixture.newKeyGen();
     EcdsaPrivateKey ecdsaPrivateKey = keyGen.getPrivateKey();
@@ -28,7 +31,7 @@ public class EcdsaTest {
    * Test of ECDSA signing and verification with manipulated Entity.
    */
   @Test
-  public void TestEntityChange() {
+  public void testEntityChange() {
     EntityFixture e = new EntityFixture();
     EntityFixture entityManipulated = new EntityFixture();
     EcdsaKeyGen keyGen = KeyGenFixture.newKeyGen();
@@ -42,7 +45,7 @@ public class EcdsaTest {
    * Test of ECDSA signing and verification with manipulated PublicKey.
    */
   @Test
-  public void TestPublicKeyChange() {
+  public void testPublicKeyChange() {
     EntityFixture e = new EntityFixture();
     EcdsaKeyGen keyGen = KeyGenFixture.newKeyGen();
     EcdsaKeyGen keyGenManipulated = KeyGenFixture.newKeyGen();
@@ -56,7 +59,7 @@ public class EcdsaTest {
    * Test of ECDSA signing and verification with manipulated Signature.
    */
   @Test
-  public void TestSignatureChange() {
+  public void testSignatureChange() {
     EntityFixture e = new EntityFixture();
     EcdsaKeyGen keyGen = KeyGenFixture.newKeyGen();
     EcdsaKeyGen keyGenManipulated = KeyGenFixture.newKeyGen();
