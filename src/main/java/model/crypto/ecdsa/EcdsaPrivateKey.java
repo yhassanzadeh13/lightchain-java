@@ -1,6 +1,5 @@
 package model.crypto.ecdsa;
 
-
 import java.security.*;
 import java.security.spec.EncodedKeySpec;
 import java.security.spec.InvalidKeySpecException;
