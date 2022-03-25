@@ -34,6 +34,15 @@ public class SkipListNode {
     calculateFV();
   }
 
+  public SkipListNode(Identifier identifier) {
+    this.identifier = identifier;
+    this.right = null;
+    this.down = null;
+    this.isTower = false;
+    this.isDropDown = false;
+    calculateFV();
+  }
+
   public SkipListNode(SkipListNode down) {
     this.identifier = new Identifier(new byte[32]);
     this.right = null;

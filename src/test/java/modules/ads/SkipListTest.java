@@ -19,36 +19,18 @@ public class SkipListTest {
     EntityFixture entityFixture4 = new EntityFixture();
     EntityFixture entityFixture5 = new EntityFixture();
 
-    System.out.println("--------1--------");
     identifiers.add(entityFixture1.id());
     skipListFixture.put(entityFixture1);
-    identifiers.sort(Identifier::comparedTo);
-    str(skipListFixture, identifiers);
-    System.out.println("--------1--------");
-    System.out.println("--------2--------");
     identifiers.add(entityFixture2.id());
     skipListFixture.put(entityFixture2);
-    identifiers.sort(Identifier::comparedTo);
-    str(skipListFixture, identifiers);
-    System.out.println("--------2--------");
-    System.out.println("--------3--------");
     identifiers.add(entityFixture3.id());
     skipListFixture.put(entityFixture3);
-    identifiers.sort(Identifier::comparedTo);
-    str(skipListFixture, identifiers);
-    System.out.println("--------3--------");
-    System.out.println("--------4--------");
     identifiers.add(entityFixture4.id());
     skipListFixture.put(entityFixture4);
-    identifiers.sort(Identifier::comparedTo);
-    str(skipListFixture, identifiers);
-    System.out.println("--------4--------");
-    System.out.println("--------5--------");
     identifiers.add(entityFixture5.id());
     skipListFixture.put(entityFixture5);
     identifiers.sort(Identifier::comparedTo);
     str(skipListFixture, identifiers);
-    System.out.println("--------5--------");
   }
   public void str(SkipListFixture skipListFixture, ArrayList<Identifier> identifiers) {
     System.out.println(skipListFixture);
