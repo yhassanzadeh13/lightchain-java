@@ -8,6 +8,8 @@ import network.Network;
 import protocol.Engine;
 import unittest.fixtures.IdentifierFixture;
 
+import java.util.concurrent.ConcurrentHashMap;
+
 /**
  * A mock implementation of networking layer as a test util.
  */
