@@ -6,6 +6,9 @@ import model.Entity;
 import model.lightchain.Identifier;
 import network.Network;
 
+/**
+ * Models the core communication part of the networking layer that allows stub network instances to talk to each other.
+ */
 public class Hub {
     private final ConcurrentHashMap<Identifier, Network> networks;
     private final ConcurrentHashMap<Identifier, Entity> entities;

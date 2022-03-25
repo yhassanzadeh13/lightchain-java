@@ -11,6 +11,9 @@ import network.Conduit;
 import network.Network;
 import protocol.Engine;
 
+/**
+ * Represents a mock implementation of Engine interface for testing.
+ */
 public class MockEngine implements Engine {
     private final ReentrantReadWriteLock lock;
     private final Set<Identifier> receivedEntityIds;

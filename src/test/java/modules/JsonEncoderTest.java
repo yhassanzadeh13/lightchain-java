@@ -6,10 +6,16 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import unittest.fixtures.EntityFixture;
 
+/**
+ * Tests json encoder.
+ */
 public class JsonEncoderTest {
 
+  /**
+   * Round trip test of Json encoding and decoding.
+   */
   @Test
-  public void TestEncodingRoundTrip() throws ClassNotFoundException {
+  public void testEncodingRoundTrip() throws ClassNotFoundException {
     JsonEncoder encoder = new JsonEncoder();
     EntityFixture entity = new EntityFixture();
     Entity entityChanged = encoder.decode(encoder.encode(entity));

@@ -6,28 +6,32 @@ import model.lightchain.Identifier;
 import org.mockito.Mockito;
 import protocol.Parameters;
 
+/**
+ * Encapsulates test utilities for LightChain accounts.
+ */
 public class AccountFixture extends Account {
-    /**
-     * Constructor of an Account.
-     *
-     * @param identifier  unique identifier of the account.
-     * @param publicKey   public key of the account owner.
-     * @param lastBlockId identifier of the last block id that changed this account (or genesis id at bootstrap time).
-     */
-    public AccountFixture(Identifier identifier, PublicKey publicKey, Identifier lastBlockId, int stake) {
-        super(identifier, publicKey, lastBlockId, stake);
-    }
-    /**
-     * Constructor of an Account.
-     *
-     * @param identifier  unique identifier of the account.
-     * Creates an Account using randomly created PublicKey and LastBlockId.
-     */
-    public AccountFixture(Identifier identifier) {
-        super(identifier, Mockito.mock(
+  /**
+   * Constructor of an Account.
+   *
+   * @param identifier  unique identifier of the account.
+   * @param publicKey   public key of the account owner.
+   * @param lastBlockId identifier of the last block id that changed this account (or genesis id at bootstrap time).
+   */
+  public AccountFixture(Identifier identifier, PublicKey publicKey, Identifier lastBlockId, int stake) {
+    super(identifier, publicKey, lastBlockId, stake);
+  }
+
+  /**
+   * Constructor of an Account.
+   *
+   * @param identifier unique identifier of the account.
+   *                   Creates an Account using randomly created PublicKey and LastBlockId.
+   */
+  public AccountFixture(Identifier identifier) {
+    super(identifier, Mockito.mock(
             PublicKey.class,
-            Mockito.withSettings().useConstructor((Object) Bytes.byteArrayFixture(32))),
-            IdentifierFixture.newIdentifier(),
-            Parameters.MINIMUM_STAKE);
-    }
+            Mockito.withSettings().useConstructor(Bytes.byteArrayFixture(32))),
+        IdentifierFixture.newIdentifier(),
+        Parameters.MINIMUM_STAKE);
+  }
 }
