@@ -18,7 +18,7 @@ import protocol.Engine;
 import unittest.fixtures.EntityFixture;
 
 /**
- * Encapculates tests for Stubnetwork
+ * Encapculates tests for Stubnetwork.
  */
 public class StubNetworkTest {
 
@@ -26,6 +26,7 @@ public class StubNetworkTest {
   private final String channel1 = "test-network-channel-1";
   private final String channel2 = "test-network-channel-2";
   private Hub hub;
+
   /**
    * Implement  before each test.
    */
@@ -200,7 +201,7 @@ public class StubNetworkTest {
   }
 
   /**
-   * Test for Registeration to Occupied Channel
+   * Test for Registeration to Occupied Channel.
    */
   @Test
   void testRegisterToOccupiedChannel() {
@@ -302,17 +303,17 @@ public class StubNetworkTest {
     int count = 0;
     List<Network> first = new ArrayList<>(networkArrayList.subList(0, size / 2));
     List<Network> second = new ArrayList<>(networkArrayList.subList(size / 2, size));
-    Iterator<Network> first_it = first.iterator();
-    Iterator<Network> second_it = second.iterator();
-    while (first_it.hasNext() && second_it.hasNext()) {
-      Network network_fh = first_it.next();
-      Network network_sh = second_it.next();
+    Iterator<Network> firstit = first.iterator();
+    Iterator<Network> secondit = second.iterator();
+    while (firstit.hasNext() && secondit.hasNext()) {
+      Network networkfh = firstit.next();
+      Network networksh = secondit.next();
       try {
-        c1.unicast(entity, ((StubNetwork) network_fh).id());
-        MockEngine e1 = (MockEngine) ((StubNetwork) network_fh).getEngine(channel1);
-        MockEngine e2 = (MockEngine) ((StubNetwork) network_fh).getEngine(channel2);
-        MockEngine m1 = (MockEngine) ((StubNetwork) network_sh).getEngine(channel1);
-        MockEngine m2 = (MockEngine) ((StubNetwork) network_sh).getEngine(channel2);
+        c1.unicast(entity, ((StubNetwork) networkfh).id());
+        MockEngine e1 = (MockEngine) ((StubNetwork) networkfh).getEngine(channel1);
+        MockEngine e2 = (MockEngine) ((StubNetwork) networkfh).getEngine(channel2);
+        MockEngine m1 = (MockEngine) ((StubNetwork) networksh).getEngine(channel1);
+        MockEngine m2 = (MockEngine) ((StubNetwork) networksh).getEngine(channel2);
         if (!e1.hasReceived(entity)) {
           count++;
         }
@@ -327,7 +328,7 @@ public class StubNetworkTest {
   }
 
   /**
-   * Test one engine send unicast to some concurrently
+   * Test one engine send unicast to some concurrently.
    */
   @Test
   void testUnicastOneToSomeConcurrently() {
@@ -341,20 +342,20 @@ public class StubNetworkTest {
     int size = networkArrayList.size();
     List<Network> first = new ArrayList<>(networkArrayList.subList(0, size / 2));
     List<Network> second = new ArrayList<>(networkArrayList.subList(size / 2, size));
-    Iterator<Network> first_it = first.iterator();
-    Iterator<Network> second_it = second.iterator();
+    Iterator<Network> firstit = first.iterator();
+    Iterator<Network> secondit = second.iterator();
     Thread[] unicastThreads = new Thread[concurrencyDegree];
     int count = 0;
-    while (first_it.hasNext() && second_it.hasNext()) {
-      Network network_fh = first_it.next();
-      Network network_sh = second_it.next();
+    while (firstit.hasNext() && secondit.hasNext()) {
+      Network networkfh = firstit.next();
+      Network networksh = secondit.next();
       unicastThreads[count] = new Thread(() -> {
         try {
-          c1.unicast(entity, ((StubNetwork) network_fh).id());
-          MockEngine e1 = (MockEngine) ((StubNetwork) network_fh).getEngine(channel1);
-          MockEngine e2 = (MockEngine) ((StubNetwork) network_fh).getEngine(channel2);
-          MockEngine m1 = (MockEngine) ((StubNetwork) network_sh).getEngine(channel1);
-          MockEngine m2 = (MockEngine) ((StubNetwork) network_sh).getEngine(channel2);
+          c1.unicast(entity, ((StubNetwork) networkfh).id());
+          MockEngine e1 = (MockEngine) ((StubNetwork) networkfh).getEngine(channel1);
+          MockEngine e2 = (MockEngine) ((StubNetwork) networkfh).getEngine(channel2);
+          MockEngine m1 = (MockEngine) ((StubNetwork) networksh).getEngine(channel1);
+          MockEngine m2 = (MockEngine) ((StubNetwork) networksh).getEngine(channel2);
           if (!e1.hasReceived(entity)) {
             threadError.getAndIncrement();
           }

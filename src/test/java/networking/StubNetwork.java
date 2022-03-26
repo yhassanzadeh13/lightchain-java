@@ -10,9 +10,7 @@ import protocol.Engine;
 import unittest.fixtures.IdentifierFixture;
 
 /**
- *
  * A mock implementation of networking layer as a test util.
- *
  */
 public class StubNetwork implements Network {
   private final ConcurrentHashMap<String, Engine> engines;
@@ -20,7 +18,6 @@ public class StubNetwork implements Network {
   private final Identifier identifier;
 
   /**
-   *
    * Create stubNetwork.
    *
    * @param hub the hub which stubnetwork registered is.
@@ -42,7 +39,6 @@ public class StubNetwork implements Network {
   }
 
   /**
-   *
    * Forward the incoming entity to the engine whose channel is given.
    *
    * @param entity  received entity
@@ -58,7 +54,6 @@ public class StubNetwork implements Network {
   }
 
   /**
-   *
    * Registers an Engine to the Network by providing it with a Conduit.
    *
    * @param en      the Engine to be registered.
