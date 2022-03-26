@@ -13,6 +13,9 @@ import java.util.Random;
 
 import static org.mockito.Mockito.*;
 
+/**
+ * Encapsulates tests for block validation part of PoV consensus.
+ */
 public class ValidatorTest {
   /**
    * Random object to create random integers.

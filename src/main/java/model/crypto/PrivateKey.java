@@ -6,7 +6,7 @@ import model.Entity;
  * Represents abstract data type for the cryptographic private key used in LightChain.
  */
 public abstract class PrivateKey {
-  private final byte[] bytes;
+  protected final byte[] bytes;
 
   public PrivateKey(byte[] bytes) {
     this.bytes = bytes.clone();
@@ -18,5 +18,5 @@ public abstract class PrivateKey {
    * @param e entity to sign.
    * @return a signature over entity e using private key.
    */
-  public abstract Signature signEntity(Entity e);
+  public abstract Signature signEntity(Entity e) throws IllegalStateException;
 }

@@ -14,6 +14,9 @@ import state.State;
 import unittest.fixtures.AccountFixture;
 import unittest.fixtures.TransactionFixture;
 
+/**
+ * Encapsulates tests for transaction validation part of PoV consensus.
+ */
 public class ValidatorTest {
 
   /**
@@ -256,7 +259,6 @@ public class ValidatorTest {
     when(mockState.atBlockId(senderAccount.getLastBlockId())).thenReturn(mockSnapshot);
     when(mockSnapshot.getReferenceBlockHeight()).thenReturn(1L);
 
-
     /// Verifier
     Validator verifier = new TransactionValidator(mockState);
 
@@ -395,7 +397,8 @@ public class ValidatorTest {
   }
 
   /**
-   * Evaluates the transaction validation fails when the sender balance has a greater amount than the transaction amount.
+   * Evaluates the transaction validation fails when the sender balance
+   * has a greater amount than the transaction amount.
    */
   @Test
   public void testSenderHasEnoughBalance() {

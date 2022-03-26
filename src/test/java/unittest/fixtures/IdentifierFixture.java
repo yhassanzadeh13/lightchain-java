@@ -1,5 +1,8 @@
 package unittest.fixtures;
 
+/**
+ * Encapsulates utilities for a LightChain identifier.
+ */
 public class IdentifierFixture {
   public static model.lightchain.Identifier newIdentifier() {
     byte[] bytes = Bytes.byteArrayFixture(model.lightchain.Identifier.Size);

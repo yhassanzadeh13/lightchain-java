@@ -6,6 +6,9 @@ import model.lightchain.Identifier;
 import org.mockito.Mockito;
 import protocol.Parameters;
 
+/**
+ * Encapsulates test utilities for LightChain accounts.
+ */
 public class AccountFixture extends Account {
 
   /**

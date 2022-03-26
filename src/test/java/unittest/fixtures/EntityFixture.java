@@ -1,13 +1,16 @@
 package unittest.fixtures;
 
-import model.Entity;
-import model.crypto.Sha3256Hash;
-import model.lightchain.Identifier;
-
 import java.util.Arrays;
 import java.util.Objects;
 import java.util.Random;
 
+import model.Entity;
+import model.crypto.Sha3256Hash;
+import model.lightchain.Identifier;
+
+/**
+ * Encapsulates test utilities for a LightChain entity.
+ */
 public class EntityFixture extends Entity {
   private static final String TYPE_FIXTURE_ENTITY = "fixture-entity-type";
   private static final Random rand = new Random();
@@ -18,6 +21,9 @@ public class EntityFixture extends Entity {
   private final byte[] testBytes;
   private final Sha3256Hash[] testHashArray;
 
+  /**
+   * Creates a new randomly looking lightchain entity.
+   */
   public EntityFixture() {
     super();
     this.id = IdentifierFixture.newIdentifier();
@@ -27,9 +33,8 @@ public class EntityFixture extends Entity {
     this.testString = new String(bytesString);
     this.testDouble = rand.nextDouble();
     this.testBytes = Bytes.byteArrayFixture(32).clone();
-    this.testHashArray = Sha3256HashFixture.NewSha3256HashArray();
+    this.testHashArray = Sha3256HashFixture.newSha3256HashArray();
   }
-
 
   @Override
   public String type() {
@@ -38,12 +43,16 @@ public class EntityFixture extends Entity {
 
   @Override
   public boolean equals(Object o) {
-    if (this == o) return true;
-    if (o == null || getClass() != o.getClass()) return false;
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
     EntityFixture that = (EntityFixture) o;
     return testInt == that.testInt && Double.compare(that.testDouble, testDouble) == 0
-            && id.comparedTo(that.id) == 0 && testString.equals(that.testString)
-            && Arrays.equals(testBytes, that.testBytes) && Arrays.equals(testHashArray, that.testHashArray);
+        && id.comparedTo(that.id) == 0 && testString.equals(that.testString)
+        && Arrays.equals(testBytes, that.testBytes) && Arrays.equals(testHashArray, that.testHashArray);
   }
 
   @Override
