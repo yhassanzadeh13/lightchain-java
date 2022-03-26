@@ -1,12 +1,15 @@
 package unittest.fixtures;
 
+import java.util.Random;
+
 import model.crypto.Signature;
 import model.lightchain.Identifier;
 import model.lightchain.ValidatedTransaction;
 import protocol.Parameters;
 
-import java.util.Random;
-
+/**
+ * Encapsulates creating validated transactions with random content for fixture.
+ */
 public class ValidatedTransactionFixture extends ValidatedTransaction {
   /**
    * Random object to create random integers.
@@ -22,7 +25,11 @@ public class ValidatedTransactionFixture extends ValidatedTransaction {
    * @param amount           amount of LightChain tokens that this transaction transfers from sender to receiver.
    * @param certificates     signature of assigned validators to this transaction.
    */
-  public ValidatedTransactionFixture(Identifier referenceBlockId, Identifier sender, Identifier receiver, double amount, Signature[] certificates) {
+  public ValidatedTransactionFixture(Identifier referenceBlockId,
+                                     Identifier sender,
+                                     Identifier receiver,
+                                     double amount,
+                                     Signature[] certificates) {
     super(referenceBlockId, sender, receiver, amount, certificates);
   }
 

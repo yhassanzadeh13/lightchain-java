@@ -1,17 +1,24 @@
 package protocol.block;
 
+import java.util.Random;
+
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 import model.crypto.Signature;
-import model.lightchain.*;
+import model.lightchain.Account;
+import model.lightchain.Block;
+import model.lightchain.Identifier;
+import model.lightchain.ValidatedTransaction;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import protocol.Parameters;
 import state.Snapshot;
 import state.State;
-import unittest.fixtures.*;
-
-import java.util.Random;
-
-import static org.mockito.Mockito.*;
+import unittest.fixtures.AccountFixture;
+import unittest.fixtures.BlockFixture;
+import unittest.fixtures.IdentifierFixture;
+import unittest.fixtures.ValidatedTransactionFixture;
 
 /**
  * Encapsulates tests for block validation part of PoV consensus.
@@ -23,7 +30,8 @@ public class ValidatorTest {
   private static final Random random = new Random();
 
   /**
-   * Evaluates the block validation fails when previous block id does not represent a valid snapshot (i.e., null snapshot).
+   * Evaluates the block validation fails when previous block id
+   * does not represent a valid snapshot (i.e., null snapshot).
    */
   @Test
   public void testBlockIsNotCorrect_InvalidPreviousBlockSnapshot() {
@@ -46,7 +54,8 @@ public class ValidatorTest {
   }
 
   /**
-   * Evaluates the block validation fails when proposer does not refer to a valid account at the snapshot of previous block id.
+   * Evaluates the block validation fails when proposer does
+   * not refer to a valid account at the snapshot of previous block id.
    */
   @Test
   public void testBlockIsNotCorrect_InvalidProposer() {
@@ -71,13 +80,14 @@ public class ValidatorTest {
   }
 
   /**
-   * Evaluates the block validation fails when number of validated transactions included in the block are below min threshold.
+   * Evaluates the block validation fails when number of
+   * validated transactions included in the block are below min threshold.
    */
   @Test
   public void testBlockIsNotCorrect_ValidatedTransactionBelowMinimum() {
     //Arrange
     /// Block
-    int validatedTransactionSize = Math.max(Parameters.MIN_TRANSACTIONS_NUM  - 1, 0);
+    int validatedTransactionSize = Math.max(Parameters.MIN_TRANSACTIONS_NUM - 1, 0);
     Block block = BlockFixture.newBlock(validatedTransactionSize);
 
     /// State & Snapshot Mocking
@@ -101,7 +111,8 @@ public class ValidatorTest {
   }
 
   /**
-   * Evaluates the block validation fails when number of validated transactions included in the block are above max threshold
+   * Evaluates the block validation fails when number of
+   * validated transactions included in the block are above max threshold.
    */
   @Test
   public void testBlockIsNotCorrect_ValidatedTransactionAboveMaximum() {
@@ -165,7 +176,8 @@ public class ValidatorTest {
   }
 
   /**
-   * Evaluates the block validation fails hen previous block id does not refer to the latest snapshot of the validating node.
+   * Evaluates the block validation fails hen previous block id
+   * does not refer to the latest snapshot of the validating node.
    */
   @Test
   public void testBlockIsNotConsistent_InvalidPreviousBlockId() {
@@ -232,9 +244,14 @@ public class ValidatorTest {
     Snapshot mockSnapshot = mock(Snapshot.class);
     Identifier proposer = block.getProposer();
     Account proposerAccount = new AccountFixture(proposer);
-    when(mockState.atBlockId(block.getPreviousBlockId())).thenReturn(mockSnapshot);
-    when(mockSnapshot.getAccount(proposer)).thenReturn(proposerAccount);
-    when(mockSnapshot.getAccount(proposer).getPublicKey().verifySignature(block, block.getSignature())).thenReturn(false);
+    when(mockState.atBlockId(block.getPreviousBlockId()))
+        .thenReturn(mockSnapshot);
+    when(mockSnapshot
+        .getAccount(proposer))
+        .thenReturn(proposerAccount);
+    when(mockSnapshot.getAccount(proposer)
+        .getPublicKey()
+        .verifySignature(block, block.getSignature())).thenReturn(false);
 
     ///Verifier
     Validator verifier = new BlockVerifier(mockState);
@@ -260,9 +277,14 @@ public class ValidatorTest {
     Snapshot mockSnapshot = mock(Snapshot.class);
     Identifier proposer = block.getProposer();
     Account proposerAccount = new AccountFixture(proposer);
-    when(mockState.atBlockId(block.getPreviousBlockId())).thenReturn(mockSnapshot);
-    when(mockSnapshot.getAccount(proposer)).thenReturn(proposerAccount);
-    when(mockSnapshot.getAccount(proposer).getPublicKey().verifySignature(block, block.getSignature())).thenReturn(true);
+    when(mockState.atBlockId(block.getPreviousBlockId()))
+        .thenReturn(mockSnapshot);
+    when(mockSnapshot.getAccount(proposer))
+        .thenReturn(proposerAccount);
+    when(mockSnapshot.getAccount(proposer)
+        .getPublicKey()
+        .verifySignature(block, block.getSignature()))
+        .thenReturn(true);
 
     ///Verifier
     Validator verifier = new BlockVerifier(mockState);
@@ -302,7 +324,8 @@ public class ValidatorTest {
   }
 
   /**
-   * Evaluates the block validation passes when proposer has enough amount of stake greater than or equal to minimum required one.
+   * Evaluates the block validation passes when proposer has enough amount
+   * of stake greater than or equal to minimum required one.
    */
   @Test
   public void testProposerHasEnoughStake() {
@@ -336,8 +359,10 @@ public class ValidatorTest {
   public void testBlockAllTransactionsNotValidated() {
     //Arrange
     /// Block
-    ValidatedTransaction transaction1 = ValidatedTransactionFixture.newValidatedTransaction(Parameters.SIGNATURE_THRESHOLD - 1);
-    ValidatedTransaction transaction2 = ValidatedTransactionFixture.newValidatedTransaction(Parameters.SIGNATURE_THRESHOLD + 1);
+    ValidatedTransaction transaction1 = ValidatedTransactionFixture
+        .newValidatedTransaction(Parameters.SIGNATURE_THRESHOLD - 1);
+    ValidatedTransaction transaction2 = ValidatedTransactionFixture
+        .newValidatedTransaction(Parameters.SIGNATURE_THRESHOLD + 1);
 
     Block block = BlockFixture.newBlock(new ValidatedTransaction[]{transaction1, transaction2});
 
@@ -409,7 +434,9 @@ public class ValidatorTest {
     Snapshot mockSnapshot = mock(Snapshot.class);
     when(mockState.atBlockId(block.getPreviousBlockId())).thenReturn(mockSnapshot);
 
-    ValidatedTransaction transaction = block.getTransactions()[0] == null ? ValidatedTransactionFixture.newValidatedTransaction() : block.getTransactions()[0];
+    ValidatedTransaction transaction =
+        block.getTransactions()[0] == null
+            ? ValidatedTransactionFixture.newValidatedTransaction() : block.getTransactions()[0];
     Snapshot mockTransactionSnapshot = mock(Snapshot.class);
     Snapshot mockSenderAccountSnapshot = mock(Snapshot.class);
 
@@ -419,10 +446,8 @@ public class ValidatorTest {
     when(mockState.atBlockId(transaction.getReferenceBlockId())).thenReturn(mockTransactionSnapshot);
     when(mockTransactionSnapshot.getAccount(sender)).thenReturn(senderAccount);
     when(mockState.atBlockId(senderAccount.getLastBlockId())).thenReturn(mockSenderAccountSnapshot);
-
     when(mockTransactionSnapshot.getReferenceBlockHeight()).thenReturn(1L);
     when(mockSenderAccountSnapshot.getReferenceBlockHeight()).thenReturn(10L);
-
 
     ///Verifier
     Validator verifier = new BlockVerifier(mockState);
@@ -475,7 +500,8 @@ public class ValidatorTest {
   }
 
   /**
-   * Evaluates the block validation fails when there is at least two distinct transactions in a block that share the same sender.
+   * Evaluates the block validation fails when there is at least
+   * two distinct transactions in a block that share the same sender.
    */
   @Test
   public void testBlockDuplicateSender() {

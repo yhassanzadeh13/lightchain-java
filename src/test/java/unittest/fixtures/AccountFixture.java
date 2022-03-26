@@ -37,12 +37,10 @@ public class AccountFixture extends Account {
   }
 
   /**
-   * Constructor of an Account.
+   * Creates an Account using randomly created PublicKey and LastBlockId.
    *
    * @param identifier unique identifier of the account.
    * @param stake      stake of the account.
-   *                   <p>
-   *                   Creates an Account using randomly created PublicKey and LastBlockId.
    */
   public AccountFixture(Identifier identifier, int stake) {
     super(identifier, Mockito.mock(

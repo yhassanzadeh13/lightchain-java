@@ -11,7 +11,6 @@ import protocol.transaction.TransactionVerifier;
 import state.Snapshot;
 import state.State;
 
-
 /**
  * Represents a verifier class that is used to verify a block is valid.
  */

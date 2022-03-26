@@ -1,13 +1,16 @@
 package unittest.fixtures;
 
+import java.util.Random;
+
 import model.crypto.Signature;
 import model.lightchain.Block;
 import model.lightchain.Identifier;
 import model.lightchain.ValidatedTransaction;
 import protocol.Parameters;
 
-import java.util.Random;
-
+/**
+ * Encapsulates creating random blocks for testing.
+ */
 public class BlockFixture extends Block {
   /**
    * Random object to create random integers.
@@ -22,7 +25,10 @@ public class BlockFixture extends Block {
    * @param transactions    set of validated transactions that this block carries.
    * @param signature       signature of the proposer over the hash of this block.
    */
-  public BlockFixture(Identifier previousBlockId, Identifier proposer, ValidatedTransaction[] transactions, Signature signature) {
+  public BlockFixture(Identifier previousBlockId,
+                      Identifier proposer,
+                      ValidatedTransaction[] transactions,
+                      Signature signature) {
     super(previousBlockId, proposer, transactions, signature);
   }
 
