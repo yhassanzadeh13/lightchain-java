@@ -7,12 +7,14 @@ import model.crypto.Signature;
 import model.lightchain.Account;
 import model.lightchain.Identifier;
 import model.lightchain.Transaction;
+import model.lightchain.ValidatedTransaction;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import state.Snapshot;
 import state.State;
 import unittest.fixtures.AccountFixture;
 import unittest.fixtures.TransactionFixture;
+import unittest.fixtures.ValidatedTransactionFixture;
 
 /**
  * Encapsulates tests for transaction validation part of PoV consensus.
@@ -26,7 +28,7 @@ public class ValidatorTest {
   public void testTransactionIsNotValid_NullSnapshot() {
     // Arrange
     /// Transaction
-    Transaction transaction = TransactionFixture.newTransaction();
+    Transaction transaction = ValidatedTransactionFixture.newValidatedTransaction();
 
     /// State & Snapshot Mocking
     State mockState = mock(State.class);
@@ -51,7 +53,7 @@ public class ValidatorTest {
   public void testTransactionIsNotValid_InvalidSender() {
     // Arrange
     /// Transaction
-    Transaction transaction = TransactionFixture.newTransaction();
+    Transaction transaction = ValidatedTransactionFixture.newValidatedTransaction();
 
     /// State & Snapshot Mocking
     State mockState = mock(State.class);
@@ -81,7 +83,7 @@ public class ValidatorTest {
   public void testTransactionIsNotValid_InvalidReceiver() {
     // Arrange
     /// Transaction
-    Transaction transaction = TransactionFixture.newTransaction();
+    Transaction transaction = ValidatedTransactionFixture.newValidatedTransaction();
 
     /// State & Snapshot Mocking
     State mockState = mock(State.class);
@@ -179,7 +181,7 @@ public class ValidatorTest {
   public void testTransactionIsCorrect() {
     // Arrange
     /// Transaction
-    Transaction transaction = TransactionFixture.newTransaction();
+    Transaction transaction = ValidatedTransactionFixture.newValidatedTransaction();
 
     /// State & Snapshot Mocking
     State mockState = mock(State.class);
@@ -210,7 +212,7 @@ public class ValidatorTest {
   public void testTransactionIsNotSound_LowerHeight() {
     // Arrange
     /// Transaction
-    Transaction transaction = TransactionFixture.newTransaction();
+    Transaction transaction = ValidatedTransactionFixture.newValidatedTransaction();
 
     /// State & Snapshot Mocking
     State mockState = mock(State.class);
@@ -245,7 +247,7 @@ public class ValidatorTest {
   public void testTransactionIsNotSound_EqualHeight() {
     // Arrange
     /// Transaction
-    Transaction transaction = TransactionFixture.newTransaction();
+    Transaction transaction = ValidatedTransactionFixture.newValidatedTransaction();
 
     /// State & Snapshot Mocking
     State mockState = mock(State.class);
@@ -277,7 +279,7 @@ public class ValidatorTest {
   public void testTransactionIsSound() {
     // Arrange
     /// Transaction
-    Transaction transaction = TransactionFixture.newTransaction();
+    Transaction transaction = ValidatedTransactionFixture.newValidatedTransaction();
 
     /// State & Snapshot Mocking
     State mockState = mock(State.class);
@@ -312,7 +314,7 @@ public class ValidatorTest {
   public void testTransactionIsNotAuthenticated() {
     // Arrange
     /// Transaction
-    Transaction transaction = TransactionFixture.newTransaction();
+    Transaction transaction = ValidatedTransactionFixture.newValidatedTransaction();
 
     /// State & Snapshot Mocking
     State mockState = mock(State.class);
@@ -345,7 +347,7 @@ public class ValidatorTest {
   public void testTransactionIsAuthenticated() {
     // Arrange
     /// Transaction
-    Transaction transaction = TransactionFixture.newTransaction();
+    Transaction transaction = ValidatedTransactionFixture.newValidatedTransaction();
 
     /// State & Snapshot Mocking
     State mockState = mock(State.class);
@@ -374,7 +376,7 @@ public class ValidatorTest {
   public void testSenderDoesNotHasEnoughBalance() {
     // Arrange
     /// Transaction
-    Transaction transaction = TransactionFixture.newTransaction();
+    Transaction transaction = ValidatedTransactionFixture.newValidatedTransaction();
 
     /// State & Snapshot Mocking
     State mockState = mock(State.class);
@@ -404,7 +406,7 @@ public class ValidatorTest {
   public void testSenderHasEnoughBalance() {
     // Arrange
     /// Transaction
-    Transaction transaction = TransactionFixture.newTransaction();
+    Transaction transaction = ValidatedTransactionFixture.newValidatedTransaction();
 
     /// State & Snapshot Mocking
     State mockState = mock(State.class);

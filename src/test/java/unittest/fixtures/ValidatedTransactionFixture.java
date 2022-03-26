@@ -10,28 +10,11 @@ import protocol.Parameters;
 /**
  * Encapsulates creating validated transactions with random content for fixture.
  */
-public class ValidatedTransactionFixture extends ValidatedTransaction {
+public class ValidatedTransactionFixture {
   /**
    * Random object to create random integers.
    */
   private static final Random random = new Random();
-
-  /**
-   * Constructor of the transaction.
-   *
-   * @param referenceBlockId identifier of a finalized block that this transaction refers to its snapshot.
-   * @param sender           identifier of the sender of this transaction.
-   * @param receiver         identifier of the receiver of this transaction.
-   * @param amount           amount of LightChain tokens that this transaction transfers from sender to receiver.
-   * @param certificates     signature of assigned validators to this transaction.
-   */
-  public ValidatedTransactionFixture(Identifier referenceBlockId,
-                                     Identifier sender,
-                                     Identifier receiver,
-                                     double amount,
-                                     Signature[] certificates) {
-    super(referenceBlockId, sender, receiver, amount, certificates);
-  }
 
   /**
    * Constructor of the validated transactions with randomly generated parameters.
@@ -48,7 +31,7 @@ public class ValidatedTransactionFixture extends ValidatedTransaction {
     for (int i = 0; i < certificatesSize; i++) {
       certificates[i] = new SignatureFixture(Bytes.byteArrayFixture(32), null);
     }
-    return new ValidatedTransactionFixture(referenceBlockId, sender, receiver, amount, certificates);
+    return new ValidatedTransaction(referenceBlockId, sender, receiver, amount, certificates);
   }
 
   /**
@@ -66,7 +49,7 @@ public class ValidatedTransactionFixture extends ValidatedTransaction {
     for (int i = 0; i < certificatesSize; i++) {
       certificates[i] = new SignatureFixture(Bytes.byteArrayFixture(32), null);
     }
-    return new ValidatedTransactionFixture(referenceBlockId, sender, receiver, amount, certificates);
+    return new ValidatedTransaction(referenceBlockId, sender, receiver, amount, certificates);
   }
 
   /**
@@ -84,6 +67,6 @@ public class ValidatedTransactionFixture extends ValidatedTransaction {
     for (int i = 0; i < certificatesSize; i++) {
       certificates[i] = new SignatureFixture(Bytes.byteArrayFixture(32), null);
     }
-    return new ValidatedTransactionFixture(referenceBlockId, sender, receiver, amount, certificates);
+    return new ValidatedTransaction(referenceBlockId, sender, receiver, amount, certificates);
   }
 }
