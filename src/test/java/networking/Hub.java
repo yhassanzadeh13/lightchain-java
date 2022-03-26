@@ -15,7 +15,7 @@ public class Hub {
   private final ConcurrentHashMap<Identifier, Entity> entities;
 
   /**
-   * Create a hub
+   * Create a hub.
    */
   public Hub() {
     this.networks = new ConcurrentHashMap<>();
@@ -23,6 +23,8 @@ public class Hub {
   }
 
   /**
+   * Registeration of a network to the Hub.
+   *
    * @param key identifier of network.
    * @param network to be registered.
    */
@@ -32,6 +34,8 @@ public class Hub {
   }
 
   /**
+   * Transfer entity from a stubnetwork to another through hub.
+   *
    * @param entity entity to be transferred.
    * @param identifier identifier of target.
    * @param channel channel of the transmitter-target engine.
@@ -43,6 +47,8 @@ public class Hub {
   }
 
   /**
+   * Get the network with identifier.
+   *
    * @param key identity of.
    * @return network.
    */
