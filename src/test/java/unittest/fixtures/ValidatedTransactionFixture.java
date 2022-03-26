@@ -29,7 +29,7 @@ public class ValidatedTransactionFixture {
     int certificatesSize = Parameters.SIGNATURE_THRESHOLD + 2;
     Signature[] certificates = new Signature[certificatesSize];
     for (int i = 0; i < certificatesSize; i++) {
-      certificates[i] = new SignatureFixture(Bytes.byteArrayFixture(32), null);
+      certificates[i] = SignatureFixture.newSignatureFixture();
     }
     return new ValidatedTransaction(referenceBlockId, sender, receiver, amount, certificates);
   }
@@ -47,7 +47,7 @@ public class ValidatedTransactionFixture {
     int certificatesSize = 2 + Parameters.SIGNATURE_THRESHOLD;
     Signature[] certificates = new Signature[certificatesSize];
     for (int i = 0; i < certificatesSize; i++) {
-      certificates[i] = new SignatureFixture(Bytes.byteArrayFixture(32), null);
+      certificates[i] = SignatureFixture.newSignatureFixture();
     }
     return new ValidatedTransaction(referenceBlockId, sender, receiver, amount, certificates);
   }
@@ -65,7 +65,7 @@ public class ValidatedTransactionFixture {
     double amount = 100;
     Signature[] certificates = new Signature[certificatesSize];
     for (int i = 0; i < certificatesSize; i++) {
-      certificates[i] = new SignatureFixture(Bytes.byteArrayFixture(32), null);
+      certificates[i] = SignatureFixture.newSignatureFixture();
     }
     return new ValidatedTransaction(referenceBlockId, sender, receiver, amount, certificates);
   }

@@ -7,7 +7,6 @@ import model.crypto.Signature;
 import model.lightchain.Account;
 import model.lightchain.Identifier;
 import model.lightchain.Transaction;
-import model.lightchain.ValidatedTransaction;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import state.Snapshot;
@@ -160,7 +159,7 @@ public class ValidatorTest {
 
     /// Verifier
     Validator verifier = new TransactionValidator(mockState);
-    
+
     // Act
     boolean result = verifier.isCorrect(transaction);
 
@@ -175,7 +174,6 @@ public class ValidatorTest {
    * 1- Reference block id is a valid and finalized block.
    * 2- The sender and receiver both refer to valid accounts at the snapshot of the reference block id.
    * 3- Amount value is non-negative.
-   *
    */
   @Test
   public void testTransactionIsCorrect() {
@@ -196,7 +194,7 @@ public class ValidatorTest {
 
     /// Verifier
     Validator verifier = new TransactionValidator(mockState);
-    
+
     // Act
     boolean result = verifier.isCorrect(transaction);
 
