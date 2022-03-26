@@ -15,39 +15,39 @@ import protocol.Engine;
  * Represents a mock implementation of Engine interface for testing.
  */
 public class MockEngine implements Engine {
-    private final ReentrantReadWriteLock lock;
-    private final Set<Identifier> receivedEntityIds;
+  private final ReentrantReadWriteLock lock;
+  private final Set<Identifier> receivedEntityIds;
 
 
-    public MockEngine() {
-        this.receivedEntityIds = new HashSet<>();
-        this.lock = new ReentrantReadWriteLock();
-    }
+  public MockEngine() {
+    this.receivedEntityIds = new HashSet<>();
+    this.lock = new ReentrantReadWriteLock();
+  }
 
 
-    /**
-     * Called by Network whenever an Entity is arrived for this engine.
-     *
-     * @param e the arrived Entity from the network.
-     * @throws IllegalArgumentException any unhappy path taken on processing the Entity.
-     */
+  /**
+   * Called by Network whenever an Entity is arrived for this engine.
+   *
+   * @param e the arrived Entity from the network.
+   * @throws IllegalArgumentException any unhappy path taken on processing the Entity.
+   */
 
-    @Override
-    public void process(Entity e) throws IllegalArgumentException {
-        lock.writeLock();
+  @Override
+  public void process(Entity e) throws IllegalArgumentException {
+    lock.writeLock();
 
-        receivedEntityIds.add(e.id());
+    receivedEntityIds.add(e.id());
 
-        lock.writeLock();
-    }
+    lock.writeLock();
+  }
 
-    public boolean hasReceived(Entity e) {
-        lock.readLock();
+  public boolean hasReceived(Entity e) {
+    lock.readLock();
 
-        Identifier id = e.id();
-        boolean ok = this.receivedEntityIds.contains(id);
+    Identifier id = e.id();
+    boolean ok = this.receivedEntityIds.contains(id);
 
-        lock.readLock();
-        return ok;
-    }
+    lock.readLock();
+    return ok;
+  }
 }
