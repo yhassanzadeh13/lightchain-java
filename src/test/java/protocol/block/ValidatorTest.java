@@ -95,7 +95,7 @@ public class ValidatorTest {
     Snapshot mockSnapshot = mock(Snapshot.class);
 
     Identifier proposer = block.getProposer();
-    Account proposerAccount = new AccountFixture(proposer);
+    Account proposerAccount = AccountFixture.newAccount(proposer);
 
     when(mockState.atBlockId(block.getPreviousBlockId())).thenReturn(mockSnapshot);
     when(mockSnapshot.getAccount(proposer)).thenReturn(proposerAccount);
@@ -126,7 +126,7 @@ public class ValidatorTest {
     Snapshot mockSnapshot = mock(Snapshot.class);
 
     Identifier proposer = block.getProposer();
-    Account proposerAccount = new AccountFixture(proposer);
+    Account proposerAccount = AccountFixture.newAccount(proposer);
 
     when(mockState.atBlockId(block.getPreviousBlockId())).thenReturn(mockSnapshot);
     when(mockSnapshot.getAccount(proposer)).thenReturn(proposerAccount);
@@ -160,7 +160,7 @@ public class ValidatorTest {
     Snapshot mockSnapshot = mock(Snapshot.class);
 
     Identifier proposer = block.getProposer();
-    Account proposerAccount = new AccountFixture(proposer);
+    Account proposerAccount = AccountFixture.newAccount(proposer);
 
     when(mockState.atBlockId(block.getPreviousBlockId())).thenReturn(mockSnapshot);
     when(mockSnapshot.getAccount(proposer)).thenReturn(proposerAccount);
@@ -243,7 +243,7 @@ public class ValidatorTest {
     State mockState = mock(State.class);
     Snapshot mockSnapshot = mock(Snapshot.class);
     Identifier proposer = block.getProposer();
-    Account proposerAccount = new AccountFixture(proposer);
+    Account proposerAccount = AccountFixture.newAccount(proposer);
     when(mockState.atBlockId(block.getPreviousBlockId()))
         .thenReturn(mockSnapshot);
     when(mockSnapshot
@@ -276,7 +276,7 @@ public class ValidatorTest {
     State mockState = mock(State.class);
     Snapshot mockSnapshot = mock(Snapshot.class);
     Identifier proposer = block.getProposer();
-    Account proposerAccount = new AccountFixture(proposer);
+    Account proposerAccount = AccountFixture.newAccount(proposer);
     when(mockState.atBlockId(block.getPreviousBlockId()))
         .thenReturn(mockSnapshot);
     when(mockSnapshot.getAccount(proposer))
@@ -309,7 +309,7 @@ public class ValidatorTest {
     State mockState = mock(State.class);
     Snapshot mockSnapshot = mock(Snapshot.class);
     Identifier proposer = block.getProposer();
-    Account proposerAccount = new AccountFixture(proposer, Parameters.MINIMUM_STAKE - 2);
+    Account proposerAccount = AccountFixture.newAccount(proposer, Parameters.MINIMUM_STAKE - 2);
     when(mockState.atBlockId(block.getPreviousBlockId())).thenReturn(mockSnapshot);
     when(mockSnapshot.getAccount(proposer)).thenReturn(proposerAccount);
 
@@ -337,7 +337,7 @@ public class ValidatorTest {
     State mockState = mock(State.class);
     Snapshot mockSnapshot = mock(Snapshot.class);
     Identifier proposer = block.getProposer();
-    Account proposerAccount = new AccountFixture(proposer);
+    Account proposerAccount = AccountFixture.newAccount(proposer);
     when(mockState.atBlockId(block.getPreviousBlockId())).thenReturn(mockSnapshot);
     when(mockSnapshot.getAccount(proposer)).thenReturn(proposerAccount);
 
@@ -372,9 +372,11 @@ public class ValidatorTest {
     when(mockState.atBlockId(block.getPreviousBlockId())).thenReturn(mockSnapshot);
 
     for (ValidatedTransaction transaction : block.getTransactions()) {
-      when(mockSnapshot.getAccount(transaction.getSender())).thenReturn(new AccountFixture(transaction.getSender()));
+      when(mockSnapshot.getAccount(transaction.getSender()))
+          .thenReturn(AccountFixture.newAccount(transaction.getSender()));
       for (Signature signature : transaction.getCertificates()) {
-        when(mockSnapshot.getAccount(signature.getSignerId())).thenReturn(new AccountFixture(signature.getSignerId()));
+        when(mockSnapshot.getAccount(signature.getSignerId()))
+            .thenReturn(AccountFixture.newAccount(signature.getSignerId()));
       }
     }
 
@@ -404,9 +406,11 @@ public class ValidatorTest {
     when(mockState.atBlockId(block.getPreviousBlockId())).thenReturn(mockSnapshot);
 
     for (ValidatedTransaction transaction : block.getTransactions()) {
-      when(mockSnapshot.getAccount(transaction.getSender())).thenReturn(new AccountFixture(transaction.getSender()));
+      when(mockSnapshot.getAccount(transaction.getSender()))
+          .thenReturn(AccountFixture.newAccount(transaction.getSender()));
       for (Signature signature : transaction.getCertificates()) {
-        when(mockSnapshot.getAccount(signature.getSignerId())).thenReturn(new AccountFixture(signature.getSignerId()));
+        when(mockSnapshot.getAccount(signature.getSignerId()))
+            .thenReturn(AccountFixture.newAccount(signature.getSignerId()));
       }
     }
 
@@ -441,7 +445,7 @@ public class ValidatorTest {
     Snapshot mockSenderAccountSnapshot = mock(Snapshot.class);
 
     Identifier sender = transaction.getSender();
-    Account senderAccount = new AccountFixture(sender);
+    Account senderAccount = AccountFixture.newAccount(sender);
 
     when(mockState.atBlockId(transaction.getReferenceBlockId())).thenReturn(mockTransactionSnapshot);
     when(mockTransactionSnapshot.getAccount(sender)).thenReturn(senderAccount);
@@ -478,7 +482,7 @@ public class ValidatorTest {
       Snapshot mockSenderAccountSnapshot = mock(Snapshot.class);
 
       Identifier sender = transaction.getSender();
-      Account senderAccount = new AccountFixture(sender);
+      Account senderAccount = AccountFixture.newAccount(sender);
 
       when(mockState.atBlockId(transaction.getReferenceBlockId())).thenReturn(mockTransactionSnapshot);
       when(mockTransactionSnapshot.getAccount(sender)).thenReturn(senderAccount);
