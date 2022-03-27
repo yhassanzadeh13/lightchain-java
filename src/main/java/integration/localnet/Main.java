@@ -3,7 +3,6 @@ package integration.localnet;
 import java.io.File;
 import java.time.*;
 import java.util.*;
-import java.util.concurrent.TimeUnit;
 
 import com.github.dockerjava.api.DockerClient;
 import com.github.dockerjava.api.command.*;
@@ -13,6 +12,7 @@ import com.github.dockerjava.core.DockerClientConfig;
 import com.github.dockerjava.core.DockerClientImpl;
 import com.github.dockerjava.httpclient5.ApacheDockerHttpClient;
 import com.github.dockerjava.transport.DockerHttpClient;
+import metrics.integration.MetricsTestNet;
 
 /**
  *  Main Runner Class for orchestrating the building of the HTTP Server, Prometheus, and Grafana
@@ -21,11 +21,41 @@ import com.github.dockerjava.transport.DockerHttpClient;
  */
 public class Main {
 
+  private static final int SERVER_PORT = 8081;
+  private static final String SERVER_VOLUME = "server_volume";
+  private static final String NETWORK_NAME = "network";
+  private static final String SERVER = "server";
+  private static final String SERVER_VOLUME_BINDING = "server_volume:/app";
+
   /** main function.
    *
    * @param args standart Java args
    */
   public static void main(String[] args) {
+
+    MetricsTestNet testNet = new MetricsTestNet();
+
+    try {
+      testNet.run();
+    } catch (IllegalStateException e) {
+      System.err.println("could not run metrics testnet" + e);
+      System.exit(1);
+    }
+
+    // HTTP Server Container
+
+    createServerContainer();
+
+  }
+
+  /**
+   * Creates and returns a HTTP Server container.
+   *
+   * @throws IllegalStateException when container creation faces an illegal state.
+   */
+  private static void createServerContainer() {
+
+    // Docker Client
 
     DockerClientConfig config = DefaultDockerClientConfig.createDefaultConfigBuilder().build();
 
@@ -39,57 +69,25 @@ public class Main {
 
     DockerClient dockerClient = DockerClientImpl.getInstance(config, httpClient);
 
-    // Volume check + create if absent
+    // Volume Creation
 
     ListVolumesResponse volumesResponse = dockerClient.listVolumesCmd().exec();
     List<InspectVolumeResponse> volumes = volumesResponse.getVolumes();
-
-    boolean serverVolumeFound = false;
-    boolean promVolumeFound = false;
-    boolean grafVolumeFound = false;
+    boolean serverVolumeExists = false;
 
     for (InspectVolumeResponse v : volumes) {
-      if (v.getName().equals("server_volume")) {
-        serverVolumeFound = true;
-      } else if (v.getName().equals("prometheus_volume")) {
-        promVolumeFound = true;
-      } else if (v.getName().equals("grafana_volume")) {
-        grafVolumeFound = true;
+      if (v.getName().equals(SERVER_VOLUME)) {
+        // volume exists
+        serverVolumeExists = true;
       }
     }
 
-    if (!serverVolumeFound) {
-      CreateVolumeResponse volume = dockerClient.createVolumeCmd().withName("server_volume").exec();
+    // volume name does not exist, create one.
+    if (!serverVolumeExists) {
+      dockerClient.createVolumeCmd().withName(SERVER_VOLUME).exec();
     }
 
-    if (!promVolumeFound) {
-      CreateVolumeResponse volume = dockerClient.createVolumeCmd().withName("prometheus_volume").exec();
-    }
-
-    if (!grafVolumeFound) {
-      CreateVolumeResponse volume = dockerClient.createVolumeCmd().withName("grafana_volume").exec();
-    }
-
-    // Network
-
-    List<Network> networks = dockerClient.listNetworksCmd().exec();
-    boolean networkFound = false;
-
-    for (Network n : networks) {
-      if (n.getName().equals("network")) {
-        networkFound = true;
-      }
-    }
-
-    if (!networkFound) {
-      CreateNetworkResponse networkResponse
-              = dockerClient.createNetworkCmd()
-              .withName("network")
-              .withDriver("bridge")
-              .exec();
-    }
-
-    // HTTP Server
+    // HTTP Server Container
 
     String imageId = dockerClient.buildImageCmd()
             .withDockerfile(new File("./Dockerfile"))
@@ -98,92 +96,25 @@ public class Main {
             .awaitImageId();
 
     Ports serverPortBindings = new Ports();
-    serverPortBindings.bind(ExposedPort.tcp(8080), Ports.Binding.bindPort(8080));
+    serverPortBindings.bind(ExposedPort.tcp(SERVER_PORT), Ports.Binding.bindPort(SERVER_PORT));
 
-    CreateContainerResponse serverContainer =
-            dockerClient
-                    .createContainerCmd(imageId)
-                    .withBinds(Bind.parse("server_volume" + ":" + "/app"))
-                    .withName("server")
-                    .withNetworkMode("network")
-                    .withTty(true)
-                    .withPortBindings(serverPortBindings)
-                    .exec();
+    List<Bind> serverBinds = new ArrayList<Bind>();
+    serverBinds.add(Bind.parse(SERVER_VOLUME_BINDING));
+
+    HostConfig hostConfig = new HostConfig()
+            .withBinds(serverBinds)
+            .withNetworkMode(NETWORK_NAME)
+            .withPortBindings(serverPortBindings);
+
+    CreateContainerResponse serverContainer = dockerClient
+            .createContainerCmd(imageId)
+            .withName(SERVER)
+            .withTty(true)
+            .withHostConfig(hostConfig)
+            .exec();
 
     dockerClient
             .startContainerCmd(serverContainer.getId())
-            .exec();
-
-    // Prometheus
-
-    try {
-      dockerClient.pullImageCmd("prom/prometheus")
-              .withTag("main")
-              .exec(new PullImageResultCallback())
-              .awaitCompletion(60, TimeUnit.SECONDS);
-    } catch (InterruptedException ex) {
-      System.err.println("Interrupted Exception: Prometheus image could not be pulled, exiting program");
-      System.exit(1);
-    }
-
-    Ports promPortBindings = new Ports();
-    promPortBindings.bind(ExposedPort.tcp(9090), Ports.Binding.bindPort(9090));
-
-    List<Bind> promBinds = new ArrayList<Bind>();
-    promBinds.add(Bind.parse(System.getProperty("user.dir") + "/prometheus" + ":" + "/etc/prometheus"));
-    promBinds.add(Bind.parse("prometheus_volume" + ":" + "/prometheus"));
-
-    CreateContainerResponse promContainer =
-            dockerClient
-                    .createContainerCmd("prom/prometheus:main")
-                    .withBinds(promBinds)
-                    .withName("prometheus")
-                    .withNetworkMode("network")
-                    .withTty(true)
-                    .withPortBindings(promPortBindings)
-                    .exec();
-
-    dockerClient
-            .startContainerCmd(promContainer.getId())
-            .exec();
-
-    // Grafana
-
-    try {
-      dockerClient.pullImageCmd("grafana/grafana")
-              .withTag("main")
-              .exec(new PullImageResultCallback())
-              .awaitCompletion(60, TimeUnit.SECONDS);
-    } catch (InterruptedException ex) {
-      System.err.println("Interrupted Exception: Grafana image could not be pulled, exiting program");
-      System.exit(1);
-    }
-
-    Ports grafanaPortBindings = new Ports();
-    grafanaPortBindings.bind(ExposedPort.tcp(3000), Ports.Binding.bindPort(3000));
-
-    List<Bind> grafBinds = new ArrayList<Bind>();
-    grafBinds.add(Bind.parse("grafana_volume" + ":" + "/var/lib/grafana"));
-    grafBinds.add(Bind.parse(System.getProperty("user.dir") + "/grafana/provisioning/dashboards"
-            + ":" + "/etc/grafana/provisioning/dashboards"));
-    grafBinds.add(Bind.parse(System.getProperty("user.dir") + "/grafana/provisioning/datasources"
-            + ":" + "/etc/grafana/provisioning/datasources"));
-
-    CreateContainerResponse grafanaContainer =
-            dockerClient
-                    .createContainerCmd("grafana/grafana:main")
-                    .withBinds(grafBinds)
-                    .withName("grafana")
-                    .withNetworkMode("network")
-                    .withTty(true)
-                    .withPortBindings(grafanaPortBindings)
-                    .withEnv("GF_SECURITY_ADMIN_USER=${ADMIN_USER:-admin}")
-                    .withEnv("GF_SECURITY_ADMIN_PASSWORD=${ADMIN_PASSWORD:-admin}")
-                    .withEnv("GF_USERS_ALLOW_SIGN_UP=false")
-                    .exec();
-
-    dockerClient
-            .startContainerCmd(grafanaContainer.getId())
             .exec();
 
   }
