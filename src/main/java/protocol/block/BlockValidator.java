@@ -15,7 +15,7 @@ import state.State;
 /**
  * Represents a verifier class that is used to verify a block is valid.
  */
-public class BlockValidator implements IBlockValidator {
+public class BlockValidator implements InfBlockValidator {
   /**
    * Unique State that the block refers to.
    */
@@ -119,7 +119,7 @@ public class BlockValidator implements IBlockValidator {
       Snapshot snapshot = state.atBlockId(block.getPreviousBlockId());
       for (Signature signature : transaction.getCertificates()) {
         Account account = snapshot.getAccount(signature.getSignerId());
-        if(account == null) {
+        if (account == null) {
           // signer of transactions is not a valid account
           return false;
         }

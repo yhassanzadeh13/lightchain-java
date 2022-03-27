@@ -44,7 +44,7 @@ public class ValidatorTest {
     when(mockState.atBlockId(block.getPreviousBlockId())).thenReturn(null);
 
     ///Verifier
-    IBlockValidator verifier = new BlockValidator(mockState);
+    InfBlockValidator verifier = new BlockValidator(mockState);
 
     //Act
     boolean result = verifier.isCorrect(block);
@@ -70,7 +70,7 @@ public class ValidatorTest {
     when(mockSnapshot.getAccount(block.getProposer())).thenReturn(null);
 
     ///Verifier
-    IBlockValidator verifier = new BlockValidator(mockState);
+    InfBlockValidator verifier = new BlockValidator(mockState);
 
     //Act
     boolean result = verifier.isCorrect(block);
@@ -101,7 +101,7 @@ public class ValidatorTest {
     when(mockSnapshot.getAccount(proposer)).thenReturn(proposerAccount);
 
     ///Verifier
-    IBlockValidator verifier = new BlockValidator(mockState);
+    InfBlockValidator verifier = new BlockValidator(mockState);
 
     //Act
     boolean result = verifier.isCorrect(block);
@@ -132,7 +132,7 @@ public class ValidatorTest {
     when(mockSnapshot.getAccount(proposer)).thenReturn(proposerAccount);
 
     ///Verifier
-    IBlockValidator verifier = new BlockValidator(mockState);
+    InfBlockValidator verifier = new BlockValidator(mockState);
 
     //Act
     boolean result = verifier.isCorrect(block);
@@ -166,7 +166,7 @@ public class ValidatorTest {
     when(mockSnapshot.getAccount(proposer)).thenReturn(proposerAccount);
 
     ///Verifier
-    IBlockValidator verifier = new BlockValidator(mockState);
+    InfBlockValidator verifier = new BlockValidator(mockState);
 
     //Act
     boolean result = verifier.isCorrect(block);
@@ -195,7 +195,7 @@ public class ValidatorTest {
     when(mockState.last()).thenReturn(mockSnapshot2);
 
     ///Verifier
-    IBlockValidator verifier = new BlockValidator(mockState);
+    InfBlockValidator verifier = new BlockValidator(mockState);
 
     //Act
     boolean result = verifier.isConsistent(block);
@@ -221,7 +221,7 @@ public class ValidatorTest {
     when(mockState.last().getReferenceBlockId()).thenReturn(block.getPreviousBlockId());
 
     ///Verifier
-    IBlockValidator verifier = new BlockValidator(mockState);
+    InfBlockValidator verifier = new BlockValidator(mockState);
 
     //Act
     boolean result = verifier.isConsistent(block);
@@ -254,7 +254,7 @@ public class ValidatorTest {
         .verifySignature(block, block.getSignature())).thenReturn(false);
 
     ///Verifier
-    IBlockValidator verifier = new BlockValidator(mockState);
+    InfBlockValidator verifier = new BlockValidator(mockState);
 
     //Act
     boolean result = verifier.isAuthenticated(block);
@@ -287,7 +287,7 @@ public class ValidatorTest {
         .thenReturn(true);
 
     ///Verifier
-    IBlockValidator verifier = new BlockValidator(mockState);
+    InfBlockValidator verifier = new BlockValidator(mockState);
 
     //Act
     boolean result = verifier.isAuthenticated(block);
@@ -314,7 +314,7 @@ public class ValidatorTest {
     when(mockSnapshot.getAccount(proposer)).thenReturn(proposerAccount);
 
     ///Verifier
-    IBlockValidator verifier = new BlockValidator(mockState);
+    InfBlockValidator verifier = new BlockValidator(mockState);
 
     //Act
     boolean result = verifier.proposerHasEnoughStake(block);
@@ -342,7 +342,7 @@ public class ValidatorTest {
     when(mockSnapshot.getAccount(proposer)).thenReturn(proposerAccount);
 
     ///Verifier
-    IBlockValidator verifier = new BlockValidator(mockState);
+    InfBlockValidator verifier = new BlockValidator(mockState);
 
     //Act
     boolean result = verifier.proposerHasEnoughStake(block);
@@ -381,7 +381,7 @@ public class ValidatorTest {
     }
 
     ///Verifier
-    IBlockValidator verifier = new BlockValidator(mockState);
+    InfBlockValidator verifier = new BlockValidator(mockState);
 
     //Act
     boolean result = verifier.allTransactionsValidated(block);
@@ -415,7 +415,7 @@ public class ValidatorTest {
     }
 
     ///Verifier
-    IBlockValidator verifier = new BlockValidator(mockState);
+    InfBlockValidator verifier = new BlockValidator(mockState);
 
     //Act
     boolean result = verifier.allTransactionsValidated(block);
@@ -454,7 +454,7 @@ public class ValidatorTest {
     when(mockSenderAccountSnapshot.getReferenceBlockHeight()).thenReturn(10L);
 
     ///Verifier
-    IBlockValidator verifier = new BlockValidator(mockState);
+    InfBlockValidator verifier = new BlockValidator(mockState);
 
     //Act
     boolean result = verifier.allTransactionsSound(block);
@@ -494,7 +494,7 @@ public class ValidatorTest {
     }
 
     ///Verifier
-    IBlockValidator verifier = new BlockValidator(mockState);
+    InfBlockValidator verifier = new BlockValidator(mockState);
 
     //Act
     boolean result = verifier.allTransactionsSound(block);
@@ -525,7 +525,7 @@ public class ValidatorTest {
     when(mockState.atBlockId(block.getPreviousBlockId())).thenReturn(mockSnapshot);
 
     ///Verifier
-    IBlockValidator verifier = new BlockValidator(mockState);
+    InfBlockValidator verifier = new BlockValidator(mockState);
 
     //Act
     boolean result = verifier.noDuplicateSender(block);
@@ -556,7 +556,7 @@ public class ValidatorTest {
     when(mockState.atBlockId(block.getPreviousBlockId())).thenReturn(mockSnapshot);
 
     ///Verifier
-    IBlockValidator verifier = new BlockValidator(mockState);
+    InfBlockValidator verifier = new BlockValidator(mockState);
 
     //Act
     boolean result = verifier.noDuplicateSender(block);
