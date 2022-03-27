@@ -1,30 +1,11 @@
 package storage.mapdb;
 
-import java.util.ArrayList;
-import java.util.concurrent.ConcurrentMap;
-
 import model.lightchain.Identifier;
-import org.mapdb.DB;
-import org.mapdb.DBMaker;
-import org.mapdb.HTreeMap;
-import org.mapdb.Serializer;
 import storage.Identifiers;
+import org.mapdb.*;
+import java.util.ArrayList;
 
-/**
- * Implementation of identifiers interface.
- */
 public class IdentifierMapDb implements Identifiers {
-  private static DB db = null;
-  private static final String MAP_NAME = "identifierMap";
-  private HTreeMap<byte[], byte[]> identifierMap;
-
-  public IdentifierMapDb(String filePath) {
-    db = DBMaker.fileDB(filePath).make();
-    identifierMap = db.hashMap(MAP_NAME)
-        .keySerializer(Serializer.BYTE_ARRAY)
-        .valueSerializer(Serializer.BYTE_ARRAY)
-        .createOrOpen();
-  }
 
   /**
    * Adds an identifier to the storage, returns true if it is new, false if it already exists.
@@ -34,11 +15,7 @@ public class IdentifierMapDb implements Identifiers {
    */
   @Override
   public boolean add(Identifier identifier) {
-    byte[] bytes = identifier.getBytes();
-    if (bytes == null) {
-      return false;
-    }
-    return identifierMap.putIfAbsentBoolean(identifier.getBytes(), identifier.getBytes());
+    return false;
   }
 
   /**
@@ -49,8 +26,7 @@ public class IdentifierMapDb implements Identifiers {
    */
   @Override
   public boolean has(Identifier identifier) {
-    byte[] bytes = identifier.getBytes();
-    return identifierMap.containsKey(bytes);
+    return false;
   }
 
   /**
@@ -61,30 +37,16 @@ public class IdentifierMapDb implements Identifiers {
    */
   @Override
   public boolean remove(Identifier identifier) {
-    byte[] bytes = identifier.getBytes();
-    return identifierMap.remove(bytes, bytes);
+    return false;
   }
 
   /**
-   * Returns all stored identifiers on storagee.
+   * Returns all stored identifiers on storage.
    *
    * @return all stored identifiers on storage.
    */
   @Override
   public ArrayList<Identifier> all() {
-    ArrayList<Identifier> arrayList = new ArrayList<>();
-    for (byte[] element : identifierMap.keySet()) {
-      Identifier identifierFromBytes = new Identifier(element);
-      arrayList.add(identifierFromBytes);
-    }
-    return arrayList;
-  }
-
-  /**
-   * It closes the database.
-   */
-  public void closeDB() {
-    db.close();
+    return null;
   }
 }
-
