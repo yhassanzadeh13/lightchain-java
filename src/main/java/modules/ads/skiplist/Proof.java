@@ -1,15 +1,17 @@
 package modules.ads.skiplist;
 
+import java.util.ArrayList;
 import java.util.Stack;
 
+import model.crypto.Sha3256Hash;
 import model.lightchain.Identifier;
 import modules.ads.MembershipProof;
 
 public class Proof implements MembershipProof {
-  private Stack<SkipListNode> path;
+  private ArrayList<Sha3256Hash> path;
   private Identifier root;
 
-  public Proof(Stack<SkipListNode> path, Identifier root) {
+  public Proof(ArrayList<Sha3256Hash> path, Identifier root) {
     this.path = path;
     this.root = root;
   }
@@ -40,7 +42,7 @@ public class Proof implements MembershipProof {
    * @return path of the proof of membership.
    */
   @Override
-  public Stack<SkipListNode> getPath(Identifier identifier) {
+  public ArrayList<Sha3256Hash> getPath(Identifier identifier) {
     return this.path;
   }
 
@@ -49,7 +51,7 @@ public class Proof implements MembershipProof {
    *
    * @param path path of the proof of membership.
    */
-  public void setPath(Stack<SkipListNode> path) {
+  public void setPath(ArrayList<Sha3256Hash> path) {
     this.path = path;
   }
 }

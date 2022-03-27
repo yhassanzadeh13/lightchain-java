@@ -1,7 +1,9 @@
 package modules.ads;
 
+import java.util.ArrayList;
 import java.util.Stack;
 
+import model.crypto.Sha3256Hash;
 import model.lightchain.Identifier;
 import modules.ads.skiplist.SkipListNode;
 
@@ -22,5 +24,5 @@ public interface MembershipProof {
    * @param identifier identifier to be verified.
    * @return path of the proof of membership.
    */
-  Stack<SkipListNode> getPath(Identifier identifier);
+  ArrayList<Sha3256Hash> getPath(Identifier identifier);
 }

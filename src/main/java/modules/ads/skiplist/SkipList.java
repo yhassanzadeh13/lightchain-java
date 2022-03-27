@@ -5,6 +5,7 @@ import java.util.Random;
 import java.util.Stack;
 
 import model.Entity;
+import model.crypto.Sha3256Hash;
 import model.lightchain.Identifier;
 import modules.ads.AuthenticatedDataStructure;
 import modules.ads.AuthenticatedEntity;
@@ -131,16 +132,15 @@ public class SkipList implements AuthenticatedDataStructure {
     } else {
       System.out.println("Not found " + id);
     }
-    if (!searchStack.isEmpty()) {
-
-      Proof proof = new Proof((Stack<SkipListNode>) searchStack.clone(), this.root.getIdentifier());
-      return new modules.ads.skiplist.AuthenticatedEntity(proof, e.type(), e);
-
-    } else {
-      return null;
-    }
+    return null;
   }
 
+  private ArrayList<Sha3256Hash> getSequence(Entity e) {
+    ArrayList<Sha3256Hash> sequence = new ArrayList<>();
+    Stack<SkipListNode> pathStack = new Stack<>();
+    pathStack.addAll(searchStack);
+    return null;
+  }
   @Override
   public String toString() {
     int countX = 0;
