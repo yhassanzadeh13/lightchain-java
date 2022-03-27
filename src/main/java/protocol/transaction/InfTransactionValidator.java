@@ -5,7 +5,7 @@ import model.lightchain.Transaction;
 /**
  * Validator encapsulates the logic of a transaction validator in LightChain.
  */
-public interface Validator {
+public interface InfTransactionValidator {
   /**
    * Validates transaction parameters.
    *

@@ -35,7 +35,7 @@ public class ValidatorTest {
 
     /// Verifier
 
-    Validator verifier = new TransactionValidator(mockState);
+    InfTransactionValidator verifier = new TransactionValidator(mockState);
 
     // Act
     boolean result = verifier.isCorrect(transaction);
@@ -65,7 +65,7 @@ public class ValidatorTest {
     when(mockSnapshot.getAccount(transaction.getReceiver())).thenReturn(receiverAccount);
 
     /// Verifier
-    Validator verifier = new TransactionValidator(mockState);
+    InfTransactionValidator verifier = new TransactionValidator(mockState);
 
     // Act
     boolean result = verifier.isCorrect(transaction);
@@ -94,7 +94,7 @@ public class ValidatorTest {
     when(mockSnapshot.getAccount(transaction.getReceiver())).thenReturn(null);
 
     /// Verifier
-    Validator verifier = new TransactionValidator(mockState);
+    InfTransactionValidator verifier = new TransactionValidator(mockState);
 
     // Act
     boolean result = verifier.isCorrect(transaction);
@@ -125,7 +125,7 @@ public class ValidatorTest {
     when(mockSnapshot.getAccount(transaction.getReceiver())).thenReturn(receiverAccount);
 
     /// Verifier
-    Validator verifier = new TransactionValidator(mockState);
+    InfTransactionValidator verifier = new TransactionValidator(mockState);
 
     // Act
     boolean result = verifier.isCorrect(transaction);
@@ -158,7 +158,7 @@ public class ValidatorTest {
     when(mockSnapshot.getAccount(transaction.getReceiver())).thenReturn(receiverAccount);
 
     /// Verifier
-    Validator verifier = new TransactionValidator(mockState);
+    InfTransactionValidator verifier = new TransactionValidator(mockState);
 
     // Act
     boolean result = verifier.isCorrect(transaction);
@@ -193,7 +193,7 @@ public class ValidatorTest {
     when(mockSnapshot.getAccount(transaction.getReceiver())).thenReturn(receiverAccount);
 
     /// Verifier
-    Validator verifier = new TransactionValidator(mockState);
+    InfTransactionValidator verifier = new TransactionValidator(mockState);
 
     // Act
     boolean result = verifier.isCorrect(transaction);
@@ -228,7 +228,7 @@ public class ValidatorTest {
     when(mockSenderAccountSnapshot.getReferenceBlockHeight()).thenReturn(10L);
 
     /// Verifier
-    Validator verifier = new TransactionValidator(mockState);
+    InfTransactionValidator verifier = new TransactionValidator(mockState);
 
     // Act
     boolean result = verifier.isSound(transaction);
@@ -260,7 +260,7 @@ public class ValidatorTest {
     when(mockSnapshot.getReferenceBlockHeight()).thenReturn(1L);
 
     /// Verifier
-    Validator verifier = new TransactionValidator(mockState);
+    InfTransactionValidator verifier = new TransactionValidator(mockState);
 
     // Act
     boolean result = verifier.isSound(transaction);
@@ -295,7 +295,7 @@ public class ValidatorTest {
     when(mockSenderAccountSnapshot.getReferenceBlockHeight()).thenReturn(9L);
 
     /// Verifier
-    Validator verifier = new TransactionValidator(mockState);
+    InfTransactionValidator verifier = new TransactionValidator(mockState);
 
     // Act
     boolean result = verifier.isSound(transaction);
@@ -328,7 +328,7 @@ public class ValidatorTest {
     when(mockSnapshot.getAccount(sender).getPublicKey().verifySignature(transaction, signature)).thenReturn(false);
 
     /// Verifier
-    Validator verifier = new TransactionValidator(mockState);
+    InfTransactionValidator verifier = new TransactionValidator(mockState);
 
     // Act
     boolean result = verifier.isAuthenticated(transaction);
@@ -358,7 +358,7 @@ public class ValidatorTest {
     when(mockSnapshot.getAccount(sender).getPublicKey().verifySignature(transaction, signature)).thenReturn(true);
 
     /// Verifier
-    Validator verifier = new TransactionValidator(mockState);
+    InfTransactionValidator verifier = new TransactionValidator(mockState);
 
     // Act
     boolean result = verifier.isAuthenticated(transaction);
@@ -387,7 +387,7 @@ public class ValidatorTest {
     when(mockSnapshot.getAccount(sender)).thenReturn(senderAccount);
 
     /// Verifier
-    Validator verifier = new TransactionValidator(mockState);
+    InfTransactionValidator verifier = new TransactionValidator(mockState);
 
     // Act
     boolean result = verifier.senderHasEnoughBalance(transaction);
@@ -418,7 +418,7 @@ public class ValidatorTest {
     when(mockSnapshot.getAccount(sender)).thenReturn(senderAccount);
 
     /// Verifier
-    Validator verifier = new TransactionValidator(mockState);
+    InfTransactionValidator verifier = new TransactionValidator(mockState);
 
     // Act
     boolean result = verifier.senderHasEnoughBalance(transaction);

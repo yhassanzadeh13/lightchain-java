@@ -8,7 +8,8 @@ import model.lightchain.Block;
 import model.lightchain.Identifier;
 import model.lightchain.ValidatedTransaction;
 import protocol.Parameters;
-import protocol.transaction.TransactionVerifier;
+import protocol.transaction.TransactionValidator;
+import protocol.transaction.InfTransactionValidator;
 import state.Snapshot;
 import state.State;
 
@@ -141,9 +142,9 @@ public class BlockValidator implements InfBlockValidator {
    */
   @Override
   public boolean allTransactionsSound(Block block) {
-    TransactionVerifier verifier = new TransactionVerifier(state);
+    InfTransactionValidator validator = new TransactionValidator(state);
     for (ValidatedTransaction transaction : block.getTransactions()) {
-      if (!verifier.isSound(transaction)) {
+      if (!validator.isSound(transaction)) {
         return false;
       }
     }
