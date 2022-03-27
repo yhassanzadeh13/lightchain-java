@@ -8,8 +8,8 @@ import model.lightchain.Block;
 import model.lightchain.Identifier;
 import model.lightchain.ValidatedTransaction;
 import protocol.Parameters;
-import protocol.transaction.TransactionValidator;
 import protocol.transaction.InfTransactionValidator;
+import protocol.transaction.TransactionValidator;
 import state.Snapshot;
 import state.State;
 
