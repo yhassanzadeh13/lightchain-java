@@ -58,7 +58,7 @@ public class Main {
    *
    * @throws IllegalStateException when container creation faces an illegal state.
    */
-  private static void createServerContainer() {
+  private static void createServerContainer() throws IllegalStateException {
 
     // Docker Client
 
