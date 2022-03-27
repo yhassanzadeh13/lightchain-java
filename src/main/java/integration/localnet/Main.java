@@ -44,7 +44,12 @@ public class Main {
 
     // HTTP Server Container
 
-    createServerContainer();
+    try {
+      createServerContainer();
+    } catch (IllegalStateException e) {
+      System.err.println("could not initialize and run HTTP Server Container" + e);
+      System.exit(1);
+    }
 
   }
 

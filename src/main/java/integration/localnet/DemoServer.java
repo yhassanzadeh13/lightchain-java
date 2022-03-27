@@ -55,7 +55,7 @@ public class DemoServer {
         demoServerQueryCount.inc(1);
         demoServerQueryGauge.set(r.nextInt(100));
       } catch (InterruptedException e) {
-        System.err.println("could not start metrics server:\t" + e);
+        System.err.println("Thread sleep issue, breaking the loop");
         break;
       }
     }
