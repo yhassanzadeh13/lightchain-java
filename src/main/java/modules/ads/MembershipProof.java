@@ -1,6 +1,9 @@
 package modules.ads;
 
+import java.util.Stack;
+
 import model.lightchain.Identifier;
+import modules.ads.skiplist.SkipListNode;
 
 /**
  * Represents a Merkle Proof of membership against a certain root identifier.
@@ -14,10 +17,10 @@ public interface MembershipProof {
   Identifier getRoot();
 
   /**
-   * Sibling of the given identifier on the membership Merkle Proof path to the root.
+   * Returns the path of the proof of membership.
    *
-   * @param identifier identifier of the entity.
-   * @return sibling of given identifier.
+   * @param identifier identifier to be verified.
+   * @return path of the proof of membership.
    */
-  Identifier getSiblingOf(Identifier identifier);
+  Stack<SkipListNode> getPath(Identifier identifier);
 }

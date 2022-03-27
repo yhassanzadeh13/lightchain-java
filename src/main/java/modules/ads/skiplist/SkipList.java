@@ -15,9 +15,9 @@ import modules.ads.AuthenticatedEntity;
  */
 public class SkipList implements AuthenticatedDataStructure {
   private static final Random random = new Random();
-  private static final Identifier baseIdentifier = new Identifier(new byte[32]);
-  Stack<SkipListNode> searchStack = new Stack<>();
-  Stack<SkipListNode> insertionStack = new Stack<>();
+  private final Stack<SkipListNode> searchStack = new Stack<>();
+  private final Stack<SkipListNode> updateStack = new Stack<>();
+  private final Stack<SkipListNode> insertionStack = new Stack<>();
   private SkipListNode root;
   private SkipListNode currNode;
 
@@ -27,7 +27,7 @@ public class SkipList implements AuthenticatedDataStructure {
   }
 
   public void hopForward(Identifier id) {
-    while (this.currNode.getRight() != null && this.currNode.getRight().getIdentifier().comparedTo(id) < 0) {
+    while (this.currNode.getRight() != null && this.currNode.getRight().getIdentifier().comparedTo(id) <= 0) {
       this.currNode = currNode.getRight();
       this.currNode.setDropDown(false);
       searchStack.push(this.currNode);
@@ -45,58 +45,78 @@ public class SkipList implements AuthenticatedDataStructure {
 
   @Override
   public AuthenticatedEntity put(Entity e) {
-    get(e.id());
-    boolean coinFlip;
-    do {
-      SkipListNode newNode = new SkipListNode(e.id());
-      coinFlip = random.nextBoolean();
-      if (searchStack.size() > 0) {
-        SkipListNode currNodeStack = this.searchStack.pop();
-        if (insertionStack.isEmpty()) { // if the node is in the base level
-          newNode.setRight(currNodeStack.getRight());
-          currNodeStack.setRight(newNode);
-          currNodeStack.setDropDown(false);
-        } else { // if the node is in a higher level
-          SkipListNode oldNode = insertionStack.pop();
-          oldNode.setTower(true);
-          newNode.setDown(oldNode);
-          while (!this.searchStack.isEmpty() && !currNodeStack.isDropDown()) {
-            currNodeStack = this.searchStack.pop();
+    if (e == null) {
+      return null;
+    }
+    get(e);
+    updateStack.addAll(searchStack);
+    if (e.id().comparedTo(this.currNode.getIdentifier()) != 0) {
+      boolean coinFlip;
+      do {
+        SkipListNode newNode = new SkipListNode(e);
+        coinFlip = random.nextBoolean();
+        if (searchStack.size() > 0) {
+          SkipListNode currNodeStack = this.searchStack.pop();
+          if (insertionStack.isEmpty()) { // if the node is in the base level
+            newNode.setRight(currNodeStack.getRight()); // change in right
+            newNode.calculateFV();
+            currNodeStack.setRight(newNode); // change in right
+            currNodeStack.setDropDown(false); // change in dropDown
+          } else { // if the node is in a higher level
+            SkipListNode oldNode = insertionStack.pop();
+            oldNode.setTower(true); // change in tower
+            newNode.setDown(oldNode); // change in down
+            newNode.calculateFV();
+            while (!this.searchStack.isEmpty() && !currNodeStack.isDropDown()) {
+              currNodeStack = this.searchStack.pop();
+            }
+            if (currNodeStack.isDropDown()) {
+              newNode.setRight(currNodeStack.getRight()); // change in right
+              newNode.calculateFV();
+              currNodeStack.setRight(newNode); // change in right
+              currNodeStack.setDropDown(false); // change in dropDown
+            } else {
+              SkipListNode newRoot = new SkipListNode();
+              this.root.setTower(true); // change in tower
+              newRoot.setDown(this.root); // change in down
+              newRoot.setRight(newNode); // change in right
+              newRoot.calculateFV();
+              this.root = newRoot; // change in root
+            }
           }
-          if (currNodeStack.isDropDown()) {
-            newNode.setRight(currNodeStack.getRight());
-            currNodeStack.setRight(newNode);
-            currNodeStack.setDropDown(false);
+        } else {
+          if (this.root.getDown() == null && this.root.getRight() == null) { // first insertion
+            this.root.setRight(newNode); // change in right
+            this.root.calculateFV(); // update FV
           } else {
             SkipListNode newRoot = new SkipListNode();
             this.root.setTower(true);
-            newRoot.setDown(this.root);
-            newRoot.setRight(newNode);
-            this.root = newRoot;
+            this.root.calculateFV(); // update FV
+            newRoot.setDown(this.root); // change in down
+            newRoot.setRight(newNode); // change in right
+            newRoot.calculateFV(); // update FV
+            this.root = newRoot; // change in root
+            SkipListNode oldNode = insertionStack.pop();
+            oldNode.setTower(true); // change in tower
+            oldNode.calculateFV(); // update FV
+            newNode.setDown(oldNode); // change in down
+            newNode.calculateFV(); // update FV
           }
         }
-      } else {
-        if (this.root.getDown() == null && this.root.getRight() == null) {
-          this.root.setRight(newNode);
-        } else {
-          SkipListNode newRoot = new SkipListNode();
-          this.root.setTower(true);
-          newRoot.setDown(this.root);
-          newRoot.setRight(newNode);
-          this.root = newRoot;
-          SkipListNode oldNode = insertionStack.pop();
-          oldNode.setTower(true);
-          newNode.setDown(oldNode);
-        }
+        insertionStack.push(newNode);
+      } while (coinFlip);
+      for (SkipListNode node : updateStack) {
+        node.calculateFV();
       }
-      insertionStack.push(newNode);
-    } while (coinFlip);
-    insertionStack.clear();
+      insertionStack.clear();
+      updateStack.clear();
+    }
     return null;
   }
 
   @Override
-  public AuthenticatedEntity get(Identifier id) {
+  public AuthenticatedEntity get(Entity e) {
+    Identifier id = e.id();
     searchStack.clear();
     this.currNode = this.root;
     this.currNode.setDropDown(false);
@@ -106,20 +126,25 @@ public class SkipList implements AuthenticatedDataStructure {
       dropDown();
     } while (this.currNode.getDown() != null);
     hopForward(id);
-    /*
     if (id.comparedTo(this.currNode.getIdentifier()) == 0) {
       System.out.println("Found " + this.currNode.getIdentifier());
     } else {
       System.out.println("Not found " + id);
     }
-     */
-    return null;
+    if (!searchStack.isEmpty()) {
+
+      Proof proof = new Proof((Stack<SkipListNode>) searchStack.clone(), this.root.getIdentifier());
+      return new modules.ads.skiplist.AuthenticatedEntity(proof, e.type(), e);
+
+    } else {
+      return null;
+    }
   }
 
   @Override
   public String toString() {
     int countX = 0;
-    ArrayList<String> nodeArray = new ArrayList<String>();
+    ArrayList<String> nodeArray = new ArrayList<>();
     SkipListNode stringNode = this.root;
     while (stringNode.getDown() != null) {
       stringNode = stringNode.getDown();

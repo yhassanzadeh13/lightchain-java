@@ -1,6 +1,7 @@
 package modules.ads.skiplist;
 
 import crypto.Sha3256Hasher;
+import model.Entity;
 import model.crypto.Sha3256Hash;
 import model.lightchain.Identifier;
 import modules.codec.JsonEncoder;
@@ -9,23 +10,15 @@ public class SkipListNode {
   private static final Sha3256Hasher hasher = new Sha3256Hasher();
   private static final JsonEncoder encoder = new JsonEncoder();
   private Identifier identifier;
+  private Entity entity;
   private SkipListNode right;
   private SkipListNode down;
   private boolean isTower;
   private Sha3256Hash FV;
   private boolean isDropDown;
 
-
-  public SkipListNode(Identifier identifier, SkipListNode right, SkipListNode down, boolean isTower) {
-    this.identifier = identifier;
-    this.right = right;
-    this.down = down;
-    this.isTower = isTower;
-    this.isDropDown = false;
-    calculateFV();
-  }
-
   public SkipListNode() {
+    this.entity = null;
     this.identifier = new Identifier(new byte[32]);
     this.right = null;
     this.down = null;
@@ -34,19 +27,11 @@ public class SkipListNode {
     calculateFV();
   }
 
-  public SkipListNode(Identifier identifier) {
-    this.identifier = identifier;
+  public SkipListNode(Entity e) {
+    this.entity = e;
+    this.identifier = e.id();
     this.right = null;
     this.down = null;
-    this.isTower = false;
-    this.isDropDown = false;
-    calculateFV();
-  }
-
-  public SkipListNode(SkipListNode down) {
-    this.identifier = new Identifier(new byte[32]);
-    this.right = null;
-    this.down = down;
     this.isTower = false;
     this.isDropDown = false;
     calculateFV();
@@ -69,6 +54,14 @@ public class SkipListNode {
         this.FV = hasher.computeHash(down.getFV(), right.getFV());
       }
     }
+  }
+
+  public Entity getEntity() {
+    return entity;
+  }
+
+  public void setEntity(Entity entity) {
+    this.entity = entity;
   }
 
   public boolean isDropDown() {

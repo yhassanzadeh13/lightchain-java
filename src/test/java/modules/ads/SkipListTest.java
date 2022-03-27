@@ -3,6 +3,7 @@ package modules.ads;
 import java.util.ArrayList;
 
 import model.lightchain.Identifier;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import unittest.fixtures.EntityFixture;
 import unittest.fixtures.SkipListFixture;
@@ -20,15 +21,15 @@ public class SkipListTest {
     EntityFixture entityFixture5 = new EntityFixture();
 
     identifiers.add(entityFixture1.id());
-    skipListFixture.put(entityFixture1);
-    identifiers.add(entityFixture2.id());
     skipListFixture.put(entityFixture2);
-    identifiers.add(entityFixture3.id());
+    identifiers.add(entityFixture2.id());
     skipListFixture.put(entityFixture3);
-    identifiers.add(entityFixture4.id());
+    identifiers.add(entityFixture3.id());
     skipListFixture.put(entityFixture4);
-    identifiers.add(entityFixture5.id());
+    identifiers.add(entityFixture4.id());
     skipListFixture.put(entityFixture5);
+    identifiers.add(entityFixture5.id());
+    skipListFixture.put(entityFixture1);
     identifiers.sort(Identifier::comparedTo);
     str(skipListFixture, identifiers);
   }
@@ -53,4 +54,11 @@ public class SkipListTest {
   // 8. Tampering with root identifier of an authenticated entity fails its verification.
   // 9. Tampering with entity of an authenticated entity fails its verification.
   // 10. Tampering with proof of an authenticated entity fails its verification.
+
+  @Test
+  public void TestNullInsertion() { // Test 7
+    SkipListFixture skipListFixture = new SkipListFixture();
+    AuthenticatedEntity authenticatedEntity = skipListFixture.put(null);
+    Assertions.assertNull(authenticatedEntity);
+  }
 }
