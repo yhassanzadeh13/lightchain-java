@@ -1,7 +1,5 @@
 package unittest.fixtures;
 
-import java.util.Random;
-
 import model.crypto.Signature;
 import model.lightchain.Identifier;
 import model.lightchain.ValidatedTransaction;
@@ -11,11 +9,6 @@ import protocol.Parameters;
  * Encapsulates creating validated transactions with random content for fixture.
  */
 public class ValidatedTransactionFixture {
-  /**
-   * Random object to create random integers.
-   */
-  private static final Random random = new Random();
-
   /**
    * Constructor of the validated transactions with randomly generated parameters.
    *

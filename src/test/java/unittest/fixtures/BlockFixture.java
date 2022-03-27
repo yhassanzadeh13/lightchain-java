@@ -1,7 +1,5 @@
 package unittest.fixtures;
 
-import java.util.Random;
-
 import model.crypto.Signature;
 import model.lightchain.Block;
 import model.lightchain.Identifier;
@@ -11,27 +9,7 @@ import protocol.Parameters;
 /**
  * Encapsulates creating random blocks for testing.
  */
-public class BlockFixture extends Block {
-  /**
-   * Random object to create random integers.
-   */
-  private static final Random random = new Random();
-
-  /**
-   * Constructor of the block.
-   *
-   * @param previousBlockId identifier of a finalized block that this block is extending its snapshot.
-   * @param proposer        identifier of the node that proposes this block (i.e., miner).
-   * @param transactions    set of validated transactions that this block carries.
-   * @param signature       signature of the proposer over the hash of this block.
-   */
-  public BlockFixture(Identifier previousBlockId,
-                      Identifier proposer,
-                      ValidatedTransaction[] transactions,
-                      Signature signature) {
-    super(previousBlockId, proposer, transactions, signature);
-  }
-
+public class BlockFixture {
   /**
    * Returns a block with randomly generated values.
    *
@@ -46,7 +24,7 @@ public class BlockFixture extends Block {
       transactions[i] = ValidatedTransactionFixture.newValidatedTransaction();
     }
     Signature signature = SignatureFixture.newSignatureFixture();
-    return new BlockFixture(previousBlockId, proposer, transactions, signature);
+    return new Block(previousBlockId, proposer, transactions, signature);
   }
 
   /**
@@ -63,7 +41,7 @@ public class BlockFixture extends Block {
       transactions[i] = ValidatedTransactionFixture.newValidatedTransaction();
     }
     Signature signature = SignatureFixture.newSignatureFixture();
-    return new BlockFixture(previousBlockId, proposer, transactions, signature);
+    return new Block(previousBlockId, proposer, transactions, signature);
   }
 
   /**
@@ -76,6 +54,6 @@ public class BlockFixture extends Block {
     Identifier previousBlockId = IdentifierFixture.newIdentifier();
     Identifier proposer = IdentifierFixture.newIdentifier();
     Signature signature = SignatureFixture.newSignatureFixture();
-    return new BlockFixture(previousBlockId, proposer, transactions, signature);
+    return new Block(previousBlockId, proposer, transactions, signature);
   }
 }
