@@ -188,11 +188,9 @@ public class ValidatorTest {
     /// State & Snapshot Mocking
     State mockState = mock(State.class);
     Snapshot mockSnapshot = mock(Snapshot.class);
-    Snapshot mockSnapshot2 = mock(Snapshot.class);
     Identifier dummyReferenceBlockId = IdentifierFixture.newIdentifier();
-    when(mockState.atBlockId(block.getPreviousBlockId())).thenReturn(mockSnapshot);
-    when(mockState.atBlockId(dummyReferenceBlockId)).thenReturn(mockSnapshot2);
-    when(mockState.last()).thenReturn(mockSnapshot2);
+    when(mockState.last()).thenReturn(mockSnapshot);
+    when(mockSnapshot.getReferenceBlockId()).thenReturn(block.id());
 
     ///Verifier
     InfBlockValidator verifier = new BlockValidator(mockState);
