@@ -23,7 +23,7 @@ public class BlockFixture {
     for (int i = 0; i < validatedTransactionsSize; i++) {
       transactions[i] = ValidatedTransactionFixture.newValidatedTransaction();
     }
-    Signature signature = SignatureFixture.newSignatureFixture();
+    Signature signature = SignatureFixture.newSignatureFixture(proposer);
     return new Block(previousBlockId, proposer, transactions, signature);
   }
 
@@ -40,7 +40,7 @@ public class BlockFixture {
     for (int i = 0; i < validatedTransactionsSize; i++) {
       transactions[i] = ValidatedTransactionFixture.newValidatedTransaction();
     }
-    Signature signature = SignatureFixture.newSignatureFixture();
+    Signature signature = SignatureFixture.newSignatureFixture(proposer);
     return new Block(previousBlockId, proposer, transactions, signature);
   }
 
@@ -53,7 +53,7 @@ public class BlockFixture {
   public static Block newBlock(ValidatedTransaction[] transactions) {
     Identifier previousBlockId = IdentifierFixture.newIdentifier();
     Identifier proposer = IdentifierFixture.newIdentifier();
-    Signature signature = SignatureFixture.newSignatureFixture();
+    Signature signature = SignatureFixture.newSignatureFixture(proposer);
     return new Block(previousBlockId, proposer, transactions, signature);
   }
 }
