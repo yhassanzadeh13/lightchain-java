@@ -14,7 +14,7 @@ import state.State;
 /**
  * Represents a verifier class that is used to verify a block is valid.
  */
-public class BlockVerifier implements Validator {
+public class BlockValidator implements IBlockValidator {
   /**
    * Unique State that the block is in.
    */
@@ -23,7 +23,7 @@ public class BlockVerifier implements Validator {
   /**
    * Constructor of a BlockVerifier.
    */
-  public BlockVerifier(State state) {
+  public BlockValidator(State state) {
     this.state = state;
   }
 

@@ -5,7 +5,7 @@ import model.lightchain.Block;
 /**
  * Validator encapsulates the logic of a block validator in LightChain.
  */
-public interface Validator {
+public interface IBlockValidator {
   /**
    * Validates block parameters.
    *
