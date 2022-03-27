@@ -19,7 +19,7 @@ public class ValidatedTransactionFixture {
     Identifier sender = IdentifierFixture.newIdentifier();
     Identifier receiver = IdentifierFixture.newIdentifier();
     double amount = 100;
-    int certificatesSize = Parameters.SIGNATURE_THRESHOLD + 2;
+    int certificatesSize = Parameters.SIGNATURE_THRESHOLD;
     Signature[] certificates = new Signature[certificatesSize];
     for (int i = 0; i < certificatesSize; i++) {
       certificates[i] = SignatureFixture.newSignatureFixture();
@@ -37,7 +37,7 @@ public class ValidatedTransactionFixture {
     Identifier referenceBlockId = IdentifierFixture.newIdentifier();
     Identifier receiver = IdentifierFixture.newIdentifier();
     double amount = 100;
-    int certificatesSize = 2 + Parameters.SIGNATURE_THRESHOLD;
+    int certificatesSize = Parameters.SIGNATURE_THRESHOLD;
     Signature[] certificates = new Signature[certificatesSize];
     for (int i = 0; i < certificatesSize; i++) {
       certificates[i] = SignatureFixture.newSignatureFixture();
