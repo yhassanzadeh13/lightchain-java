@@ -4,6 +4,7 @@ import model.lightchain.Identifier;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.mapdb.DB;
+import org.testcontainers.shaded.org.apache.commons.io.FileUtils;
 import storage.mapdb.IdentifierMapDb;
 import unittest.fixtures.IdentifierFixture;
 
@@ -69,6 +70,6 @@ public class IdentifiersTest {
     }
     Assertions.assertEquals(0, count);
 
-    tempdir.toFile().deleteOnExit();
+    FileUtils.deleteDirectory(new File(tempdir.toString()));
   }
 }
