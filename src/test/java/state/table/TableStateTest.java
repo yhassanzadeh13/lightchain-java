@@ -13,6 +13,9 @@ import java.util.*;
 
 import static org.mockito.Mockito.*;
 
+/**
+ * Encapsulates tests for hash table implementation of protocol state.
+ */
 public class TableStateTest {
   /**
    * Snapshots list for 10 snapshots.

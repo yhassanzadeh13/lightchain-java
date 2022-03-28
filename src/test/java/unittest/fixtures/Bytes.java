@@ -10,10 +10,11 @@ public class Bytes {
 
   /**
    * Generates a random byte array.
-   * @param  length length of byte array.
+   *
+   * @param length length of byte array.
    * @return random byte array.
    */
-  public static byte[] byteArrayFixture(int length){
+  public static byte[] byteArrayFixture(int length) {
     byte[] arr = new byte[length];
     random.nextBytes(arr);
     return arr;

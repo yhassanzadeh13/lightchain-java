@@ -13,6 +13,9 @@ import unittest.fixtures.IdentifierFixture;
 
 import static org.mockito.Mockito.*;
 
+/**
+ * Encapsulates tests for validator assignment.
+ */
 public class AssignerTest {
 
   /**
@@ -238,5 +241,4 @@ public class AssignerTest {
     // Assert
     Assertions.assertEquals(assignment, new Assignment());
   }
-
 }

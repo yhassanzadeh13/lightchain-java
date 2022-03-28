@@ -10,6 +10,10 @@ import unittest.fixtures.IdentifierFixture;
 
 import java.util.ArrayList;
 
+/**
+ * Encapsulates tests for hash table implementation of state snapshot.
+ */
+
 public class TableSnapshotTest {
   /**
    * Evaluates the correctness of getters in TableSnapshot.
