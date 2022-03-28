@@ -2,6 +2,12 @@ package storage;
 
 import org.junit.jupiter.api.Test;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+
 /**
  * Encapsulates tests for identifiers database.
  */
@@ -27,9 +33,19 @@ public class IdentifiersTest {
 
   /**
    * When adding 10 new identifiers sequentially, the Add method must return true for all of them.
-   * 
+   *
    */
   @Test
   void firstTest() {
+
+    try {
+      Path tempdir = Files.createTempDirectory( "tmp");
+      Files.createTempFile(tempdir,"tempfile",".db");
+    } catch (IOException e) {
+      throw new IllegalArgumentException("could not be tempdir with this prefix"+e);
+    }
+
+
+
   }
 }
