@@ -14,13 +14,14 @@ import org.mapdb.*;
  */
 public class IdentifierMapDb implements Identifiers {
   private static DB db = null;
-  private String filePath;
+  private final String filePath;
   private IndexTreeList<byte[]> identifierArrayList;
 
   public IdentifierMapDb(String filePath) {
     this.filePath = filePath;
     db = DBMaker.fileDB(filePath).make();
-    this.identifierArrayList = db.indexTreeList("identrifierArrayList", Serializer.BYTE_ARRAY).createOrOpen();
+    identifierArrayList = db.indexTreeList("identrifierArrayList", Serializer.BYTE_ARRAY).createOrOpen();
+    db.close();
   }
 
   /**
@@ -31,9 +32,19 @@ public class IdentifierMapDb implements Identifiers {
    */
   @Override
   public boolean add(Identifier identifier) {
+    if(db.isClosed()){
+      db = DBMaker.fileDB(filePath).make();
+    }
+    identifierArrayList = db.indexTreeList("identrifierArrayList", Serializer.BYTE_ARRAY).createOrOpen();
     byte[] bytes = identifier.getBytes();
-    identifierArrayList.add(bytes);
-    return identifierArrayList.add(bytes);
+    if (identifierArrayList.add(bytes)) {
+      db.commit();
+      db.close();
+      return true;
+    } else {
+      db.close();
+    }
+    return false;
   }
 
   /**
@@ -44,6 +55,10 @@ public class IdentifierMapDb implements Identifiers {
    */
   @Override
   public boolean has(Identifier identifier) {
+    if(db.isClosed()){
+      db = DBMaker.fileDB(filePath).make();
+    }
+    identifierArrayList = db.indexTreeList("identrifierArrayList", Serializer.BYTE_ARRAY).createOrOpen();
     byte[] bytes = identifier.getBytes();
     return identifierArrayList.contains(bytes);
 
@@ -57,8 +72,18 @@ public class IdentifierMapDb implements Identifiers {
    */
   @Override
   public boolean remove(Identifier identifier) {
+    if(db.isClosed()){
+      db = DBMaker.fileDB(filePath).make();
+    }
+    identifierArrayList = db.indexTreeList("identrifierArrayList", Serializer.BYTE_ARRAY).createOrOpen();
     byte[] bytes = identifier.getBytes();
-    return identifierArrayList.remove(bytes);
+    if (identifierArrayList.remove(bytes)) {
+      db.commit();
+      db.close();
+    } else {
+      db.close();
+    }
+    return false;
   }
 
   /**
@@ -68,6 +93,10 @@ public class IdentifierMapDb implements Identifiers {
    */
   @Override
   public ArrayList<Identifier> all() {
+    if(db.isClosed()){
+      db = DBMaker.fileDB(filePath).make();
+    }
+    identifierArrayList = db.indexTreeList("identrifierArrayList", Serializer.BYTE_ARRAY).createOrOpen();
     ArrayList<Identifier> arrayList = new ArrayList<>();
     for (byte[] element : identifierArrayList) {
       Identifier identifierFromBytes = new Identifier(element);
