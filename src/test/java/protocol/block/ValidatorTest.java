@@ -1,7 +1,5 @@
 package protocol.block;
 
-import java.util.Random;
-
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
