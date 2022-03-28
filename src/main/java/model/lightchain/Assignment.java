@@ -24,4 +24,17 @@ public class Assignment {
   public void add(Identifier validator) {
     this.validators.add(validator);
   }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+
+    Assignment that = (Assignment) o;
+    return validators.equals(that.validators);
+  }
 }

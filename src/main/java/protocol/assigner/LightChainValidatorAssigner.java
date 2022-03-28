@@ -1,8 +1,11 @@
 package protocol.assigner;
 
+import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
 
-import model.crypto.Sha3256Hash;
+import crypto.Sha3256Hasher;
+import model.codec.EncodedEntity;
+import model.crypto.Hash;
 import model.lightchain.Account;
 import model.lightchain.Assignment;
 import model.lightchain.Identifier;
@@ -26,25 +29,56 @@ public class LightChainValidatorAssigner implements ValidatorAssigner {
    */
   @Override
   public Assignment assign(Identifier id, Snapshot s, short num) throws IllegalArgumentException {
+    if (s == null) {
+      throw new IllegalArgumentException("snapshot cannot be null");
+    }
+    if (id == null) {
+      throw new IllegalArgumentException("identifier cannot be null");
+    }
     ArrayList<Account> accounts = s.all();
+    ArrayList<Identifier> validatorHashes = new ArrayList<>();
+    ArrayList<Account> selectedAccounts = new ArrayList<>();
     Assignment assignment = new Assignment();
+
     for (int i = 1; i <= num; i++) {
-      String idI = id.toString().concat(Integer.toString(i));
-      //TODO: 32 byte issue in concatted string
-      Identifier validatorHash = new Sha3256Hash(id).toIdentifier();
-      for (int j = 0; j <= num; j++) {
-        int validatorIndex = j > 0 ? j - 1 : accounts.size() - 1;
-        if (validatorIndex == -1) {
-          throw new IllegalArgumentException("not enough accounts in the snapshot");
+      byte[] bytesId = id.getBytes();
+      byte bytesIterator = Integer.valueOf(i).byteValue();
+      ByteArrayOutputStream output = new ByteArrayOutputStream();
+
+      output.write(bytesId, 0, 32);
+      output.write(bytesIterator);
+      byte[] bytesIdArray = output.toByteArray();
+      EncodedEntity ee = new EncodedEntity(bytesIdArray, "assignment");
+      Hash validatorHash = new Sha3256Hasher().computeHash(ee);
+      validatorHashes.add(validatorHash.toIdentifier());
+    }
+
+    for (int j = 0; j < num; j++) {
+      for (int k = accounts.size() - 1; k >= 0; k--) {
+        if (validatorHashes.get(j).comparedTo(accounts.get(k).getIdentifier()) >= 0
+            && accounts.get(k).getStake() >= Parameters.MINIMUM_STAKE
+            && !selectedAccounts.contains(accounts.get(k))) {
+          assignment.add(accounts.get(k).getIdentifier());
+          selectedAccounts.add(accounts.get(k));
+          break;
         }
-        //TODO: burda bir kontrol yapılmalı da ne ben de bilmiyorum
-        if (validatorHash.comparedTo(accounts.get(j).getIdentifier()) < 0
-            && accounts.get(validatorIndex).getStake() >= Parameters.MINIMUM_STAKE) {
-          assignment.add(accounts.get(validatorIndex).getIdentifier());
-          accounts.remove(validatorIndex);
+      }
+      if (selectedAccounts.size() != j + 1) {
+        for (int k = accounts.size() - 1; k >= 0; k--) {
+          if (accounts.get(k).getStake() >= Parameters.MINIMUM_STAKE
+              && !selectedAccounts.contains(accounts.get(k))) {
+            assignment.add(accounts.get(k).getIdentifier());
+            selectedAccounts.add(accounts.get(k));
+            break;
+          }
         }
       }
     }
+    if (selectedAccounts.size() < num) {
+      throw new IllegalArgumentException("not enough accounts in the snapshot");
+    }
     return assignment;
   }
+
+
 }
