@@ -27,14 +27,14 @@ public class TableSnapshotTest {
     for (int i = 0; i < 2; i++) {
       for (int j = 0; j < 5; j++) {
         Identifier accountId = IdentifierFixture.newIdentifier();
-        Account account = new AccountFixture(accountId, Parameters.MINIMUM_STAKE + j);
+        Account account = AccountFixture.newAccount(accountId, Parameters.MINIMUM_STAKE + j);
         tableSnapshot.addAccount(accountId, account);
         identifiers.add(accountId);
         accounts.add(account);
       }
       for (int k = 0; k < 5; k++) {
         Identifier accountId = IdentifierFixture.newIdentifier();
-        Account account = new AccountFixture(accountId, Parameters.MINIMUM_STAKE - 2);
+        Account account = AccountFixture.newAccount(accountId, Parameters.MINIMUM_STAKE - 2);
         tableSnapshot.addAccount(accountId, account);
         identifiers.add(accountId);
         accounts.add(account);

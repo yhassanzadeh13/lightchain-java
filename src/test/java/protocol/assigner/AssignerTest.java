@@ -56,6 +56,7 @@ public class AssignerTest {
   public void testAssignerPicksTwoStakedAccount() {
     // Arrange
     Identifier entityId = IdentifierFixture.newIdentifier();
+    Account a = AccountFixture.newAccount(entityId);
     ArrayList<Account> accounts = new ArrayList<>(AccountFixture.randomAccounts().values());
     Snapshot snapshot = mock(Snapshot.class);
     when(snapshot.all()).thenReturn(accounts);
