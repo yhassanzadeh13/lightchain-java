@@ -21,7 +21,6 @@ public class IdentifierMapDb implements Identifiers {
     this.filePath = filePath;
     db = DBMaker.fileDB(filePath).make();
     identifierArrayList = db.indexTreeList("identrifierArrayList", Serializer.BYTE_ARRAY).createOrOpen();
-    db.close();
   }
 
   /**
@@ -59,8 +58,14 @@ public class IdentifierMapDb implements Identifiers {
       db = DBMaker.fileDB(filePath).make();
     }
     identifierArrayList = db.indexTreeList("identrifierArrayList", Serializer.BYTE_ARRAY).createOrOpen();
-    byte[] bytes = identifier.getBytes();
-    return identifierArrayList.contains(bytes);
+
+    for(byte[] bytes1 : identifierArrayList){
+       Identifier identifier1 = new Identifier(bytes1);
+       if(identifier1.toString().equals(identifier.toString())){
+         return true;
+       }
+    }
+    return false;
 
   }
 
