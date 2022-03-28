@@ -15,20 +15,6 @@ public class TransactionFixture {
 
   /**
    * Creates a new transaction with randomly created sender identifier, receiver identifier, reference block id,
-   * and transaction amount.
-   *
-   * @return random Transaction object
-   */
-  public static model.lightchain.Transaction newTransaction() {
-    Identifier sender = IdentifierFixture.newIdentifier();
-    Identifier receiver = IdentifierFixture.newIdentifier();
-    Identifier referenceBlockId = IdentifierFixture.newIdentifier();
-    double amount = Math.abs(RANDOM.nextInt()) + 1;
-    return new model.lightchain.Transaction(sender, receiver, referenceBlockId, amount);
-  }
-
-  /**
-   * Creates a new transaction with randomly created sender identifier, receiver identifier, reference block id,
    * and given transaction amount.
    *
    * @param amount Transaction amount for the random Transaction object
@@ -40,4 +26,19 @@ public class TransactionFixture {
     Identifier referenceBlockId = IdentifierFixture.newIdentifier();
     return new model.lightchain.Transaction(sender, receiver, referenceBlockId, amount);
   }
+
+  /**
+   * Creates a new transaction with randomly created transaction amount, receiver identifier, reference block id,
+   * and given sender identifier.
+   *
+   * @param sender sender identifier for the random Transaction object
+   * @return random Transaction object
+   */
+  public static model.lightchain.Transaction newTransaction(Identifier sender) {
+    Identifier receiver = IdentifierFixture.newIdentifier();
+    Identifier referenceBlockId = IdentifierFixture.newIdentifier();
+    double amount = Math.abs(RANDOM.nextInt()) + 1;
+    return new model.lightchain.Transaction(sender, receiver, referenceBlockId, amount);
+  }
+
 }
