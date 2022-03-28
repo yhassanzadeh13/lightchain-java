@@ -29,14 +29,11 @@ public class MetricServer {
    * Terminates the Prometheus Exposer HTTP Server.
    */
   public static void terminate() {
-
     try {
       server.close();
     } catch (Exception e) {
       throw new IllegalStateException("could not stop metrics server:\t" + e);
     }
-
   }
-
 
 }

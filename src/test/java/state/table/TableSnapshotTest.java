@@ -1,5 +1,8 @@
 package state.table;
 
+/**
+ * Encapsulates tests for hash table implementation of state snapshot.
+ */
 public class TableSnapshotTest {
   // TODO: implementing a test covering each of the following scenarios.
   // 1. create a snapshot with 10 staked and 10 unstaked accounts, then check

@@ -8,13 +8,16 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import unittest.fixtures.EntityFixture;
 
+/**
+ * Encapsulates tests for SHA3256 hashing.
+ */
 public class Sha3256HasherTest {
 
   /**
-   * Test if the hash is 32 bytes long
+   * Test if the hash is 32 bytes long.
    */
   @Test
-  public void TestHashLength() {
+  public void testHashLength() {
     EntityFixture testEntity = new EntityFixture();
     JsonEncoder encoder = new JsonEncoder();
     EncodedEntity encodedEntity = encoder.encode(testEntity);
@@ -26,10 +29,10 @@ public class Sha3256HasherTest {
   }
 
   /**
-   * Test if the hash is the same for the same entity
+   * Test if the hash is the same for the same entity.
    */
   @Test
-  public void TestHashingSameEntity() {
+  public void testHashingSameEntity() {
     EntityFixture testEntity = new EntityFixture();
     JsonEncoder encoder = new JsonEncoder();
     EncodedEntity encodedEntity = encoder.encode(testEntity);
@@ -42,10 +45,10 @@ public class Sha3256HasherTest {
   }
 
   /**
-   * Test if the hash is different for different entities
+   * Test if the hash is different for different entities.
    */
   @Test
-  public void TestHashingDifferentEntities() {
+  public void testHashingDifferentEntities() {
     JsonEncoder encoder = new JsonEncoder();
     Sha3256Hasher hasher = new Sha3256Hasher();
     EntityFixture testEntity1 = new EntityFixture();
