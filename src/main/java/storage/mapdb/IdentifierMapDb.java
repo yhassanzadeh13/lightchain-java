@@ -1,13 +1,13 @@
 package storage.mapdb;
 
 import java.util.ArrayList;
+import java.util.concurrent.ConcurrentMap;
 
-import org.mapdb.DB;
-import org.mapdb.Serializer;
-import org.mapdb.DBMaker;
 import model.lightchain.Identifier;
+import org.mapdb.DB;
+import org.mapdb.DBMaker;
+import org.mapdb.Serializer;
 import storage.Identifiers;
-import org.mapdb.*;
 
 /**
  * Implementation of identifiers interface.
@@ -15,7 +15,7 @@ import org.mapdb.*;
 public class IdentifierMapDb implements Identifiers {
   private static DB db = null;
   private final String filePath;
-  private IndexTreeList<byte[]> identifierArrayList;
+  private ConcurrentMap identifierArrayList;
 
   public IdentifierMapDb(String filePath) {
     this.filePath = filePath;
@@ -31,18 +31,17 @@ public class IdentifierMapDb implements Identifiers {
    */
   @Override
   public boolean add(Identifier identifier) {
-    if(db.isClosed()){
+    if (db.isClosed()) {
       db = DBMaker.fileDB(filePath).make();
     }
-    identifierArrayList = db.indexTreeList("identrifierArrayList", Serializer.BYTE_ARRAY).createOrOpen();
+    identifierArrayList = db.hashMap("identrifierArrayList").createOrOpen();
     byte[] bytes = identifier.getBytes();
-    if (identifierArrayList.add(bytes)) {
-      db.commit();
-      db.close();
-      return true;
-    } else {
-      db.close();
+    Identifier id = (Identifier) this.identifierArrayList.get(bytes);
+    if (id != null) {
+      return false;
     }
+
+    identifierArrayList.put(identifier.getBytes(), identifier.getBytes());
     return false;
   }
 
@@ -54,16 +53,16 @@ public class IdentifierMapDb implements Identifiers {
    */
   @Override
   public boolean has(Identifier identifier) {
-    if(db.isClosed()){
+    if (db.isClosed()) {
       db = DBMaker.fileDB(filePath).make();
     }
     identifierArrayList = db.indexTreeList("identrifierArrayList", Serializer.BYTE_ARRAY).createOrOpen();
 
-    for(byte[] bytes1 : identifierArrayList){
-       Identifier identifier1 = new Identifier(bytes1);
-       if(identifier1.toString().equals(identifier.toString())){
-         return true;
-       }
+    for (byte[] bytes1 : identifierArrayList) {
+      Identifier identifier1 = new Identifier(bytes1);
+      if (identifier1.toString().equals(identifier.toString())) {
+        return true;
+      }
     }
     return false;
 
@@ -77,7 +76,7 @@ public class IdentifierMapDb implements Identifiers {
    */
   @Override
   public boolean remove(Identifier identifier) {
-    if(db.isClosed()){
+    if (db.isClosed()) {
       db = DBMaker.fileDB(filePath).make();
     }
     identifierArrayList = db.indexTreeList("identrifierArrayList", Serializer.BYTE_ARRAY).createOrOpen();
@@ -98,7 +97,7 @@ public class IdentifierMapDb implements Identifiers {
    */
   @Override
   public ArrayList<Identifier> all() {
-    if(db.isClosed()){
+    if (db.isClosed()) {
       db = DBMaker.fileDB(filePath).make();
     }
     identifierArrayList = db.indexTreeList("identrifierArrayList", Serializer.BYTE_ARRAY).createOrOpen();
