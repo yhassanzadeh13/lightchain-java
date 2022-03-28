@@ -35,10 +35,12 @@ public class Account {
   /**
    * Constructor of an Account.
    *
-   *  @param identifier unique identifier of the account.
-   * @param publicKey public key of the account owner.
+
+   * @param identifier  unique identifier of the account.
+   * @param publicKey   public key of the account owner.
    * @param lastBlockId identifier of the last block id that changed this account (or genesis id at bootstrap time).
-   * @param stake amount of LightChain tokens this account locks in the system in order to be eligible to propose
+   * @param stake       amount of LightChain tokens this account locks in the system in order to be eligible to propose
+
    */
   public Account(Identifier identifier, PublicKey publicKey, Identifier lastBlockId, int stake) {
     this.identifier = identifier;
@@ -66,5 +68,9 @@ public class Account {
 
   public Identifier getLastBlockId() {
     return lastBlockId;
+  }
+
+  public int getStake() {
+    return this.stake;
   }
 }

@@ -9,7 +9,7 @@ import state.State;
 /**
  * Represents a validator class that is used to validate a Transaction is valid.
  */
-public class TransactionValidator implements Validator {
+public class TransactionValidator implements InfTransactionValidator {
   /**
    * Unique State that the transaction is in.
    */

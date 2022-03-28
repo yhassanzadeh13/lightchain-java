@@ -13,6 +13,7 @@ import state.Snapshot;
 import state.State;
 import unittest.fixtures.AccountFixture;
 import unittest.fixtures.TransactionFixture;
+import unittest.fixtures.ValidatedTransactionFixture;
 
 /**
  * Encapsulates tests for transaction validation part of PoV consensus.
@@ -26,14 +27,15 @@ public class ValidatorTest {
   public void testTransactionIsNotValid_NullSnapshot() {
     // Arrange
     /// Transaction
-    Transaction transaction = TransactionFixture.newTransaction();
+    Transaction transaction = ValidatedTransactionFixture.newValidatedTransaction();
 
     /// State & Snapshot Mocking
     State mockState = mock(State.class);
     when(mockState.atBlockId(transaction.getReferenceBlockId())).thenReturn(null);
 
     /// Verifier
-    Validator verifier = new TransactionValidator(mockState);
+
+    InfTransactionValidator verifier = new TransactionValidator(mockState);
 
     // Act
     boolean result = verifier.isCorrect(transaction);
@@ -50,19 +52,20 @@ public class ValidatorTest {
   public void testTransactionIsNotValid_InvalidSender() {
     // Arrange
     /// Transaction
-    Transaction transaction = TransactionFixture.newTransaction();
+    Transaction transaction = ValidatedTransactionFixture.newValidatedTransaction();
 
     /// State & Snapshot Mocking
     State mockState = mock(State.class);
     Snapshot mockSnapshot = mock(Snapshot.class);
-    Account receiverAccount = new AccountFixture(transaction.getReceiver());
+
+    Account receiverAccount = AccountFixture.newAccount(transaction.getReceiver());
 
     when(mockState.atBlockId(transaction.getReferenceBlockId())).thenReturn(mockSnapshot);
     when(mockSnapshot.getAccount(transaction.getSender())).thenReturn(null);
     when(mockSnapshot.getAccount(transaction.getReceiver())).thenReturn(receiverAccount);
 
     /// Verifier
-    Validator verifier = new TransactionValidator(mockState);
+    InfTransactionValidator verifier = new TransactionValidator(mockState);
 
     // Act
     boolean result = verifier.isCorrect(transaction);
@@ -79,19 +82,19 @@ public class ValidatorTest {
   public void testTransactionIsNotValid_InvalidReceiver() {
     // Arrange
     /// Transaction
-    Transaction transaction = TransactionFixture.newTransaction();
+    Transaction transaction = ValidatedTransactionFixture.newValidatedTransaction();
 
     /// State & Snapshot Mocking
     State mockState = mock(State.class);
     Snapshot mockSnapshot = mock(Snapshot.class);
-    Account senderAccount = new AccountFixture(transaction.getSender());
+    Account senderAccount = AccountFixture.newAccount(transaction.getSender());
 
     when(mockState.atBlockId(transaction.getReferenceBlockId())).thenReturn(mockSnapshot);
     when(mockSnapshot.getAccount(transaction.getSender())).thenReturn(senderAccount);
     when(mockSnapshot.getAccount(transaction.getReceiver())).thenReturn(null);
 
     /// Verifier
-    Validator verifier = new TransactionValidator(mockState);
+    InfTransactionValidator verifier = new TransactionValidator(mockState);
 
     // Act
     boolean result = verifier.isCorrect(transaction);
@@ -113,15 +116,16 @@ public class ValidatorTest {
     /// State & Snapshot Mocking
     State mockState = mock(State.class);
     Snapshot mockSnapshot = mock(Snapshot.class);
-    Account senderAccount = new AccountFixture(transaction.getSender());
-    Account receiverAccount = new AccountFixture(transaction.getReceiver());
+
+    Account senderAccount = AccountFixture.newAccount(transaction.getSender());
+    Account receiverAccount = AccountFixture.newAccount(transaction.getReceiver());
 
     when(mockState.atBlockId(transaction.getReferenceBlockId())).thenReturn(mockSnapshot);
     when(mockSnapshot.getAccount(transaction.getSender())).thenReturn(senderAccount);
     when(mockSnapshot.getAccount(transaction.getReceiver())).thenReturn(receiverAccount);
 
     /// Verifier
-    Validator verifier = new TransactionValidator(mockState);
+    InfTransactionValidator verifier = new TransactionValidator(mockState);
 
     // Act
     boolean result = verifier.isCorrect(transaction);
@@ -129,7 +133,6 @@ public class ValidatorTest {
     // Assert
     // fixture sanity check
     Assertions.assertEquals(0, transaction.getAmount());
-
     Assertions.assertFalse(result);
   }
 
@@ -146,15 +149,16 @@ public class ValidatorTest {
     /// State & Snapshot Mocking
     State mockState = mock(State.class);
     Snapshot mockSnapshot = mock(Snapshot.class);
-    Account senderAccount = new AccountFixture(transaction.getSender());
-    Account receiverAccount = new AccountFixture(transaction.getReceiver());
+
+    Account senderAccount = AccountFixture.newAccount(transaction.getSender());
+    Account receiverAccount = AccountFixture.newAccount(transaction.getReceiver());
 
     when(mockState.atBlockId(transaction.getReferenceBlockId())).thenReturn(mockSnapshot);
     when(mockSnapshot.getAccount(transaction.getSender())).thenReturn(senderAccount);
     when(mockSnapshot.getAccount(transaction.getReceiver())).thenReturn(receiverAccount);
 
     /// Verifier
-    Validator verifier = new TransactionValidator(mockState);
+    InfTransactionValidator verifier = new TransactionValidator(mockState);
 
     // Act
     boolean result = verifier.isCorrect(transaction);
@@ -162,7 +166,6 @@ public class ValidatorTest {
     // Assert
     // fixture sanity check
     Assertions.assertTrue(transaction.getAmount() < 0);
-
     Assertions.assertFalse(result);
   }
 
@@ -171,27 +174,26 @@ public class ValidatorTest {
    * 1- Reference block id is a valid and finalized block.
    * 2- The sender and receiver both refer to valid accounts at the snapshot of the reference block id.
    * 3- Amount value is non-negative.
-   *
    */
   @Test
   public void testTransactionIsCorrect() {
     // Arrange
     /// Transaction
-    Transaction transaction = TransactionFixture.newTransaction();
+    Transaction transaction = ValidatedTransactionFixture.newValidatedTransaction();
 
     /// State & Snapshot Mocking
     State mockState = mock(State.class);
     Snapshot mockSnapshot = mock(Snapshot.class);
 
-    Account senderAccount = new AccountFixture(transaction.getSender());
-    Account receiverAccount = new AccountFixture(transaction.getReceiver());
+    Account senderAccount = AccountFixture.newAccount(transaction.getSender());
+    Account receiverAccount = AccountFixture.newAccount(transaction.getReceiver());
 
     when(mockState.atBlockId(transaction.getReferenceBlockId())).thenReturn(mockSnapshot);
     when(mockSnapshot.getAccount(transaction.getSender())).thenReturn(senderAccount);
     when(mockSnapshot.getAccount(transaction.getReceiver())).thenReturn(receiverAccount);
 
     /// Verifier
-    Validator verifier = new TransactionValidator(mockState);
+    InfTransactionValidator verifier = new TransactionValidator(mockState);
 
     // Act
     boolean result = verifier.isCorrect(transaction);
@@ -208,7 +210,7 @@ public class ValidatorTest {
   public void testTransactionIsNotSound_LowerHeight() {
     // Arrange
     /// Transaction
-    Transaction transaction = TransactionFixture.newTransaction();
+    Transaction transaction = ValidatedTransactionFixture.newValidatedTransaction();
 
     /// State & Snapshot Mocking
     State mockState = mock(State.class);
@@ -216,7 +218,7 @@ public class ValidatorTest {
     Snapshot mockSenderAccountSnapshot = mock(Snapshot.class);
 
     Identifier sender = transaction.getSender();
-    Account senderAccount = new AccountFixture(sender);
+    Account senderAccount = AccountFixture.newAccount(sender);
 
     when(mockState.atBlockId(transaction.getReferenceBlockId())).thenReturn(mockTransactionSnapshot);
     when(mockTransactionSnapshot.getAccount(sender)).thenReturn(senderAccount);
@@ -226,7 +228,7 @@ public class ValidatorTest {
     when(mockSenderAccountSnapshot.getReferenceBlockHeight()).thenReturn(10L);
 
     /// Verifier
-    Validator verifier = new TransactionValidator(mockState);
+    InfTransactionValidator verifier = new TransactionValidator(mockState);
 
     // Act
     boolean result = verifier.isSound(transaction);
@@ -243,14 +245,14 @@ public class ValidatorTest {
   public void testTransactionIsNotSound_EqualHeight() {
     // Arrange
     /// Transaction
-    Transaction transaction = TransactionFixture.newTransaction();
+    Transaction transaction = ValidatedTransactionFixture.newValidatedTransaction();
 
     /// State & Snapshot Mocking
     State mockState = mock(State.class);
     Snapshot mockSnapshot = mock(Snapshot.class);
 
     Identifier sender = transaction.getSender();
-    Account senderAccount = new AccountFixture(sender);
+    Account senderAccount = AccountFixture.newAccount(sender);
 
     when(mockState.atBlockId(transaction.getReferenceBlockId())).thenReturn(mockSnapshot);
     when(mockSnapshot.getAccount(sender)).thenReturn(senderAccount);
@@ -258,7 +260,7 @@ public class ValidatorTest {
     when(mockSnapshot.getReferenceBlockHeight()).thenReturn(1L);
 
     /// Verifier
-    Validator verifier = new TransactionValidator(mockState);
+    InfTransactionValidator verifier = new TransactionValidator(mockState);
 
     // Act
     boolean result = verifier.isSound(transaction);
@@ -275,7 +277,7 @@ public class ValidatorTest {
   public void testTransactionIsSound() {
     // Arrange
     /// Transaction
-    Transaction transaction = TransactionFixture.newTransaction();
+    Transaction transaction = ValidatedTransactionFixture.newValidatedTransaction();
 
     /// State & Snapshot Mocking
     State mockState = mock(State.class);
@@ -283,7 +285,7 @@ public class ValidatorTest {
     Snapshot mockSenderAccountSnapshot = mock(Snapshot.class);
 
     Identifier sender = transaction.getSender();
-    Account senderAccount = new AccountFixture(sender);
+    Account senderAccount = AccountFixture.newAccount(sender);
 
     when(mockState.atBlockId(transaction.getReferenceBlockId())).thenReturn(mockTransactionSnapshot);
     when(mockTransactionSnapshot.getAccount(sender)).thenReturn(senderAccount);
@@ -293,7 +295,7 @@ public class ValidatorTest {
     when(mockSenderAccountSnapshot.getReferenceBlockHeight()).thenReturn(9L);
 
     /// Verifier
-    Validator verifier = new TransactionValidator(mockState);
+    InfTransactionValidator verifier = new TransactionValidator(mockState);
 
     // Act
     boolean result = verifier.isSound(transaction);
@@ -310,14 +312,14 @@ public class ValidatorTest {
   public void testTransactionIsNotAuthenticated() {
     // Arrange
     /// Transaction
-    Transaction transaction = TransactionFixture.newTransaction();
+    Transaction transaction = ValidatedTransactionFixture.newValidatedTransaction();
 
     /// State & Snapshot Mocking
     State mockState = mock(State.class);
     Snapshot mockSnapshot = mock(Snapshot.class);
 
     Identifier sender = transaction.getSender();
-    Account senderAccount = new AccountFixture(sender);
+    Account senderAccount = AccountFixture.newAccount(sender);
     Signature signature = transaction.getSignature();
 
     when(mockState.atBlockId(transaction.getReferenceBlockId())).thenReturn(mockSnapshot);
@@ -326,7 +328,7 @@ public class ValidatorTest {
     when(mockSnapshot.getAccount(sender).getPublicKey().verifySignature(transaction, signature)).thenReturn(false);
 
     /// Verifier
-    Validator verifier = new TransactionValidator(mockState);
+    InfTransactionValidator verifier = new TransactionValidator(mockState);
 
     // Act
     boolean result = verifier.isAuthenticated(transaction);
@@ -343,20 +345,20 @@ public class ValidatorTest {
   public void testTransactionIsAuthenticated() {
     // Arrange
     /// Transaction
-    Transaction transaction = TransactionFixture.newTransaction();
+    Transaction transaction = ValidatedTransactionFixture.newValidatedTransaction();
 
     /// State & Snapshot Mocking
     State mockState = mock(State.class);
     Snapshot mockSnapshot = mock(Snapshot.class);
     Identifier sender = transaction.getSender();
-    Account senderAccount = new AccountFixture(sender);
+    Account senderAccount = AccountFixture.newAccount(sender);
     Signature signature = transaction.getSignature();
     when(mockState.atBlockId(transaction.getReferenceBlockId())).thenReturn(mockSnapshot);
     when(mockSnapshot.getAccount(sender)).thenReturn(senderAccount);
     when(mockSnapshot.getAccount(sender).getPublicKey().verifySignature(transaction, signature)).thenReturn(true);
 
     /// Verifier
-    Validator verifier = new TransactionValidator(mockState);
+    InfTransactionValidator verifier = new TransactionValidator(mockState);
 
     // Act
     boolean result = verifier.isAuthenticated(transaction);
@@ -372,20 +374,20 @@ public class ValidatorTest {
   public void testSenderDoesNotHasEnoughBalance() {
     // Arrange
     /// Transaction
-    Transaction transaction = TransactionFixture.newTransaction();
+    Transaction transaction = ValidatedTransactionFixture.newValidatedTransaction();
 
     /// State & Snapshot Mocking
     State mockState = mock(State.class);
     Snapshot mockSnapshot = mock(Snapshot.class);
     Identifier sender = transaction.getSender();
-    Account senderAccount = new AccountFixture(sender);
+    Account senderAccount = AccountFixture.newAccount(sender);
     senderAccount.setBalance(0);
 
     when(mockState.atBlockId(transaction.getReferenceBlockId())).thenReturn(mockSnapshot);
     when(mockSnapshot.getAccount(sender)).thenReturn(senderAccount);
 
     /// Verifier
-    Validator verifier = new TransactionValidator(mockState);
+    InfTransactionValidator verifier = new TransactionValidator(mockState);
 
     // Act
     boolean result = verifier.senderHasEnoughBalance(transaction);
@@ -402,13 +404,13 @@ public class ValidatorTest {
   public void testSenderHasEnoughBalance() {
     // Arrange
     /// Transaction
-    Transaction transaction = TransactionFixture.newTransaction();
+    Transaction transaction = ValidatedTransactionFixture.newValidatedTransaction();
 
     /// State & Snapshot Mocking
     State mockState = mock(State.class);
     Snapshot mockSnapshot = mock(Snapshot.class);
     Identifier sender = transaction.getSender();
-    Account senderAccount = new AccountFixture(sender);
+    Account senderAccount = AccountFixture.newAccount(sender);
     // sender always having more balance than transaction amount
     senderAccount.setBalance(transaction.getAmount() + 1000);
 
@@ -416,7 +418,7 @@ public class ValidatorTest {
     when(mockSnapshot.getAccount(sender)).thenReturn(senderAccount);
 
     /// Verifier
-    Validator verifier = new TransactionValidator(mockState);
+    InfTransactionValidator verifier = new TransactionValidator(mockState);
 
     // Act
     boolean result = verifier.senderHasEnoughBalance(transaction);
