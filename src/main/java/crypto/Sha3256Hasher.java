@@ -67,7 +67,6 @@ public class Sha3256Hasher implements Hasher {
     }
   }
 
-
   public Sha3256Hash computeHash(Sha3256Hash h1, Sha3256Hash h2) {
     try {
       MessageDigest md = MessageDigest.getInstance(HASH_ALG_SHA_3_256);
@@ -76,6 +75,19 @@ public class Sha3256Hasher implements Hasher {
         return new Sha3256Hash(md.digest(concat(h1.getHashBytes(), h2.getHashBytes())));
       }
       return new Sha3256Hash(md.digest(concat(h2.getHashBytes(), h1.getHashBytes())));
+    } catch (NoSuchAlgorithmException ex) {
+      throw new IllegalStateException(HASH_ALG_SHA_3_256 + "algorithm not found.", ex);
+    }
+  }
+
+  public Sha3256Hash computeHash(byte[] b1, byte[] b2) {
+    try {
+      MessageDigest md = MessageDigest.getInstance(HASH_ALG_SHA_3_256);
+      int compare = Arrays.compare(b1, b2);
+      if (compare > 0) {
+        return new Sha3256Hash(md.digest(concat(b1, b2)));
+      }
+      return new Sha3256Hash(md.digest(concat(b2, b1)));
     } catch (NoSuchAlgorithmException ex) {
       throw new IllegalStateException(HASH_ALG_SHA_3_256 + "algorithm not found.", ex);
     }

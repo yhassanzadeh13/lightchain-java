@@ -43,15 +43,15 @@ public class SkipListNode {
       this.FV = new Sha3256Hash(zeroHashBytes);
     } else if (this.down == null) {
       if (this.isTower) {
-        this.FV = hasher.computeHash(this.identifier, right.getIdentifier());
+        this.FV = hasher.computeHash(this.identifier.getBytes(), this.right.getIdentifier().getBytes());
       } else {
-        this.FV = hasher.computeHash(this.identifier, right.getFV());
+        this.FV = hasher.computeHash(this.identifier.getBytes(), this.right.getFV().getHashBytes());
       }
     } else {
       if (this.isTower) {
-        this.FV = down.getFV();
+        this.FV = this.down.getFV();
       } else {
-        this.FV = hasher.computeHash(down.getFV(), right.getFV());
+        this.FV = hasher.computeHash(this.down.getFV().getHashBytes(), this.right.getFV().getHashBytes());
       }
     }
   }

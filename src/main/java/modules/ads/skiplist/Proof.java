@@ -1,57 +1,65 @@
 package modules.ads.skiplist;
 
 import java.util.ArrayList;
-import java.util.Stack;
+import java.util.Arrays;
+import java.util.Objects;
 
 import model.crypto.Sha3256Hash;
 import model.lightchain.Identifier;
 import modules.ads.MembershipProof;
 
 public class Proof implements MembershipProof {
-  private ArrayList<Sha3256Hash> path;
-  private Identifier root;
+  private ArrayList<byte[]> path;
+  private Sha3256Hash root;
+  private boolean isPresent;
 
-  public Proof(ArrayList<Sha3256Hash> path, Identifier root) {
+  public Proof(ArrayList<byte[]> path, Sha3256Hash root, boolean isPresent) {
     this.path = path;
+    this.root = root;
+    this.isPresent = isPresent;
+  }
+
+  @Override
+  public ArrayList<byte[]> getPath() {
+    return path;
+  }
+
+  public void setPath(ArrayList<byte[]> path) {
+    this.path = path;
+  }
+
+  @Override
+  public Sha3256Hash getRoot() {
+    return root;
+  }
+
+  public void setRoot(Sha3256Hash root) {
     this.root = root;
   }
 
-  /**
-   * Root of the authenticated data structure that this proof belongs to.
-   *
-   * @return root identifier.
-   */
+  public boolean isPresent() {
+    return isPresent;
+  }
+
+  public void setPresent(boolean present) {
+    isPresent = present;
+  }
+
   @Override
-  public Identifier getRoot() {
-    return this.root;
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+    Proof proof = (Proof) o;
+    for (int i = 0; i < path.size(); i++) {
+      if (!Arrays.equals(path.get(i), proof.path.get(i))) {
+        return false;
+      }
+    }
+    return isPresent == proof.isPresent && root.equals(proof.root);
   }
 
-  /**
-   * Sets the root of the authenticated data structure that this proof belongs to.
-   *
-   * @param root identifier of the root.
-   */
-  public void setRoot(Identifier root) {
-    this.root = root;
-  }
-
-  /**
-   * Returns the path of the proof of membership.
-   *
-   * @param identifier identifier of the node to be verified.
-   * @return path of the proof of membership.
-   */
   @Override
-  public ArrayList<Sha3256Hash> getPath(Identifier identifier) {
-    return this.path;
-  }
-
-  /**
-   * Sets the path of the proof of membership.
-   *
-   * @param path path of the proof of membership.
-   */
-  public void setPath(ArrayList<Sha3256Hash> path) {
-    this.path = path;
+  public int hashCode() {
+    return Objects.hash(path, root, isPresent);
   }
 }

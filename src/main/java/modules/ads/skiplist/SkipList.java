@@ -1,11 +1,11 @@
 package modules.ads.skiplist;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Random;
 import java.util.Stack;
 
 import model.Entity;
-import model.crypto.Sha3256Hash;
 import model.lightchain.Identifier;
 import modules.ads.AuthenticatedDataStructure;
 import modules.ads.AuthenticatedEntity;
@@ -112,7 +112,7 @@ public class SkipList implements AuthenticatedDataStructure {
       insertionStack.clear();
       updateStack.clear();
     }
-    return null;
+    return get(e);
   }
 
   @Override
@@ -127,59 +127,46 @@ public class SkipList implements AuthenticatedDataStructure {
       dropDown();
     } while (this.currNode.getDown() != null);
     hopForward(id);
+    ArrayList<byte[]> path = getSequence();
+    Proof proof;
     if (id.comparedTo(this.currNode.getIdentifier()) == 0) {
-      System.out.println("Found " + this.currNode.getIdentifier());
+      proof = new Proof(path, this.root.getFV(), true);
     } else {
-      System.out.println("Not found " + id);
+      return null;
     }
-    return null;
+    return new modules.ads.skiplist.AuthenticatedEntity(proof, e.type(), e);
   }
 
-  private ArrayList<Sha3256Hash> getSequence(Entity e) {
-    ArrayList<Sha3256Hash> sequence = new ArrayList<>();
-    Stack<SkipListNode> pathStack = new Stack<>();
-    pathStack.addAll(searchStack);
-    return null;
-  }
-  @Override
-  public String toString() {
-    int countX = 0;
-    ArrayList<String> nodeArray = new ArrayList<>();
-    SkipListNode stringNode = this.root;
-    while (stringNode.getDown() != null) {
-      stringNode = stringNode.getDown();
+  private ArrayList<byte[]> getSequence() {
+    ArrayList<SkipListNode> pSequence = new ArrayList<>(searchStack);
+    Collections.reverse(pSequence);
+    ArrayList<byte[]> qSequence = new ArrayList<>();
+    SkipListNode w1 = pSequence.get(0).getRight();
+    if (w1 == null) {
+      qSequence.add(new byte[32]);
+    } else if (w1.isTower()) {
+      qSequence.add(w1.getIdentifier().getBytes());
+    } else {
+      qSequence.add(w1.getFV().getHashBytes());
     }
-    nodeArray.add(stringNode.getIdentifier().toString().substring(0, 5));
-    while (stringNode.getRight() != null) {
-      countX += 1;
-      stringNode = stringNode.getRight();
-      nodeArray.add(stringNode.getIdentifier().toString().substring(0, 5));
-    }
-
-    //System.out.print("\n");
-    //System.out.println("--- Skip List ---");
-
-    StringBuilder prettyString = new StringBuilder();
-    SkipListNode currNode = this.root;
-    while (currNode != null) {
-      int countY = 0;
-      SkipListNode tempNode = currNode;
-      String strId = currNode.getIdentifier().toString().substring(0, 5);
-      prettyString.append(strId).append(" ");
-      countY += 1;
-      while (tempNode.getRight() != null) {
-        tempNode = tempNode.getRight();
-        strId = tempNode.getIdentifier().toString().substring(0, 5);
-        int idx = nodeArray.indexOf(strId);
-        for (int i = 0; i < ((idx - countY) * 6); i++) {
-          prettyString.append(" ");
+    qSequence.add(pSequence.get(0).getIdentifier().getBytes());
+    for (int i = 1; i < pSequence.size()-1; i++) {
+      SkipListNode currNode = pSequence.get(i);
+      SkipListNode currW = currNode.getRight();
+      if (currW == null) {
+        qSequence.add(new byte[32]);
+      } else if (!currW.isTower()) {
+        if (currW != pSequence.get(i - 1)) {
+          qSequence.add(currW.getFV().getHashBytes());
+        } else {
+          if (currNode.getDown() == null) {
+            qSequence.add(currNode.getIdentifier().getBytes());
+          } else {
+            qSequence.add(currNode.getDown().getFV().getHashBytes());
+          }
         }
-        prettyString.append(strId).append(" ");
-        countY += (idx - countY + 1);
       }
-      prettyString.append("\n");
-      currNode = currNode.getDown();
     }
-    return prettyString.toString();
+    return qSequence;
   }
 }
