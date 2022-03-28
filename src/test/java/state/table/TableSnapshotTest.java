@@ -1,5 +1,7 @@
 package state.table;
 
+import java.util.ArrayList;
+
 import model.lightchain.Account;
 import model.lightchain.Identifier;
 import org.junit.jupiter.api.Assertions;
@@ -7,8 +9,6 @@ import org.junit.jupiter.api.Test;
 import protocol.Parameters;
 import unittest.fixtures.AccountFixture;
 import unittest.fixtures.IdentifierFixture;
-
-import java.util.ArrayList;
 
 /**
  * Encapsulates tests for hash table implementation of state snapshot.
@@ -45,20 +45,14 @@ public class TableSnapshotTest {
       }
     }
 
-    // Act
-    boolean rootBlockCorrectness = tableSnapshot.getReferenceBlockId().equals(rootBlockId);
-    boolean heightCorrectness = tableSnapshot.getReferenceBlockHeight() == 10L;
-    boolean stakedAccountsSizeCorrectness = tableSnapshot.all().size() == 20;
-    boolean allGetterCorrectness = tableSnapshot.all().containsAll(accounts)
-        && accounts.containsAll(tableSnapshot.all());
-
     // Assert
     for (int i = 0; i < identifiers.size(); i++) {
       Assertions.assertEquals(tableSnapshot.getAccount(identifiers.get(i)), accounts.get(i));
     }
-    Assertions.assertTrue(rootBlockCorrectness);
-    Assertions.assertTrue(heightCorrectness);
-    Assertions.assertTrue(stakedAccountsSizeCorrectness);
-    Assertions.assertTrue(allGetterCorrectness);
+    Assertions.assertEquals(tableSnapshot.getReferenceBlockId(), rootBlockId);
+    Assertions.assertEquals(tableSnapshot.getReferenceBlockHeight(), 10L);
+    Assertions.assertEquals(tableSnapshot.all().size(), 20);
+    Assertions.assertTrue(tableSnapshot.all().containsAll(accounts)
+        && accounts.containsAll(tableSnapshot.all()));
   }
 }

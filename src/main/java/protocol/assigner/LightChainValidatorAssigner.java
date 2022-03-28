@@ -79,6 +79,4 @@ public class LightChainValidatorAssigner implements ValidatorAssigner {
     }
     return assignment;
   }
-
-
 }

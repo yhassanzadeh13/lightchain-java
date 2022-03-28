@@ -2,6 +2,8 @@ package protocol.assigner;
 
 import java.util.ArrayList;
 
+import static org.mockito.Mockito.*;
+
 import model.lightchain.Account;
 import model.lightchain.Assignment;
 import model.lightchain.Identifier;
@@ -10,8 +12,6 @@ import org.junit.jupiter.api.Test;
 import state.Snapshot;
 import unittest.fixtures.AccountFixture;
 import unittest.fixtures.IdentifierFixture;
-
-import static org.mockito.Mockito.*;
 
 /**
  * Encapsulates tests for validator assignment.
@@ -153,7 +153,8 @@ public class AssignerTest {
   }
 
   /**
-   * Tests the assigner to choose 1 account when the snapshot is empty and confirms it fails and returns IllegalArgumentException.
+   * Tests the assigner to choose 1 account when the snapshot is empty and confirms it fails
+   * and returns IllegalArgumentException.
    */
   @Test
   public void testAssignerFails_NullAccountList() throws IllegalArgumentException {

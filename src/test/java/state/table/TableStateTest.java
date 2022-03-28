@@ -1,5 +1,9 @@
 package state.table;
 
+import java.util.*;
+
+import static org.mockito.Mockito.*;
+
 import model.lightchain.Account;
 import model.lightchain.Identifier;
 import org.apache.commons.lang3.tuple.Pair;
@@ -8,10 +12,6 @@ import org.junit.jupiter.api.Test;
 import state.Snapshot;
 import unittest.fixtures.AccountFixture;
 import unittest.fixtures.IdentifierFixture;
-
-import java.util.*;
-
-import static org.mockito.Mockito.*;
 
 /**
  * Encapsulates tests for hash table implementation of protocol state.
