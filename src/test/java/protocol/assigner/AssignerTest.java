@@ -15,13 +15,9 @@ import static org.mockito.Mockito.*;
 
 /**
  * Encapsulates tests for validator assignment.
+ * All tests consider a snapshot of 10 staked accounts and 10 unstaked accounts as well as a mock identifier
  */
 public class AssignerTest {
-
-  /**
-   * All tests consider a snapshot of 10 staked accounts and 10 unstaked accounts as well as a mock identifier
-   */
-
   /**
    * Tests the assigner to choose one of the staked accounts and confirms it always picks the same account by
    * running the test 100 times.
@@ -59,7 +55,6 @@ public class AssignerTest {
   public void testAssignerPicksTwoStakedAccount() {
     // Arrange
     Identifier entityId = IdentifierFixture.newIdentifier();
-    Account a = AccountFixture.newAccount(entityId);
     ArrayList<Account> accounts = new ArrayList<>(AccountFixture.randomAccounts().values());
     Snapshot snapshot = mock(Snapshot.class);
     when(snapshot.all()).thenReturn(accounts);
@@ -139,8 +134,6 @@ public class AssignerTest {
   /**
    * Tests the assigner to choose eleven of the staked accounts and confirms it fails since there is not enough accounts
    * and returns IllegalArgumentException.
-   *
-   * @throws IllegalArgumentException
    */
   @Test
   public void testAssignerFails_NotEnoughAccount() throws IllegalArgumentException {
@@ -152,7 +145,7 @@ public class AssignerTest {
     // Act
     LightChainValidatorAssigner assigner = new LightChainValidatorAssigner();
     try {
-      Assignment assignment = assigner.assign(entityId, snapshot, (short) 11);
+      assigner.assign(entityId, snapshot, (short) 11);
       Assertions.fail();
     } catch (IllegalArgumentException e) {
       Assertions.assertEquals("not enough accounts in the snapshot", e.getMessage());
@@ -161,8 +154,6 @@ public class AssignerTest {
 
   /**
    * Tests the assigner to choose 1 account when the snapshot is empty and confirms it fails and returns IllegalArgumentException.
-   *
-   * @throws IllegalArgumentException
    */
   @Test
   public void testAssignerFails_NullAccountList() throws IllegalArgumentException {
@@ -174,7 +165,7 @@ public class AssignerTest {
     // Act
     LightChainValidatorAssigner assigner = new LightChainValidatorAssigner();
     try {
-      Assignment assignment = assigner.assign(entityId, snapshot, (short) 1);
+      assigner.assign(entityId, snapshot, (short) 1);
       Assertions.fail();
     } catch (IllegalArgumentException e) {
       Assertions.assertEquals("not enough accounts in the snapshot", e.getMessage());
@@ -183,8 +174,6 @@ public class AssignerTest {
 
   /**
    * Tests the assigner confirms it fails and returns IllegalArgumentException when given identifier is null.
-   *
-   * @throws IllegalArgumentException
    */
   @Test
   public void testAssignerFails_NullIdentifier() throws IllegalArgumentException {
@@ -195,7 +184,7 @@ public class AssignerTest {
     // Act
     LightChainValidatorAssigner assigner = new LightChainValidatorAssigner();
     try {
-      Assignment assignment = assigner.assign(null, snapshot, (short) 1);
+      assigner.assign(null, snapshot, (short) 1);
       Assertions.fail();
     } catch (IllegalArgumentException e) {
       Assertions.assertEquals("identifier cannot be null", e.getMessage());
@@ -205,8 +194,6 @@ public class AssignerTest {
 
   /**
    * Tests the assigner confirms it fails and returns IllegalArgumentException when given snapshot is null.
-   *
-   * @throws IllegalArgumentException
    */
   @Test
   public void testAssignerFails_NullSnapshot() throws IllegalArgumentException {
@@ -216,7 +203,7 @@ public class AssignerTest {
     // Act
     LightChainValidatorAssigner assigner = new LightChainValidatorAssigner();
     try {
-      Assignment assignment = assigner.assign(entityId, null, (short) 1);
+      assigner.assign(entityId, null, (short) 1);
       Assertions.fail();
     } catch (IllegalArgumentException e) {
       Assertions.assertEquals("snapshot cannot be null", e.getMessage());
