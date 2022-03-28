@@ -1,11 +1,27 @@
 package storage.mapdb;
 
+import java.util.ArrayList;
+
+import org.mapdb.DB;
+import org.mapdb.Serializer;
+import org.mapdb.DBMaker;
 import model.lightchain.Identifier;
 import storage.Identifiers;
 import org.mapdb.*;
-import java.util.ArrayList;
 
+/**
+ * Implementation of identifiers interface.
+ */
 public class IdentifierMapDb implements Identifiers {
+  private static DB db = null;
+  private String filePath;
+  private IndexTreeList<byte[]> identifierArrayList;
+
+  public IdentifierMapDb(String filePath) {
+    this.filePath = filePath;
+    db = DBMaker.fileDB(filePath).make();
+    this.identifierArrayList = db.indexTreeList("identrifierArrayList", Serializer.BYTE_ARRAY).createOrOpen();
+  }
 
   /**
    * Adds an identifier to the storage, returns true if it is new, false if it already exists.
@@ -15,7 +31,9 @@ public class IdentifierMapDb implements Identifiers {
    */
   @Override
   public boolean add(Identifier identifier) {
-    return false;
+    byte[] bytes = identifier.getBytes();
+    identifierArrayList.add(bytes);
+    return identifierArrayList.add(bytes);
   }
 
   /**
@@ -26,7 +44,9 @@ public class IdentifierMapDb implements Identifiers {
    */
   @Override
   public boolean has(Identifier identifier) {
-    return false;
+    byte[] bytes = identifier.getBytes();
+    return identifierArrayList.contains(bytes);
+
   }
 
   /**
@@ -37,7 +57,8 @@ public class IdentifierMapDb implements Identifiers {
    */
   @Override
   public boolean remove(Identifier identifier) {
-    return false;
+    byte[] bytes = identifier.getBytes();
+    return identifierArrayList.remove(bytes);
   }
 
   /**
@@ -47,6 +68,11 @@ public class IdentifierMapDb implements Identifiers {
    */
   @Override
   public ArrayList<Identifier> all() {
-    return null;
+    ArrayList<Identifier> arrayList = new ArrayList<>();
+    for (byte[] element : identifierArrayList) {
+      Identifier identifierFromBytes = new Identifier(element);
+      arrayList.add(identifierFromBytes);
+    }
+    return arrayList;
   }
 }

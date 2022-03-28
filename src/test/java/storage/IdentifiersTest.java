@@ -1,5 +1,7 @@
 package storage;
 
+import org.junit.jupiter.api.Test;
+
 /**
  * Encapsulates tests for identifiers database.
  */
@@ -23,4 +25,11 @@ public class IdentifiersTest {
   //    Has returns true for each of them, and All returns list of all of them. Then try Adding all of them again, and
   //    Add should return false for each of them.
 
+  /**
+   * When adding 10 new identifiers sequentially, the Add method must return true for all of them.
+   * 
+   */
+  @Test
+  void firstTest() {
+  }
 }
