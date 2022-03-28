@@ -37,4 +37,9 @@ public class Assignment {
     Assignment that = (Assignment) o;
     return validators.equals(that.validators);
   }
+
+  @Override
+  public int hashCode() {
+    return validators.hashCode();
+  }
 }

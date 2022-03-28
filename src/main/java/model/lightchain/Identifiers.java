@@ -31,4 +31,9 @@ public class Identifiers {
     Identifiers that = (Identifiers) o;
     return this.identifiers.equals(that.identifiers);
   }
+
+  @Override
+  public int hashCode() {
+    return this.identifiers.hashCode();
+  }
 }
