@@ -9,17 +9,18 @@ import io.prometheus.client.Gauge;
 import io.prometheus.client.exporter.HTTPServer;
 import metrics.collectors.LightChainCollector;
 
-/** Demonstrative Class for setting up an HTTP Endpoint Server for Prometheus metric exposure.
+/**
+ * Demonstrative Class for setting up an HTTP Endpoint Server for Prometheus metric exposure.
  */
 public class DemoServer {
-
+  private static final int SERVER_PORT = 8081;
   static HTTPServer server;
   static LightChainCollector collector;
   static Counter demoServerQueryCount;
   static Gauge demoServerQueryGauge;
-  private static final int SERVER_PORT = 8081;
 
-  /** main function.
+  /**
+   * main function.
    *
    * @param args standart Java args
    */
@@ -32,10 +33,10 @@ public class DemoServer {
       collector = new LightChainCollector();
 
       demoServerQueryCount = collector.counter().register("demo_server_query_count",
-              "localnet", "demo", "Demo server query count");
+          "localnet", "demo", "Demo server query count");
 
       demoServerQueryGauge = collector.gauge().register("demo_server_query_gauge",
-              "localnet", "demo", "Demo server query gauge");
+          "localnet", "demo", "Demo server query gauge");
 
     } catch (IllegalArgumentException ex) {
       System.err.println("Could not initialize the metrics with the provided arguments" + ex);

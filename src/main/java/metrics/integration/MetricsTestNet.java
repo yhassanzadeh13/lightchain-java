@@ -23,13 +23,11 @@ import com.github.dockerjava.transport.DockerHttpClient;
  * The prometheus container is exposed at localhost:9090.
  */
 public class MetricsTestNet {
-  private final DockerClient dockerClient;
+  protected static final String NETWORK_NAME = "network";
   // common
   private static final String MAIN_TAG = "main";
   private static final String USER_DIR = "user.dir";
-  private static final String NETWORK_NAME = "network";
   private static final String NETWORK_DRIVER_NAME = "bridge";
-
   // Prometheus
   private static final int PROMETHEUS_PORT = 9090;
   private static final String PROMETHEUS = "prometheus";
@@ -38,7 +36,6 @@ public class MetricsTestNet {
   private static final String PROMETHEUS_MAIN_CMD = "prom/prometheus:main";
   private static final String PROMETHEUS_VOLUME_BINDING_ETC = "/prometheus" + ":" + "/etc/prometheus";
   private static final String PROMETHEUS_VOLUME_BINDING_VOLUME = "prometheus_volume" + ":" + "/prometheus";
-
   // Grafana
   private static final int GRAFANA_PORT = 3000;
   private static final String GRAFANA = "grafana";
@@ -53,6 +50,7 @@ public class MetricsTestNet {
       "/grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards";
   private static final String GRAFANA_DATA_SOURCE_BINDING =
       "/grafana/provisioning/datasources:/etc/grafana/provisioning/datasources";
+  protected final DockerClient dockerClient;
 
   /**
    * Default constructor.
@@ -76,7 +74,7 @@ public class MetricsTestNet {
    *
    * @throws IllegalStateException when container creation faces an illegal state.
    */
-  public void run() throws IllegalStateException {
+  public void runMetricsTestNet() throws IllegalStateException {
     // Volume check + create if absent
     this.createVolumesIfNotExist(dockerClient, PROMETHEUS_VOLUME);
     this.createVolumesIfNotExist(dockerClient, GRAFANA_VOLUME);
@@ -213,4 +211,5 @@ public class MetricsTestNet {
         .withHostConfig(hostConfig)
         .exec();
   }
+
 }

@@ -22,7 +22,7 @@ public class Demo {
     MetricsTestNet testNet = new MetricsTestNet();
 
     try {
-      testNet.run();
+      testNet.runMetricsTestNet();
     } catch (IllegalStateException e) {
       System.err.println("could not run metrics testnet" + e);
       System.exit(1);
