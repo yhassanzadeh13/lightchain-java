@@ -1,7 +1,7 @@
 package protocol.engines;
 
 /**
- * Encapsulates tests for validator engine. 
+ * Encapsulates tests for validator engine.
  */
 public class ValidatorEngineTest {
   // TODO: a single individual test function for each of these scenarios:

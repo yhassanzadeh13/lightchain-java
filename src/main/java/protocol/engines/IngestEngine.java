@@ -27,6 +27,7 @@ public class IngestEngine implements Engine {
    * Note that engine should always discard transactions and blocks that it has seen before without any further
    * further processing.
    * -----
+   * 
    * @param e the arrived Entity from the network, it should be either a transaction or a block.
    * @throws IllegalArgumentException when the arrived entity is neither a transaction nor a block.
    */
