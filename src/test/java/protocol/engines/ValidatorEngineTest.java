@@ -1,5 +1,8 @@
 package protocol.engines;
 
+/**
+ * Encapsulates tests for validator engine. 
+ */
 public class ValidatorEngineTest {
   // TODO: a single individual test function for each of these scenarios:
   // Note: except when explicitly mentioned, always assume the input block or transaction is assigned to this node
