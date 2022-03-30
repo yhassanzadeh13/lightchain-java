@@ -7,4 +7,5 @@ public class EntityType {
   public static final String TYPE_TRANSACTION = "type-lightchain-transaction";
   public static final String TYPE_BLOCK = "type-lightchain-block";
   public static final String TYPE_VALIDATED_TRANSACTION = "type-lightchain-validated-transaction";
+  public static final String TYPE_VALIDATED_BLOCK = "type-lightchain-validated-block";
 }
