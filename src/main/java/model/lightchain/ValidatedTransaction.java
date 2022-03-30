@@ -40,4 +40,9 @@ public class ValidatedTransaction extends Transaction {
   public String type() {
     return EntityType.TYPE_VALIDATED_TRANSACTION;
   }
+
+  @Override
+  public Identifier id() {
+    return super.id();
+  }
 }
