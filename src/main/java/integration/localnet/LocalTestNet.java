@@ -21,7 +21,6 @@ import metrics.integration.MetricsTestNet;
  * The prometheus container is exposed at localhost:9090.
  */
 public class LocalTestNet extends MetricsTestNet {
-  private static final int SERVER_PORT = 8081;
   private static final String SERVER_VOLUME = "server_volume";
   private static final String SERVER = "server";
   private static final String SERVER_VOLUME_BINDING = "server_volume:/app";
@@ -61,16 +60,12 @@ public class LocalTestNet extends MetricsTestNet {
         .exec(new BuildImageResultCallback())
         .awaitImageId();
 
-    Ports serverPortBindings = new Ports();
-    serverPortBindings.bind(ExposedPort.tcp(SERVER_PORT), Ports.Binding.bindPort(SERVER_PORT));
-
     List<Bind> serverBinds = new ArrayList<Bind>();
     serverBinds.add(Bind.parse(SERVER_VOLUME_BINDING));
 
     HostConfig hostConfig = new HostConfig()
         .withBinds(serverBinds)
-        .withNetworkMode(NETWORK_NAME)
-        .withPortBindings(serverPortBindings);
+        .withNetworkMode(NETWORK_NAME);
 
     return this.dockerClient
         .createContainerCmd(imageId)
@@ -92,6 +87,8 @@ public class LocalTestNet extends MetricsTestNet {
     dockerClient
         .startContainerCmd(httpServer.getId())
         .exec();
+
+    System.out.println("localnet is up and running");
   }
 }
 

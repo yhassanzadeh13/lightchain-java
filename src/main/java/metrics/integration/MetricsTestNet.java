@@ -94,6 +94,8 @@ public class MetricsTestNet {
     dockerClient
         .startContainerCmd(grafanaContainer.getId())
         .exec();
+    System.out.println("prometheus is up and running at localhost:9090");
+    System.out.println("grafana is up and running at localhost:3000");
   }
 
   /**

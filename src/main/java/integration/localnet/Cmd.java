@@ -5,7 +5,7 @@ package integration.localnet;
  * components of the TestNet. This class also utilizes the Java Docker API in order to containerize
  * the three components and build up the necessary supporting infrastructure.
  */
-public class Main {
+public class Cmd {
   /**
    * The main function.
    *

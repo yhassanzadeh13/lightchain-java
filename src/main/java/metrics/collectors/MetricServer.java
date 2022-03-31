@@ -14,7 +14,7 @@ public class MetricServer {
   /**
    * Initiates the Prometheus Exposer HTTP Server.
    */
-  public static void start() {
+  public void start() {
 
     try {
       server = new HTTPServer(SERVER_PORT);
@@ -27,7 +27,7 @@ public class MetricServer {
   /**
    * Terminates the Prometheus Exposer HTTP Server.
    */
-  public static void terminate() {
+  public void terminate() {
     try {
       server.close();
     } catch (Exception e) {
