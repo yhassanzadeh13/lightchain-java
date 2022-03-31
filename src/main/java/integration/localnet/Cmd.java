@@ -17,7 +17,7 @@ public class Cmd {
     try {
       testNet.runLocalTestNet();
     } catch (IllegalStateException e) {
-      System.err.println("could not initialize and run HTTP Server Container" + e);
+      System.err.println("could not initialize and run http server container: " + e.getMessage());
       System.exit(1);
     }
   }
