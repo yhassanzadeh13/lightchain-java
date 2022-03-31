@@ -1,7 +1,6 @@
 package modules.ads.skiplist;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Random;
 import java.util.Stack;
 
@@ -49,33 +48,33 @@ public class SkipList implements AuthenticatedDataStructure {
     if (e == null) {
       return null;
     }
-    get(e);
+    get(e); // this updates the search stack
     updateStack.addAll(searchStack);
     if (e.id().comparedTo(this.currNode.getIdentifier()) != 0) {
       boolean coinFlip;
       do {
         SkipListNode newNode = new SkipListNode(e);
         coinFlip = random.nextBoolean();
-        if (searchStack.size() > 0) {
+        if (searchStack.size() > 0) { //
           SkipListNode currNodeStack = this.searchStack.pop();
           if (insertionStack.isEmpty()) { // if the node is in the base level
-            newNode.setRight(currNodeStack.getRight()); // change in right
+            newNode.setRight(currNodeStack.getRight());
             newNode.calculateFV();
-            currNodeStack.setRight(newNode); // change in right
-            currNodeStack.setDropDown(false); // change in dropDown
+            currNodeStack.setRight(newNode);
+            currNodeStack.setDropDown(false);
           } else { // if the node is in a higher level
             SkipListNode oldNode = insertionStack.pop();
-            oldNode.setTower(true); // change in tower
-            newNode.setDown(oldNode); // change in down
+            oldNode.setTower(true);
+            newNode.setDown(oldNode);
             newNode.calculateFV();
             while (!this.searchStack.isEmpty() && !currNodeStack.isDropDown()) {
               currNodeStack = this.searchStack.pop();
             }
             if (currNodeStack.isDropDown()) {
-              newNode.setRight(currNodeStack.getRight()); // change in right
+              newNode.setRight(currNodeStack.getRight());
               newNode.calculateFV();
-              currNodeStack.setRight(newNode); // change in right
-              currNodeStack.setDropDown(false); // change in dropDown
+              currNodeStack.setRight(newNode);
+              currNodeStack.setDropDown(false);
             } else {
               SkipListNode newRoot = new SkipListNode();
               this.root.setTower(true); // change in tower
@@ -87,21 +86,21 @@ public class SkipList implements AuthenticatedDataStructure {
           }
         } else {
           if (this.root.getDown() == null && this.root.getRight() == null) { // first insertion
-            this.root.setRight(newNode); // change in right
-            this.root.calculateFV(); // update FV
-          } else {
+            this.root.setRight(newNode);
+            this.root.calculateFV();
+          } else { // creates another level when coinFlip is n+1 times true, where n is the number of levels
             SkipListNode newRoot = new SkipListNode();
             this.root.setTower(true);
-            this.root.calculateFV(); // update FV
-            newRoot.setDown(this.root); // change in down
-            newRoot.setRight(newNode); // change in right
-            newRoot.calculateFV(); // update FV
-            this.root = newRoot; // change in root
+            this.root.calculateFV();
+            newRoot.setDown(this.root);
+            newRoot.setRight(newNode);
+            newRoot.calculateFV();
+            this.root = newRoot;
             SkipListNode oldNode = insertionStack.pop();
-            oldNode.setTower(true); // change in tower
-            oldNode.calculateFV(); // update FV
-            newNode.setDown(oldNode); // change in down
-            newNode.calculateFV(); // update FV
+            oldNode.setTower(true);
+            oldNode.calculateFV();
+            newNode.setDown(oldNode);
+            newNode.calculateFV();
           }
         }
         insertionStack.push(newNode);
@@ -139,30 +138,30 @@ public class SkipList implements AuthenticatedDataStructure {
 
   private ArrayList<byte[]> getSequence() {
     ArrayList<SkipListNode> pSequence = new ArrayList<>(searchStack);
-    Collections.reverse(pSequence);
+    //Collections.reverse(pSequence);
     ArrayList<byte[]> qSequence = new ArrayList<>();
-    SkipListNode w1 = pSequence.get(0).getRight();
-    if (w1 == null) {
+    SkipListNode w1 = pSequence.get(0).getRight(); // w1 ← right(v1)
+    if (w1 == null) { // if v is one of the right most nodes
       qSequence.add(new byte[32]);
     } else if (w1.isTower()) {
-      qSequence.add(w1.getIdentifier().getBytes());
-    } else {
-      qSequence.add(w1.getFV().getHashBytes());
+      qSequence.add(w1.getIdentifier().getBytes()); // x0 ← f(w1)
+    } else { // if w1 is a plateau node
+      qSequence.add(w1.getFV().getHashBytes()); // x0 ← elem(w1)
     }
-    qSequence.add(pSequence.get(0).getIdentifier().getBytes());
-    for (int i = 1; i < pSequence.size()-1; i++) {
+    qSequence.add(pSequence.get(0).getIdentifier().getBytes()); // x1 ← x, where x is the searched node
+    for (int i = 1; i < pSequence.size() - 1; i++) { // for i ← 2,···,m−1
       SkipListNode currNode = pSequence.get(i);
-      SkipListNode currW = currNode.getRight();
+      SkipListNode currW = currNode.getRight(); // wi ← right(vi), where wi is the right node of vi
       if (currW == null) {
         qSequence.add(new byte[32]);
-      } else if (!currW.isTower()) {
-        if (currW != pSequence.get(i - 1)) {
-          qSequence.add(currW.getFV().getHashBytes());
-        } else {
-          if (currNode.getDown() == null) {
-            qSequence.add(currNode.getIdentifier().getBytes());
+      } else if (!currW.isTower()) { // if wi is a plateau node
+        if (currW != pSequence.get(i - 1)) { // if wi != vi−1
+          qSequence.add(currW.getFV().getHashBytes()); // xj ← f(wi), paper uses j for numbering issues. i is enough here.
+        } else { // if wi = vi−1
+          if (currNode.getDown() == null) { // if vi is in the base list S0
+            qSequence.add(currNode.getIdentifier().getBytes()); // xj ← elem(vi)
           } else {
-            qSequence.add(currNode.getDown().getFV().getHashBytes());
+            qSequence.add(currNode.getDown().getFV().getHashBytes()); // xj ← f(ui), where ui is the down node of vi
           }
         }
       }

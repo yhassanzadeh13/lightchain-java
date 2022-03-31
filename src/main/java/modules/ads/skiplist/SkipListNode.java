@@ -37,20 +37,20 @@ public class SkipListNode {
     calculateFV();
   }
 
-  public void calculateFV() {
-    if (this.right == null) {
+  public void calculateFV() { // v is curr node, u is down of curr node, w is right of curr node
+    if (this.right == null) { // f(v) = 0
       byte[] zeroHashBytes = new byte[32];
       this.FV = new Sha3256Hash(zeroHashBytes);
     } else if (this.down == null) {
-      if (this.isTower) {
+      if (this.isTower) { // f(v) = h(elem(v),elem(w))
         this.FV = hasher.computeHash(this.identifier.getBytes(), this.right.getIdentifier().getBytes());
-      } else {
+      } else { // f(v) = h(elem(v), f(w))
         this.FV = hasher.computeHash(this.identifier.getBytes(), this.right.getFV().getHashBytes());
       }
     } else {
-      if (this.isTower) {
+      if (this.isTower) { // f(v) = f(u).
         this.FV = this.down.getFV();
-      } else {
+      } else { // f(v) = h(f(u), f(w))
         this.FV = hasher.computeHash(this.down.getFV().getHashBytes(), this.right.getFV().getHashBytes());
       }
     }
