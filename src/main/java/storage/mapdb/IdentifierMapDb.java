@@ -23,8 +23,8 @@ public class IdentifierMapDb implements Identifiers {
    * @param filePath the path of the file.
    */
   public IdentifierMapDb(String filePath) {
-    db = DBMaker.fileDB(filePath).make();
-    identifierMap = db.hashMap(MAP_NAME)
+    this.db = DBMaker.fileDB(filePath).make();
+    identifierMap = this.db.hashMap(MAP_NAME)
         .keySerializer(Serializer.BYTE_ARRAY)
         .valueSerializer(Serializer.BYTE_ARRAY)
         .createOrOpen();
@@ -38,7 +38,6 @@ public class IdentifierMapDb implements Identifiers {
    */
   @Override
   public boolean add(Identifier identifier) {
-    byte[] bytes = identifier.getBytes();
     return identifierMap.putIfAbsentBoolean(identifier.getBytes(), identifier.getBytes());
   }
 
