@@ -22,5 +22,4 @@ public class IdentifiersTest {
   //    Add must return true,
   //    Has returns true for each of them, and All returns list of all of them. Then try Adding all of them again, and
   //    Add should return false for each of them.
-
 }
