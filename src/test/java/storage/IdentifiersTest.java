@@ -63,23 +63,20 @@ public class IdentifiersTest {
    * When adding 10 new identifiers sequentially, the Add method must return true for all of them.
    */
   @Test
-  void firstTest() throws IOException {
-    int count = 0;
+  void sequentialAddTest() throws IOException {
     for (Identifier identifier : identifierArrayList) {
-      if (!db.add(identifier)) {
-        count++;
-      }
+      Assertions.assertTrue(db.add(identifier));
     }
     for (Identifier identifier : identifierArrayList) {
-      if (!db.has(identifier)) {
-        count++;
-      }
+      Assertions.assertTrue(db.has(identifier));
     }
-    if (db.all().size() != 10) {
-      count++;
+
+    // TODO: check correctness
+    for(Identifier identifier: db.all()){
+      Assertions.assertTrue(identifierArrayList.contains(identifier));
     }
+
     db.closeDb();
-    Assertions.assertEquals(0, count);
     FileUtils.deleteDirectory(new File(tempdir.toString()));
   }
 
