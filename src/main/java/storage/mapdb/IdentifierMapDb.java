@@ -1,7 +1,6 @@
 package storage.mapdb;
 
 import java.util.ArrayList;
-import java.util.concurrent.ConcurrentMap;
 
 import model.lightchain.Identifier;
 import org.mapdb.DB;
@@ -19,6 +18,11 @@ public class IdentifierMapDb implements Identifiers {
   private static final String MAP_NAME = "identifierMap";
   private HTreeMap<byte[], byte[]> identifierMap;
 
+  /**
+   * Creates MapDb.
+   *
+   * @param filePath the path of the file.
+   */
   public IdentifierMapDb(String filePath) {
     db = DBMaker.fileDB(filePath).make();
     identifierMap = db.hashMap(MAP_NAME)
