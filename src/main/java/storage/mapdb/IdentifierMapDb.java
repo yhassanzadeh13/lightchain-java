@@ -14,7 +14,6 @@ import storage.Identifiers;
  */
 public class IdentifierMapDb implements Identifiers {
   private static DB db = null;
-
   private static final String MAP_NAME = "identifierMap";
   private HTreeMap<byte[], byte[]> identifierMap;
 
@@ -40,10 +39,10 @@ public class IdentifierMapDb implements Identifiers {
   @Override
   public boolean add(Identifier identifier) {
     byte[] bytes = identifier.getBytes();
-    if (bytes == null) {
-      return false;
+    if (bytes != null) {
+      return identifierMap.putIfAbsentBoolean(identifier.getBytes(), identifier.getBytes());
     }
-    return identifierMap.putIfAbsentBoolean(identifier.getBytes(), identifier.getBytes());
+    return false;
   }
 
   /**
