@@ -65,12 +65,15 @@ public class IdentifiersTest {
   @Test
   void sequentialAddTest() throws IOException {
     for (Identifier identifier : identifierArrayList) {
+      // for concurrent testing this is a separate thread.
       Assertions.assertTrue(db.add(identifier));
     }
     for (Identifier identifier : identifierArrayList) {
+      // for concurrent testing this is a separate thread.
       Assertions.assertTrue(db.has(identifier));
     }
 
+    // for concurrent testing this is a separate thread.
     // TODO: check correctness
     for(Identifier identifier: db.all()){
       Assertions.assertTrue(identifierArrayList.contains(identifier));
