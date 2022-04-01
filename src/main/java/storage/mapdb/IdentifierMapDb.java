@@ -15,7 +15,7 @@ import storage.Identifiers;
 public class IdentifierMapDb implements Identifiers {
   private static DB db = null;
   private static final String MAP_NAME = "identifierMap";
-  private HTreeMap<byte[], byte[]> identifierMap;
+  private final HTreeMap<byte[], byte[]> identifierMap;
 
   /**
    * Creates MapDb.
