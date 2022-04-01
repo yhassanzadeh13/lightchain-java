@@ -1,5 +1,7 @@
 package unittest.fixtures;
 
+import java.util.Random;
+
 import model.crypto.Signature;
 import model.lightchain.Block;
 import model.lightchain.Identifier;
@@ -10,6 +12,8 @@ import protocol.Parameters;
  * Encapsulates creating random blocks for testing.
  */
 public class BlockFixture {
+  private static final Random random = new Random();
+
   /**
    * Returns a block with randomly generated values.
    *
@@ -24,7 +28,9 @@ public class BlockFixture {
       transactions[i] = ValidatedTransactionFixture.newValidatedTransaction();
     }
     Signature signature = SignatureFixture.newSignatureFixture(proposer);
-    return new Block(previousBlockId, proposer, transactions, signature);
+
+    int height = Math.abs(random.nextInt(1_000_000));
+    return new Block(previousBlockId, proposer, height, transactions, signature);
   }
 
   /**
@@ -41,7 +47,9 @@ public class BlockFixture {
       transactions[i] = ValidatedTransactionFixture.newValidatedTransaction();
     }
     Signature signature = SignatureFixture.newSignatureFixture(proposer);
-    return new Block(previousBlockId, proposer, transactions, signature);
+
+    int height = Math.abs(random.nextInt(1_000_000));
+    return new Block(previousBlockId, proposer, height, transactions, signature);
   }
 
   /**
@@ -54,6 +62,9 @@ public class BlockFixture {
     Identifier previousBlockId = IdentifierFixture.newIdentifier();
     Identifier proposer = IdentifierFixture.newIdentifier();
     Signature signature = SignatureFixture.newSignatureFixture(proposer);
-    return new Block(previousBlockId, proposer, transactions, signature);
+
+    int height = Math.abs(random.nextInt(1_000_000));
+    return new Block(previousBlockId, proposer, height, transactions, signature);
   }
+
 }
