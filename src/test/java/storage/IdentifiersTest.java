@@ -75,7 +75,7 @@ public class IdentifiersTest {
 
     // for concurrent testing this is a separate thread.
     // TODO: check correctness
-    for(Identifier identifier: db.all()){
+    for (Identifier identifier : db.all()) {
       Assertions.assertTrue(identifierArrayList.contains(identifier));
     }
 
