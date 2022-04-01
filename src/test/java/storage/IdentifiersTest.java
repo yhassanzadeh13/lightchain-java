@@ -11,12 +11,9 @@ import model.lightchain.Identifier;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mapdb.DB;
-import org.mapdb.DBMaker;
 import org.testcontainers.shaded.org.apache.commons.io.FileUtils;
 import storage.mapdb.IdentifierMapDb;
 import unittest.fixtures.IdentifierFixture;
-
 
 /**
  * Encapsulates tests for identifiers database.
@@ -81,7 +78,7 @@ public class IdentifiersTest {
     if (db.all().size() != 10) {
       count++;
     }
-    db.closeDB();
+    db.closeDb();
     Assertions.assertEquals(0, count);
     FileUtils.deleteDirectory(new File(tempdir.toString()));
   }
@@ -120,7 +117,7 @@ public class IdentifiersTest {
     if (db.all().size() != 5) {
       count++;
     }
-    db.closeDB();
+    db.closeDb();
     Assertions.assertEquals(0, count);
     FileUtils.deleteDirectory(new File(tempdir.toString()));
   }
@@ -147,7 +144,7 @@ public class IdentifiersTest {
         count++;
       }
     }
-    db.closeDB();
+    db.closeDb();
     Assertions.assertEquals(0, count);
     FileUtils.deleteDirectory(new File(tempdir.toString()));
   }

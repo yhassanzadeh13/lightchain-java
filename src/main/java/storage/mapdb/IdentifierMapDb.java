@@ -88,7 +88,7 @@ public class IdentifierMapDb implements Identifiers {
   /**
    * It closes the database.
    */
-  public void closeDB() {
+  public void closeDb() {
     db.close();
   }
 }
