@@ -13,7 +13,7 @@ import storage.Identifiers;
  * Implementation of identifiers interface.
  */
 public class IdentifierMapDb implements Identifiers {
-  private static DB db = null;
+  private final DB db ;
   private static final String MAP_NAME = "identifierMap";
   private final HTreeMap<byte[], byte[]> identifierMap;
 
