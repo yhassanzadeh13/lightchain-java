@@ -12,8 +12,7 @@ import protocol.Parameters;
  * Encapsulates creating random blocks for testing.
  */
 public class BlockFixture {
-
-  private final static Random random = new Random();
+  private static final Random random = new Random();
 
   /**
    * Returns a block with randomly generated values.
