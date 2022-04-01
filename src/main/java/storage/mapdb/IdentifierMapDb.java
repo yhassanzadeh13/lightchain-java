@@ -39,10 +39,7 @@ public class IdentifierMapDb implements Identifiers {
   @Override
   public boolean add(Identifier identifier) {
     byte[] bytes = identifier.getBytes();
-    if (bytes != null) {
-      return identifierMap.putIfAbsentBoolean(identifier.getBytes(), identifier.getBytes());
-    }
-    return false;
+    return identifierMap.putIfAbsentBoolean(identifier.getBytes(), identifier.getBytes());
   }
 
   /**
