@@ -1,7 +1,7 @@
 package storage;
 
 /**
- * Encapsulates tests for block database. 
+ * Encapsulates tests for block database.
  */
 public class BlocksTest {
   // TODO: implement a unit test for each of the following scenarios:
@@ -15,7 +15,8 @@ public class BlocksTest {
   //    querying All method, list of all 10 block must be returned.
   // 2. Repeat test case 1 for concurrently adding blocks as well as concurrently querying the database for has, byId,
   //    and byHeight.
-  // 3. Add 10 new blocks sequentially, check that they are added correctly, i.e., while adding each block Add must return
+  // 3. Add 10 new blocks sequentially, check that they are added correctly, i.e., while adding each block
+  //    Add must return
   //    true, Has returns true for each of them, each block is retrievable by both its height and its identifier,
   //    and All returns list of all of them. Then Remove the first 5 blocks sequentially.
   //    While Removing each of them, the Remove should return true. Then query all 10 blocks using has, byId,
