@@ -6,8 +6,6 @@ import java.util.List;
 
 import com.github.dockerjava.api.command.BuildImageResultCallback;
 import com.github.dockerjava.api.command.CreateContainerResponse;
-import com.github.dockerjava.api.command.InspectVolumeResponse;
-import com.github.dockerjava.api.command.ListVolumesResponse;
 import com.github.dockerjava.api.model.Bind;
 import com.github.dockerjava.api.model.HostConfig;
 import metrics.integration.MetricsTestNet;
