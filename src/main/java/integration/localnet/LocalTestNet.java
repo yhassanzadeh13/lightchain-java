@@ -81,12 +81,14 @@ public class LocalTestNet extends MetricsTestNet {
   public void runLocalTestNet() throws IllegalStateException {
     super.runMetricsTestNet();
 
+    System.out.println("building local testnet, please wait ....");
+
     CreateContainerResponse httpServer = this.createServerContainer();
     dockerClient
         .startContainerCmd(httpServer.getId())
         .exec();
 
-    System.out.println("localnet is up and running");
+    System.out.println("local testnet is up and running!");
   }
 }
 
