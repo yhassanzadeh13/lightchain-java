@@ -1,11 +1,12 @@
 package model.crypto;
 
+import model.Entity;
 import model.lightchain.Identifier;
 
 /**
  * Represents abstract data type for the cryptographic digital signature used in LightChain.
  */
-public abstract class Signature {
+public abstract class Signature extends Entity {
   /**
    * The signature value in bytes.
    */

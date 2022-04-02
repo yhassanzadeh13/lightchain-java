@@ -28,6 +28,11 @@ public class Block extends model.Entity {
   private final Signature signature;
 
   /**
+   * Height of the block.
+   */
+  private final int height;
+
+  /**
    * Constructor of the block.
    *
    * @param previousBlockId identifier of a finalized block that this block is extending its snapshot.
@@ -43,6 +48,28 @@ public class Block extends model.Entity {
     this.proposer = proposer;
     this.transactions = transactions.clone();
     this.signature = signature;
+    this.height = 0;
+  }
+
+  /**
+   * Constructor of the block.
+   *
+   * @param previousBlockId identifier of a finalized block that this block is extending its snapshot.
+   * @param proposer identifier of the node that proposes this block (i.e., miner).
+   * @param height height of the block.
+   * @param transactions set of validated transactions that this block carries.
+   * @param signature signature of the proposer over the hash of this block.
+   */
+  public Block(Identifier previousBlockId,
+               Identifier proposer,
+               int height,
+               ValidatedTransaction[] transactions,
+               Signature signature) {
+    this.previousBlockId = previousBlockId;
+    this.proposer = proposer;
+    this.transactions = transactions.clone();
+    this.signature = signature;
+    this.height = height;
   }
 
   /**
@@ -68,5 +95,9 @@ public class Block extends model.Entity {
 
   public Signature getSignature() {
     return signature;
+  }
+
+  public int getHeight() {
+    return height;
   }
 }

@@ -1,5 +1,6 @@
 package model.crypto.ecdsa;
 
+import model.codec.EntityType;
 import model.crypto.Signature;
 import model.lightchain.Identifier;
 
@@ -12,5 +13,10 @@ public class EcdsaSignature extends Signature {
 
   public EcdsaSignature(byte[] bytes, Identifier signerId) {
     super(bytes, signerId);
+  }
+
+  @Override
+  public String type() {
+    return EntityType.TYPE_ECDSA_SIGNATURE;
   }
 }
