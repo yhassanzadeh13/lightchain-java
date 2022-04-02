@@ -36,3 +36,5 @@ target/
 out/
 infer-out/tmp/
 infer-out/
+
+*.db
