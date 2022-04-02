@@ -35,21 +35,7 @@ public class LocalTestNet extends MetricsTestNet {
    */
   private CreateContainerResponse createServerContainer() throws IllegalStateException {
     // Volume Creation
-    ListVolumesResponse volumesResponse = this.dockerClient.listVolumesCmd().exec();
-    List<InspectVolumeResponse> volumes = volumesResponse.getVolumes();
-    boolean serverVolumeExists = false;
-
-    for (InspectVolumeResponse v : volumes) {
-      if (v.getName().equals(SERVER_VOLUME)) {
-        // volume exists
-        serverVolumeExists = true;
-      }
-    }
-
-    // volume name does not exist, create one.
-    if (!serverVolumeExists) {
-      this.dockerClient.createVolumeCmd().withName(SERVER_VOLUME).exec();
-    }
+    this.createVolumesIfNotExist(SERVER_VOLUME);
 
     // HTTP Server Container
     String imageId = dockerClient.buildImageCmd()

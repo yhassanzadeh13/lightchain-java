@@ -76,8 +76,8 @@ public class MetricsTestNet {
    */
   public void runMetricsTestNet() throws IllegalStateException {
     // Volume check + create if absent
-    this.createVolumesIfNotExist(dockerClient, PROMETHEUS_VOLUME);
-    this.createVolumesIfNotExist(dockerClient, GRAFANA_VOLUME);
+    this.createVolumesIfNotExist(PROMETHEUS_VOLUME);
+    this.createVolumesIfNotExist(GRAFANA_VOLUME);
 
     // Network
     this.createNetworkIfNotExist();
@@ -102,11 +102,10 @@ public class MetricsTestNet {
    * Checks for existence of given volume name in the client, and creates one with the
    * given name if volume name does not exist.
    *
-   * @param client     docker client.
    * @param volumeName volume name to create.
    */
-  private void createVolumesIfNotExist(DockerClient client, String volumeName) {
-    ListVolumesResponse volumesResponse = client.listVolumesCmd().exec();
+  protected void createVolumesIfNotExist(String volumeName) {
+    ListVolumesResponse volumesResponse = this.dockerClient.listVolumesCmd().exec();
     List<InspectVolumeResponse> volumes = volumesResponse.getVolumes();
 
     for (InspectVolumeResponse v : volumes) {
@@ -117,7 +116,7 @@ public class MetricsTestNet {
     }
 
     // volume name does not exist, create one.
-    client.createVolumeCmd().withName(volumeName).exec();
+    this.dockerClient.createVolumeCmd().withName(volumeName).exec();
   }
 
   /**
