@@ -29,7 +29,7 @@ public class LocalTestNet extends MetricsTestNet {
   }
 
   /**
-   * Creates and returns HTTP Server container.
+   * Creates and returns HTTP Server container that serves as the local testnet.
    *
    * @throws IllegalStateException when container creation faces an illegal state.
    */
