@@ -1,6 +1,9 @@
 syntax = "proto3";
+//option java_multiple_files = true;
 
 package message;
+
+import "google/protobuf/empty.proto";
 
 message Message {
   bytes OriginId = 1;

@@ -1,9 +1,9 @@
 package network.p2p;
 
+import java.util.HashMap;
+
 import network.Conduit;
 import protocol.Engine;
-
-import java.util.HashMap;
 
 /**
  * Implements a grpc-based networking layer.
@@ -27,7 +27,7 @@ public class P2pNetwork implements network.Network {
   public Conduit register(Engine e, String channel) throws IllegalStateException {
 
     if (engineChannelTable.containsKey(channel)) {
-      throw new IllegalStateException("");
+      throw new IllegalStateException("channel already exist");
     }
 
     P2pConduit conduit = new P2pConduit();
