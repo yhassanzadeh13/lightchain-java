@@ -10,7 +10,6 @@ import network.Network;
  * Models the core communication part of the networking layer that allows stub network instances to talk to each other.
  */
 public class Hub {
-
   private final ConcurrentHashMap<Identifier, Network> networks;
   private final ConcurrentHashMap<Identifier, Entity> entities;
 
@@ -25,23 +24,23 @@ public class Hub {
   /**
    * Registeration of a network to the Hub.
    *
-   * @param key identifier of network.
+   * @param identifier identifier of network.
    * @param network to be registered.
    */
-  public void registerNetwork(Identifier key, Network network) {
-    networks.put(key, network);
+  public void registerNetwork(Identifier identifier, Network network) {
+    networks.put(identifier, network);
 
   }
 
   /**
-   * Transfer entity from a stubnetwork to another through hub.
+   * Transfer entity from to another network on the same channel.
    *
    * @param entity entity to be transferred.
-   * @param identifier identifier of target.
-   * @param channel channel of the transmitter-target engine.
+   * @param target identifier of target.
+   * @param channel channel on which the entity is delivered to target.
    */
-  public void transferEntity(Entity entity, Identifier identifier, String channel) {
-    StubNetwork net = this.getNetwork(identifier);
+  public void transferEntity(Entity entity, Identifier target, String channel) {
+    StubNetwork net = this.getNetwork(target);
     net.receiveUnicast(entity, channel);
 
   }
@@ -49,11 +48,10 @@ public class Hub {
   /**
    * Get the network with identifier.
    *
-   * @param key identity of.
-   * @return network.
+   * @param identifier identity of network.
+   * @return network corresponding to identifier.
    */
-  private StubNetwork getNetwork(Identifier key) {
-    return (StubNetwork) networks.get(key);
+  private StubNetwork getNetwork(Identifier identifier) {
+    return (StubNetwork) networks.get(identifier);
   }
-
 }
