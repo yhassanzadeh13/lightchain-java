@@ -29,6 +29,30 @@ public class Identifier {
   }
 
   /**
+   * Returns if objects equal.
+   *
+   * @param o an identifier object.
+   * @return true if objcets equal.
+   */
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+    Identifier that = (Identifier) o;
+    return Arrays.equals(value, that.value);
+  }
+
+  /**
+   * Return the hashCode.
+   *
+   * @return hashCode.
+   */
+  @Override
+  public int hashCode() {
+    return Arrays.hashCode(value);
+  }
+
+  /**
    * Converts identifier from its byte representation to Base58BTC.
    *
    * @param identifier input identifier in byte representation.

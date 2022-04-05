@@ -15,6 +15,9 @@ import org.testcontainers.shaded.org.apache.commons.io.FileUtils;
 import storage.mapdb.IdentifierMapDb;
 import unittest.fixtures.IdentifierFixture;
 
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
 /**
  * Encapsulates tests for identifiers database.
  */
@@ -65,17 +68,15 @@ public class IdentifiersTest {
   @Test
   void sequentialAddTest() throws IOException {
     for (Identifier identifier : identifierArrayList) {
-      Assertions.assertTrue(db.add(identifier));
+    Assertions.assertTrue(db.add(identifier));
     }
     for (Identifier identifier : identifierArrayList) {
       Assertions.assertTrue(db.has(identifier));
     }
-
     // TODO: check correctness
     for(Identifier identifier: db.all()){
       Assertions.assertTrue(identifierArrayList.contains(identifier));
     }
-
     db.closeDb();
     FileUtils.deleteDirectory(new File(tempdir.toString()));
   }
@@ -88,34 +89,24 @@ public class IdentifiersTest {
    * should return true. Also, All should return only the last 5 identifiers.
    */
   @Test
-  void secondTest() throws IOException {
-    int count = 0;
+  void removeFirstFiveTest() throws IOException {
+
     for (Identifier identifier : identifierArrayList) {
-      if (!db.add(identifier)) {
-        count++;
-      }
+      Assertions.assertTrue(db.add(identifier));
     }
     for (int x = 0; x < 5; x++) {
-      if (!db.remove(identifierArrayList.get(x))) {
-        count++;
-      }
+      Assertions.assertTrue(db.remove(identifierArrayList.get(x)));
+
     }
     for (int x = 0; x < 10; x++) {
       if (x < 5) {
-        if (db.has(identifierArrayList.get(x))) {
-          count++;
-        }
+        Assertions.assertFalse(db.has(identifierArrayList.get(x)) || db.all().contains(identifierArrayList.get(x)));
+
       } else {
-        if (!db.has(identifierArrayList.get(x))) {
-          count++;
-        }
+        Assertions.assertTrue(db.has(identifierArrayList.get(x)) && db.all().contains(identifierArrayList.get(x)));
       }
     }
-    if (db.all().size() != 5) {
-      count++;
-    }
     db.closeDb();
-    Assertions.assertEquals(0, count);
     FileUtils.deleteDirectory(new File(tempdir.toString()));
   }
 
@@ -127,22 +118,17 @@ public class IdentifiersTest {
    */
   @Test
   void thirdTest() throws IOException {
-    int count = 0;
     for (Identifier identifier : identifierArrayList) {
-      if (!db.add(identifier)) {
-        count++;
-      }
+      Assertions.assertTrue(db.add(identifier));
+
     }
-    if (db.all().size() != 10) {
-      count++;
+    for(Identifier identifier: db.all()){
+      Assertions.assertTrue(identifierArrayList.contains(identifier));
     }
     for (Identifier identifier : identifierArrayList) {
-      if (db.add(identifier)) {
-        count++;
-      }
+      Assertions.assertFalse(db.add(identifier));
     }
     db.closeDb();
-    Assertions.assertEquals(0, count);
     FileUtils.deleteDirectory(new File(tempdir.toString()));
   }
 }
