@@ -20,9 +20,10 @@ public class Demo {
    */
   public static void main(String[] args) {
     MetricsTestNet testNet = new MetricsTestNet();
+    MetricServer server = new MetricServer();
 
     try {
-      testNet.run();
+      testNet.runMetricsTestNet();
     } catch (IllegalStateException e) {
       System.err.println("could not run metrics testnet" + e);
       System.exit(1);
@@ -45,7 +46,7 @@ public class Demo {
     }
 
     try {
-      MetricServer.start();
+      server.start();
     } catch (IllegalStateException ex) {
       System.err.println("Could not start the Metric Server");
       System.exit(1);
@@ -63,7 +64,7 @@ public class Demo {
     }
 
     try {
-      MetricServer.terminate();
+      server.terminate();
     } catch (IllegalStateException ex) {
       System.err.println("Could not stop the Metric Server");
       System.exit(1);
