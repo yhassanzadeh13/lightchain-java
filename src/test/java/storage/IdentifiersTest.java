@@ -6,6 +6,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import model.lightchain.Identifier;
 import org.junit.jupiter.api.Assertions;
@@ -79,6 +82,79 @@ public class IdentifiersTest {
   }
 
   /**
+   * Concurrent version of sequentialAddTest.
+   */
+  @Test
+  void concurrentAddTest() {
+    int concurrencyDegree = 10;
+    int count = 0;
+    AtomicInteger threadError = new AtomicInteger();
+    CountDownLatch countDownLatchAdd = new CountDownLatch(concurrencyDegree);
+    Thread[] addThreads = new Thread[concurrencyDegree];
+    for (Identifier identifier : identifierArrayList) {
+      addThreads[count] = new Thread(() -> {
+        if (!db.add(identifier)) {
+          threadError.getAndIncrement();
+        }
+        countDownLatchAdd.countDown();
+      });
+      count++;
+    }
+    for (Thread t : addThreads) {
+      t.start();
+    }
+    try {
+      boolean doneOneTime = countDownLatchAdd.await(60, TimeUnit.SECONDS);
+      Assertions.assertTrue(doneOneTime);
+    } catch (InterruptedException e) {
+      Assertions.fail();
+    }
+    count = 0;
+    CountDownLatch countDownLatchHas = new CountDownLatch(concurrencyDegree);
+    Thread[] hasThreads = new Thread[concurrencyDegree];
+    for (Identifier identifier : identifierArrayList) {
+      hasThreads[count] = new Thread(() -> {
+        if (!db.has(identifier)) {
+          threadError.getAndIncrement();
+        }
+        countDownLatchHas.countDown();
+      });
+      count++;
+    }
+    for (Thread t : hasThreads) {
+      t.start();
+    }
+    try {
+      boolean doneOneTime = countDownLatchHas.await(60, TimeUnit.SECONDS);
+      Assertions.assertTrue(doneOneTime);
+    } catch (InterruptedException e) {
+      Assertions.fail();
+    }
+    count = 0;
+    CountDownLatch countDownLatchAll = new CountDownLatch(concurrencyDegree);
+    Thread[] allThreads = new Thread[concurrencyDegree];
+    for (Identifier identifier : db.all()) {
+      allThreads[count] = new Thread(() -> {
+        if (!identifierArrayList.contains(identifier)) {
+          threadError.getAndIncrement();
+        }
+        countDownLatchAll.countDown();
+      });
+      count++;
+    }
+    for (Thread t : allThreads) {
+      t.start();
+    }
+    try {
+      boolean doneOneTime = countDownLatchAll.await(60, TimeUnit.SECONDS);
+      Assertions.assertTrue(doneOneTime);
+    } catch (InterruptedException e) {
+      Assertions.fail();
+    }
+    Assertions.assertEquals(0, threadError.get());
+  }
+
+  /**
    * Add 10 new identifiers, check that they are added correctly, i.e., while adding each identifier Add must return.
    * true, Has returns true for each of them, and All returns list of all of them. Then Remove the first 5 identifiers.
    * While Removing each of them, the Remove should return true. Then query all 10 identifiers using Has.
@@ -93,12 +169,10 @@ public class IdentifiersTest {
     }
     for (int x = 0; x < 5; x++) {
       Assertions.assertTrue(db.remove(identifierArrayList.get(x)));
-
     }
     for (int x = 0; x < 10; x++) {
       if (x < 5) {
         Assertions.assertFalse(db.has(identifierArrayList.get(x)) || db.all().contains(identifierArrayList.get(x)));
-
       } else {
         Assertions.assertTrue(db.has(identifierArrayList.get(x)) && db.all().contains(identifierArrayList.get(x)));
       }
@@ -117,7 +191,6 @@ public class IdentifiersTest {
   void thirdTest() throws IOException {
     for (Identifier identifier : identifierArrayList) {
       Assertions.assertTrue(db.add(identifier));
-
     }
     for (Identifier identifier : db.all()) {
       Assertions.assertTrue(identifierArrayList.contains(identifier));

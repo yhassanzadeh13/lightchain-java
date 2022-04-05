@@ -1,6 +1,7 @@
 package storage.mapdb;
 
 import java.util.ArrayList;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import model.lightchain.Identifier;
 import org.mapdb.DB;
@@ -14,6 +15,7 @@ import storage.Identifiers;
  */
 public class IdentifierMapDb implements Identifiers {
   private final DB db;
+  private final ReentrantReadWriteLock lock;
   private static final String MAP_NAME = "identifierMap";
   private final HTreeMap<byte[], byte[]> identifierMap;
 
@@ -24,6 +26,7 @@ public class IdentifierMapDb implements Identifiers {
    */
   public IdentifierMapDb(String filePath) {
     this.db = DBMaker.fileDB(filePath).make();
+    this.lock = new ReentrantReadWriteLock();
     identifierMap = this.db.hashMap(MAP_NAME)
         .keySerializer(Serializer.BYTE_ARRAY)
         .valueSerializer(Serializer.BYTE_ARRAY)
@@ -38,7 +41,10 @@ public class IdentifierMapDb implements Identifiers {
    */
   @Override
   public boolean add(Identifier identifier) {
-    return identifierMap.putIfAbsentBoolean(identifier.getBytes(), identifier.getBytes());
+    lock.writeLock().lock();
+    boolean addBoolean = identifierMap.putIfAbsentBoolean(identifier.getBytes(), identifier.getBytes());
+    lock.writeLock().unlock();
+    return addBoolean;
   }
 
   /**
@@ -49,8 +55,11 @@ public class IdentifierMapDb implements Identifiers {
    */
   @Override
   public boolean has(Identifier identifier) {
+    lock.readLock().lock();
     byte[] bytes = identifier.getBytes();
-    return identifierMap.containsKey(bytes);
+    boolean hasBoolean =identifierMap.containsKey(bytes);
+    lock.readLock().unlock();
+    return hasBoolean;
   }
 
   /**
