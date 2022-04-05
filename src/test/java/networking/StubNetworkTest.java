@@ -49,8 +49,6 @@ public class StubNetworkTest {
    */
   @Test
   void testTwoStubNetworksTwoEngines() {
-    String channel1 = "test-network-channel-1";
-    Hub hub = new Hub();
     StubNetwork network1 = new StubNetwork(hub);
     MockEngine a1 = new MockEngine();
     Conduit c1 = network1.register(a1, channel1);
@@ -154,7 +152,7 @@ public class StubNetworkTest {
   }
 
   /**
-   * Test two stub netwokrs for engines, concurrently messages.
+   * Test two stub netwokrs with four engines, concurrently messages.
    */
   @Test
   void testTwoStubNetworksFourEnginesConcurrentMessages() {
@@ -226,23 +224,17 @@ public class StubNetworkTest {
     MockEngine a1 = new MockEngine();
     Conduit c1 = network1.register(a1, channel1);
     Entity entity = new EntityFixture();
-    int count = 0;
     for (Network network : networkArrayList) {
       try {
         c1.unicast(entity, ((StubNetwork) network).id());
         MockEngine e1 = (MockEngine) ((StubNetwork) network).getEngine(channel1);
         MockEngine e2 = (MockEngine) ((StubNetwork) network).getEngine(channel2);
-        if (!e1.hasReceived(entity)) {
-          count++;
-        }
-        if (e2.hasReceived(entity)) {
-          count++;
-        }
+        Assertions.assertTrue(e1.hasReceived(entity));
+        Assertions.assertFalse(e2.hasReceived(entity));
       } catch (LightChainNetworkingException e) {
-        count++;
+        Assertions.fail();
       }
     }
-    Assertions.assertEquals(0, count);
   }
 
   /**
@@ -300,31 +292,25 @@ public class StubNetworkTest {
     Conduit c1 = network1.register(a1, channel1);
     Entity entity = new EntityFixture();
     int size = networkArrayList.size();
-    int count = 0;
     List<Network> first = new ArrayList<>(networkArrayList.subList(0, size / 2));
     List<Network> second = new ArrayList<>(networkArrayList.subList(size / 2, size));
-    Iterator<Network> firstit = first.iterator();
-    Iterator<Network> secondit = second.iterator();
-    while (firstit.hasNext() && secondit.hasNext()) {
-      Network networkfh = firstit.next();
-      Network networksh = secondit.next();
+    Iterator<Network> firstIt = first.iterator();
+    Iterator<Network> secondIt = second.iterator();
+    while (firstIt.hasNext() && secondIt.hasNext()) {
+      Network networkFirst = firstIt.next();
+      Network networkSecond = secondIt.next();
       try {
-        c1.unicast(entity, ((StubNetwork) networkfh).id());
-        MockEngine e1 = (MockEngine) ((StubNetwork) networkfh).getEngine(channel1);
-        MockEngine e2 = (MockEngine) ((StubNetwork) networkfh).getEngine(channel2);
-        MockEngine m1 = (MockEngine) ((StubNetwork) networksh).getEngine(channel1);
-        MockEngine m2 = (MockEngine) ((StubNetwork) networksh).getEngine(channel2);
-        if (!e1.hasReceived(entity)) {
-          count++;
-        }
-        if (e2.hasReceived(entity) || m1.hasReceived(entity) || m2.hasReceived(entity)) {
-          count++;
-        }
+        c1.unicast(entity, ((StubNetwork) networkFirst).id());
+        MockEngine e1 = (MockEngine) ((StubNetwork) networkFirst).getEngine(channel1);
+        MockEngine e2 = (MockEngine) ((StubNetwork) networkFirst).getEngine(channel2);
+        MockEngine m1 = (MockEngine) ((StubNetwork) networkSecond).getEngine(channel1);
+        MockEngine m2 = (MockEngine) ((StubNetwork) networkSecond).getEngine(channel2);
+        Assertions.assertTrue(e1.hasReceived(entity));
+        Assertions.assertFalse(e2.hasReceived(entity) || m1.hasReceived(entity) || m2.hasReceived(entity));
       } catch (LightChainNetworkingException e) {
-        count++;
+        Assertions.fail();
       }
     }
-    Assertions.assertEquals(0, count);
   }
 
   /**
@@ -342,20 +328,20 @@ public class StubNetworkTest {
     int size = networkArrayList.size();
     List<Network> first = new ArrayList<>(networkArrayList.subList(0, size / 2));
     List<Network> second = new ArrayList<>(networkArrayList.subList(size / 2, size));
-    Iterator<Network> firstit = first.iterator();
-    Iterator<Network> secondit = second.iterator();
+    Iterator<Network> firstIt = first.iterator();
+    Iterator<Network> secondIt = second.iterator();
     Thread[] unicastThreads = new Thread[concurrencyDegree];
     int count = 0;
-    while (firstit.hasNext() && secondit.hasNext()) {
-      Network networkfh = firstit.next();
-      Network networksh = secondit.next();
+    while (firstIt.hasNext() && secondIt.hasNext()) {
+      Network networkFirst = firstIt.next();
+      Network networkSecond = secondIt.next();
       unicastThreads[count] = new Thread(() -> {
         try {
-          c1.unicast(entity, ((StubNetwork) networkfh).id());
-          MockEngine e1 = (MockEngine) ((StubNetwork) networkfh).getEngine(channel1);
-          MockEngine e2 = (MockEngine) ((StubNetwork) networkfh).getEngine(channel2);
-          MockEngine m1 = (MockEngine) ((StubNetwork) networksh).getEngine(channel1);
-          MockEngine m2 = (MockEngine) ((StubNetwork) networksh).getEngine(channel2);
+          c1.unicast(entity, ((StubNetwork) networkFirst).id());
+          MockEngine e1 = (MockEngine) ((StubNetwork) networkFirst).getEngine(channel1);
+          MockEngine e2 = (MockEngine) ((StubNetwork) networkFirst).getEngine(channel2);
+          MockEngine m1 = (MockEngine) ((StubNetwork) networkSecond).getEngine(channel1);
+          MockEngine m2 = (MockEngine) ((StubNetwork) networkSecond).getEngine(channel2);
           if (!e1.hasReceived(entity)) {
             threadError.getAndIncrement();
           }
@@ -382,7 +368,7 @@ public class StubNetworkTest {
   }
 
   /**
-   * Test two engines sends other engines sequentially.
+   * Test two engines sends different entities other engines sequentially.
    */
   @Test
   void testUnicastOneToAll_SequentiallyTwoEngines() {
@@ -393,23 +379,18 @@ public class StubNetworkTest {
     Conduit c2 = network1.register(a2, channel2);
     Entity entity1 = new EntityFixture();
     Entity entity2 = new EntityFixture();
-    int count = 0;
     for (Network network : networkArrayList) {
       try {
         c1.unicast(entity1, ((StubNetwork) network).id());
         c2.unicast(entity2, ((StubNetwork) network).id());
         MockEngine e1 = (MockEngine) ((StubNetwork) network).getEngine(channel1);
         MockEngine e2 = (MockEngine) ((StubNetwork) network).getEngine(channel2);
-        if (!e1.hasReceived(entity1) || !e2.hasReceived(entity2)) {
-          count++;
-        }
-        if (e2.hasReceived(entity1) || e1.hasReceived(entity2)) {
-          count++;
-        }
+        Assertions.assertTrue(e1.hasReceived(entity1) && e2.hasReceived(entity2));
+        Assertions.assertFalse(e2.hasReceived(entity1) || e1.hasReceived(entity2));
+
       } catch (LightChainNetworkingException e) {
-        count++;
+        Assertions.fail();
       }
     }
-    Assertions.assertEquals(0, count);
   }
 }
