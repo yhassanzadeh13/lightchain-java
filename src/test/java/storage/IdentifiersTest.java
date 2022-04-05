@@ -6,6 +6,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -85,7 +86,7 @@ public class IdentifiersTest {
    * Concurrent version of sequentialAddTest.
    */
   @Test
-  void concurrentAddTest() {
+  void concurrentAddTest() throws IOException {
     int concurrencyDegree = 10;
     int count = 0;
     AtomicInteger threadError = new AtomicInteger();
@@ -152,6 +153,8 @@ public class IdentifiersTest {
       Assertions.fail();
     }
     Assertions.assertEquals(0, threadError.get());
+    db.closeDb();
+    FileUtils.deleteDirectory(new File(tempdir.toString()));
   }
 
   /**
@@ -182,13 +185,95 @@ public class IdentifiersTest {
   }
 
   /**
+   * Concurrent version of removeFirstFiveTest.Add 10 identifier, remove first five.
+   * Check the correct ones removed.
+   */
+  @Test
+  void concurrentRemoveFirstFiveTest() throws IOException {
+    int concurrencyDegree = 10;
+    int count = 0;
+    AtomicInteger threadError = new AtomicInteger();
+    CountDownLatch countDownLatchAdd = new CountDownLatch(concurrencyDegree);
+    Thread[] addThreads = new Thread[concurrencyDegree];
+    for (Identifier identifier : identifierArrayList) {
+      addThreads[count] = new Thread(() -> {
+        if (!db.add(identifier)) {
+          threadError.getAndIncrement();
+        }
+        countDownLatchAdd.countDown();
+      });
+      count++;
+    }
+    for (Thread t : addThreads) {
+      t.start();
+    }
+    try {
+      boolean doneOneTime = countDownLatchAdd.await(60, TimeUnit.SECONDS);
+      Assertions.assertTrue(doneOneTime);
+    } catch (InterruptedException e) {
+      Assertions.fail();
+    }
+    count = 0;
+    CountDownLatch countDownLatchRemove = new CountDownLatch(concurrencyDegree / 2);
+    Thread[] removeThreads = new Thread[concurrencyDegree / 2];
+    for (Identifier identifier : identifierArrayList.subList(0,concurrencyDegree/2)) {
+      removeThreads[count] = new Thread(() -> {
+        if (!db.remove(identifier)) {
+          threadError.getAndIncrement();
+        }
+        countDownLatchRemove.countDown();
+      });
+      count++;
+    }
+    for (Thread t : removeThreads) {
+      t.start();
+    }
+    try {
+      boolean doneOneTime = countDownLatchRemove.await(60, TimeUnit.SECONDS);
+      Assertions.assertTrue(doneOneTime);
+    } catch (InterruptedException e) {
+      Assertions.fail();
+    }
+    count = 0;
+    CountDownLatch countDownLatchHas = new CountDownLatch(concurrencyDegree);
+    Thread[] hasThreads = new Thread[concurrencyDegree];
+    for (Identifier identifier : identifierArrayList) {
+      hasThreads[count] = new Thread(() -> {
+        if (identifierArrayList.indexOf(identifier) < 5) {
+          if (db.has(identifier)) {
+            threadError.getAndIncrement();
+          }
+        } else {
+          if (!db.has(identifier)) {
+            threadError.getAndIncrement();
+          }
+        }
+        countDownLatchHas.countDown();
+      });
+      count++;
+    }
+    for (Thread t : hasThreads) {
+      t.start();
+    }
+    try {
+      boolean doneOneTime = countDownLatchHas.await(60, TimeUnit.SECONDS);
+      Assertions.assertTrue(doneOneTime);
+    } catch (InterruptedException e) {
+      Assertions.fail();
+    }
+    Assertions.assertEquals(0, threadError.get());
+    db.closeDb();
+    FileUtils.deleteDirectory(new File(tempdir.toString()));
+  }
+
+  /**
    * Add 10 new identifiers and check that all of them are added correctly, i.e., while adding each identifier.
    * Add must return true.
    * Has returns true for each of them, and All returns list of all of them.
    * Then try Adding all of them again, and Add should return false for each of them.
    */
   @Test
-  void thirdTest() throws IOException {
+  void duplicationTest() throws IOException {
     for (Identifier identifier : identifierArrayList) {
       Assertions.assertTrue(db.add(identifier));
     }
