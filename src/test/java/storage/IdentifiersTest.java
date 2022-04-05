@@ -15,7 +15,6 @@ import org.testcontainers.shaded.org.apache.commons.io.FileUtils;
 import storage.mapdb.IdentifierMapDb;
 import unittest.fixtures.IdentifierFixture;
 
-
 /**
  * Encapsulates tests for identifiers database.
  */
