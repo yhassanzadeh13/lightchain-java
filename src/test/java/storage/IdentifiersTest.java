@@ -6,7 +6,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -216,7 +215,7 @@ public class IdentifiersTest {
     count = 0;
     CountDownLatch countDownLatchRemove = new CountDownLatch(concurrencyDegree / 2);
     Thread[] removeThreads = new Thread[concurrencyDegree / 2];
-    for (Identifier identifier : identifierArrayList.subList(0,concurrencyDegree/2)) {
+    for (Identifier identifier : identifierArrayList.subList(0, concurrencyDegree / 2)) {
       removeThreads[count] = new Thread(() -> {
         if (!db.remove(identifier)) {
           threadError.getAndIncrement();
