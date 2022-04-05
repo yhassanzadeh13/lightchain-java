@@ -61,7 +61,7 @@ public class IdentifierMapDb implements Identifiers {
   public boolean has(Identifier identifier) {
     lock.readLock().lock();
     byte[] bytes = identifier.getBytes();
-    boolean hasBoolean =identifierMap.containsKey(bytes);
+    boolean hasBoolean = identifierMap.containsKey(bytes);
     lock.readLock().unlock();
     return hasBoolean;
   }
