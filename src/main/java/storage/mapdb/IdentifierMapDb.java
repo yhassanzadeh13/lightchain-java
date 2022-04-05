@@ -41,9 +41,13 @@ public class IdentifierMapDb implements Identifiers {
    */
   @Override
   public boolean add(Identifier identifier) {
-    lock.writeLock().lock();
-    boolean addBoolean = identifierMap.putIfAbsentBoolean(identifier.getBytes(), identifier.getBytes());
-    lock.writeLock().unlock();
+    boolean addBoolean;
+    try {
+      lock.writeLock().lock();
+      addBoolean = identifierMap.putIfAbsentBoolean(identifier.getBytes(), identifier.getBytes());
+    } finally {
+      lock.writeLock().unlock();
+    }
     return addBoolean;
   }
 
