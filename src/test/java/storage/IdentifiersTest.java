@@ -285,4 +285,78 @@ public class IdentifiersTest {
     db.closeDb();
     FileUtils.deleteDirectory(new File(tempdir.toString()));
   }
+
+  /**
+   * Concurrent version of duplicationTest.
+   */
+  @Test void concurrentDuplicationTest() throws IOException {
+    int concurrencyDegree = 10;
+    int count = 0;
+    AtomicInteger threadError = new AtomicInteger();
+    CountDownLatch countDownLatchAdd = new CountDownLatch(concurrencyDegree);
+    Thread[] addThreads = new Thread[concurrencyDegree];
+    for (Identifier identifier : identifierArrayList) {
+      addThreads[count] = new Thread(() -> {
+        if (!db.add(identifier)) {
+          threadError.getAndIncrement();
+        }
+        countDownLatchAdd.countDown();
+      });
+      count++;
+    }
+    for (Thread t : addThreads) {
+      t.start();
+    }
+    try {
+      boolean doneOneTime = countDownLatchAdd.await(60, TimeUnit.SECONDS);
+      Assertions.assertTrue(doneOneTime);
+    } catch (InterruptedException e) {
+      Assertions.fail();
+    }
+    count = 0;
+    CountDownLatch countDownLatchAll = new CountDownLatch(concurrencyDegree);
+    Thread[] allThreads = new Thread[concurrencyDegree];
+    for (Identifier identifier : db.all()) {
+      allThreads[count] = new Thread(() -> {
+        if (!identifierArrayList.contains(identifier)) {
+          threadError.getAndIncrement();
+        }
+        countDownLatchAll.countDown();
+      });
+      count++;
+    }
+    for (Thread t : allThreads) {
+      t.start();
+    }
+    try {
+      boolean doneOneTime = countDownLatchAll.await(60, TimeUnit.SECONDS);
+      Assertions.assertTrue(doneOneTime);
+    } catch (InterruptedException e) {
+      Assertions.fail();
+    }
+    count = 0;
+    CountDownLatch countDownLatchAddDup = new CountDownLatch(concurrencyDegree);
+    Thread[] addThreadsDup = new Thread[concurrencyDegree];
+    for (Identifier identifier : identifierArrayList) {
+      addThreadsDup[count] = new Thread(() -> {
+        if (db.add(identifier)) {
+          threadError.getAndIncrement();
+        }
+        countDownLatchAddDup.countDown();
+      });
+      count++;
+    }
+    for (Thread t : addThreadsDup) {
+      t.start();
+    }
+    try {
+      boolean doneOneTime = countDownLatchAddDup.await(60, TimeUnit.SECONDS);
+      Assertions.assertTrue(doneOneTime);
+    } catch (InterruptedException e) {
+      Assertions.fail();
+    }
+    Assertions.assertEquals(0, threadError.get());
+    db.closeDb();
+    FileUtils.deleteDirectory(new File(tempdir.toString()));
+  }
 }
