@@ -29,6 +29,7 @@ public class TableSnapshotTest {
 
     /// Staked and Unstaked Accounts
     for (int i = 0; i < 2; i++) {
+      // staked
       for (int j = 0; j < 5; j++) {
         Identifier accountId = IdentifierFixture.newIdentifier();
         Account account = AccountFixture.newAccount(accountId, Parameters.MINIMUM_STAKE + j);
@@ -37,6 +38,7 @@ public class TableSnapshotTest {
         accounts.add(account);
       }
       for (int k = 0; k < 5; k++) {
+        // unstaked
         Identifier accountId = IdentifierFixture.newIdentifier();
         Account account = AccountFixture.newAccount(accountId, Parameters.MINIMUM_STAKE - 2);
         tableSnapshot.addAccount(accountId, account);
