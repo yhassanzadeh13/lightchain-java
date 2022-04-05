@@ -56,8 +56,6 @@ public class Identifier {
     return pretty(this.value);
   }
 
-
-
   /**
    * Converts identifier from its byte representation to Base58BTC.
    *

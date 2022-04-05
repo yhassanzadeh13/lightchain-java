@@ -15,8 +15,6 @@ import org.testcontainers.shaded.org.apache.commons.io.FileUtils;
 import storage.mapdb.IdentifierMapDb;
 import unittest.fixtures.IdentifierFixture;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
 
 /**
  * Encapsulates tests for identifiers database.
@@ -68,13 +66,13 @@ public class IdentifiersTest {
   @Test
   void sequentialAddTest() throws IOException {
     for (Identifier identifier : identifierArrayList) {
-    Assertions.assertTrue(db.add(identifier));
+      Assertions.assertTrue(db.add(identifier));
     }
     for (Identifier identifier : identifierArrayList) {
       Assertions.assertTrue(db.has(identifier));
     }
     // TODO: check correctness
-    for(Identifier identifier: db.all()){
+    for (Identifier identifier : db.all()) {
       Assertions.assertTrue(identifierArrayList.contains(identifier));
     }
     db.closeDb();
@@ -122,7 +120,7 @@ public class IdentifiersTest {
       Assertions.assertTrue(db.add(identifier));
 
     }
-    for(Identifier identifier: db.all()){
+    for (Identifier identifier : db.all()) {
       Assertions.assertTrue(identifierArrayList.contains(identifier));
     }
     for (Identifier identifier : identifierArrayList) {
