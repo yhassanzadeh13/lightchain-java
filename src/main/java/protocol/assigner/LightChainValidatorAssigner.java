@@ -40,6 +40,9 @@ public class LightChainValidatorAssigner implements ValidatorAssigner {
     ArrayList<Account> selectedAccounts = new ArrayList<>();
     Assignment assignment = new Assignment();
 
+    /*
+    Computes hash of validators.
+     */
     for (int i = 1; i <= num; i++) {
       byte[] bytesId = id.getBytes();
       byte bytesIterator = Integer.valueOf(i).byteValue();
@@ -53,7 +56,10 @@ public class LightChainValidatorAssigner implements ValidatorAssigner {
       validatorHashes.add(validatorHash.toIdentifier());
     }
 
+    // picks the greatest staked account id less than validator hash
     for (int j = 0; j < num; j++) {
+      // TODO: this and next for loop are going through all accounts causing a linear search, which
+      // can be improved later.
       for (int k = accounts.size() - 1; k >= 0; k--) {
         if (validatorHashes.get(j).comparedTo(accounts.get(k).getIdentifier()) >= 0
             && accounts.get(k).getStake() >= Parameters.MINIMUM_STAKE
@@ -63,6 +69,9 @@ public class LightChainValidatorAssigner implements ValidatorAssigner {
           break;
         }
       }
+
+      // when validator hash is less than all accounts, the staked account with maximum
+      // identifier that has not already been selected is picked.
       if (selectedAccounts.size() != j + 1) {
         for (int k = accounts.size() - 1; k >= 0; k--) {
           if (accounts.get(k).getStake() >= Parameters.MINIMUM_STAKE
