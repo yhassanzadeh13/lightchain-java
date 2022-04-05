@@ -15,19 +15,6 @@ public class Identifier {
     this.value = value.clone();
   }
 
-  public byte[] getBytes() {
-    return this.value.clone();
-  }
-
-  /**
-   * Returns string representation of identifier in Base58BTC.
-   *
-   * @return string representation of identifier in Base58BTC.
-   */
-  public String toString() {
-    return pretty(this.value);
-  }
-
   /**
    * Returns if objects equal.
    *
@@ -36,8 +23,12 @@ public class Identifier {
    */
   @Override
   public boolean equals(Object o) {
-    if (this == o) return true;
-    if (o == null || getClass() != o.getClass()) return false;
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
     Identifier that = (Identifier) o;
     return Arrays.equals(value, that.value);
   }
@@ -51,6 +42,21 @@ public class Identifier {
   public int hashCode() {
     return Arrays.hashCode(value);
   }
+
+  public byte[] getBytes() {
+    return this.value.clone();
+  }
+
+  /**
+   * Returns string representation of identifier in Base58BTC.
+   *
+   * @return string representation of identifier in Base58BTC.
+   */
+  public String toString() {
+    return pretty(this.value);
+  }
+
+
 
   /**
    * Converts identifier from its byte representation to Base58BTC.
@@ -67,7 +73,7 @@ public class Identifier {
    *
    * @param other represents other identifier to compared to.
    * @return 0 if two identifiers are equal, 1 if this identifier is greater than other,
-   *         -1 if other identifier is greater than this.
+   * -1 if other identifier is greater than this.
    */
   public int comparedTo(Identifier other) {
     int result = Arrays.compare(this.value, other.value);
