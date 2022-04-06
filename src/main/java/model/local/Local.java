@@ -5,6 +5,8 @@ import model.Entity;
 import model.crypto.PrivateKey;
 import model.crypto.Signature;
 import model.crypto.ecdsa.EcdsaKeyGen;
+import model.crypto.ecdsa.EcdsaSignature;
+import model.lightchain.Block;
 import model.lightchain.Identifier;
 
 /**
@@ -19,7 +21,7 @@ public class Local {
    */
   public Signature signEntity(Entity e) throws IllegalStateException {
     PrivateKey pk = new EcdsaKeyGen().getPrivateKey();
-    Signature sign = pk.signEntity(e);
+    Signature sign = new EcdsaSignature(pk.signEntity(e).getBytes(), e.id());
     return sign;
   }
 
