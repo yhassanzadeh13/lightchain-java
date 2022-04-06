@@ -3,6 +3,8 @@ package state;
 import model.lightchain.Account;
 import model.lightchain.Identifier;
 
+import java.util.ArrayList;
+
 /**
  * Snapshot represents the status of the protocol state at a given finalized reference block.
  */
@@ -29,4 +31,11 @@ public interface Snapshot {
    * does not exist.
    */
   Account getAccount(Identifier identifier);
+
+  /**
+   * The list of accounts in this snapshot.
+   *
+   * @return the list of accounts in this snapshot.
+   */
+  ArrayList<Account> all();
 }

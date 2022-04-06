@@ -1,13 +1,43 @@
 package protocol.engines;
 
 import model.Entity;
+import model.codec.EntityType;
+import model.crypto.Signature;
+import model.lightchain.Block;
+import model.lightchain.Identifier;
+import model.lightchain.Transaction;
+import model.local.Local;
+import network.Conduit;
+import network.Network;
 import protocol.Engine;
+import protocol.assigner.LightChainValidatorAssigner;
+import protocol.block.BlockValidator;
+import protocol.transaction.TransactionValidator;
+import state.State;
+import storage.Blocks;
+import storage.Identifiers;
+import storage.Transactions;
+
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * ValidatorEngine is a standalone engine of LightChain that runs transaction and block validation.
  */
 public class ValidatorEngine implements Engine {
+  public static Blocks blocks;
+  public static Identifiers transactionIds;
+  public static Transactions pendingTransactions;
+  private Local local;
+  private Conduit con;
+  private final State state;
 
+  public ValidatorEngine(Network net, Local local, State state) {
+    this.local = local;
+    this.con = net.register(this, "validator");
+    this.state = state;
+  }
+
+  private static ReentrantLock lock = new ReentrantLock();
 
   /**
    * Received entity to this engine can be either a block or a transaction, anything else should throw an exception.
@@ -25,5 +55,40 @@ public class ValidatorEngine implements Engine {
    */
   @Override
   public void process(Entity e) throws IllegalArgumentException {
+    lock.lock();
+    //TODO: run assignment and check current node(?) is an assigned validator
+    if (e.type() == EntityType.TYPE_VALIDATED_BLOCK || e.type() == EntityType.TYPE_VALIDATED_TRANSACTION) {
+      LightChainValidatorAssigner assigner = new LightChainValidatorAssigner();
+      Identifier currentNode = local.myId();
+      // TODO: assigner.assign(e, snapshot???, how many???);
+      // TODO: don't we need a method to check whether an id is in Assignment?
+
+      if (e.type() == EntityType.TYPE_BLOCK) {
+        if (isBlockValidated((Block) e)) {
+          Block b = (Block) e;
+          Signature sign = local.signEntity(b);
+          //TODO: send signature to proposer
+        }
+      } else if (e.type() == EntityType.TYPE_TRANSACTION) {
+        if (isTransactionValidated((Transaction) e)) {
+          Transaction tx = (Transaction) e;
+          Signature sign = local.signEntity(tx);
+          //TODO: send signature to sender
+        }
+      }
+    } else {
+      throw new IllegalArgumentException("entity is neither a block nor a transaction");
+    }
+  }
+
+  private boolean isBlockValidated(Block b) {
+    BlockValidator verifier = new BlockValidator(state);
+    return verifier.allTransactionsSound(b) && verifier.allTransactionsValidated(b) && verifier.isAuthenticated(b)
+        && verifier.isConsistent(b) && verifier.isCorrect(b) && verifier.noDuplicateSender(b) && verifier.proposerHasEnoughStake(b);
+  }
+
+  private boolean isTransactionValidated(Transaction t) {
+    TransactionValidator verifier = new TransactionValidator(state);
+    return verifier.isSound(t) && verifier.senderHasEnoughBalance(t) && verifier.isAuthenticated(t) && verifier.isCorrect(t);
   }
 }
