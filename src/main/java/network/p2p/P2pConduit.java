@@ -4,11 +4,19 @@ import model.Entity;
 import model.exceptions.LightChainDistributedStorageException;
 import model.exceptions.LightChainNetworkingException;
 import model.lightchain.Identifier;
+import protocol.Engine;
+
+import java.util.HashMap;
 
 /**
  * Implements Conduit for grpc-based networking layer.
  */
 public class P2pConduit implements network.Conduit {
+  private P2pNetwork network;
+
+  public P2pConduit(P2pNetwork network) {
+    this.network = network;
+  }
   /**
    * Sends the Entity through the Network to the remote target.
    *
@@ -18,7 +26,11 @@ public class P2pConduit implements network.Conduit {
    */
   @Override
   public void unicast(Entity e, Identifier target) throws LightChainNetworkingException {
-
+    try {
+      network.sendUnicast(e,target);
+    } catch (InterruptedException ex) {
+      ex.printStackTrace();
+    }
   }
 
   /**
