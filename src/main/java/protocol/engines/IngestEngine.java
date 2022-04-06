@@ -1,16 +1,12 @@
 package protocol.engines;
 
 import model.Entity;
-import model.lightchain.Block;
+import model.lightchain.*;
 import model.codec.EntityType;
-import model.lightchain.Transaction;
-import model.lightchain.ValidatedBlock;
-import model.lightchain.ValidatedTransaction;
+import model.local.Local;
 import protocol.Engine;
 import protocol.Parameters;
-import protocol.block.BlockValidator;
-import protocol.transaction.TransactionValidator;
-import state.State;
+import protocol.assigner.LightChainValidatorAssigner;
 import storage.Blocks;
 import storage.Transactions;
 import storage.Identifiers;
@@ -26,19 +22,15 @@ public class IngestEngine implements Engine {
   public static Blocks blocks;
   public static Identifiers transactionIds;
   public static Transactions pendingTransactions;
-  /**
-   * Unique State that the block is in.
-   */
-  private final State state;
+
 
   /**
    * Constructor of a IngestEngine.
    */
-  public IngestEngine(State state) {
-    this.state = state;
+  public IngestEngine() {
   }
 
-  private static ReentrantLock lock = new ReentrantLock();
+  private static final ReentrantLock lock = new ReentrantLock();
 
   /**
    * Received entity to this engine can be either a ValidatedBlock or a ValidatedTransaction,
@@ -65,31 +57,41 @@ public class IngestEngine implements Engine {
    */
   @Override
   public void process(Entity e) throws IllegalArgumentException {
-    //TODO: should a tryLock be used here?
-    lock.lock();
-    if (e.type() == EntityType.TYPE_VALIDATED_BLOCK) {
-      if (((ValidatedBlock) e).getCertificates().length >= Parameters.SIGNATURE_THRESHOLD) {
-        blocks.add((Block) e);
-        for (ValidatedTransaction t : ((Block) e).getTransactions()) {
-          transactionIds.add(t.id());
-          if (pendingTransactions.has(t.id())) {
-            pendingTransactions.remove(t.id());
+
+    if (e.type() == EntityType.TYPE_VALIDATED_BLOCK || e.type() == EntityType.TYPE_VALIDATED_TRANSACTION) {
+      lock.lock();
+      LightChainValidatorAssigner assigner = new LightChainValidatorAssigner();
+      // TODO: assigner.assign(e, snapshot???, how many???);
+      // TODO: don't we need a method to check whether an id is in Assignment?
+
+
+      if (e.type() == EntityType.TYPE_VALIDATED_BLOCK) {
+        if (((ValidatedBlock) e).getCertificates().length >= Parameters.SIGNATURE_THRESHOLD
+            && !blocks.has(((ValidatedBlock) e).id())) { //TODO: Ask whether this condition is true
+          blocks.add((Block) e);
+          for (ValidatedTransaction t : ((Block) e).getTransactions()) {
+            transactionIds.add(t.id());
+            if (pendingTransactions.has(t.id())) {
+              pendingTransactions.remove(t.id());
+            }
           }
         }
-      }
-    } else if (e.type() == EntityType.TYPE_VALIDATED_TRANSACTION) {
-      if (((ValidatedTransaction) e).getCertificates().length >= Parameters.SIGNATURE_THRESHOLD) {
-        if (transactionIds.has(e.id())) {
-          transactionIds.remove(e.id());
-        } else {
-          pendingTransactions.add((Transaction) e);
+      } else if (e.type() == EntityType.TYPE_VALIDATED_TRANSACTION) {
+        if (((ValidatedTransaction) e).getCertificates().length >= Parameters.SIGNATURE_THRESHOLD
+            && !pendingTransactions.has(((ValidatedTransaction) e).id())) {
+          if (transactionIds.has(e.id())) {
+            transactionIds.remove(e.id());
+            //TODO: "If the transaction is already included in a block, the engine discards it." does that mean this?
+          } else {
+            pendingTransactions.add((Transaction) e);
+          }
         }
+      } else {
+        lock.unlock();
+        throw new IllegalArgumentException("entity is neither a validated transaction nor a validated block");
       }
-    } else {
       lock.unlock();
-      throw new IllegalArgumentException("entity is neither a validated transaction nor a validated block");
     }
-    lock.unlock();
   }
 
 

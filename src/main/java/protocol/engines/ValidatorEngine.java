@@ -3,6 +3,7 @@ package protocol.engines;
 import model.Entity;
 import model.codec.EntityType;
 import model.crypto.Signature;
+import model.exceptions.LightChainNetworkingException;
 import model.lightchain.Block;
 import model.lightchain.Identifier;
 import model.lightchain.Transaction;
@@ -24,9 +25,6 @@ import java.util.concurrent.locks.ReentrantLock;
  * ValidatorEngine is a standalone engine of LightChain that runs transaction and block validation.
  */
 public class ValidatorEngine implements Engine {
-  public static Blocks blocks;
-  public static Identifiers transactionIds;
-  public static Transactions pendingTransactions;
   private Local local;
   private Conduit con;
   private final State state;
@@ -55,27 +53,38 @@ public class ValidatorEngine implements Engine {
    */
   @Override
   public void process(Entity e) throws IllegalArgumentException {
-    lock.lock();
-    //TODO: run assignment and check current node(?) is an assigned validator
+
     if (e.type() == EntityType.TYPE_VALIDATED_BLOCK || e.type() == EntityType.TYPE_VALIDATED_TRANSACTION) {
+      lock.lock();
       LightChainValidatorAssigner assigner = new LightChainValidatorAssigner();
-      Identifier currentNode = local.myId();
+      Identifier currentNode = this.local.myId();
       // TODO: assigner.assign(e, snapshot???, how many???);
       // TODO: don't we need a method to check whether an id is in Assignment?
 
       if (e.type() == EntityType.TYPE_BLOCK) {
         if (isBlockValidated((Block) e)) {
           Block b = (Block) e;
-          Signature sign = local.signEntity(b);
-          //TODO: send signature to proposer
+          Signature sign = this.local.signEntity(b);
+          try {
+            this.con.unicast(sign, (b.getProposer()));
+          } catch (LightChainNetworkingException ex) {
+            lock.unlock();
+            ex.printStackTrace();
+          }
         }
       } else if (e.type() == EntityType.TYPE_TRANSACTION) {
         if (isTransactionValidated((Transaction) e)) {
           Transaction tx = (Transaction) e;
-          Signature sign = local.signEntity(tx);
-          //TODO: send signature to sender
+          Signature sign = this.local.signEntity(tx);
+          try {
+            this.con.unicast(sign, (tx.getSender()));
+          } catch (LightChainNetworkingException ex) {
+            lock.unlock();
+            ex.printStackTrace();
+          }
         }
       }
+      lock.unlock();
     } else {
       throw new IllegalArgumentException("entity is neither a block nor a transaction");
     }

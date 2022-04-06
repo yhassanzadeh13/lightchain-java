@@ -2,7 +2,9 @@ package model.local;
 
 import edu.umd.cs.findbugs.util.NotImplementedYetException;
 import model.Entity;
+import model.crypto.PrivateKey;
 import model.crypto.Signature;
+import model.crypto.ecdsa.EcdsaKeyGen;
 import model.lightchain.Identifier;
 
 /**
@@ -16,7 +18,9 @@ public class Local {
    * @return a signature over entity e using private key.
    */
   public Signature signEntity(Entity e) throws IllegalStateException {
-    throw new NotImplementedYetException("method not implemented yet");
+    PrivateKey pk = new EcdsaKeyGen().getPrivateKey();
+    Signature sign = pk.signEntity(e);
+    return sign;
   }
 
   /**
