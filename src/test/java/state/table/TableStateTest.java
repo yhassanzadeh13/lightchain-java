@@ -1,8 +1,12 @@
 package state.table;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Random;
 
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import model.lightchain.Account;
 import model.lightchain.Identifier;
@@ -17,30 +21,28 @@ import unittest.fixtures.IdentifierFixture;
  * Encapsulates tests for hash table implementation of protocol state.
  */
 public class TableStateTest {
-  /**
-   * Snapshots list for 10 snapshots.
-   */
-  protected ArrayList<Snapshot> snapshots = new ArrayList<>();
   private static final Random random = new Random();
 
   @Test
   public void testTableState() {
     // Arrange
     /// State and Snapshots
-    snapshotsListSetter();
+    ArrayList<Snapshot> snapshots = mockSnapshots(10);
     TableState tableState = new TableState();
     ArrayList<Identifier> refBlockIds = new ArrayList<>();
     Pair<Identifier, Long> maxHeightSnapshot = Pair.of(null, 0L);
 
-    /// Accounts
+    /// Creates 10 snapshots each with 10 staked and unstaked accounts
     for (int i = 0; i < 10; i++) {
       Identifier referenceBlockId = IdentifierFixture.newIdentifier();
       long blockHeight = (long) (random.nextDouble() * 100L);
       if (blockHeight > maxHeightSnapshot.getRight()) {
         maxHeightSnapshot = Pair.of(referenceBlockId, blockHeight);
       }
+
       when(snapshots.get(i).getReferenceBlockId()).thenReturn(referenceBlockId);
       when(snapshots.get(i).getReferenceBlockHeight()).thenReturn(blockHeight);
+
       HashMap<Identifier, Account> accounts = AccountFixture.newAccounts(10, 10);
       for (Map.Entry<Identifier, Account> set : accounts.entrySet()) {
         when(snapshots.get(i).getAccount(set.getKey())).thenReturn(set.getValue());
@@ -50,42 +52,33 @@ public class TableStateTest {
       refBlockIds.add(referenceBlockId);
     }
 
-    // Act
+    // checks last snapshot being the one with greatest block height.
     boolean lastSnapshotCorrectness = tableState.last().equals(tableState.atBlockId(maxHeightSnapshot.getLeft()));
+    Assertions.assertTrue(lastSnapshotCorrectness);
 
-    // Assert
+    // checks accounts per snapshots.
     for (int j = 0; j < snapshots.size(); j++) {
       Assertions.assertEquals(tableState.atBlockId(refBlockIds.get(j)), snapshots.get(j));
       for (Account account : snapshots.get(j).all()) {
         Assertions.assertEquals(snapshots.get(j).getAccount(account.getIdentifier()), account);
       }
     }
-    Assertions.assertTrue(lastSnapshotCorrectness);
+
   }
 
   /**
-   * Creates 10 mock snapshots and adds them to the global snapshots list.
+   * Creates and returns an arraylist of mock snapshots.
+   *
+   * @param count total number of mock snapshots.
+   * @return arraylist of mock snapshots.
    */
-  public void snapshotsListSetter() {
-    Snapshot snapshot = mock(Snapshot.class);
-    Snapshot snapshot2 = mock(Snapshot.class);
-    Snapshot snapshot3 = mock(Snapshot.class);
-    Snapshot snapshot4 = mock(Snapshot.class);
-    Snapshot snapshot5 = mock(Snapshot.class);
-    Snapshot snapshot6 = mock(Snapshot.class);
-    Snapshot snapshot7 = mock(Snapshot.class);
-    Snapshot snapshot8 = mock(Snapshot.class);
-    Snapshot snapshot9 = mock(Snapshot.class);
-    Snapshot snapshot10 = mock(Snapshot.class);
-    snapshots.add(snapshot);
-    snapshots.add(snapshot2);
-    snapshots.add(snapshot3);
-    snapshots.add(snapshot4);
-    snapshots.add(snapshot5);
-    snapshots.add(snapshot6);
-    snapshots.add(snapshot7);
-    snapshots.add(snapshot8);
-    snapshots.add(snapshot9);
-    snapshots.add(snapshot10);
+  public ArrayList<Snapshot> mockSnapshots(int count) {
+    ArrayList<Snapshot> snapshots = new ArrayList<>();
+    for (int i = 0; i < count; i++) {
+      Snapshot snapshot = mock(Snapshot.class);
+      snapshots.add(snapshot);
+    }
+
+    return snapshots;
   }
 }

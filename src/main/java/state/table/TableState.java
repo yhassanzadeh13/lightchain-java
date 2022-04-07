@@ -21,12 +21,12 @@ public class TableState implements state.State {
   /**
    * Adds snapshot to state.
    *
-   * @param blockId identifier of block representing snapshot.
+   * @param blockId  identifier of block representing snapshot.
    * @param snapshot the snapshot associated with block
    * @throws IllegalStateException if a snapshot is already associated with block id.
    */
   public void addSnapshot(Identifier blockId, Snapshot snapshot) throws IllegalStateException {
-    if (this.table.get(blockId) != null){
+    if (this.table.get(blockId) != null) {
       throw new IllegalStateException("a snapshot for block id already exists: " + blockId.toString());
     }
     this.table.put(blockId, snapshot);
