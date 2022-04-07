@@ -1,5 +1,6 @@
 package state;
 
+import model.lightchain.Block;
 import model.lightchain.Identifier;
 
 /**
@@ -22,4 +23,14 @@ public interface State {
    * bare minimum the snapshot of Genesis block exists.
    */
   Snapshot last();
+
+  /**
+   * Executes the block by creating a new snapshot, applying all transactions on it, and then storing that snapshot
+   * in the state and updating the last.
+   *
+   * @param block block to be executed.
+   * @return snapshot resulted by executing the block.
+   * @throws IllegalStateException if any illegal state faced during execution of a block.
+   */
+  Snapshot execute(Block block);
 }
