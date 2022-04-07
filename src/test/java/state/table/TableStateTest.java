@@ -41,7 +41,7 @@ public class TableStateTest {
       }
       when(snapshots.get(i).getReferenceBlockId()).thenReturn(referenceBlockId);
       when(snapshots.get(i).getReferenceBlockHeight()).thenReturn(blockHeight);
-      HashMap<Identifier, Account> accounts = AccountFixture.randomAccounts();
+      HashMap<Identifier, Account> accounts = AccountFixture.newAccounts(10, 10);
       for (Map.Entry<Identifier, Account> set : accounts.entrySet()) {
         when(snapshots.get(i).getAccount(set.getKey())).thenReturn(set.getValue());
       }

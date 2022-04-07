@@ -26,7 +26,7 @@ public class AssignerTest {
   public void testAssignerPicksOneStakedAccount() {
     // Arrange
     Identifier entityId = IdentifierFixture.newIdentifier();
-    ArrayList<Account> accounts = new ArrayList<>(AccountFixture.randomAccounts().values());
+    ArrayList<Account> accounts = new ArrayList<>(AccountFixture.newAccounts(10, 10).values());
     Snapshot snapshot = mock(Snapshot.class);
     when(snapshot.all()).thenReturn(accounts);
 
@@ -55,7 +55,7 @@ public class AssignerTest {
   public void testAssignerPicksTwoStakedAccount() {
     // Arrange
     Identifier entityId = IdentifierFixture.newIdentifier();
-    ArrayList<Account> accounts = new ArrayList<>(AccountFixture.randomAccounts().values());
+    ArrayList<Account> accounts = new ArrayList<>(AccountFixture.newAccounts(10, 10).values());
     Snapshot snapshot = mock(Snapshot.class);
     when(snapshot.all()).thenReturn(accounts);
 
@@ -83,7 +83,7 @@ public class AssignerTest {
   public void testAssignerPicksFiveStakedAccount() {
     // Arrange
     Identifier entityId = IdentifierFixture.newIdentifier();
-    ArrayList<Account> accounts = new ArrayList<>(AccountFixture.randomAccounts().values());
+    ArrayList<Account> accounts = new ArrayList<>(AccountFixture.newAccounts(10, 10).values());
     Snapshot snapshot = mock(Snapshot.class);
     when(snapshot.all()).thenReturn(accounts);
 
@@ -111,7 +111,7 @@ public class AssignerTest {
   public void testAssignerPicksTenStakedAccount() {
     // Arrange
     Identifier entityId = IdentifierFixture.newIdentifier();
-    ArrayList<Account> accounts = new ArrayList<>(AccountFixture.randomAccounts().values());
+    ArrayList<Account> accounts = new ArrayList<>(AccountFixture.newAccounts(10, 10).values());
     Snapshot snapshot = mock(Snapshot.class);
     when(snapshot.all()).thenReturn(accounts);
 
@@ -140,7 +140,8 @@ public class AssignerTest {
     // Arrange
     Identifier entityId = IdentifierFixture.newIdentifier();
     Snapshot snapshot = mock(Snapshot.class);
-    when(snapshot.all()).thenReturn(new ArrayList<>(AccountFixture.randomAccounts().values()));
+    when(snapshot.all())
+        .thenReturn(new ArrayList<>(AccountFixture.newAccounts(10, 10).values()));
 
     // Act
     LightChainValidatorAssigner assigner = new LightChainValidatorAssigner();
@@ -220,7 +221,8 @@ public class AssignerTest {
     // Arrange
     Identifier entityId = IdentifierFixture.newIdentifier();
     Snapshot snapshot = mock(Snapshot.class);
-    when(snapshot.all()).thenReturn(new ArrayList<>(AccountFixture.randomAccounts().values()));
+    when(snapshot.all())
+        .thenReturn(new ArrayList<>(AccountFixture.newAccounts(10, 10).values()));
 
     // Act
     LightChainValidatorAssigner assigner = new LightChainValidatorAssigner();
