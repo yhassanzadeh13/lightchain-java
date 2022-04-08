@@ -1,6 +1,15 @@
 package networking.p2p;
 
+import model.Entity;
+import model.exceptions.LightChainNetworkingException;
+import model.lightchain.Identifier;
+import network.Conduit;
+import network.p2p.P2pConduit;
+import network.p2p.P2pNetwork;
 import protocol.Engine;
+import protocol.engines.IngestEngine;
+
+import java.nio.charset.StandardCharsets;
 
 /**
  * Encapsulates tests for gRPC implementation of the networking layer.
@@ -19,5 +28,33 @@ public class NetworkTest {
   //    and B2 must be on another same channel.
   // 5. The p2p network throws an exception if an engine is registering itself on an already taken channel.
 
+  public static void main(String[] args) {
+
+    // set up mock values for testing gRPC communication.
+
+    Engine sourceEngine = new IngestEngine();
+    Identifier target = new Identifier(new String("identifier").getBytes(StandardCharsets.UTF_8));
+    Entity entity = new Entity() {
+      @Override
+      public String type() {
+        return new String("type");
+      }
+    };
+
+    P2pNetwork network = new P2pNetwork();
+
+    Conduit conduit = network.register(sourceEngine,"BBC");
+
+    try {
+      conduit.unicast(entity, target);
+    } catch (LightChainNetworkingException e) {
+      System.out.println("LightChain Network has failed during the transmission of " + e.toString()
+              + " to " + target.toString());
+      e.printStackTrace();
+    }
+
+
+
+  }
 
 }

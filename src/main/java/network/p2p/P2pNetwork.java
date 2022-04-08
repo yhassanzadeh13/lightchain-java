@@ -21,44 +21,24 @@ import protocol.engines.IngestEngine;
  * Implements a grpc-based networking layer.
  */
 public class P2pNetwork implements network.Network {
-  private HashMap<Engine, String> engineChannelTable;
+  private static HashMap<String, Engine> engineChannelTable;
+  private static int NETWORK_SERVER_PORT;
 
   public P2pNetwork() {
-    this.engineChannelTable = new HashMap<Engine, String>();
+    this.engineChannelTable = new HashMap<String, Engine>();
   }
 
   public static void main(String[] args) throws IOException, InterruptedException {
+    NETWORK_SERVER_PORT=8980;
 
-    MessageServer server = new MessageServer(8980);
-    server.start();
-
-    // START
-
-    String targetServer = "localhost:8980";
-    ManagedChannel channel = ManagedChannelBuilder.forTarget(targetServer).usePlaintext().build();
-
+    MessageServer server = new MessageServer(NETWORK_SERVER_PORT);
     try {
-      MessageClient client = new MessageClient(channel);
-
-      // relay the message by using the appropriate gRPC method to remote Engines of the same channel on other networks
-      Engine sourceEngine = new IngestEngine();
-      Identifier target = new Identifier(new String("identifier").getBytes(StandardCharsets.UTF_8));
-      Entity entity = new Entity() {
-        @Override
-        public String type() {
-          return new String("type");
-        }
-      };
-      client.deliver(entity, target, sourceEngine);
-
-    } finally {
-      channel.shutdownNow();
+      server.start();
+      server.blockUntilShutdown();
+    } catch (Exception e){
+      System.out.println("LightChain Network has failed during the transmission ");
+      e.printStackTrace();
     }
-
-    // END
-
-    server.blockUntilShutdown();
-
   }
 
   /**
@@ -77,7 +57,7 @@ public class P2pNetwork implements network.Network {
     }
 
     P2pConduit conduit = new P2pConduit(this, e);
-    engineChannelTable.put(e, channel);
+    engineChannelTable.put(channel, e);
 
     return conduit;
 
@@ -85,9 +65,23 @@ public class P2pNetwork implements network.Network {
 
   public void sendUnicast(Entity e, Identifier target, Engine sourceEngine) throws InterruptedException, IOException {
 
+    String channel;
+
+    for(String c:engineChannelTable.keySet()){
+      if(engineChannelTable.get(c).equals(sourceEngine)) channel = c;
+    }
+
     // target will be obtained from identifier when its implemented
 
-    // the part inbetween the START and END commands will be moved here once the relevant parts are implemented
+    String targetServer = "localhost:8980";
+    ManagedChannel managedChannel = ManagedChannelBuilder.forTarget(targetServer).usePlaintext().build();
+
+    try {
+      MessageClient client = new MessageClient(managedChannel);
+      client.deliver(e, target, sourceEngine);
+    } finally {
+      managedChannel.shutdownNow();
+    }
 
   }
 
@@ -109,6 +103,9 @@ public class P2pNetwork implements network.Network {
           int i = 0;
           for (ByteString s : message.getTargetIdsList()) {
             System.out.println("Target " + i++ + ": " + s.toStringUtf8());
+
+            //engineChannelTable.get(s.toStringUtf8()).process(message.getPayload());
+
           }
 
         }
