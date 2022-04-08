@@ -6,29 +6,37 @@ import model.exceptions.LightChainNetworkingException;
 import model.lightchain.Identifier;
 import protocol.Engine;
 
-import java.util.HashMap;
+import java.io.IOException;
 
 /**
  * Implements Conduit for grpc-based networking layer.
  */
 public class P2pConduit implements network.Conduit {
   private P2pNetwork network;
+  private Engine engine;
 
-  public P2pConduit(P2pNetwork network) {
+  public P2pConduit(P2pNetwork network, Engine engine) {
     this.network = network;
+    this.engine = engine;
   }
+
   /**
    * Sends the Entity through the Network to the remote target.
    *
-   * @param e the Entity to be sent over the network.
+   * @param e      the Entity to be sent over the network.
    * @param target Identifier of the receiver.
    * @throws LightChainNetworkingException any unhappy path taken on sending the Entity.
    */
   @Override
   public void unicast(Entity e, Identifier target) throws LightChainNetworkingException {
     try {
-      network.sendUnicast(e,target);
+      network.sendUnicast(e, target, engine);
     } catch (InterruptedException ex) {
+      System.out.println("transmission was interrupted during the unicast operation");
+      ex.printStackTrace();
+      throw new LightChainNetworkingException();
+    } catch (IOException ex) { // this will be removed
+      System.out.println("transmission was interrupted during the unicast operation");
       ex.printStackTrace();
     }
   }

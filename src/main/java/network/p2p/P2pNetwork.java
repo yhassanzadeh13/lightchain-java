@@ -1,31 +1,30 @@
 package network.p2p;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
-import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import com.google.protobuf.ByteString;
 import com.google.protobuf.Empty;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
-import io.grpc.Server;
-import io.grpc.ServerBuilder;
 import io.grpc.stub.StreamObserver;
 import model.Entity;
 import model.lightchain.Identifier;
 import network.Conduit;
 import protocol.Engine;
+import protocol.engines.IngestEngine;
 
 /**
  * Implements a grpc-based networking layer.
  */
 public class P2pNetwork implements network.Network {
-  private HashMap engineChannelTable;
+  private HashMap<Engine, String> engineChannelTable;
 
-  public P2pNetwork() throws IOException, InterruptedException {
+  public P2pNetwork() {
     this.engineChannelTable = new HashMap<Engine, String>();
-
   }
 
   public static void main(String[] args) throws IOException, InterruptedException {
@@ -41,8 +40,16 @@ public class P2pNetwork implements network.Network {
     try {
       MessageClient client = new MessageClient(channel);
 
-      // Record a few randomly selected points from the features file.
-      client.deliver(7);
+      // relay the message by using the appropriate gRPC method to remote Engines of the same channel on other networks
+      Engine sourceEngine = new IngestEngine();
+      Identifier target = new Identifier(new String("identifier").getBytes(StandardCharsets.UTF_8));
+      Entity entity = new Entity() {
+        @Override
+        public String type() {
+          return new String("type");
+        }
+      };
+      client.deliver(entity, target, sourceEngine);
 
     } finally {
       channel.shutdownNow();
@@ -52,9 +59,6 @@ public class P2pNetwork implements network.Network {
 
     server.blockUntilShutdown();
 
-
-
-    System.out.println("yoo");
   }
 
   /**
@@ -72,27 +76,24 @@ public class P2pNetwork implements network.Network {
       throw new IllegalStateException("channel already exist");
     }
 
-    P2pConduit conduit = new P2pConduit(this);
+    P2pConduit conduit = new P2pConduit(this, e);
     engineChannelTable.put(e, channel);
 
     return conduit;
 
   }
 
-  public void sendUnicast(Entity e, Identifier target) throws InterruptedException {
+  public void sendUnicast(Entity e, Identifier target, Engine sourceEngine) throws InterruptedException, IOException {
 
-    // get the target ip:port from the entity e
+    // target will be obtained from identifier when its implemented
 
-    e.id();
-
-    // relay the message by using the appropriate gRPC method
-
-
+    // the part inbetween the START and END commands will be moved here once the relevant parts are implemented
 
   }
 
   public static class MessengerImpl extends MessengerGrpc.MessengerImplBase {
     private final Logger logger = Logger.getLogger(MessengerImpl.class.getName());
+
     @Override
     public StreamObserver<Message> deliver(StreamObserver<Empty> responseObserver) {
 
@@ -100,6 +101,15 @@ public class P2pNetwork implements network.Network {
 
         @Override
         public void onNext(Message message) {
+
+          System.out.println("Received Entity");
+          System.out.println("OriginID: " + message.getOriginId().toStringUtf8());
+          System.out.println("Type: " + message.getType());
+
+          int i = 0;
+          for (ByteString s : message.getTargetIdsList()) {
+            System.out.println("Target " + i++ + ": " + s.toStringUtf8());
+          }
 
         }
 
@@ -110,7 +120,7 @@ public class P2pNetwork implements network.Network {
 
         @Override
         public void onCompleted() {
-          System.out.println("h");
+          responseObserver.onNext(com.google.protobuf.Empty.newBuilder().build());
           responseObserver.onCompleted();
         }
       };
