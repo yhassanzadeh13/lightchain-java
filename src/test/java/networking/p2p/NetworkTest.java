@@ -1,5 +1,7 @@
 package networking.p2p;
 
+import java.nio.charset.StandardCharsets;
+
 import model.Entity;
 import model.exceptions.LightChainNetworkingException;
 import model.lightchain.Identifier;
@@ -8,8 +10,6 @@ import network.p2p.P2pConduit;
 import network.p2p.P2pNetwork;
 import protocol.Engine;
 import protocol.engines.IngestEngine;
-
-import java.nio.charset.StandardCharsets;
 
 /**
  * Encapsulates tests for gRPC implementation of the networking layer.
@@ -43,7 +43,7 @@ public class NetworkTest {
 
     P2pNetwork network = new P2pNetwork();
 
-    Conduit conduit = network.register(sourceEngine,"BBC");
+    Conduit conduit = network.register(sourceEngine, "BBC");
 
     try {
       conduit.unicast(entity, target);
@@ -52,8 +52,6 @@ public class NetworkTest {
               + " to " + target.toString());
       e.printStackTrace();
     }
-
-
 
   }
 

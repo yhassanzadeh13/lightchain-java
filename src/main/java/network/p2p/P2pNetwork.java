@@ -1,7 +1,6 @@
 package network.p2p;
 
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -15,7 +14,6 @@ import model.Entity;
 import model.lightchain.Identifier;
 import network.Conduit;
 import protocol.Engine;
-import protocol.engines.IngestEngine;
 
 /**
  * Implements a grpc-based networking layer.
@@ -28,14 +26,15 @@ public class P2pNetwork implements network.Network {
     this.engineChannelTable = new HashMap<String, Engine>();
   }
 
-  public static void main(String[] args) throws IOException, InterruptedException {
-    NETWORK_SERVER_PORT=8980;
+  public static void main(String[] args) {
+
+    NETWORK_SERVER_PORT = 8980;
 
     MessageServer server = new MessageServer(NETWORK_SERVER_PORT);
     try {
       server.start();
       server.blockUntilShutdown();
-    } catch (Exception e){
+    } catch (Exception e) {
       System.out.println("LightChain Network has failed during the transmission ");
       e.printStackTrace();
     }
@@ -67,8 +66,8 @@ public class P2pNetwork implements network.Network {
 
     String channel;
 
-    for(String c:engineChannelTable.keySet()){
-      if(engineChannelTable.get(c).equals(sourceEngine)) channel = c;
+    for (String c : engineChannelTable.keySet()) {
+      if (engineChannelTable.get(c).equals(sourceEngine)) channel = c;
     }
 
     // target will be obtained from identifier when its implemented
