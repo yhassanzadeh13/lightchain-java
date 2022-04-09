@@ -221,5 +221,12 @@
             <version>1.15</version>
         </dependency>
 
+        <!-- https://mvnrepository.com/artifact/com.google.code.findbugs/annotations -->
+        <dependency>
+            <groupId>com.google.code.findbugs</groupId>
+            <artifactId>annotations</artifactId>
+            <version>3.0.1</version>
+        </dependency>
+
     </dependencies>
 </project>
