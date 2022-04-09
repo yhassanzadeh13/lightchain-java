@@ -57,7 +57,6 @@ public class ValidatorTest {
     /// State & Snapshot Mocking
     State mockState = mock(State.class);
     Snapshot mockSnapshot = mock(Snapshot.class);
-
     Account receiverAccount = AccountFixture.newAccount(transaction.getReceiver());
 
     when(mockState.atBlockId(transaction.getReferenceBlockId())).thenReturn(mockSnapshot);
@@ -116,7 +115,6 @@ public class ValidatorTest {
     /// State & Snapshot Mocking
     State mockState = mock(State.class);
     Snapshot mockSnapshot = mock(Snapshot.class);
-
     Account senderAccount = AccountFixture.newAccount(transaction.getSender());
     Account receiverAccount = AccountFixture.newAccount(transaction.getReceiver());
 
@@ -149,7 +147,6 @@ public class ValidatorTest {
     /// State & Snapshot Mocking
     State mockState = mock(State.class);
     Snapshot mockSnapshot = mock(Snapshot.class);
-
     Account senderAccount = AccountFixture.newAccount(transaction.getSender());
     Account receiverAccount = AccountFixture.newAccount(transaction.getReceiver());
 
