@@ -54,7 +54,7 @@ public class TableStateTest {
 
     // checks last snapshot being the one with the greatest block height.
     Assertions.assertEquals(tableState.last(), tableState.atBlockId(maxHeightSnapshot.getLeft()));
-    
+
     // checks accounts per snapshots.
     for (int j = 0; j < snapshots.size(); j++) {
       Snapshot snapshot = tableState.atBlockId(refBlockIds.get(j));

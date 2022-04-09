@@ -20,6 +20,7 @@ public class TransactionValidator implements InfTransactionValidator {
    *
    * @param state Current state used in the validator.
    */
+  @edu.umd.cs.findbugs.annotations.SuppressFBWarnings
   public TransactionValidator(State state) {
     this.state = state;
   }
