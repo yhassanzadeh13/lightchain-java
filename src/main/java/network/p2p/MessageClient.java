@@ -27,8 +27,15 @@ import io.grpc.StatusRuntimeException;
 import io.grpc.stub.StreamObserver;
 import model.Entity;
 import model.lightchain.Identifier;
+import modules.codec.JsonEncoder;
+import network.p2p.Fixtures.EntityFixture;
 import protocol.Engine;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.ObjectOutputStream;
+import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
@@ -51,7 +58,7 @@ public class MessageClient {
   /**
    * Async client-streaming.
    */
-  public void deliver(Entity entity, Identifier target, Engine sourceEngine) throws InterruptedException {
+  public void deliver(Entity entity, Identifier target, String channel) throws InterruptedException {
     info("*** deliver");
     final CountDownLatch finishLatch = new CountDownLatch(1);
     StreamObserver<Empty> responseObserver = new StreamObserver<Empty>() {
@@ -77,24 +84,20 @@ public class MessageClient {
     StreamObserver<Message> requestObserver = asyncStub.deliver(responseObserver);
     try {
 
+//      ByteArrayOutputStream out = new ByteArrayOutputStream();
+//      ObjectOutputStream os = new ObjectOutputStream(out);
+//      os.writeObject(entity.id().getBytes());
+
+      JsonEncoder encoder = new JsonEncoder();
+
         Message message = Message.newBuilder()
-                .setOriginId(ByteString.copyFromUtf8("" + sourceEngine.toString()))
-                .setPayload(ByteString.copyFromUtf8("Entity No: " + entity.id()))
-                .setType(entity.type())
-                .addTargetIds(ByteString.copyFromUtf8(target.toString()))
+                .setOriginId(ByteString.copyFromUtf8("" + channel))
+                .setPayload(ByteString.copyFrom(encoder.encode(entity).getBytes()))
+                .setType(encoder.encode(entity).getType())
+                .addTargetIds(ByteString.copyFromUtf8(
+                        channel))
                 .build();
         requestObserver.onNext(message);
-
-        // Sleep for a bit before sending the next one. Will be useful for sequential messages.
-        Thread.sleep(1000);
-
-      Message message2 = Message.newBuilder()
-              .setOriginId(ByteString.copyFromUtf8("" + sourceEngine))
-              .setPayload(ByteString.copyFromUtf8("Entity No: " + entity.id()))
-              .setType(entity.type())
-              .addTargetIds(ByteString.copyFromUtf8(target.toString()))
-              .build();
-      requestObserver.onNext(message2);
 
         if (finishLatch.getCount() == 0) {
           // RPC completed or errored before we finished sending.

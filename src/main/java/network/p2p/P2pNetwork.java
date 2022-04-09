@@ -1,6 +1,8 @@
 package network.p2p;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -19,18 +21,19 @@ import protocol.Engine;
  * Implements a grpc-based networking layer.
  */
 public class P2pNetwork implements network.Network {
-  private static HashMap<String, Engine> engineChannelTable;
-  private static int NETWORK_SERVER_PORT;
+  public int NETWORK_SERVER_PORT;
+  MessageServer server;
 
   public P2pNetwork() {
-    this.engineChannelTable = new HashMap<String, Engine>();
+    this(1);
   }
 
-  public static void main(String[] args) {
+  public P2pNetwork(int port) {
+    NETWORK_SERVER_PORT = port;
+    server = new MessageServer(NETWORK_SERVER_PORT);
+  }
 
-    NETWORK_SERVER_PORT = 8980;
-
-    MessageServer server = new MessageServer(NETWORK_SERVER_PORT);
+  public void start() {
     try {
       server.start();
       server.blockUntilShutdown();
@@ -51,12 +54,12 @@ public class P2pNetwork implements network.Network {
   @Override
   public Conduit register(Engine e, String channel) throws IllegalStateException {
 
-    if (engineChannelTable.containsKey(channel)) {
+    if (server.engineChannelTable.containsKey(channel)) {
       throw new IllegalStateException("channel already exist");
     }
 
     P2pConduit conduit = new P2pConduit(this, e);
-    engineChannelTable.put(channel, e);
+    server.engineChannelTable.put(channel, e);
 
     return conduit;
 
@@ -64,64 +67,28 @@ public class P2pNetwork implements network.Network {
 
   public void sendUnicast(Entity e, Identifier target, Engine sourceEngine) throws InterruptedException, IOException {
 
-    String channel;
-
-    for (String c : engineChannelTable.keySet()) {
-      if (engineChannelTable.get(c).equals(sourceEngine)) channel = c;
-    }
-
     // target will be obtained from identifier when its implemented
 
-    String targetServer = "localhost:8980";
+    String targetServer = String.valueOf(StandardCharsets.UTF_8.decode(ByteBuffer.wrap(target.getBytes())));
+    System.out.println("Target: " + targetServer);
+
     ManagedChannel managedChannel = ManagedChannelBuilder.forTarget(targetServer).usePlaintext().build();
+
+    // find channel of the source engine
+
+    String channel="";
+
+    for (String c : server.engineChannelTable.keySet()) {
+      if (server.engineChannelTable.get(c).equals(sourceEngine)) channel = c;
+    }
 
     try {
       MessageClient client = new MessageClient(managedChannel);
-      client.deliver(e, target, sourceEngine);
+      client.deliver(e, target, channel);
     } finally {
       managedChannel.shutdownNow();
     }
 
-  }
-
-  public static class MessengerImpl extends MessengerGrpc.MessengerImplBase {
-    private final Logger logger = Logger.getLogger(MessengerImpl.class.getName());
-
-    @Override
-    public StreamObserver<Message> deliver(StreamObserver<Empty> responseObserver) {
-
-      return new StreamObserver<Message>() {
-
-        @Override
-        public void onNext(Message message) {
-
-          System.out.println("Received Entity");
-          System.out.println("OriginID: " + message.getOriginId().toStringUtf8());
-          System.out.println("Type: " + message.getType());
-
-          int i = 0;
-          for (ByteString s : message.getTargetIdsList()) {
-            System.out.println("Target " + i++ + ": " + s.toStringUtf8());
-
-            //engineChannelTable.get(s.toStringUtf8()).process(message.getPayload());
-
-          }
-
-        }
-
-        @Override
-        public void onError(Throwable t) {
-          logger.log(Level.WARNING, "Encountered error in deliver", t);
-        }
-
-        @Override
-        public void onCompleted() {
-          responseObserver.onNext(com.google.protobuf.Empty.newBuilder().build());
-          responseObserver.onCompleted();
-        }
-      };
-
-    }
   }
 
 }
