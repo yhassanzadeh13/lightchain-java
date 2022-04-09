@@ -19,4 +19,32 @@ public class Identifiers {
   public boolean has(Identifier identifier) {
     return this.identifiers.contains(identifier);
   }
+
+  @Override
+  public boolean equals(Object o) {
+    if (o == this) {
+      return true;
+    }
+    if (!(o instanceof Identifiers)) {
+      return false;
+    }
+    Identifiers that = (Identifiers) o;
+    return this.identifiers.equals(that.identifiers);
+  }
+
+  @Override
+  public int hashCode() {
+    return this.identifiers.hashCode();
+  }
+
+  public int size() {
+    return this.identifiers.size();
+  }
+
+  @Override
+  public String toString() {
+    return "Identifiers{"
+        + "identifiers=" + identifiers
+        + '}';
+  }
 }
