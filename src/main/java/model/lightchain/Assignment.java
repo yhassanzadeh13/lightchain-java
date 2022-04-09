@@ -7,7 +7,7 @@ public class Assignment {
   /**
    * Identifier of validators.
    */
-  private Identifiers validators;
+  private final Identifiers validators;
 
   /**
    * Default constructor.
@@ -41,5 +41,14 @@ public class Assignment {
   @Override
   public int hashCode() {
     return validators.hashCode();
+  }
+
+  public int size() {
+    return this.validators.size();
+  }
+
+  @Override
+  public String toString() {
+    return this.validators.toString();
   }
 }

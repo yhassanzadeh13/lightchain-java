@@ -2,7 +2,8 @@ package protocol.assigner;
 
 import java.util.ArrayList;
 
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import model.lightchain.Account;
 import model.lightchain.Assignment;
@@ -33,11 +34,12 @@ public class AssignerTest {
     // Act
     LightChainValidatorAssigner assigner = new LightChainValidatorAssigner();
     Assignment assignment = assigner.assign(entityId, snapshot, (short) 1);
+    Assertions.assertEquals(1, assignment.size());
 
     boolean sameAccount = true;
-    for (int i = 0; i < 9; i++) {
+    for (int i = 0; i < 100; i++) {
       Assignment assignment2 = assigner.assign(entityId, snapshot, (short) 1);
-
+      Assertions.assertEquals(1, assignment2.size());
       if (!assignment.equals(assignment2)) {
         Assertions.fail();
       }
@@ -62,10 +64,13 @@ public class AssignerTest {
     // Act
     LightChainValidatorAssigner assigner = new LightChainValidatorAssigner();
     Assignment assignment = assigner.assign(entityId, snapshot, (short) 2);
+    Assertions.assertEquals(2, assignment.size());
 
     boolean sameAccount = true;
-    for (int i = 0; i < 99; i++) {
+    for (int i = 0; i < 100; i++) {
       Assignment assignment2 = assigner.assign(entityId, snapshot, (short) 2);
+      Assertions.assertEquals(2, assignment2.size());
+
       if (!assignment.equals(assignment2)) {
         Assertions.fail();
       }
@@ -90,10 +95,13 @@ public class AssignerTest {
     // Act
     LightChainValidatorAssigner assigner = new LightChainValidatorAssigner();
     Assignment assignment = assigner.assign(entityId, snapshot, (short) 5);
+    Assertions.assertEquals(5, assignment.size());
 
     boolean sameAccount = true;
-    for (int i = 0; i < 99; i++) {
+    for (int i = 0; i < 100; i++) {
       Assignment assignment2 = assigner.assign(entityId, snapshot, (short) 5);
+      Assertions.assertEquals(5, assignment2.size());
+
       if (!assignment.equals(assignment2)) {
         Assertions.fail();
       }
@@ -118,10 +126,12 @@ public class AssignerTest {
     // Act
     LightChainValidatorAssigner assigner = new LightChainValidatorAssigner();
     Assignment assignment = assigner.assign(entityId, snapshot, (short) 10);
+    Assertions.assertEquals(10, assignment.size());
 
     boolean sameAccount = true;
-    for (int i = 0; i < 99; i++) {
+    for (int i = 0; i < 100; i++) {
       Assignment assignment2 = assigner.assign(entityId, snapshot, (short) 10);
+      Assertions.assertEquals(10, assignment2.size());
       if (!assignment.equals(assignment2)) {
         Assertions.fail();
       }
@@ -132,24 +142,24 @@ public class AssignerTest {
   }
 
   /**
-   * Tests the assigner to choose eleven of the staked accounts and confirms it fails since there is not enough accounts
-   * and returns IllegalArgumentException.
+   * Tests the assigner to choose 11 of the staked accounts out of 10 available
+   * and confirms it fails since there is not enough accounts and returns IllegalArgumentException.
    */
   @Test
   public void testAssignerFails_NotEnoughAccount() throws IllegalArgumentException {
     // Arrange
     Identifier entityId = IdentifierFixture.newIdentifier();
     Snapshot snapshot = mock(Snapshot.class);
-    when(snapshot.all())
-        .thenReturn(new ArrayList<>(AccountFixture.newAccounts(10, 10).values()));
+    ArrayList<Account> accounts = new ArrayList<>(AccountFixture.newAccounts(10, 10).values());
+    when(snapshot.all()).thenReturn(accounts);
 
     // Act
     LightChainValidatorAssigner assigner = new LightChainValidatorAssigner();
     try {
-      assigner.assign(entityId, snapshot, (short) 11);
+      assigner.assign(entityId, snapshot, (short) 11); // picking more validators than exists on snapshot.
       Assertions.fail();
     } catch (IllegalArgumentException e) {
-      Assertions.assertEquals("not enough accounts in the snapshot", e.getMessage());
+      Assertions.assertEquals(LightChainValidatorAssigner.NOT_ENOUGH_ACCOUNTS, e.getMessage());
     }
   }
 
@@ -162,7 +172,8 @@ public class AssignerTest {
     // Arrange
     Identifier entityId = IdentifierFixture.newIdentifier();
     Snapshot snapshot = mock(Snapshot.class);
-    when(snapshot.all()).thenReturn(new ArrayList<>());
+    ArrayList<Account> accounts = new ArrayList<>(AccountFixture.newAccounts(10, 10).values());
+    when(snapshot.all()).thenReturn(accounts);
 
     // Act
     LightChainValidatorAssigner assigner = new LightChainValidatorAssigner();
@@ -170,7 +181,7 @@ public class AssignerTest {
       assigner.assign(entityId, snapshot, (short) 1);
       Assertions.fail();
     } catch (IllegalArgumentException e) {
-      Assertions.assertEquals("not enough accounts in the snapshot", e.getMessage());
+      Assertions.assertEquals(LightChainValidatorAssigner.NOT_ENOUGH_ACCOUNTS, e.getMessage());
     }
   }
 
@@ -181,7 +192,8 @@ public class AssignerTest {
   public void testAssignerFails_NullIdentifier() throws IllegalArgumentException {
     // Arrange
     Snapshot snapshot = mock(Snapshot.class);
-    when(snapshot.all()).thenReturn(new ArrayList<>());
+    ArrayList<Account> accounts = new ArrayList<>(AccountFixture.newAccounts(10, 10).values());
+    when(snapshot.all()).thenReturn(accounts);
 
     // Act
     LightChainValidatorAssigner assigner = new LightChainValidatorAssigner();
@@ -189,7 +201,7 @@ public class AssignerTest {
       assigner.assign(null, snapshot, (short) 1);
       Assertions.fail();
     } catch (IllegalArgumentException e) {
-      Assertions.assertEquals("identifier cannot be null", e.getMessage());
+      Assertions.assertEquals(LightChainValidatorAssigner.IDENTIFIER_CANNOT_BE_NULL, e.getMessage());
     }
 
   }
@@ -208,7 +220,7 @@ public class AssignerTest {
       assigner.assign(entityId, null, (short) 1);
       Assertions.fail();
     } catch (IllegalArgumentException e) {
-      Assertions.assertEquals("snapshot cannot be null", e.getMessage());
+      Assertions.assertEquals(LightChainValidatorAssigner.SNAPSHOT_CANNOT_BE_NULL, e.getMessage());
     }
 
   }
@@ -221,8 +233,8 @@ public class AssignerTest {
     // Arrange
     Identifier entityId = IdentifierFixture.newIdentifier();
     Snapshot snapshot = mock(Snapshot.class);
-    when(snapshot.all())
-        .thenReturn(new ArrayList<>(AccountFixture.newAccounts(10, 10).values()));
+    ArrayList<Account> accounts = new ArrayList<>(AccountFixture.newAccounts(10, 10).values());
+    when(snapshot.all()).thenReturn(accounts);
 
     // Act
     LightChainValidatorAssigner assigner = new LightChainValidatorAssigner();
@@ -230,5 +242,6 @@ public class AssignerTest {
 
     // Assert
     Assertions.assertEquals(assignment, new Assignment());
+    Assertions.assertEquals(0, assignment.size());
   }
 }

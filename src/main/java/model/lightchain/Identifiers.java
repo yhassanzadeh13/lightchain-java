@@ -36,4 +36,15 @@ public class Identifiers {
   public int hashCode() {
     return this.identifiers.hashCode();
   }
+
+  public int size() {
+    return this.identifiers.size();
+  }
+
+  @Override
+  public String toString() {
+    return "Identifiers{"
+        + "identifiers=" + identifiers
+        + '}';
+  }
 }
