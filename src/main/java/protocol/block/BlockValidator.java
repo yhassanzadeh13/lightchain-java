@@ -2,6 +2,7 @@ package protocol.block;
 
 import java.util.ArrayList;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import model.crypto.Signature;
 import model.lightchain.Account;
 import model.lightchain.Block;
@@ -20,11 +21,12 @@ public class BlockValidator implements InfBlockValidator {
   /**
    * Unique State that the block refers to.
    */
-  private final State state;
+  private State state;
 
   /**
    * Constructor.
    */
+  @SuppressFBWarnings(value = "EI_EXPOSE_REP2", justification = "we want state being intentionally mutable externally")
   public BlockValidator(State state) {
     this.state = state;
   }
