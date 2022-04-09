@@ -14,7 +14,7 @@ public class TransactionValidator implements InfTransactionValidator {
   /**
    * Unique State that the transaction is in.
    */
-  private final State state;
+  private State state;
 
   /**
    * Constructor.
