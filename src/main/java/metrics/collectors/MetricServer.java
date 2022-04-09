@@ -8,14 +8,13 @@ import io.prometheus.client.exporter.HTTPServer;
  * HTTP Server constructor class for the Prometheus exposer server.
  */
 public class MetricServer {
-
-  static HTTPServer server;
+  private HTTPServer server;
   private static final int SERVER_PORT = 8081;
 
   /**
    * Initiates the Prometheus Exposer HTTP Server.
    */
-  public static void start() {
+  public void start() {
 
     try {
       server = new HTTPServer(SERVER_PORT);
@@ -28,9 +27,9 @@ public class MetricServer {
   /**
    * Terminates the Prometheus Exposer HTTP Server.
    */
-  public static void terminate() {
+  public void terminate() {
     try {
-      server.stop();
+      server.close();
     } catch (Exception e) {
       throw new IllegalStateException("could not stop metrics server:\t" + e);
     }
