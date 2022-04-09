@@ -32,7 +32,7 @@ public class TableStateTest {
     ArrayList<Identifier> refBlockIds = new ArrayList<>();
     Pair<Identifier, Long> maxHeightSnapshot = Pair.of(null, 0L);
 
-    /// Creates 10 snapshots each with 10 staked and unstaked accounts
+    /// Creates 10 snapshots each with 10 staked and 10 unstaked accounts
     for (int i = 0; i < 10; i++) {
       Identifier referenceBlockId = IdentifierFixture.newIdentifier();
       long blockHeight = (long) (random.nextDouble() * 100L);
@@ -52,14 +52,15 @@ public class TableStateTest {
       refBlockIds.add(referenceBlockId);
     }
 
-    // checks last snapshot being the one with greatest block height.
-    boolean lastSnapshotCorrectness = tableState.last().equals(tableState.atBlockId(maxHeightSnapshot.getLeft()));
-    Assertions.assertTrue(lastSnapshotCorrectness);
+    // checks last snapshot being the one with the greatest block height.
+    Assertions.assertEquals(tableState.last(), tableState.atBlockId(maxHeightSnapshot.getLeft()));
+
 
     // checks accounts per snapshots.
     for (int j = 0; j < snapshots.size(); j++) {
-      Assertions.assertEquals(tableState.atBlockId(refBlockIds.get(j)), snapshots.get(j));
-      for (Account account : snapshots.get(j).all()) {
+      Snapshot snapshot = tableState.atBlockId(refBlockIds.get(j));
+      Assertions.assertEquals(snapshot, snapshots.get(j));
+      for (Account account : snapshot.all()) {
         Assertions.assertEquals(snapshots.get(j).getAccount(account.getIdentifier()), account);
       }
     }

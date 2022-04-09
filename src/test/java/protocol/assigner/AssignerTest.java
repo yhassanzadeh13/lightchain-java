@@ -172,8 +172,7 @@ public class AssignerTest {
     // Arrange
     Identifier entityId = IdentifierFixture.newIdentifier();
     Snapshot snapshot = mock(Snapshot.class);
-    ArrayList<Account> accounts = new ArrayList<>(AccountFixture.newAccounts(10, 10).values());
-    when(snapshot.all()).thenReturn(accounts);
+    when(snapshot.all()).thenReturn(new ArrayList<>());
 
     // Act
     LightChainValidatorAssigner assigner = new LightChainValidatorAssigner();
