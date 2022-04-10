@@ -113,7 +113,6 @@ public class IdentifiersTest {
       Assertions.fail();
     }
 
-
     /*
     Checking correctness of insertion by Has.
      */
@@ -352,7 +351,6 @@ public class IdentifiersTest {
       Assertions.fail();
     }
 
-
     CountDownLatch doneHas = new CountDownLatch(concurrencyDegree);
     Thread[] allThreads = new Thread[concurrencyDegree];
     for (int i = 0; i < allIds.size(); i++) {
@@ -373,7 +371,6 @@ public class IdentifiersTest {
     } catch (InterruptedException e) {
       Assertions.fail();
     }
-
 
     CountDownLatch doneDubAdd = new CountDownLatch(concurrencyDegree);
     Thread[] addThreadsDup = new Thread[concurrencyDegree];
