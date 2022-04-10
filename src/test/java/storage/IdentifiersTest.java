@@ -26,7 +26,7 @@ public class IdentifiersTest {
   private static final String TEMP_DIR = "tempdir";
   private static final String TEMP_FILE = "tempfile.db";
   private Path tempdir;
-  private ArrayList<Identifier> identifierArrayList;
+  private ArrayList<Identifier> allIds;
   private IdentifierMapDb db;
   // TODO: implement a unit test for each of the following scenarios:
   // IMPORTANT NOTE: each test must have a separate instance of database, and the database MUST only created on a
@@ -55,11 +55,7 @@ public class IdentifiersTest {
     Path currentRelativePath = Paths.get("");
     tempdir = Files.createTempDirectory(currentRelativePath, TEMP_DIR);
     db = new IdentifierMapDb(tempdir.toAbsolutePath() + "/" + TEMP_FILE);
-    identifierArrayList = new ArrayList<>();
-    for (int i = 0; i < 10; i++) {
-      Identifier identifier = IdentifierFixture.newIdentifier();
-      identifierArrayList.add(identifier);
-    }
+    allIds = IdentifierFixture.newIdentifiers(10);
   }
 
   /**
@@ -67,15 +63,17 @@ public class IdentifiersTest {
    */
   @Test
   void sequentialAddTest() throws IOException {
-    for (Identifier identifier : identifierArrayList) {
+    for (Identifier identifier : allIds) {
       Assertions.assertTrue(db.add(identifier));
     }
-    for (Identifier identifier : identifierArrayList) {
+    for (Identifier identifier : allIds) {
       Assertions.assertTrue(db.has(identifier));
     }
-    // TODO: check correctness
-    for (Identifier identifier : db.all()) {
-      Assertions.assertTrue(identifierArrayList.contains(identifier));
+
+    ArrayList<Identifier> all = db.all();
+    Assertions.assertEquals(all.size(), 10);
+    for (Identifier identifier : all) {
+      Assertions.assertTrue(allIds.contains(identifier));
     }
     db.closeDb();
     FileUtils.deleteDirectory(new File(tempdir.toString()));
@@ -87,70 +85,87 @@ public class IdentifiersTest {
   @Test
   void concurrentAddTest() throws IOException {
     int concurrencyDegree = 10;
-    int count = 0;
+
     AtomicInteger threadError = new AtomicInteger();
-    CountDownLatch countDownLatchAdd = new CountDownLatch(concurrencyDegree);
+    CountDownLatch addDone = new CountDownLatch(concurrencyDegree);
     Thread[] addThreads = new Thread[concurrencyDegree];
-    for (Identifier identifier : identifierArrayList) {
-      addThreads[count] = new Thread(() -> {
-        if (!db.add(identifier)) {
+
+    /*
+    Adding all identifiers concurrently.
+     */
+    for (int i = 0; i < allIds.size(); i++) {
+      int finalI = i;
+      addThreads[i] = new Thread(() -> {
+        if (!db.add(allIds.get(finalI))) {
           threadError.getAndIncrement();
         }
-        countDownLatchAdd.countDown();
+        addDone.countDown();
       });
-      count++;
     }
+
     for (Thread t : addThreads) {
       t.start();
     }
     try {
-      boolean doneOneTime = countDownLatchAdd.await(60, TimeUnit.SECONDS);
+      boolean doneOneTime = addDone.await(60, TimeUnit.SECONDS);
       Assertions.assertTrue(doneOneTime);
     } catch (InterruptedException e) {
       Assertions.fail();
     }
-    count = 0;
-    CountDownLatch countDownLatchHas = new CountDownLatch(concurrencyDegree);
+
+
+    /*
+    Checking correctness of insertion by Has.
+     */
+    CountDownLatch hasDone = new CountDownLatch(concurrencyDegree);
     Thread[] hasThreads = new Thread[concurrencyDegree];
-    for (Identifier identifier : identifierArrayList) {
-      hasThreads[count] = new Thread(() -> {
-        if (!db.has(identifier)) {
+    for (int i = 0; i < allIds.size(); i++) {
+      int finalI = i;
+      hasThreads[i] = new Thread(() -> {
+        if (!db.has(allIds.get(finalI))) {
           threadError.getAndIncrement();
         }
-        countDownLatchHas.countDown();
+        hasDone.countDown();
       });
-      count++;
     }
+
     for (Thread t : hasThreads) {
       t.start();
     }
     try {
-      boolean doneOneTime = countDownLatchHas.await(60, TimeUnit.SECONDS);
+      boolean doneOneTime = hasDone.await(60, TimeUnit.SECONDS);
       Assertions.assertTrue(doneOneTime);
     } catch (InterruptedException e) {
       Assertions.fail();
     }
-    count = 0;
-    CountDownLatch countDownLatchAll = new CountDownLatch(concurrencyDegree);
+
+    /*
+    Retrieving all concurrently.
+     */
+    CountDownLatch doneAll = new CountDownLatch(concurrencyDegree);
     Thread[] allThreads = new Thread[concurrencyDegree];
-    for (Identifier identifier : db.all()) {
-      allThreads[count] = new Thread(() -> {
-        if (!identifierArrayList.contains(identifier)) {
+    ArrayList<Identifier> all = db.all();
+
+    for (int i = 0; i < all.size(); i++) {
+      int finalI = i;
+      allThreads[i] = new Thread(() -> {
+        if (!allIds.contains(allIds.get(finalI))) {
           threadError.getAndIncrement();
         }
-        countDownLatchAll.countDown();
+        doneAll.countDown();
       });
-      count++;
     }
+
     for (Thread t : allThreads) {
       t.start();
     }
     try {
-      boolean doneOneTime = countDownLatchAll.await(60, TimeUnit.SECONDS);
+      boolean doneOneTime = doneAll.await(60, TimeUnit.SECONDS);
       Assertions.assertTrue(doneOneTime);
     } catch (InterruptedException e) {
       Assertions.fail();
     }
+
     Assertions.assertEquals(0, threadError.get());
     db.closeDb();
     FileUtils.deleteDirectory(new File(tempdir.toString()));
@@ -166,17 +181,18 @@ public class IdentifiersTest {
   @Test
   void removeFirstFiveTest() throws IOException {
 
-    for (Identifier identifier : identifierArrayList) {
+    for (Identifier identifier : allIds) {
       Assertions.assertTrue(db.add(identifier));
     }
-    for (int x = 0; x < 5; x++) {
-      Assertions.assertTrue(db.remove(identifierArrayList.get(x)));
+    // removes the first five
+    for (int i = 0; i < 5; i++) {
+      Assertions.assertTrue(db.remove(allIds.get(i)));
     }
-    for (int x = 0; x < 10; x++) {
-      if (x < 5) {
-        Assertions.assertFalse(db.has(identifierArrayList.get(x)) || db.all().contains(identifierArrayList.get(x)));
+    for (int i = 0; i < 10; i++) {
+      if (i < 5) {
+        Assertions.assertFalse(db.has(allIds.get(i)) || db.all().contains(allIds.get(i)));
       } else {
-        Assertions.assertTrue(db.has(identifierArrayList.get(x)) && db.all().contains(identifierArrayList.get(x)));
+        Assertions.assertTrue(db.has(allIds.get(i)) && db.all().contains(allIds.get(i)));
       }
     }
     db.closeDb();
@@ -190,76 +206,91 @@ public class IdentifiersTest {
   @Test
   void concurrentRemoveFirstFiveTest() throws IOException {
     int concurrencyDegree = 10;
-    int count = 0;
     AtomicInteger threadError = new AtomicInteger();
-    CountDownLatch countDownLatchAdd = new CountDownLatch(concurrencyDegree);
+    CountDownLatch doneAdd = new CountDownLatch(concurrencyDegree);
     Thread[] addThreads = new Thread[concurrencyDegree];
-    for (Identifier identifier : identifierArrayList) {
-      addThreads[count] = new Thread(() -> {
-        if (!db.add(identifier)) {
+
+    /*
+    Adding all concurrently.
+     */
+    for (int i = 0; i < allIds.size(); i++) {
+      int finalI = i;
+      addThreads[i] = new Thread(() -> {
+        if (!db.add(allIds.get(finalI))) {
           threadError.getAndIncrement();
         }
-        countDownLatchAdd.countDown();
+        doneAdd.countDown();
       });
-      count++;
     }
+
     for (Thread t : addThreads) {
       t.start();
     }
     try {
-      boolean doneOneTime = countDownLatchAdd.await(60, TimeUnit.SECONDS);
+      boolean doneOneTime = doneAdd.await(60, TimeUnit.SECONDS);
       Assertions.assertTrue(doneOneTime);
     } catch (InterruptedException e) {
       Assertions.fail();
     }
-    count = 0;
-    CountDownLatch countDownLatchRemove = new CountDownLatch(concurrencyDegree / 2);
-    Thread[] removeThreads = new Thread[concurrencyDegree / 2];
-    for (Identifier identifier : identifierArrayList.subList(0, concurrencyDegree / 2)) {
-      removeThreads[count] = new Thread(() -> {
-        if (!db.remove(identifier)) {
+
+    /*
+    Removing first 5 concurrently
+     */
+    int removeTill = concurrencyDegree / 2;
+    CountDownLatch doneRemove = new CountDownLatch(removeTill);
+    Thread[] removeThreads = new Thread[removeTill];
+    for (int i = 0; i < removeTill; i++) {
+      int finalI = i;
+      removeThreads[i] = new Thread(() -> {
+        if (!db.remove(allIds.get(finalI))) {
           threadError.getAndIncrement();
         }
-        countDownLatchRemove.countDown();
+        doneRemove.countDown();
       });
-      count++;
     }
+
     for (Thread t : removeThreads) {
       t.start();
     }
     try {
-      boolean doneOneTime = countDownLatchRemove.await(60, TimeUnit.SECONDS);
+      boolean doneOneTime = doneRemove.await(60, TimeUnit.SECONDS);
       Assertions.assertTrue(doneOneTime);
     } catch (InterruptedException e) {
       Assertions.fail();
     }
-    count = 0;
-    CountDownLatch countDownLatchHas = new CountDownLatch(concurrencyDegree);
+
+    /*
+     Checking for Has concurrently.
+     */
+    CountDownLatch doneHas = new CountDownLatch(concurrencyDegree);
     Thread[] hasThreads = new Thread[concurrencyDegree];
-    for (Identifier identifier : identifierArrayList) {
-      hasThreads[count] = new Thread(() -> {
-        if (identifierArrayList.indexOf(identifier) < 5) {
-          if (db.has(identifier)) {
+    for (int i = 0; i < allIds.size(); i++) {
+      int finalI = i;
+      int finalI1 = i;
+      hasThreads[i] = new Thread(() -> {
+        if (allIds.indexOf(allIds.get(finalI)) < 5) {
+          if (db.has(allIds.get(finalI1))) {
             threadError.getAndIncrement();
           }
         } else {
-          if (!db.has(identifier)) {
+          if (!db.has(allIds.get(finalI))) {
             threadError.getAndIncrement();
           }
         }
-        countDownLatchHas.countDown();
+        doneHas.countDown();
       });
-      count++;
     }
+
     for (Thread t : hasThreads) {
       t.start();
     }
     try {
-      boolean doneOneTime = countDownLatchHas.await(60, TimeUnit.SECONDS);
+      boolean doneOneTime = doneHas.await(60, TimeUnit.SECONDS);
       Assertions.assertTrue(doneOneTime);
     } catch (InterruptedException e) {
       Assertions.fail();
     }
+
     Assertions.assertEquals(0, threadError.get());
     db.closeDb();
     FileUtils.deleteDirectory(new File(tempdir.toString()));
@@ -273,13 +304,16 @@ public class IdentifiersTest {
    */
   @Test
   void duplicationTest() throws IOException {
-    for (Identifier identifier : identifierArrayList) {
+    for (Identifier identifier : allIds) {
       Assertions.assertTrue(db.add(identifier));
     }
-    for (Identifier identifier : db.all()) {
-      Assertions.assertTrue(identifierArrayList.contains(identifier));
+    for (Identifier identifier : allIds) {
+      Assertions.assertTrue(db.has(identifier));
     }
-    for (Identifier identifier : identifierArrayList) {
+    for (Identifier identifier : db.all()) {
+      Assertions.assertTrue(allIds.contains(identifier));
+    }
+    for (Identifier identifier : allIds) {
       Assertions.assertFalse(db.add(identifier));
     }
     db.closeDb();
@@ -291,70 +325,78 @@ public class IdentifiersTest {
    */
   @Test void concurrentDuplicationTest() throws IOException {
     int concurrencyDegree = 10;
-    int count = 0;
+
+    /*
+     * Adding all concurrently.
+     */
     AtomicInteger threadError = new AtomicInteger();
-    CountDownLatch countDownLatchAdd = new CountDownLatch(concurrencyDegree);
+    CountDownLatch doneAdd = new CountDownLatch(concurrencyDegree);
     Thread[] addThreads = new Thread[concurrencyDegree];
-    for (Identifier identifier : identifierArrayList) {
-      addThreads[count] = new Thread(() -> {
-        if (!db.add(identifier)) {
+    for (int i = 0; i < allIds.size(); i++) {
+      int finalI = i;
+      addThreads[i] = new Thread(() -> {
+        if (!db.add(allIds.get(finalI))) {
           threadError.getAndIncrement();
         }
-        countDownLatchAdd.countDown();
+        doneAdd.countDown();
       });
-      count++;
     }
+
     for (Thread t : addThreads) {
       t.start();
     }
     try {
-      boolean doneOneTime = countDownLatchAdd.await(60, TimeUnit.SECONDS);
+      boolean doneOneTime = doneAdd.await(60, TimeUnit.SECONDS);
       Assertions.assertTrue(doneOneTime);
     } catch (InterruptedException e) {
       Assertions.fail();
     }
-    count = 0;
-    CountDownLatch countDownLatchAll = new CountDownLatch(concurrencyDegree);
+
+
+    CountDownLatch doneHas = new CountDownLatch(concurrencyDegree);
     Thread[] allThreads = new Thread[concurrencyDegree];
-    for (Identifier identifier : db.all()) {
-      allThreads[count] = new Thread(() -> {
-        if (!identifierArrayList.contains(identifier)) {
+    for (int i = 0; i < allIds.size(); i++) {
+      int finalI = i;
+      allThreads[i] = new Thread(() -> {
+        if (!db.has(allIds.get(finalI))) {
           threadError.getAndIncrement();
         }
-        countDownLatchAll.countDown();
+        doneHas.countDown();
       });
-      count++;
     }
     for (Thread t : allThreads) {
       t.start();
     }
     try {
-      boolean doneOneTime = countDownLatchAll.await(60, TimeUnit.SECONDS);
+      boolean doneOneTime = doneHas.await(60, TimeUnit.SECONDS);
       Assertions.assertTrue(doneOneTime);
     } catch (InterruptedException e) {
       Assertions.fail();
     }
-    count = 0;
-    CountDownLatch countDownLatchAddDup = new CountDownLatch(concurrencyDegree);
+
+
+    CountDownLatch doneDubAdd = new CountDownLatch(concurrencyDegree);
     Thread[] addThreadsDup = new Thread[concurrencyDegree];
-    for (Identifier identifier : identifierArrayList) {
-      addThreadsDup[count] = new Thread(() -> {
-        if (db.add(identifier)) {
+    for (int i = 0; i < allIds.size(); i++) {
+      int finalI = i;
+      addThreadsDup[i] = new Thread(() -> {
+        if (db.add(allIds.get(finalI))) {
           threadError.getAndIncrement();
         }
-        countDownLatchAddDup.countDown();
+        doneDubAdd.countDown();
       });
-      count++;
     }
+
     for (Thread t : addThreadsDup) {
       t.start();
     }
     try {
-      boolean doneOneTime = countDownLatchAddDup.await(60, TimeUnit.SECONDS);
+      boolean doneOneTime = doneDubAdd.await(60, TimeUnit.SECONDS);
       Assertions.assertTrue(doneOneTime);
     } catch (InterruptedException e) {
       Assertions.fail();
     }
+
     Assertions.assertEquals(0, threadError.get());
     db.closeDb();
     FileUtils.deleteDirectory(new File(tempdir.toString()));

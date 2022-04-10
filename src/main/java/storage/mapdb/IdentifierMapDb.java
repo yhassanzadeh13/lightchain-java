@@ -16,7 +16,7 @@ import storage.Identifiers;
 public class IdentifierMapDb implements Identifiers {
   private final DB db;
   private final ReentrantReadWriteLock lock;
-  private static final String MAP_NAME = "identifierMap";
+  private static final String MAP_NAME = "identifier_map";
   private final HTreeMap<byte[], byte[]> identifierMap;
 
   /**
@@ -62,8 +62,7 @@ public class IdentifierMapDb implements Identifiers {
     boolean hasBoolean;
     try {
       lock.readLock().lock();
-      byte[] bytes = identifier.getBytes();
-      hasBoolean = identifierMap.containsKey(bytes);
+      hasBoolean = identifierMap.containsKey(identifier.getBytes());
     } finally {
       lock.readLock().unlock();
     }
@@ -79,8 +78,7 @@ public class IdentifierMapDb implements Identifiers {
    */
   @Override
   public boolean remove(Identifier identifier) {
-    byte[] bytes = identifier.getBytes();
-    return identifierMap.remove(bytes, bytes);
+    return identifierMap.remove(identifier.getBytes(), identifier.getBytes());
   }
 
   /**
