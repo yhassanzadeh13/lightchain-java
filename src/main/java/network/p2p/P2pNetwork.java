@@ -3,15 +3,9 @@ package network.p2p;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
-import com.google.protobuf.ByteString;
-import com.google.protobuf.Empty;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
-import io.grpc.stub.StreamObserver;
 import model.Entity;
 import model.lightchain.Identifier;
 import network.Conduit;
@@ -21,7 +15,7 @@ import protocol.Engine;
  * Implements a grpc-based networking layer.
  */
 public class P2pNetwork implements network.Network {
-  public int NETWORK_SERVER_PORT;
+  public int networkServerPort;
   MessageServer server;
 
   public P2pNetwork() {
@@ -29,10 +23,13 @@ public class P2pNetwork implements network.Network {
   }
 
   public P2pNetwork(int port) {
-    NETWORK_SERVER_PORT = port;
-    server = new MessageServer(NETWORK_SERVER_PORT);
+    networkServerPort = port;
+    server = new MessageServer(networkServerPort);
   }
 
+  /**
+   * Starts the MessageServer and waits until it is shutdown.
+   */
   public void start() {
     try {
       server.start();
@@ -65,6 +62,15 @@ public class P2pNetwork implements network.Network {
 
   }
 
+  /**
+   * Sends the provided entity to the target P2pNetwork on a specific channel by building a gRPC ManagedServer.
+   *
+   * @param e       the Engine to be registered.
+   * @param target  the target MessageServer.
+   * @param sourceEngine the Engine requesting the Entity to be sent.
+   * @throws InterruptedException if the transmission of Entity relay is interrupted.
+   * @throws IOException if the channel cannot be built.
+   */
   public void sendUnicast(Entity e, Identifier target, Engine sourceEngine) throws InterruptedException, IOException {
 
     // target will be obtained from identifier when its implemented
@@ -76,10 +82,12 @@ public class P2pNetwork implements network.Network {
 
     // find channel of the source engine
 
-    String channel="";
+    String channel = "";
 
     for (String c : server.engineChannelTable.keySet()) {
-      if (server.engineChannelTable.get(c).equals(sourceEngine)) channel = c;
+      if (server.engineChannelTable.get(c).equals(sourceEngine)) {
+        channel = c;
+      }
     }
 
     try {

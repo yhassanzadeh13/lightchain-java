@@ -33,16 +33,15 @@ public class NetworkTest {
   //    and B2 must be on another same channel.
   // 5. The p2p network throws an exception if an engine is registering itself on an already taken channel.
 
-
-  private ArrayList<Network> networkArrayList;
   private final String channel1 = "test-network-channel-1";
   private final String channel2 = "test-network-channel-2";
+  private ArrayList<Network> networkArrayList;
 
   /**
    * Test two P2P networks with two engines.
    */
   @Test
-  void testTwoP2PNetworksTwoEngines() {
+  void testTwoP2pNetworksTwoEngines() {
     P2pNetwork network1 = new P2pNetwork(1);
     MockEngine a1 = new MockEngine();
     Conduit c1 = network1.register(a1, channel1);
@@ -67,7 +66,8 @@ public class NetworkTest {
     n2Thread.start();
 
     try {
-      c1.unicast(entity, new Identifier(new String("localhost:"+network2.NETWORK_SERVER_PORT).getBytes(StandardCharsets.UTF_8)));
+      c1.unicast(entity, new Identifier(new String("localhost:" + network2.networkServerPort)
+              .getBytes(StandardCharsets.UTF_8)));
     } catch (LightChainNetworkingException e) {
       Assertions.fail();
     }
@@ -78,7 +78,7 @@ public class NetworkTest {
    * test two P2P networks with two engines concurrently.
    */
   @Test
-  void testTwoP2PNetworksTwoEnginesConcurrentMessages() {
+  void testTwoP2pNetworksTwoEnginesConcurrentMessages() {
     int concurrencyDegree = 100;
     AtomicInteger threadError = new AtomicInteger();
 
@@ -108,12 +108,12 @@ public class NetworkTest {
     n1Thread.start();
     n2Thread.start();
 
-
     for (int i = 0; i < concurrencyDegree; i++) {
       unicastThreads[i] = new Thread(() -> {
         Entity entity = new EntityFixture();
         try {
-          c1.unicast(entity, new Identifier(new String("localhost:"+network2.NETWORK_SERVER_PORT).getBytes(StandardCharsets.UTF_8)));
+          c1.unicast(entity, new Identifier(new String("localhost:" + network2.networkServerPort)
+                  .getBytes(StandardCharsets.UTF_8)));
           if (!a2.hasReceived(entity)) {
             threadError.getAndIncrement();
           }
@@ -139,7 +139,7 @@ public class NetworkTest {
    * Test for two P2P networks with reply.
    */
   @Test
-  void testTwoStubNetworksTwoEnginesReplyConcurrentMessages() {
+  void testTwoP2pNetworksTwoEnginesReplyConcurrentMessages() {
     int concurrencyDegree = 100;
     AtomicInteger threadError = new AtomicInteger();
 
@@ -156,7 +156,6 @@ public class NetworkTest {
     MockEngine a2 = new MockEngine();
     Conduit c2 = network2.register(a2, channel1);
 
-
     Thread n1Thread = new Thread(() -> {
       network1.start();
       countDownLatchServers.countDown();
@@ -170,18 +169,18 @@ public class NetworkTest {
     n1Thread.start();
     n2Thread.start();
 
-
-
     for (int i = 0; i < concurrencyDegree; i++) {
       unicastThreads[i] = new Thread(() -> {
         Entity entity = new EntityFixture();
         Entity entity2 = new EntityFixture();
         try {
-          c1.unicast(entity, new Identifier(new String("localhost:"+network2.NETWORK_SERVER_PORT).getBytes(StandardCharsets.UTF_8)));
+          c1.unicast(entity, new Identifier(new String("localhost:" + network2.networkServerPort)
+                  .getBytes(StandardCharsets.UTF_8)));
           if (!a2.hasReceived(entity)) {
             threadError.getAndIncrement();
           }
-          c2.unicast(entity2, new Identifier(new String("localhost:"+network1.NETWORK_SERVER_PORT).getBytes(StandardCharsets.UTF_8)));
+          c2.unicast(entity2, new Identifier(new String("localhost:" + network1.networkServerPort)
+                  .getBytes(StandardCharsets.UTF_8)));
           if (!a1.hasReceived(entity2)) {
             threadError.getAndIncrement();
           }
@@ -207,7 +206,7 @@ public class NetworkTest {
    * Test two P2P networks with four engines, concurrently messages.
    */
   @Test
-  void testTwoP2PNetworksFourEnginesConcurrentMessages() {
+  void testTwoP2pNetworksFourEnginesConcurrentMessages() {
     int concurrencyDegree = 100;
     AtomicInteger threadError = new AtomicInteger();
 
@@ -247,8 +246,10 @@ public class NetworkTest {
         Entity entity1 = new EntityFixture();
         Entity entity2 = new EntityFixture();
         try {
-          c1.unicast(entity1, new Identifier(new String("localhost:"+network2.NETWORK_SERVER_PORT).getBytes(StandardCharsets.UTF_8)));
-          c2.unicast(entity2, new Identifier(new String("localhost:"+network2.NETWORK_SERVER_PORT).getBytes(StandardCharsets.UTF_8)));
+          c1.unicast(entity1, new Identifier(new String("localhost:" + network2.networkServerPort)
+                  .getBytes(StandardCharsets.UTF_8)));
+          c2.unicast(entity2, new Identifier(new String("localhost:" + network2.networkServerPort)
+                  .getBytes(StandardCharsets.UTF_8)));
           if (!c.hasReceived(entity1) || c.hasReceived(entity2) || !d.hasReceived(entity2) || d.hasReceived(entity1)) {
             threadError.getAndIncrement();
           }

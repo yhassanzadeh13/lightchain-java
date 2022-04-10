@@ -1,12 +1,12 @@
 package network.p2p;
 
+import java.io.IOException;
+
 import model.Entity;
 import model.exceptions.LightChainDistributedStorageException;
 import model.exceptions.LightChainNetworkingException;
 import model.lightchain.Identifier;
 import protocol.Engine;
-
-import java.io.IOException;
 
 /**
  * Implements Conduit for grpc-based networking layer.

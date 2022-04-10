@@ -16,26 +16,24 @@
 
 package network.p2p;
 
-import com.google.protobuf.ByteString;
-import com.google.protobuf.Empty;
-import io.grpc.Server;
-import io.grpc.ServerBuilder;
-import io.grpc.stub.StreamObserver;
-import model.Entity;
-import model.codec.EncodedEntity;
-import model.lightchain.Identifier;
-import modules.codec.JsonEncoder;
-import network.p2p.Fixtures.EntityFixture;
-import protocol.Engine;
-
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.io.ObjectInputStream;
 import java.util.HashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import com.google.protobuf.ByteString;
+import com.google.protobuf.Empty;
+import io.grpc.Server;
+import io.grpc.ServerBuilder;
+import io.grpc.stub.StreamObserver;
+import model.codec.EncodedEntity;
+import modules.codec.JsonEncoder;
+import protocol.Engine;
+
+/**
+ * Includes the implementation of server side functionality of gRPC requests.
+ */
 public class MessageServer {
 
   private static final Logger logger = Logger.getLogger(MessageServer.class.getName());
@@ -45,6 +43,8 @@ public class MessageServer {
 
   /**
    * Create a MessageServer using ServerBuilder as a base.
+   *
+   * @param port the TCP port of the target server.
    */
   public MessageServer(int port) {
     this.port = port;
@@ -76,6 +76,11 @@ public class MessageServer {
     });
   }
 
+  /**
+   * Halts a running gRPC Server.
+   *
+   * @throws InterruptedException if the Server process gets interrupted abruptly.
+   */
   public void stop() throws InterruptedException {
     if (server != null) {
       server.shutdown().awaitTermination(30, TimeUnit.SECONDS);
@@ -84,6 +89,8 @@ public class MessageServer {
 
   /**
    * Await termination on the main thread since the grpc library uses daemon threads.
+   *
+   * @throws InterruptedException if the Server process gets interrupted abruptly.
    */
   public void blockUntilShutdown() throws InterruptedException {
     if (server != null) {
@@ -91,9 +98,18 @@ public class MessageServer {
     }
   }
 
+  /**
+   * Concrete implementation of the gRPC Serverside response methods.
+   */
   public class MessengerImpl extends MessengerGrpc.MessengerImplBase {
     private final Logger logger = Logger.getLogger(MessengerImpl.class.getName());
 
+    /**
+     * Function for the gRPC server.
+     *
+     * @param responseObserver takes in the stream object to receive messages.
+     * @return StreamObserver for the Client to facilitate response relaying.
+     */
     @Override
     public StreamObserver<Message> deliver(StreamObserver<Empty> responseObserver) {
 
@@ -110,7 +126,7 @@ public class MessageServer {
           for (ByteString s : message.getTargetIdsList()) {
             System.out.println("Target " + i++ + ": " + s.toStringUtf8());
 
-            if (engineChannelTable.containsKey(s.toStringUtf8())){
+            if (engineChannelTable.containsKey(s.toStringUtf8())) {
 
               try {
 
