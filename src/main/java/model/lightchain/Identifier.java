@@ -77,21 +77,4 @@ public class Identifier {
     int result = Arrays.compare(this.value, other.value);
     return Integer.compare(result, 0);
   }
-
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
-    if (!(o instanceof Identifier)) {
-      return false;
-    }
-    Identifier that = (Identifier) o;
-    return Arrays.equals(value, that.value);
-  }
-
-  @Override
-  public int hashCode() {
-    return Arrays.hashCode(value);
-  }
 }
