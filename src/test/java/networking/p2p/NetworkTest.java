@@ -87,11 +87,11 @@ public class NetworkTest {
 
     Thread[] unicastThreads = new Thread[concurrencyDegree];
 
-    P2pNetwork network1 = new P2pNetwork(1);
+    P2pNetwork network1 = new P2pNetwork(3);
     MockEngine a1 = new MockEngine();
     Conduit c1 = network1.register(a1, channel1);
 
-    P2pNetwork network2 = new P2pNetwork(2);
+    P2pNetwork network2 = new P2pNetwork(4);
     MockEngine a2 = new MockEngine();
     network2.register(a2, channel1);
 
@@ -148,11 +148,11 @@ public class NetworkTest {
 
     Thread[] unicastThreads = new Thread[concurrencyDegree];
 
-    P2pNetwork network1 = new P2pNetwork(1);
+    P2pNetwork network1 = new P2pNetwork(5);
     MockEngine a1 = new MockEngine();
     Conduit c1 = network1.register(a1, channel1);
 
-    P2pNetwork network2 = new P2pNetwork(2);
+    P2pNetwork network2 = new P2pNetwork(6);
     MockEngine a2 = new MockEngine();
     Conduit c2 = network2.register(a2, channel1);
 
@@ -215,14 +215,14 @@ public class NetworkTest {
 
     Thread[] unicastThreads = new Thread[concurrencyDegree];
 
-    P2pNetwork network1 = new P2pNetwork(1);
+    P2pNetwork network1 = new P2pNetwork(7);
     MockEngine a = new MockEngine();
     Conduit c1 = network1.register(a, channel1);
 
     MockEngine b = new MockEngine();
     Conduit c2 = network1.register(b, channel2);
 
-    P2pNetwork network2 = new P2pNetwork(2);
+    P2pNetwork network2 = new P2pNetwork(8);
     MockEngine c = new MockEngine();
     MockEngine d = new MockEngine();
     network2.register(c, channel1);
@@ -280,7 +280,7 @@ public class NetworkTest {
    */
   @Test
   void testRegisterToOccupiedChannel() {
-    P2pNetwork network1 = new P2pNetwork(1);
+    P2pNetwork network1 = new P2pNetwork(9);
     MockEngine a1 = new MockEngine();
     network1.register(a1, channel1);
     MockEngine b1 = new MockEngine();
