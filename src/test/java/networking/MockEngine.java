@@ -29,22 +29,25 @@ public class MockEngine implements Engine {
 
   @Override
   public void process(Entity e) throws IllegalArgumentException {
-    lock.writeLock();
+    lock.writeLock().lock();
+
     receivedEntityIds.add(e.id());
-    lock.writeLock();
+
+    lock.writeLock().unlock();
   }
 
   /**
    * Check whether an entity is received.
    *
-   * @param e the entitiy.
+   * @param e the entity.
    * @return true if the entity received, otherwise false.
    */
   public boolean hasReceived(Entity e) {
-    lock.readLock();
-    Identifier id = e.id();
-    boolean ok = this.receivedEntityIds.contains(id);
-    lock.readLock();
+    lock.readLock().lock();
+
+    boolean ok = this.receivedEntityIds.contains(e.id());
+
+    lock.readLock().unlock();
     return ok;
   }
 }
