@@ -15,6 +15,34 @@ public class Identifier {
     this.value = value.clone();
   }
 
+  /**
+   * Returns if objects equal.
+   *
+   * @param o an identifier object.
+   * @return true if objcets equal.
+   */
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+    Identifier that = (Identifier) o;
+    return Arrays.equals(value, that.value);
+  }
+
+  /**
+   * Return the hashCode.
+   *
+   * @return hashCode.
+   */
+  @Override
+  public int hashCode() {
+    return Arrays.hashCode(value);
+  }
+
   public byte[] getBytes() {
     return this.value.clone();
   }
@@ -43,7 +71,7 @@ public class Identifier {
    *
    * @param other represents other identifier to compared to.
    * @return 0 if two identifiers are equal, 1 if this identifier is greater than other,
-   *         -1 if other identifier is greater than this.
+   * -1 if other identifier is greater than this.
    */
   public int comparedTo(Identifier other) {
     int result = Arrays.compare(this.value, other.value);
