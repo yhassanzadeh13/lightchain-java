@@ -42,18 +42,7 @@ public class MockEngine implements Engine {
    */
   public boolean hasReceived(Entity e) {
     lock.readLock();
-    Identifier id = e.id();
-
-    System.out.println("shouldve gotten: " + e.id().toString());
-
     boolean ok = this.receivedEntityIds.contains(e.id().toString());
-
-    System.out.println("is " + ok);
-
-    for (Object i :receivedEntityIds) {
-      System.out.println(i);
-    }
-
     lock.readLock();
     return ok;
   }

@@ -1,31 +1,26 @@
 package networking.p2p;
 
-import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import model.Entity;
 import model.exceptions.LightChainNetworkingException;
 import model.lightchain.Identifier;
 import network.Conduit;
 import network.Network;
-import network.p2p.P2pConduit;
 import network.p2p.P2pNetwork;
 import networking.MockEngine;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import protocol.Engine;
-import protocol.engines.IngestEngine;
 import unittest.fixtures.EntityFixture;
 
 /**
  * Encapsulates tests for gRPC implementation of the networking layer.
  */
 public class NetworkTest {
-  // TODO: implement test scenarios
   // Use mock engines but real p2p implemented network using gRPC
   // 1. Engine A1 (on one network) can send message to Engine A2
   //    (on another network), and the message is received by Engine A2.
@@ -43,25 +38,8 @@ public class NetworkTest {
   private final String channel1 = "test-network-channel-1";
   private final String channel2 = "test-network-channel-2";
 
-
-//  /**
-//   * Implement  before each test.
-//   */
-//  @BeforeEach
-//  void setup() {
-//    this.networkArrayList = new ArrayList<>();
-//    for (int i = 0; i < 9; i++) {
-//      StubNetwork stubNetwork = new StubNetwork(hub);
-//      Engine e1 = new MockEngine();
-//      Engine e2 = new MockEngine();
-//      stubNetwork.register(e1, channel1);
-//      stubNetwork.register(e2, channel2);
-//      networkArrayList.add(stubNetwork);
-//    }
-//  }
-
   /**
-   * Test two stub networks with two engines.
+   * Test two P2P networks with two engines.
    */
   @Test
   void testTwoP2PNetworksTwoEngines() {
@@ -96,46 +74,221 @@ public class NetworkTest {
     Assertions.assertTrue(a2.hasReceived(entity));
   }
 
+  /**
+   * test two P2P networks with two engines concurrently.
+   */
+  @Test
+  void testTwoP2PNetworksTwoEnginesConcurrentMessages() {
+    int concurrencyDegree = 100;
+    AtomicInteger threadError = new AtomicInteger();
 
-  public static void main(String[] args) throws InterruptedException {
+    CountDownLatch countDownLatch = new CountDownLatch(concurrencyDegree);
+    CountDownLatch countDownLatchServers = new CountDownLatch(2);
 
-    // start server thread
+    Thread[] unicastThreads = new Thread[concurrencyDegree];
 
-    Thread t = new Thread(() -> {
-        P2pNetwork n = new P2pNetwork(1);
-        n.start();
+    P2pNetwork network1 = new P2pNetwork(1);
+    MockEngine a1 = new MockEngine();
+    Conduit c1 = network1.register(a1, channel1);
+
+    P2pNetwork network2 = new P2pNetwork(2);
+    MockEngine a2 = new MockEngine();
+    network2.register(a2, channel1);
+
+    Thread n1Thread = new Thread(() -> {
+      network1.start();
+      countDownLatchServers.countDown();
     });
 
-    // set up mock values for testing gRPC communication.
+    Thread n2Thread = new Thread(() -> {
+      network2.start();
+      countDownLatchServers.countDown();
+    });
 
-    Thread t2 = new Thread(() -> {
+    n1Thread.start();
+    n2Thread.start();
 
-      Engine sourceEngine = new MockEngine();
-      Identifier target = new Identifier(new String("localhost:1").getBytes(StandardCharsets.UTF_8));
-      Entity entity = new Entity() {
-        @Override
-        public String type() {
-          return new String("type");
+
+    for (int i = 0; i < concurrencyDegree; i++) {
+      unicastThreads[i] = new Thread(() -> {
+        Entity entity = new EntityFixture();
+        try {
+          c1.unicast(entity, new Identifier(new String("localhost:"+network2.NETWORK_SERVER_PORT).getBytes(StandardCharsets.UTF_8)));
+          if (!a2.hasReceived(entity)) {
+            threadError.getAndIncrement();
+          }
+          countDownLatch.countDown();
+        } catch (LightChainNetworkingException e) {
+          threadError.getAndIncrement();
         }
-      };
+      });
+    }
+    for (Thread t : unicastThreads) {
+      t.start();
+    }
+    try {
+      boolean doneOneTime = countDownLatch.await(60, TimeUnit.SECONDS);
+      Assertions.assertTrue(doneOneTime);
+    } catch (InterruptedException e) {
+      Assertions.fail();
+    }
+    Assertions.assertEquals(0, threadError.get());
+  }
 
-      P2pNetwork network = new P2pNetwork(2);
+  /**
+   * Test for two P2P networks with reply.
+   */
+  @Test
+  void testTwoStubNetworksTwoEnginesReplyConcurrentMessages() {
+    int concurrencyDegree = 100;
+    AtomicInteger threadError = new AtomicInteger();
 
-      Conduit conduit = network.register(sourceEngine, "BBC");
+    CountDownLatch countDownLatch = new CountDownLatch(concurrencyDegree);
+    CountDownLatch countDownLatchServers = new CountDownLatch(2);
 
-      try {
-        for (int i = 0; i<100;i++) conduit.unicast(entity, target);
-      } catch (LightChainNetworkingException e) {
-        System.out.println("LightChain Network has failed during the transmission of " + e.toString()
-                + " to " + StandardCharsets.UTF_8.decode(ByteBuffer.wrap(target.getBytes())));
-        e.printStackTrace();
-      }
+    Thread[] unicastThreads = new Thread[concurrencyDegree];
+
+    P2pNetwork network1 = new P2pNetwork(1);
+    MockEngine a1 = new MockEngine();
+    Conduit c1 = network1.register(a1, channel1);
+
+    P2pNetwork network2 = new P2pNetwork(2);
+    MockEngine a2 = new MockEngine();
+    Conduit c2 = network2.register(a2, channel1);
+
+
+    Thread n1Thread = new Thread(() -> {
+      network1.start();
+      countDownLatchServers.countDown();
     });
 
-    t.start();
-    TimeUnit.SECONDS.sleep(1);
-    t2.start();
+    Thread n2Thread = new Thread(() -> {
+      network2.start();
+      countDownLatchServers.countDown();
+    });
 
+    n1Thread.start();
+    n2Thread.start();
+
+
+
+    for (int i = 0; i < concurrencyDegree; i++) {
+      unicastThreads[i] = new Thread(() -> {
+        Entity entity = new EntityFixture();
+        Entity entity2 = new EntityFixture();
+        try {
+          c1.unicast(entity, new Identifier(new String("localhost:"+network2.NETWORK_SERVER_PORT).getBytes(StandardCharsets.UTF_8)));
+          if (!a2.hasReceived(entity)) {
+            threadError.getAndIncrement();
+          }
+          c2.unicast(entity2, new Identifier(new String("localhost:"+network1.NETWORK_SERVER_PORT).getBytes(StandardCharsets.UTF_8)));
+          if (!a1.hasReceived(entity2)) {
+            threadError.getAndIncrement();
+          }
+          countDownLatch.countDown();
+        } catch (LightChainNetworkingException e) {
+          threadError.getAndIncrement();
+        }
+      });
+    }
+    for (Thread t : unicastThreads) {
+      t.start();
+    }
+    try {
+      boolean doneOneTime = countDownLatch.await(60, TimeUnit.SECONDS);
+      Assertions.assertTrue(doneOneTime);
+    } catch (InterruptedException e) {
+      Assertions.fail();
+    }
+    Assertions.assertEquals(0, threadError.get());
+  }
+
+  /**
+   * Test two P2P networks with four engines, concurrently messages.
+   */
+  @Test
+  void testTwoP2PNetworksFourEnginesConcurrentMessages() {
+    int concurrencyDegree = 100;
+    AtomicInteger threadError = new AtomicInteger();
+
+    CountDownLatch countDownLatch = new CountDownLatch(concurrencyDegree);
+    CountDownLatch countDownLatchServers = new CountDownLatch(2);
+
+    Thread[] unicastThreads = new Thread[concurrencyDegree];
+
+    P2pNetwork network1 = new P2pNetwork(1);
+    MockEngine a = new MockEngine();
+    Conduit c1 = network1.register(a, channel1);
+
+    MockEngine b = new MockEngine();
+    Conduit c2 = network1.register(b, channel2);
+
+    P2pNetwork network2 = new P2pNetwork(2);
+    MockEngine c = new MockEngine();
+    MockEngine d = new MockEngine();
+    network2.register(c, channel1);
+    network2.register(d, channel2);
+
+    Thread n1Thread = new Thread(() -> {
+      network1.start();
+      countDownLatchServers.countDown();
+    });
+
+    Thread n2Thread = new Thread(() -> {
+      network2.start();
+      countDownLatchServers.countDown();
+    });
+
+    n1Thread.start();
+    n2Thread.start();
+
+    for (int i = 0; i < concurrencyDegree; i++) {
+      unicastThreads[i] = new Thread(() -> {
+        Entity entity1 = new EntityFixture();
+        Entity entity2 = new EntityFixture();
+        try {
+          c1.unicast(entity1, new Identifier(new String("localhost:"+network2.NETWORK_SERVER_PORT).getBytes(StandardCharsets.UTF_8)));
+          c2.unicast(entity2, new Identifier(new String("localhost:"+network2.NETWORK_SERVER_PORT).getBytes(StandardCharsets.UTF_8)));
+          if (!c.hasReceived(entity1) || c.hasReceived(entity2) || !d.hasReceived(entity2) || d.hasReceived(entity1)) {
+            threadError.getAndIncrement();
+          }
+          countDownLatch.countDown();
+        } catch (LightChainNetworkingException e) {
+          threadError.getAndIncrement();
+        }
+      });
+    }
+
+    for (Thread t : unicastThreads) {
+      t.start();
+    }
+
+    try {
+      boolean doneOneTime = countDownLatch.await(60, TimeUnit.SECONDS);
+      Assertions.assertTrue(doneOneTime);
+    } catch (InterruptedException e) {
+      Assertions.fail();
+    }
+
+    Assertions.assertEquals(0, threadError.get());
+
+  }
+
+  /**
+   * Test for Registration to Occupied Channel.
+   */
+  @Test
+  void testRegisterToOccupiedChannel() {
+    P2pNetwork network1 = new P2pNetwork(1);
+    MockEngine a1 = new MockEngine();
+    network1.register(a1, channel1);
+    MockEngine b1 = new MockEngine();
+    try {
+      network1.register(b1, channel1);
+      Assertions.fail("failed! method was expected to throw an exception");
+    } catch (IllegalStateException e) {
+      //throw new IllegalStateException("could not register to channel since its already occupied");
+    }
   }
 
 }
