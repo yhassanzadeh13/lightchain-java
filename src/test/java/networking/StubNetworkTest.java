@@ -18,54 +18,56 @@ import protocol.Engine;
 import unittest.fixtures.EntityFixture;
 
 /**
- * Encapculates tests for Stubnetwork.
+ * Encapsulates tests for the stubnetwork.
  */
 public class StubNetworkTest {
 
-  private ArrayList<Network> networkArrayList;
+  private ArrayList<Network> networks;
   private final String channel1 = "test-network-channel-1";
   private final String channel2 = "test-network-channel-2";
   private Hub hub;
 
   /**
-   * Implement  before each test.
+   * Creates a hub with 10 connected networks, each network has two mock engines on different channels.
    */
   @BeforeEach
   void setup() {
-    this.networkArrayList = new ArrayList<>();
+    this.networks = new ArrayList<>();
     this.hub = new Hub();
     for (int i = 0; i < 9; i++) {
       StubNetwork stubNetwork = new StubNetwork(hub);
-      Engine e1 = new MockEngine();
-      Engine e2 = new MockEngine();
-      stubNetwork.register(e1, channel1);
-      stubNetwork.register(e2, channel2);
-      networkArrayList.add(stubNetwork);
+      stubNetwork.register(new MockEngine(), channel1);
+      stubNetwork.register(new MockEngine(), channel2);
+      networks.add(stubNetwork);
     }
   }
 
   /**
-   * Test two stub networks with two engines.
+   * Engine A (on one stub network) can send message to Engine B (on another stub network) through its StubNetwork,
+   * and the message is received by Engine B.
    */
   @Test
   void testTwoStubNetworksTwoEngines() {
-    StubNetwork network1 = new StubNetwork(hub);
-    MockEngine a1 = new MockEngine();
-    Conduit c1 = network1.register(a1, channel1);
-    StubNetwork network2 = new StubNetwork(hub);
-    MockEngine a2 = new MockEngine();
-    network2.register(a2, channel1);
+    StubNetwork networkA = new StubNetwork(hub);
+    MockEngine engineA = new MockEngine();
+    Conduit conduitA = networkA.register(engineA, channel1);
+
+    StubNetwork networkB = new StubNetwork(hub);
+    MockEngine engineB = new MockEngine();
+    networkB.register(engineB, channel1);
+
     Entity entity = new EntityFixture();
     try {
-      c1.unicast(entity, network2.id());
+      conduitA.unicast(entity, networkB.id());
     } catch (LightChainNetworkingException e) {
       Assertions.fail();
     }
-    Assertions.assertTrue(a2.hasReceived(entity));
+    Assertions.assertTrue(engineB.hasReceived(entity));
   }
 
   /**
-   * test two stub networks with two engines concurrently.
+   * Engine A can CONCURRENTLY send 100 messages to Engine B through its StubNetwork,
+   * and ALL messages received by Engine B.
    */
   @Test
   void testTwoStubNetworksTwoEnginesConcurrentMessages() {
@@ -73,18 +75,21 @@ public class StubNetworkTest {
     AtomicInteger threadError = new AtomicInteger();
     CountDownLatch countDownLatch = new CountDownLatch(concurrencyDegree);
     Thread[] unicastThreads = new Thread[concurrencyDegree];
-    StubNetwork network1 = new StubNetwork(hub);
-    MockEngine a1 = new MockEngine();
-    Conduit c1 = network1.register(a1, channel1);
-    StubNetwork network2 = new StubNetwork(hub);
-    MockEngine a2 = new MockEngine();
-    network2.register(a2, channel1);
+
+    StubNetwork networkA = new StubNetwork(hub);
+    MockEngine engineA = new MockEngine();
+    Conduit conduitA = networkA.register(engineA, channel1);
+
+    StubNetwork networkB = new StubNetwork(hub);
+    MockEngine engineB = new MockEngine();
+    networkB.register(engineB, channel1);
+
     for (int i = 0; i < concurrencyDegree; i++) {
       unicastThreads[i] = new Thread(() -> {
         Entity entity = new EntityFixture();
         try {
-          c1.unicast(entity, network2.id());
-          if (!a2.hasReceived(entity)) {
+          conduitA.unicast(entity, networkB.id());
+          if (!engineB.hasReceived(entity)) {
             threadError.getAndIncrement();
           }
           countDownLatch.countDown();
@@ -93,9 +98,11 @@ public class StubNetworkTest {
         }
       });
     }
+
     for (Thread t : unicastThreads) {
       t.start();
     }
+
     try {
       boolean doneOneTime = countDownLatch.await(60, TimeUnit.SECONDS);
       Assertions.assertTrue(doneOneTime);
@@ -103,6 +110,7 @@ public class StubNetworkTest {
       Assertions.fail();
     }
     Assertions.assertEquals(0, threadError.get());
+    Assertions.assertEquals(concurrencyDegree, engineB.totalReceived());
   }
 
   /**
@@ -224,7 +232,7 @@ public class StubNetworkTest {
     MockEngine a1 = new MockEngine();
     Conduit c1 = network1.register(a1, channel1);
     Entity entity = new EntityFixture();
-    for (Network network : networkArrayList) {
+    for (Network network : networks) {
       try {
         c1.unicast(entity, ((StubNetwork) network).id());
         MockEngine e1 = (MockEngine) ((StubNetwork) network).getEngine(channel1);
@@ -251,7 +259,7 @@ public class StubNetworkTest {
     Entity entity = new EntityFixture();
     Thread[] unicastThreads = new Thread[concurrencyDegree];
     int count = 0;
-    for (Network network : networkArrayList) {
+    for (Network network : networks) {
       unicastThreads[count] = new Thread(() -> {
         try {
           c1.unicast(entity, ((StubNetwork) network).id());
@@ -291,9 +299,9 @@ public class StubNetworkTest {
     MockEngine a1 = new MockEngine();
     Conduit c1 = network1.register(a1, channel1);
     Entity entity = new EntityFixture();
-    int size = networkArrayList.size();
-    List<Network> first = new ArrayList<>(networkArrayList.subList(0, size / 2));
-    List<Network> second = new ArrayList<>(networkArrayList.subList(size / 2, size));
+    int size = networks.size();
+    List<Network> first = new ArrayList<>(networks.subList(0, size / 2));
+    List<Network> second = new ArrayList<>(networks.subList(size / 2, size));
     Iterator<Network> firstIt = first.iterator();
     Iterator<Network> secondIt = second.iterator();
     while (firstIt.hasNext() && secondIt.hasNext()) {
@@ -325,9 +333,9 @@ public class StubNetworkTest {
     MockEngine a1 = new MockEngine();
     Conduit c1 = network1.register(a1, channel1);
     Entity entity = new EntityFixture();
-    int size = networkArrayList.size();
-    List<Network> first = new ArrayList<>(networkArrayList.subList(0, size / 2));
-    List<Network> second = new ArrayList<>(networkArrayList.subList(size / 2, size));
+    int size = networks.size();
+    List<Network> first = new ArrayList<>(networks.subList(0, size / 2));
+    List<Network> second = new ArrayList<>(networks.subList(size / 2, size));
     Iterator<Network> firstIt = first.iterator();
     Iterator<Network> secondIt = second.iterator();
     Thread[] unicastThreads = new Thread[concurrencyDegree];
@@ -379,7 +387,7 @@ public class StubNetworkTest {
     Conduit c2 = network1.register(a2, channel2);
     Entity entity1 = new EntityFixture();
     Entity entity2 = new EntityFixture();
-    for (Network network : networkArrayList) {
+    for (Network network : networks) {
       try {
         c1.unicast(entity1, ((StubNetwork) network).id());
         c2.unicast(entity2, ((StubNetwork) network).id());

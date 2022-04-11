@@ -50,4 +50,18 @@ public class MockEngine implements Engine {
     lock.readLock().unlock();
     return ok;
   }
+
+  /**
+   * Total distinct entities this engine received.
+   *
+   * @return total messages it received.
+   */
+  public int totalReceived() {
+    lock.readLock().lock();
+
+    int size = receivedEntityIds.size();
+
+    lock.readLock().unlock();
+    return size;
+  }
 }
