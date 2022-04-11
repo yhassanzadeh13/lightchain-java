@@ -73,7 +73,7 @@ public class StubNetwork implements Network, NetworkAdapter {
       }
       engines.put(channel, en);
     } catch (IllegalArgumentException ex) {
-      throw new IllegalStateException("could not register the engine" + ex);
+      throw new IllegalStateException("could not register the engine");
     }
     return conduit;
   }
