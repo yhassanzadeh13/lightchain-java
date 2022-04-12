@@ -44,18 +44,16 @@ public class StubNetworkEpidemicTest {
    */
   @Test
   void testUnicastOneToAllSequentially() {
-    Hub hub = new Hub();
-
-    StubNetwork network1 = new StubNetwork(hub);
+    StubNetwork network1 = new StubNetwork(this.hub);
     MockEngine a1 = new MockEngine();
     Conduit c1 = network1.register(a1, channel1);
     Entity entity = new EntityFixture();
 
-    for (Network network : networks) {
+    for (int i = 0; i < networks.size(); i++) {
       try {
-        c1.unicast(entity, ((StubNetwork) network).id());
-        MockEngine e1 = (MockEngine) ((StubNetwork) network).getEngine(channel1);
-        MockEngine e2 = (MockEngine) ((StubNetwork) network).getEngine(channel2);
+        c1.unicast(entity, networks.get(i).id());
+        MockEngine e1 = (MockEngine) networks.get(i).getEngine(channel1);
+        MockEngine e2 = (MockEngine) networks.get(i).getEngine(channel2);
 
         // only engine on channel-1 should receive the entity.
         Assertions.assertTrue(e1.hasReceived(entity));
