@@ -1,5 +1,6 @@
 package protocol.transaction;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import model.lightchain.Account;
 import model.lightchain.Identifier;
 import model.lightchain.Transaction;
@@ -13,13 +14,14 @@ public class TransactionValidator implements InfTransactionValidator {
   /**
    * Unique State that the transaction is in.
    */
-  private final State state;
+  private State state;
 
   /**
    * Constructor.
    *
    * @param state Current state used in the validator.
    */
+  @SuppressFBWarnings(value = "EI_EXPOSE_REP2", justification = "we want state being intentionally mutable externally")
   public TransactionValidator(State state) {
     this.state = state;
   }
