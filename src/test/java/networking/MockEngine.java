@@ -12,7 +12,7 @@ import protocol.Engine;
  */
 public class MockEngine implements Engine {
   private final ReentrantReadWriteLock lock;
-  private final Set<String> receivedEntityIds;
+  private final Set<Identifier> receivedEntityIds;
 
   public MockEngine() {
     this.receivedEntityIds = new HashSet<>();
@@ -28,22 +28,39 @@ public class MockEngine implements Engine {
 
   @Override
   public void process(Entity e) throws IllegalArgumentException {
-    lock.writeLock();
-    receivedEntityIds.add(e.id().toString());
-    lock.writeLock();
+    lock.writeLock().lock();
+
+    receivedEntityIds.add(e.id());
+
+    lock.writeLock().unlock();
   }
 
   /**
    * Check whether an entity is received.
    *
-   * @param e the entitiy.
+   * @param e the entity.
    * @return true if the entity received, otherwise false.
    */
   public boolean hasReceived(Entity e) {
-    lock.readLock();
-    boolean ok = this.receivedEntityIds.contains(e.id().toString());
-    lock.readLock();
+    lock.readLock().lock();
+
+    boolean ok = this.receivedEntityIds.contains(e.id());
+
+    lock.readLock().unlock();
     return ok;
   }
 
+  /**
+   * Total distinct entities this engine received.
+   *
+   * @return total messages it received.
+   */
+  public int totalReceived() {
+    lock.readLock().lock();
+
+    int size = receivedEntityIds.size();
+
+    lock.readLock().unlock();
+    return size;
+  }
 }
