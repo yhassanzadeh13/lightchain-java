@@ -8,7 +8,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import model.Entity;
 import model.exceptions.LightChainNetworkingException;
 import network.Conduit;
-import network.Network;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
