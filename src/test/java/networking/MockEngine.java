@@ -5,6 +5,7 @@ import java.util.Set;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import model.Entity;
+import model.lightchain.Identifier;
 import protocol.Engine;
 
 /**

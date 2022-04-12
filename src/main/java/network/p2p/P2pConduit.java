@@ -31,13 +31,8 @@ public class P2pConduit implements network.Conduit {
   public void unicast(Entity e, Identifier target) throws LightChainNetworkingException {
     try {
       network.sendUnicast(e, target, engine);
-    } catch (InterruptedException ex) {
-      System.out.println("transmission was interrupted during the unicast operation");
-      ex.printStackTrace();
-      throw new LightChainNetworkingException();
-    } catch (IOException ex) { // this will be removed
-      System.out.println("transmission was interrupted during the unicast operation");
-      ex.printStackTrace();
+    } catch (IOException | InterruptedException ex) {
+      throw new LightChainNetworkingException("transmission was interrupted during the unicast operation", ex);
     }
   }
 
