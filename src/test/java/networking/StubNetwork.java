@@ -47,12 +47,12 @@ public class StubNetwork implements Network, NetworkAdapter {
    * @param entity  received entity
    * @param channel the channel through which the received entity is sent
    */
-  public void receiveUnicast(Entity entity, String channel) {
+  public void receiveUnicast(Entity entity, String channel) throws IllegalArgumentException {
     Engine engine = getEngine(channel);
     try {
       engine.process(entity);
     } catch (IllegalArgumentException e) {
-      throw new IllegalStateException("could not process the entity" + e);
+      throw new IllegalStateException("could not process the entity", e);
     }
   }
 
@@ -92,7 +92,12 @@ public class StubNetwork implements Network, NetworkAdapter {
    */
   @Override
   public void unicast(Entity e, Identifier target, String channel) throws LightChainNetworkingException {
-    this.hub.transferEntity(e, target, channel);
+    try {
+      this.hub.transferEntity(e, target, channel);
+    } catch (IllegalStateException ex){
+      throw new LightChainNetworkingException("stub network could not transfer entity", ex);
+    }
+
   }
 
   /**

@@ -29,7 +29,6 @@ public class Hub {
    */
   public void registerNetwork(Identifier identifier, Network network) {
     networks.put(identifier, network);
-
   }
 
   /**
@@ -39,9 +38,13 @@ public class Hub {
    * @param target identifier of target.
    * @param channel channel on which the entity is delivered to target.
    */
-  public void transferEntity(Entity entity, Identifier target, String channel) {
+  public void transferEntity(Entity entity, Identifier target, String channel) throws IllegalStateException {
     StubNetwork net = this.getNetwork(target);
-    net.receiveUnicast(entity, channel);
+    try {
+      net.receiveUnicast(entity, channel);
+    } catch (IllegalArgumentException ex) {
+      throw new IllegalStateException("target network failed on receiving unicast: " + ex.getMessage());
+    }
 
   }
 
