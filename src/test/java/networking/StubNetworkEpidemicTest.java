@@ -135,7 +135,6 @@ public class StubNetworkEpidemicTest {
       }
     }
 
-
     // checks only first half of network should receive it.
     for (int i = 0; i < networks.size(); i++) {
       // first half of networks should receive unicast
@@ -166,7 +165,6 @@ public class StubNetworkEpidemicTest {
     Conduit c1 = network1.register(a1, channel1);
     Entity entity = new EntityFixture();
     Thread[] unicastThreads = new Thread[concurrencyDegree];
-
 
     // concurrently unicasts to the first half of network
     for (int i = 0; i < concurrencyDegree; i++) {
