@@ -49,6 +49,8 @@ jobs:
         uses: actions/setup-java@v1
         with:
           java-version: 1.17
+      - name: Protobuf Compile Custom
+        run: make proto
       - name: clean
         run: mvn clean install
       - name: compile project
