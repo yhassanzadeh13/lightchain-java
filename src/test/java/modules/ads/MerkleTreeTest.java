@@ -1,9 +1,13 @@
 package modules.ads;
 
+import modules.ads.merkletree.MerkleTree;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+import unittest.fixtures.EntityFixture;
 /**
  * Encapsulates tests for an authenticated and concurrent implementation of SkipList ADS.
  */
-public class SkipListTest {
+public class MerkleTreeTest {
   // TODO: writing tests to cover
   // 1. When putting a unique entity into skip list, we can recover it.
   // 2. Proof of membership for putting and getting an entity is the same.
@@ -15,4 +19,18 @@ public class SkipListTest {
   // 8. Tampering with root identifier of an authenticated entity fails its verification.
   // 9. Tampering with entity of an authenticated entity fails its verification.
   // 10. Tampering with proof of an authenticated entity fails its verification.
+
+  @Test
+  public void TestVerification() { // Do not work always
+    MerkleTree merkleTree = new MerkleTree();
+    EntityFixture entityFixture1 = new EntityFixture();
+    merkleTree.put(entityFixture1);
+    EntityFixture entityFixture2 = new EntityFixture();
+    merkleTree.put(entityFixture2);
+    EntityFixture entityFixture3 = new EntityFixture();
+    merkleTree.put(entityFixture3);
+    System.out.println("---");
+    EntityFixture entityFixture4 = new EntityFixture();
+    merkleTree.put(entityFixture4);
+  }
 }
