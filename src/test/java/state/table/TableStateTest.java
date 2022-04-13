@@ -21,6 +21,19 @@ import unittest.fixtures.IdentifierFixture;
  * Encapsulates tests for hash table implementation of protocol state.
  */
 public class TableStateTest {
+  // TODO: add following test cases
+  // 1. executing a block returns a valid snapshot if all transactions are valid. By valid snapshot we mean the one
+  // that reflects execution of the block on the accounts balance. 
+  // 2. executing a block throws illegal state exception if the block's previous block id does not point to the
+  // last snapshot of the state.
+  // 3. executing a block throws illegal state exception if block contains a transaction that does not point to an
+  // existing snapshot.
+  // 4. executing a block throws illegal state exception if block contains a transaction that does not have enough
+  // balance for sender.
+  // 5. executing a block throws illegal state exception if block contains a transaction that does not have a valid
+  // sender (sender account does not exist).
+  // 6. executing a block throws illegal state exception if block contains a transaction that does not have a valid
+  // sender (receiver account does not exist).
   private static final Random random = new Random();
 
   @Test
