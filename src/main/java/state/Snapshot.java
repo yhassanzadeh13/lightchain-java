@@ -1,5 +1,7 @@
 package state;
 
+import java.util.ArrayList;
+
 import model.lightchain.Account;
 import model.lightchain.Identifier;
 
@@ -29,4 +31,11 @@ public interface Snapshot {
    * does not exist.
    */
   Account getAccount(Identifier identifier);
+
+  /**
+   * The list of accounts in this snapshot.
+   *
+   * @return the list of accounts in this snapshot.
+   */
+  ArrayList<Account> all();
 }

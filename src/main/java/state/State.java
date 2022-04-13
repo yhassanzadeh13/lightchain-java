@@ -17,6 +17,15 @@ public interface State {
   Snapshot atBlockId(Identifier identifier);
 
   /**
+   * Adds snapshot to state.
+   *
+   * @param blockId identifier of block representing snapshot.
+   * @param snapshot the snapshot associated with block
+   * @throws IllegalStateException if a snapshot is already associated with block id.
+   */
+  void addSnapshot(Identifier blockId, Snapshot snapshot) throws IllegalStateException;
+
+  /**
    * The most recent finalized state snapshot (tail of the snapshot list).
    *
    * @return the most recent finalized state snapshot of the node. Note that it never returns a null, since at the

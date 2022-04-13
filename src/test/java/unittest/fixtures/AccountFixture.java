@@ -1,5 +1,7 @@
 package unittest.fixtures;
 
+import java.util.HashMap;
+
 import model.crypto.PublicKey;
 import model.lightchain.Account;
 import model.lightchain.Identifier;
@@ -21,7 +23,7 @@ public class AccountFixture {
         identifier,
         Mockito.mock(
             PublicKey.class,
-            Mockito.withSettings().useConstructor((Object) Bytes.byteArrayFixture(32))),
+            Mockito.withSettings().useConstructor(Bytes.byteArrayFixture(32))),
         IdentifierFixture.newIdentifier(),
         Parameters.MINIMUM_STAKE);
   }
@@ -36,8 +38,35 @@ public class AccountFixture {
     return new Account(identifier,
         Mockito.mock(
             PublicKey.class,
-            Mockito.withSettings().useConstructor((Object) Bytes.byteArrayFixture(32))),
+            Mockito.withSettings().useConstructor(Bytes.byteArrayFixture(32))),
         IdentifierFixture.newIdentifier(),
         stake);
+  }
+
+  /**
+   * Creates staked and unstaked accounts.
+   *
+   * @param stakedCount number of staked accounts.
+   * @param unstakedCount number of unstaked accounts.
+   * @return map of staked and unstaked accounts.
+   */
+  public static HashMap<Identifier, Account> newAccounts(int stakedCount, int unstakedCount) {
+    HashMap<Identifier, Account> accounts = new HashMap<>();
+
+    // staked accounts
+    for (int i = 0; i < stakedCount; i++) {
+      Identifier accountId = IdentifierFixture.newIdentifier();
+      Account account = AccountFixture.newAccount(accountId, Parameters.MINIMUM_STAKE + i);
+      accounts.put(accountId, account);
+    }
+
+    // unstaked accounts
+    for (int i = 0; i < unstakedCount; i++) {
+      Identifier accountId = IdentifierFixture.newIdentifier();
+      Account account = AccountFixture.newAccount(accountId, Parameters.MINIMUM_STAKE - 2);
+      accounts.put(accountId, account);
+    }
+
+    return accounts;
   }
 }
