@@ -24,16 +24,33 @@ public class MerkleTree implements AuthenticatedDataStructure {
 
   @Override
   public AuthenticatedEntity put(Entity e) {
-    entities.add(e);
-    leafNodes.add(new MerkleNode(e, false));
-    buildMerkleTree();
-    Proof proof = getProof(e.id());
-    return new modules.ads.merkletree.AuthenticatedEntity(proof, e.type(), e);
+    if (e == null) {
+      return null;
+    }
+    int idx = -1;
+    for (int i = 0; i < entities.size(); i++) {
+      if (entities.get(i).id().equals(e.id())) {
+        idx = i;
+      }
+    }
+    if (idx == -1) {
+      entities.add(e);
+      leafNodes.add(new MerkleNode(e, false));
+      buildMerkleTree();
+      Proof proof = getProof(e.id());
+      return new modules.ads.merkletree.AuthenticatedEntity(proof, e.type(), e);
+    } else {
+      Proof proof = getProof(e.id());
+      return new modules.ads.merkletree.AuthenticatedEntity(proof, e.type(), e);
+    }
   }
 
   @Override
   public AuthenticatedEntity get(Entity e) {
     Proof proof = getProof(e.id());
+    if (proof == null) {
+      return null;
+    }
     return new modules.ads.merkletree.AuthenticatedEntity(proof, e.type(), e);
   }
 
@@ -49,7 +66,6 @@ public class MerkleTree implements AuthenticatedDataStructure {
     }
     ArrayList<Sha3256Hash> path = new ArrayList<>();
     MerkleNode currNode = leafNodes.get(idx);
-    path.add(currNode.getHash());
     while (currNode != root) {
       path.add(currNode.getSibling().getHash());
       currNode = currNode.getParent();

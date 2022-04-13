@@ -10,4 +10,9 @@ public abstract class AuthenticatedEntity extends Entity {
   public abstract Entity getEntity();
 
   public abstract MembershipProof getMembershipProof();
+
+  public abstract void setMembershipProof(MembershipProof proof);
+
+  public void setEntity(Entity entity) {
+  }
 }
