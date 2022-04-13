@@ -2,6 +2,7 @@ package state.table;
 
 import java.util.Hashtable;
 
+import model.lightchain.Block;
 import model.lightchain.Identifier;
 import state.Snapshot;
 
@@ -61,5 +62,10 @@ public class TableState implements state.State {
       }
     }
     return this.table.get(lastBlockId);
+  }
+
+  @Override
+  public Snapshot execute(Block block) throws IllegalStateException {
+    return null;
   }
 }
