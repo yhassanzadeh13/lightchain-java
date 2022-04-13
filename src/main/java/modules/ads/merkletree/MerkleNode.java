@@ -84,4 +84,12 @@ public class MerkleNode {
     this.isLeft = isLeft;
   }
 
+  public MerkleNode getSibling() {
+    if (isLeft()) {
+      return parent.getRight();
+    } else {
+      return parent.getLeft();
+    }
+  }
+
 }

@@ -54,10 +54,17 @@ public class Sha3256Hasher implements Hasher {
   public Sha3256Hash computeHash(byte[] b1, byte[] b2) {
     try {
       MessageDigest md = MessageDigest.getInstance(HASH_ALG_SHA_3_256);
-      byte[] hashValue = md.digest(concat(b1, b2));
-      return new Sha3256Hash(hashValue);
+      int compare = Arrays.compare(b1, b2);
+      if (compare > 0) {
+        return new Sha3256Hash(md.digest(concat(b1, b2)));
+      }
+      return new Sha3256Hash(md.digest(concat(b2, b1)));
     } catch (NoSuchAlgorithmException ex) {
       throw new IllegalStateException(HASH_ALG_SHA_3_256 + "algorithm not found.", ex);
     }
+  }
+
+  public Sha3256Hash computeHash(Sha3256Hash sha3256Hash, Sha3256Hash sha3256Hash1) {
+    return computeHash(sha3256Hash.getBytes(), sha3256Hash1.getBytes());
   }
 }

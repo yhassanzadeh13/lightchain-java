@@ -1,6 +1,9 @@
 package modules.ads;
 
+import model.crypto.Sha3256Hash;
 import model.lightchain.Identifier;
+
+import java.util.ArrayList;
 
 /**
  * Represents a Merkle Proof of membership against a certain root identifier.
@@ -9,15 +12,14 @@ public interface MembershipProof {
   /**
    * Root of the authenticated data structure that this proof belongs to.
    *
-   * @return root identifier.
+   * @return hash value of the root node.
    */
-  Identifier getRoot();
+  Sha3256Hash getRoot();
 
   /**
-   * Sibling of the given identifier on the membership Merkle Proof path to the root.
+   * Returns the path of the proof of membership.
    *
-   * @param identifier identifier of the entity.
-   * @return sibling of given identifier.
+   * @return path of the proof of membership.
    */
-  Identifier getSiblingOf(Identifier identifier);
+  ArrayList<Sha3256Hash> getPath();
 }

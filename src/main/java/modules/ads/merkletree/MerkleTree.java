@@ -6,9 +6,7 @@ import model.crypto.Sha3256Hash;
 import model.lightchain.Identifier;
 import modules.ads.AuthenticatedDataStructure;
 import modules.ads.AuthenticatedEntity;
-import org.apache.commons.collections.list.TreeList;
 
-import java.lang.reflect.Array;
 import java.util.*;
 
 /**
@@ -29,15 +27,35 @@ public class MerkleTree implements AuthenticatedDataStructure {
     entities.add(e);
     leafNodes.add(new MerkleNode(e, false));
     buildMerkleTree();
-    printLevelOrderTraversal(root);
-    return null;
+    Proof proof = getProof(e.id());
+    return new modules.ads.merkletree.AuthenticatedEntity(proof, e.type(), e);
   }
 
   @Override
-  public AuthenticatedEntity get(Identifier id) {
-    return null;
+  public AuthenticatedEntity get(Entity e) {
+    Proof proof = getProof(e.id());
+    return new modules.ads.merkletree.AuthenticatedEntity(proof, e.type(), e);
   }
 
+  private Proof getProof(Identifier id) {
+    int idx = -1;
+    for (int i = 0; i < entities.size(); i++) {
+      if (entities.get(i).id().equals(id)) {
+        idx = i;
+      }
+    }
+    if (idx == -1) {
+      return null;
+    }
+    ArrayList<Sha3256Hash> path = new ArrayList<>();
+    MerkleNode currNode = leafNodes.get(idx);
+    path.add(currNode.getHash());
+    while (currNode != root) {
+      path.add(currNode.getSibling().getHash());
+      currNode = currNode.getParent();
+    }
+    return new Proof(path, root.getHash());
+  }
   private void buildMerkleTree() {
     ArrayList<MerkleNode> parentNodes = new ArrayList<>();
     ArrayList<MerkleNode> childNodes = new ArrayList<>(leafNodes);
@@ -64,34 +82,5 @@ public class MerkleTree implements AuthenticatedDataStructure {
       parentNodes = new ArrayList<>();
     }
     root = childNodes.get(0);
-  }
-
-  private static void printLevelOrderTraversal(MerkleNode r) {
-    if (r == null) {
-      return;
-    }
-    if ((r.getLeft() == null && r.getRight() == null)) {
-      System.out.println(Arrays.toString(r.getHash().getBytes()));
-    }
-    Queue<MerkleNode> queue = new LinkedList<>();
-    queue.add(r);
-    queue.add(null);
-    while (!queue.isEmpty()) {
-      MerkleNode node = queue.poll();
-      if (node != null) {
-        System.out.println(Arrays.toString(node.getHash().getBytes()));
-      } else {
-        System.out.println();
-        if (!queue.isEmpty()) {
-          queue.add(null);
-        }
-      }
-      if (node != null && node.getLeft() != null) {
-        queue.add(node.getLeft());
-      }
-      if (node != null && node.getRight() != null) {
-        queue.add(node.getRight());
-      }
-    }
   }
 }

@@ -1,15 +1,22 @@
 package modules.ads;
 
+import model.crypto.Sha3256Hash;
 import modules.ads.merkletree.MerkleTree;
+import modules.ads.merkletree.Verifier;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import unittest.fixtures.EntityFixture;
+import unittest.fixtures.MerkleTreeFixture;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+
 /**
  * Encapsulates tests for an authenticated and concurrent implementation of SkipList ADS.
  */
 public class MerkleTreeTest {
   // TODO: writing tests to cover
-  // 1. When putting a unique entity into skip list, we can recover it.
+  // 1. When putting a unique entity into merkle tree, we can recover it.
   // 2. Proof of membership for putting and getting an entity is the same.
   // 3. Putting an already existing entity does not change its membership proof.
   // 4. Putting 100 distinct entities concurrently inserts all of them into skip list with correct membership proofs,
@@ -21,16 +28,12 @@ public class MerkleTreeTest {
   // 10. Tampering with proof of an authenticated entity fails its verification.
 
   @Test
-  public void TestVerification() { // Do not work always
-    MerkleTree merkleTree = new MerkleTree();
-    EntityFixture entityFixture1 = new EntityFixture();
-    merkleTree.put(entityFixture1);
-    EntityFixture entityFixture2 = new EntityFixture();
-    merkleTree.put(entityFixture2);
-    EntityFixture entityFixture3 = new EntityFixture();
-    merkleTree.put(entityFixture3);
-    System.out.println("---");
-    EntityFixture entityFixture4 = new EntityFixture();
-    merkleTree.put(entityFixture4);
+  public void TestVerification() {
+    MerkleTree merkleTree = MerkleTreeFixture.createSkipList(5);
+    EntityFixture entityFixture = new EntityFixture();
+    merkleTree.put(entityFixture);
+    AuthenticatedEntity authenticatedEntity = merkleTree.get(entityFixture);
+    Verifier verifier = new Verifier();
+    Assertions.assertTrue(verifier.verify(authenticatedEntity));
   }
 }

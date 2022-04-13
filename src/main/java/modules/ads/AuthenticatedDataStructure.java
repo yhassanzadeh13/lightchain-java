@@ -9,5 +9,5 @@ import model.lightchain.Identifier;
 public interface AuthenticatedDataStructure {
   AuthenticatedEntity put(Entity e);
 
-  AuthenticatedEntity get(Identifier id);
+  AuthenticatedEntity get(Entity e);
 }
