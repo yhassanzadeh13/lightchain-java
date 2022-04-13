@@ -32,5 +32,5 @@ public interface State {
    * @return snapshot resulted by executing the block.
    * @throws IllegalStateException if any illegal state faced during execution of a block.
    */
-  Snapshot execute(Block block);
+  Snapshot execute(Block block) throws IllegalStateException;
 }

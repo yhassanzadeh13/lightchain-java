@@ -2,6 +2,7 @@ package state.table;
 
 import java.util.Hashtable;
 
+import model.lightchain.Block;
 import model.lightchain.Identifier;
 import state.Snapshot;
 
@@ -12,7 +13,7 @@ public class TableState implements state.State {
   /**
    * Table of root block id as the key, and snapshot at the root block id as the value.
    */
-  private Hashtable<Identifier, Snapshot> table;
+  private final Hashtable<Identifier, Snapshot> table;
 
   // TODO: implement add method to add snapshot at given block id.
 
@@ -27,6 +28,11 @@ public class TableState implements state.State {
 
   @Override
   public Snapshot last() {
+    return null;
+  }
+
+  @Override
+  public Snapshot execute(Block block) throws IllegalStateException {
     return null;
   }
 }
