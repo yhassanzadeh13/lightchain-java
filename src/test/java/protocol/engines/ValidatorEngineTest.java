@@ -1,5 +1,6 @@
 package protocol.engines;
 
+import java.util.ArrayList;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -57,32 +58,41 @@ public class ValidatorEngineTest {
     ValidatorEngine engine = new ValidatorEngine(net, local, state);
     when(net.register(engine, "validator")).then()
 
-    ValidatedBlock b = null;
+    ArrayList<ValidatedBlock> blocks = null;
 
     AtomicInteger threadErrorCount = new AtomicInteger();
     CountDownLatch done = new CountDownLatch(1);
 
-    
-    Thread t = new Thread(() -> {
-      // implement body of thread.
-      // if some error happens that leads to test failure:
-      // threadErrorCount.getAndIncrement();
-      engine.process(b);
-      done.countDown();
-    });
+    Thread[] valdiationThreads = new Thread[totalBlocks];
+    for(int i =0; i < totalblocks; i++) {
+      int finalI = i;
+      valdiationThreads[i] = new Thread(() -> {
+        // implement body of thread.
+        // if some error happens that leads to test failure:
+        // threadErrorCount.getAndIncrement();
+        try {
+          engine.process(blocks[finalI]);
+        } catch (IllegalArgumentException ex){
+          threadErrorCount.incrementAndGet();
+        }
+
+
+        done.countDown();
+      });
+    }
 
     // run threads
-    t.start();
+    for (Thread t : valdiationThreads) {
+      t.start();
+    }
 
     try {
-      boolean doneOnTime = done.await(1, TimeUnit.SECONDS);
+      boolean doneOnTime = done.await(10, TimeUnit.SECONDS);
       Assertions.assertTrue(doneOnTime);
     } catch (InterruptedException e) {
       Assertions.fail(e);
     }
 
     Assertions.assertEquals(0, threadErrorCount.get());
-
-
   }
 }
