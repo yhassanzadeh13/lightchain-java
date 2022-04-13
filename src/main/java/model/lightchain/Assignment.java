@@ -24,4 +24,14 @@ public class Assignment {
   public void add(Identifier validator) {
     this.validators.add(validator);
   }
+
+  /**
+   * Checks whether an identifier is assigned to this assignment.
+   *
+   * @param validator
+   * @return true if validator is in assignment
+   */
+  public boolean has(Identifier validator) {
+    return this.validators.has(validator);
+  }
 }

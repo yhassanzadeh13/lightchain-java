@@ -22,6 +22,7 @@ public class IngestEngine implements Engine {
   public static Blocks blocks;
   public static Identifiers transactionIds;
   public static Transactions pendingTransactions;
+  public Identifiers seenEntities;//TODO: Add the seen entities
 
 
   /**
@@ -81,7 +82,6 @@ public class IngestEngine implements Engine {
             && !pendingTransactions.has(((ValidatedTransaction) e).id())) {
           if (transactionIds.has(e.id())) {
             transactionIds.remove(e.id());
-            //TODO: "If the transaction is already included in a block, the engine discards it." does that mean this?
           } else {
             pendingTransactions.add((Transaction) e);
           }

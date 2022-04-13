@@ -4,6 +4,7 @@ import model.Entity;
 import model.codec.EntityType;
 import model.crypto.Signature;
 import model.exceptions.LightChainNetworkingException;
+import model.lightchain.Assignment;
 import model.lightchain.Block;
 import model.lightchain.Identifier;
 import model.lightchain.Transaction;
@@ -11,13 +12,11 @@ import model.local.Local;
 import network.Conduit;
 import network.Network;
 import protocol.Engine;
+import protocol.Parameters;
 import protocol.assigner.LightChainValidatorAssigner;
 import protocol.block.BlockValidator;
 import protocol.transaction.TransactionValidator;
 import state.State;
-import storage.Blocks;
-import storage.Identifiers;
-import storage.Transactions;
 
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -25,8 +24,8 @@ import java.util.concurrent.locks.ReentrantLock;
  * ValidatorEngine is a standalone engine of LightChain that runs transaction and block validation.
  */
 public class ValidatorEngine implements Engine {
-  private Local local;
-  private Conduit con;
+  private final Local local;
+  private final Conduit con;
   private final State state;
 
   public ValidatorEngine(Network net, Local local, State state) {
@@ -35,7 +34,7 @@ public class ValidatorEngine implements Engine {
     this.state = state;
   }
 
-  private static ReentrantLock lock = new ReentrantLock();
+  private static final ReentrantLock lock = new ReentrantLock();
 
   /**
    * Received entity to this engine can be either a block or a transaction, anything else should throw an exception.
@@ -54,15 +53,15 @@ public class ValidatorEngine implements Engine {
   @Override
   public void process(Entity e) throws IllegalArgumentException {
 
-    if (e.type() == EntityType.TYPE_VALIDATED_BLOCK || e.type() == EntityType.TYPE_VALIDATED_TRANSACTION) {
+    if (e.type().equals(EntityType.TYPE_VALIDATED_BLOCK) || e.type().equals(EntityType.TYPE_VALIDATED_TRANSACTION)) {
       lock.lock();
       LightChainValidatorAssigner assigner = new LightChainValidatorAssigner();
       Identifier currentNode = this.local.myId();
-      // TODO: assigner.assign(e, snapshot???, how many???);
-      // TODO: don't we need a method to check whether an id is in Assignment?
 
-      if (e.type() == EntityType.TYPE_BLOCK) {
-        if (isBlockValidated((Block) e)) {
+      if (e.type().equals(EntityType.TYPE_BLOCK)) {
+        Assignment assignment = assigner.assign(e.id(), state.atBlockId(((Block) e).getPreviousBlockId()),
+            (short) Parameters.VALIDATOR_THRESHOLD);
+        if (isBlockValidated((Block) e) && assignment.has(currentNode)) {
           Block b = (Block) e;
           Signature sign = this.local.signEntity(b);
           try {
@@ -72,8 +71,10 @@ public class ValidatorEngine implements Engine {
             ex.printStackTrace();
           }
         }
-      } else if (e.type() == EntityType.TYPE_TRANSACTION) {
-        if (isTransactionValidated((Transaction) e)) {
+      } else if (e.type().equals(EntityType.TYPE_TRANSACTION)) {
+        Assignment assignment = assigner.assign(e.id(), state.atBlockId(((Transaction) e).getReferenceBlockId()),
+            (short) Parameters.VALIDATOR_THRESHOLD);
+        if (isTransactionValidated((Transaction) e) && assignment.has(currentNode)) {
           Transaction tx = (Transaction) e;
           Signature sign = this.local.signEntity(tx);
           try {
