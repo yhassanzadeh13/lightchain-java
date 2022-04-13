@@ -7,7 +7,7 @@ public class Assignment {
   /**
    * Identifier of validators.
    */
-  private Identifiers validators;
+  private final Identifiers validators;
 
   /**
    * Default constructor.
@@ -33,5 +33,32 @@ public class Assignment {
    */
   public boolean has(Identifier validator) {
     return this.validators.has(validator);
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+
+    Assignment that = (Assignment) o;
+    return validators.equals(that.validators);
+  }
+
+  @Override
+  public int hashCode() {
+    return validators.hashCode();
+  }
+
+  public int size() {
+    return this.validators.size();
+  }
+
+  @Override
+  public String toString() {
+    return this.validators.toString();
   }
 }

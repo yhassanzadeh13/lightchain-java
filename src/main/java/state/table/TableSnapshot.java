@@ -1,5 +1,6 @@
 package state.table;
 
+import java.util.ArrayList;
 import java.util.Hashtable;
 
 import model.lightchain.Account;
@@ -16,7 +17,7 @@ public class TableSnapshot implements state.Snapshot {
   /**
    * Constructor of TableSnapShot.
    *
-   * @param rootBlockId root block id representing this snapshot.
+   * @param rootBlockId     root block id representing this snapshot.
    * @param rootBlockHeight root block height of this snapshot.
    */
   public TableSnapshot(Identifier rootBlockId, long rootBlockHeight) {
@@ -38,5 +39,20 @@ public class TableSnapshot implements state.Snapshot {
   @Override
   public Account getAccount(Identifier identifier) {
     return table.get(identifier);
+  }
+
+  @Override
+  public ArrayList<Account> all() {
+    return this.table.values().stream().collect(ArrayList::new, ArrayList::add, ArrayList::addAll);
+  }
+
+  /**
+   * Adds an account to the snapshot.
+   *
+   * @param identifier Identifier of the account to add.
+   * @param account Account to add.
+   */
+  public void addAccount(Identifier identifier, Account account) {
+    this.table.put(identifier, account);
   }
 }

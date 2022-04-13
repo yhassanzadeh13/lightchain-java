@@ -16,6 +16,10 @@ import state.Snapshot;
  * Represents the assignment of validators to an entity.
  */
 public class LightChainValidatorAssigner implements ValidatorAssigner {
+  public static final String NOT_ENOUGH_ACCOUNTS = "not enough accounts in the snapshot";
+  public static final String SNAPSHOT_CANNOT_BE_NULL = "snapshot cannot be null";
+  public static final String IDENTIFIER_CANNOT_BE_NULL = "identifier cannot be null";
+
   /**
    * Assigns validators from the given snapshot to the entity with given identifier.
    * Identifier of the ith validator is chosen as the staked account with the greatest identifier that
@@ -30,10 +34,10 @@ public class LightChainValidatorAssigner implements ValidatorAssigner {
   @Override
   public Assignment assign(Identifier id, Snapshot s, short num) throws IllegalArgumentException {
     if (s == null) {
-      throw new IllegalArgumentException("snapshot cannot be null");
+      throw new IllegalArgumentException(SNAPSHOT_CANNOT_BE_NULL);
     }
     if (id == null) {
-      throw new IllegalArgumentException("identifier cannot be null");
+      throw new IllegalArgumentException(IDENTIFIER_CANNOT_BE_NULL);
     }
     ArrayList<Account> accounts = s.all();
     ArrayList<Identifier> validatorHashes = new ArrayList<>();
@@ -84,7 +88,7 @@ public class LightChainValidatorAssigner implements ValidatorAssigner {
       }
     }
     if (selectedAccounts.size() < num) {
-      throw new IllegalArgumentException("not enough accounts in the snapshot");
+      throw new IllegalArgumentException(NOT_ENOUGH_ACCOUNTS);
     }
     return assignment;
   }

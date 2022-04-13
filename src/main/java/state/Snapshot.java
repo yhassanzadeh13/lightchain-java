@@ -1,5 +1,7 @@
 package state;
 
+import java.util.ArrayList;
+
 import model.lightchain.Account;
 import model.lightchain.Identifier;
 
