@@ -15,16 +15,10 @@ import protocol.Engine;
  * Implements a grpc-based networking layer.
  */
 public class P2pNetwork implements network.Network {
-  public int networkServerPort;
-  MessageServer server;
-
-  public P2pNetwork() {
-    this(1);
-  }
+  private final MessageServer server;
 
   public P2pNetwork(int port) {
-    networkServerPort = port;
-    server = new MessageServer(networkServerPort);
+    server = new MessageServer(port);
   }
 
   /**
@@ -62,14 +56,22 @@ public class P2pNetwork implements network.Network {
 
   }
 
+  public int getPort() {
+    return this.server.getPort();
+  }
+
+  public String getAddress() {
+    return "localhost:" + this.getPort();
+  }
+
   /**
    * Sends the provided entity to the target P2pNetwork on a specific channel by building a gRPC ManagedServer.
    *
-   * @param e       the Engine to be registered.
-   * @param target  the target MessageServer.
+   * @param e            the Engine to be registered.
+   * @param target       the target MessageServer.
    * @param sourceEngine the Engine requesting the Entity to be sent.
    * @throws InterruptedException if the transmission of Entity relay is interrupted.
-   * @throws IOException if the channel cannot be built.
+   * @throws IOException          if the channel cannot be built.
    */
   public void sendUnicast(Entity e, Identifier target, Engine sourceEngine) throws InterruptedException, IOException {
 

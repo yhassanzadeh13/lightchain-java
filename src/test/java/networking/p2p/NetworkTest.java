@@ -33,6 +33,7 @@ public class NetworkTest {
   //    and B2 must be on another same channel.
   // 5. The p2p network throws an exception if an engine is registering itself on an already taken channel.
 
+  private static final int PORT_ZERO = 0;
   private final String channel1 = "test-network-channel-1";
   private final String channel2 = "test-network-channel-2";
   private ArrayList<Network> networkArrayList;
@@ -42,14 +43,15 @@ public class NetworkTest {
    */
   @Test
   void testTwoP2pNetworksTwoEngines() {
-    P2pNetwork network1 = new P2pNetwork(1);
+    P2pNetwork network1 = new P2pNetwork(PORT_ZERO);
     MockEngine a1 = new MockEngine();
     Conduit c1 = network1.register(a1, channel1);
-    P2pNetwork network2 = new P2pNetwork(2);
+
+    P2pNetwork network2 = new P2pNetwork(PORT_ZERO);
     MockEngine a2 = new MockEngine();
     network2.register(a2, channel1);
-    Entity entity = new EntityFixture();
 
+    Entity entity = new EntityFixture();
     CountDownLatch countDownLatch = new CountDownLatch(2);
 
     Thread n1Thread = new Thread(() -> {

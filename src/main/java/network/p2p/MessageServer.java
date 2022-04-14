@@ -37,7 +37,6 @@ import protocol.Engine;
 public class MessageServer {
 
   private static final Logger logger = Logger.getLogger(MessageServer.class.getName());
-  private final int port;
   private final Server server;
   HashMap<String, Engine> engineChannelTable;
 
@@ -47,12 +46,20 @@ public class MessageServer {
    * @param port the TCP port of the target server.
    */
   public MessageServer(int port) {
-    this.port = port;
     server = ServerBuilder.forPort(port)
-            .addService(new MessengerImpl())
-            .build();
+        .addService(new MessengerImpl())
+        .build();
 
     this.engineChannelTable = new HashMap<String, Engine>();
+  }
+
+  /**
+   * Returns the port number on which this server is listening.
+   *
+   * @return the port number on which this server is listening.
+   */
+  public int getPort() {
+    return this.server.getPort();
   }
 
   /**
@@ -60,7 +67,8 @@ public class MessageServer {
    */
   public void start() throws IOException {
     server.start();
-    logger.info("Server started, listening on " + port);
+    this.port = server.getPort();
+    logger.info("server started, listening on " + this.port);
     Runtime.getRuntime().addShutdownHook(new Thread() {
       @Override
       public void run() {
