@@ -29,6 +29,7 @@ public class TransactionsMapDb implements Transactions {
         .keySerializer(Serializer.BYTE_ARRAY)
         .createOrOpen();
   }
+
   /**
    * Checks existence of a transaction on the database.
    *
@@ -59,7 +60,7 @@ public class TransactionsMapDb implements Transactions {
     boolean addBoolean;
     try {
       lock.writeLock().lock();
-      addBoolean = transactionsMap.putIfAbsentBoolean(transaction.id().getBytes(),transaction);
+      addBoolean = transactionsMap.putIfAbsentBoolean(transaction.id().getBytes(), transaction);
     } finally {
       lock.writeLock().unlock();
     }
@@ -79,8 +80,8 @@ public class TransactionsMapDb implements Transactions {
     try {
       lock.writeLock().lock();
       Transaction transaction = get(transactionId);
-      removeBoolean =transactionsMap.remove(transactionId.getBytes(), transaction);
-    }finally {
+      removeBoolean = transactionsMap.remove(transactionId.getBytes(), transaction);
+    } finally {
       lock.writeLock().unlock();
     }
     return removeBoolean;
@@ -109,7 +110,7 @@ public class TransactionsMapDb implements Transactions {
   @Override
   public ArrayList<Transaction> all() {
     ArrayList<Transaction> allTransactions = new ArrayList<>();
-    for (Object transaction : transactionsMap.values()){
+    for (Object transaction : transactionsMap.values()) {
       allTransactions.add((Transaction) transaction);
     }
     return allTransactions;

@@ -72,6 +72,24 @@ public class Block extends model.Entity {
     this.height = height;
   }
 
+  @Override
+  public int hashCode() {
+    return this.id().hashCode();
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof Block))  {
+      return false;
+    }
+    Block that = (Block) o;
+
+    return this.id().equals(that.id());
+  }
+
   /**
    * Type of this entity.
    *
