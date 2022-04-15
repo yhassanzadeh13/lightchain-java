@@ -1,15 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <FindBugsFilter>
     <Match>
-        <Class name="network.p2p.proto.Message"/>
-    </Match>
-    <Match>
-        <Class name="network.p2p.proto.MessageOrBuilder"/>
-    </Match>
-    <Match>
-        <Class name="network.p2p.proto.MessageOuterClass"/>
-    </Match>
-    <Match>
-        <Class name="network.p2p.proto.MessengerGrpc"/>
+        <Class name="network.p2p.proto.Message$Builder"/>
     </Match>
 </FindBugsFilter>
