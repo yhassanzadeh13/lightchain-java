@@ -43,7 +43,7 @@ public interface Distributed {
    * @param e identifier of the entity.
    * @return the entity itself if exists and null otherwise.
    */
-  Block get(Identifier e);
+  Entity get(Identifier e);
 
   /**
    * Returns all entities stored in database.
