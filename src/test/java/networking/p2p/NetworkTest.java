@@ -58,7 +58,6 @@ public class NetworkTest {
 
     Entity entity = new EntityFixture();
 
-
     try {
       Assertions.assertEquals(threadErrorCount.get(), 0);
       conduitC1.unicast(entity, new Identifier(("localhost:" + network2.getPort())
@@ -323,7 +322,7 @@ public class NetworkTest {
       });
     }
 
-    for (int i = 0; i < networks.length; i++){
+    for (int i = 0; i < networks.length; i++) {
       networkThreads[i].start();
     }
     try {
