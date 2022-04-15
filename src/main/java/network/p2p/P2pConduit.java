@@ -1,5 +1,7 @@
 package network.p2p;
 
+import java.util.ArrayList;
+
 import model.Entity;
 import model.exceptions.LightChainDistributedStorageException;
 import model.exceptions.LightChainNetworkingException;
@@ -42,6 +44,11 @@ public class P2pConduit implements network.Conduit {
    */
   @Override
   public Entity get(Identifier identifier) throws LightChainDistributedStorageException {
+    return null;
+  }
+
+  @Override
+  public ArrayList<Entity> allEntities() throws LightChainDistributedStorageException {
     return null;
   }
 }
