@@ -60,7 +60,9 @@ public class TransactionsMapDb implements Transactions {
     boolean addBoolean;
     try {
       lock.writeLock().lock();
+      //System.out.println(transaction.id()); test if id remains same.
       addBoolean = transactionsMap.putIfAbsentBoolean(transaction.id().getBytes(), transaction);
+      //System.out.println(get(transaction.id()).id());test if id remains same.
     } finally {
       lock.writeLock().unlock();
     }
