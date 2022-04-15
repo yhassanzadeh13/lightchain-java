@@ -1,9 +1,30 @@
 package storage;
 
+import model.lightchain.Block;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.testcontainers.shaded.org.apache.commons.io.FileUtils;
+import storage.mapdb.BlocksMapDb;
+import unittest.fixtures.BlockFixture;
+
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+
 /**
  * Encapsulates tests for block database.
  */
 public class BlocksTest {
+
+  private static final String TEMP_DIR = "tempdir";
+  private static final String TEMP_FILE = "tempfile.db";
+  private Path tempdir;
+  private ArrayList<Block> allBlocks;
+  private BlocksMapDb db;
   // TODO: implement a unit test for each of the following scenarios:
   // IMPORTANT NOTE: each test must have a separate instance of database, and the database MUST only created on a
   // temporary directory.
@@ -33,4 +54,34 @@ public class BlocksTest {
   //    able to retrieve the block.
   // 6. Repeat test case 5 for concurrently adding blocks as well as concurrently querying the
   //    database for has, byId, and byHeight.
+
+  /**
+   * Set the tests up.
+   */
+  @BeforeEach
+  void setUp() throws IOException {
+    Path currentRelativePath = Paths.get("");
+    tempdir = Files.createTempDirectory(currentRelativePath, TEMP_DIR);
+    db = new BlocksMapDb(tempdir.toAbsolutePath() + "/" + TEMP_FILE);
+    allBlocks = new ArrayList<>();
+    for (int i = 0; i < 10; i++) {
+      allBlocks.add(BlockFixture.newBlock());
+    }
+  }
+
+  /**
+   * Adding blocks sequentially.
+   *
+   * @throws IOException throw IOException.
+   */
+  @Test
+  void sequentialAddTest() throws IOException {
+    for (Block block : allBlocks){
+      db.add(block);
+    }
+    db.closeDb();
+    FileUtils.deleteDirectory(new File(tempdir.toString()));
+  }
+
+
 }

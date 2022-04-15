@@ -3,10 +3,12 @@ package model.lightchain;
 import model.codec.EntityType;
 import model.crypto.Signature;
 
+import java.io.Serializable;
+
 /**
  * Represents a LightChain Block that encapsulates set of ValidatedTransaction(s).
  */
-public class Block extends model.Entity {
+public class Block extends model.Entity implements Serializable {
   /**
    * Reference to the hash value of another block as its parent.
    */

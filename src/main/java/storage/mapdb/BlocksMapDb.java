@@ -40,13 +40,12 @@ public class BlocksMapDb implements Blocks {
    */
   @Override
   public boolean has(Identifier blockId) {
-for(Map.Entry<Object[],Block> entry : blocksMap.entrySet()){
-  Object[] objects= entry.getKey();
-  byte[] bytes = (byte[]) objects[0];
-  if(Arrays.equals(bytes,blockId.getBytes())){
-    return true;
-  }
-}return false;
+    for(Object[] objects : blocksMap.keySet()){
+      if(objects[0] == blockId.getBytes()){
+        return true;
+      }
+    }
+    return false;
   }
 
   /**
@@ -58,8 +57,23 @@ for(Map.Entry<Object[],Block> entry : blocksMap.entrySet()){
    */
   @Override
   public boolean add(Block block) {
+    boolean addBool;
+    try {
+      lock.writeLock().lock();
+      System.out.println("Block id BEFORE put :"+block.id());
+      System.out.println("Block previousId BEFORE put :"+block.getPreviousBlockId());
+      System.out.println("Block height BEFORE put :"+block.getHeight());
+      Object[] objects = new Object[]{block.id().getBytes(),block.getHeight()};
+      addBool= blocksMap.putIfAbsentBoolean(objects,block);
+      System.out.println("Block id AFTER put :"+blocksMap.get(objects).id());
+      System.out.println("Block previousID AFTER put :"+blocksMap.get(objects).getPreviousBlockId());
+      System.out.println("Block height AFTER put :"+blocksMap.get(objects).getHeight());
+      System.out.println();
+    } finally {
+      lock.writeLock().unlock();
+    }
+    return addBool;
 
-    return blocksMap.putIfAbsentBoolean(new Object[]{block.id().getBytes(),block.getHeight()},block);
   }
 
   /**
@@ -119,7 +133,12 @@ for(Map.Entry<Object[],Block> entry : blocksMap.entrySet()){
   @Override
   public ArrayList<Block> all() {
     ArrayList<Block> allBlocks =new ArrayList<>();
-    allBlocks.addAll(blocksMap.getValues());
+    for(Block block : blocksMap.getValues()){
+      allBlocks.add(block);
+    }
     return allBlocks;
+  }
+  public void closeDb() {
+    db.close();
   }
 }
