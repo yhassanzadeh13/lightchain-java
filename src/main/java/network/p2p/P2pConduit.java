@@ -1,8 +1,7 @@
 package network.p2p;
 
-import java.util.ArrayList;
-
 import java.io.IOException;
+import java.util.ArrayList;
 
 import model.Entity;
 import model.exceptions.LightChainDistributedStorageException;
@@ -14,8 +13,8 @@ import protocol.Engine;
  * Implements Conduit for grpc-based networking layer.
  */
 public class P2pConduit implements network.Conduit {
-  private P2pNetwork network;
-  private Engine engine;
+  private final P2pNetwork network;
+  private final Engine engine;
 
   public P2pConduit(P2pNetwork network, Engine engine) {
     this.network = network;

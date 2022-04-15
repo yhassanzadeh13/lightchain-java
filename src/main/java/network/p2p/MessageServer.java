@@ -29,6 +29,8 @@ import io.grpc.ServerBuilder;
 import io.grpc.stub.StreamObserver;
 import model.codec.EncodedEntity;
 import modules.codec.JsonEncoder;
+import network.p2p.proto.Message;
+import network.p2p.proto.MessengerGrpc;
 import protocol.Engine;
 
 /**
@@ -69,19 +71,6 @@ public class MessageServer {
   public void start() throws IOException {
     server.start();
     System.out.println("server started, listening on " + this.getPort());
-//    Runtime.getRuntime().addShutdownHook(new Thread() {
-//      @Override
-//      public void run() {
-//        // Use stderr here since the logger may have been reset by its JVM shutdown hook.
-//        System.err.println("*** shutting down gRPC server since JVM is shutting down");
-//        try {
-//          MessageServer.this.stop();
-//        } catch (InterruptedException e) {
-//          e.printStackTrace(System.err);
-//        }
-//        System.err.println("*** server shut down");
-//      }
-//    });
   }
 
   /**
