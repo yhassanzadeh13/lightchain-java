@@ -53,13 +53,12 @@ public class MessageClient {
    * Async client-streaming.
    */
   public void deliver(Entity entity, Identifier target, String channel) throws InterruptedException {
-    info("*** deliver");
     final CountDownLatch finishLatch = new CountDownLatch(1);
     StreamObserver<Empty> responseObserver = new StreamObserver<Empty>() {
 
       @Override
       public void onNext(Empty value) {
-        info("Sent message");
+
       }
 
       @Override
@@ -70,7 +69,6 @@ public class MessageClient {
 
       @Override
       public void onCompleted() {
-        info("Finished deliver");
         finishLatch.countDown();
       }
     };

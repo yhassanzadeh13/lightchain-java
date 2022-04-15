@@ -40,8 +40,8 @@ public class MessageServer {
 
   private static final Logger logger = Logger.getLogger(MessageServer.class.getName());
   private final Server server;
-  private Thread serverThread;
   HashMap<String, Engine> engineChannelTable;
+  private Thread serverThread;
 
   /**
    * Create a MessageServer using ServerBuilder as a base.
@@ -79,20 +79,7 @@ public class MessageServer {
    * @throws InterruptedException if the Server process gets interrupted abruptly.
    */
   public void stop() throws InterruptedException {
-    if (server != null) {
-      server.shutdown().awaitTermination(30, TimeUnit.SECONDS);
-    }
-  }
-
-  /**
-   * Await termination on the main thread since the grpc library uses daemon threads.
-   *
-   * @throws InterruptedException if the Server process gets interrupted abruptly.
-   */
-  public void blockUntilShutdown() throws InterruptedException {
-    if (server != null) {
-      server.awaitTermination();
-    }
+    server.shutdown().awaitTermination(30, TimeUnit.SECONDS);
   }
 
   /**

@@ -24,14 +24,12 @@ public class P2pNetwork implements network.Network {
   /**
    * Starts the MessageServer and waits until it is shutdown.
    */
-  public void start() {
-    try {
-      server.start();
-      // server.blockUntilShutdown();
-    } catch (Exception e) {
-      System.out.println("LightChain Network has failed during the transmission ");
-      e.printStackTrace();
-    }
+  public void start() throws IOException {
+    this.server.start();
+  }
+
+  public void stop() throws InterruptedException {
+    this.server.stop();
   }
 
   /**
@@ -78,7 +76,6 @@ public class P2pNetwork implements network.Network {
     // target will be obtained from identifier when its implemented
 
     String targetServer = String.valueOf(StandardCharsets.UTF_8.decode(ByteBuffer.wrap(target.getBytes())));
-    System.out.println("Target: " + targetServer);
 
     ManagedChannel managedChannel = ManagedChannelBuilder.forTarget(targetServer).usePlaintext().build();
 
