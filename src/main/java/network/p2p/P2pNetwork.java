@@ -27,7 +27,7 @@ public class P2pNetwork implements network.Network {
   public void start() {
     try {
       server.start();
-      server.blockUntilShutdown();
+      // server.blockUntilShutdown();
     } catch (Exception e) {
       System.out.println("LightChain Network has failed during the transmission ");
       e.printStackTrace();

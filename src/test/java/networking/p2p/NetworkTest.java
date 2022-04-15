@@ -68,9 +68,11 @@ public class NetworkTest {
     n2Thread.start();
 
     try {
-      c1.unicast(entity, new Identifier(new String("localhost:" + network2.networkServerPort)
-              .getBytes(StandardCharsets.UTF_8)));
-    } catch (LightChainNetworkingException e) {
+      boolean doneOneTime = countDownLatch.await(10, TimeUnit.SECONDS);
+      Assertions.assertTrue(doneOneTime);
+      c1.unicast(entity, new Identifier(("localhost:" + network2.getPort())
+          .getBytes(StandardCharsets.UTF_8)));
+    } catch (LightChainNetworkingException | InterruptedException e) {
       Assertions.fail();
     }
     Assertions.assertTrue(a2.hasReceived(entity));
@@ -114,8 +116,8 @@ public class NetworkTest {
       unicastThreads[i] = new Thread(() -> {
         Entity entity = new EntityFixture();
         try {
-          c1.unicast(entity, new Identifier(new String("localhost:" + network2.networkServerPort)
-                  .getBytes(StandardCharsets.UTF_8)));
+          c1.unicast(entity, new Identifier(("localhost:" + network2.getPort())
+              .getBytes(StandardCharsets.UTF_8)));
           if (!a2.hasReceived(entity)) {
             threadError.getAndIncrement();
           }
@@ -176,13 +178,13 @@ public class NetworkTest {
         Entity entity = new EntityFixture();
         Entity entity2 = new EntityFixture();
         try {
-          c1.unicast(entity, new Identifier(new String("localhost:" + network2.networkServerPort)
-                  .getBytes(StandardCharsets.UTF_8)));
+          c1.unicast(entity, new Identifier(("localhost:" + network2.getPort())
+              .getBytes(StandardCharsets.UTF_8)));
           if (!a2.hasReceived(entity)) {
             threadError.getAndIncrement();
           }
-          c2.unicast(entity2, new Identifier(new String("localhost:" + network1.networkServerPort)
-                  .getBytes(StandardCharsets.UTF_8)));
+          c2.unicast(entity2, new Identifier(("localhost:" + network1.getPort())
+              .getBytes(StandardCharsets.UTF_8)));
           if (!a1.hasReceived(entity2)) {
             threadError.getAndIncrement();
           }
@@ -248,10 +250,10 @@ public class NetworkTest {
         Entity entity1 = new EntityFixture();
         Entity entity2 = new EntityFixture();
         try {
-          c1.unicast(entity1, new Identifier(new String("localhost:" + network2.networkServerPort)
-                  .getBytes(StandardCharsets.UTF_8)));
-          c2.unicast(entity2, new Identifier(new String("localhost:" + network2.networkServerPort)
-                  .getBytes(StandardCharsets.UTF_8)));
+          c1.unicast(entity1, new Identifier(("localhost:" + network2.getPort())
+              .getBytes(StandardCharsets.UTF_8)));
+          c2.unicast(entity2, new Identifier(("localhost:" + network2.getPort())
+              .getBytes(StandardCharsets.UTF_8)));
           if (!c.hasReceived(entity1) || c.hasReceived(entity2) || !d.hasReceived(entity2) || d.hasReceived(entity1)) {
             threadError.getAndIncrement();
           }

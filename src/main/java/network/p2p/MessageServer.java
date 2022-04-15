@@ -38,6 +38,7 @@ public class MessageServer {
 
   private static final Logger logger = Logger.getLogger(MessageServer.class.getName());
   private final Server server;
+  private Thread serverThread;
   HashMap<String, Engine> engineChannelTable;
 
   /**
@@ -67,21 +68,20 @@ public class MessageServer {
    */
   public void start() throws IOException {
     server.start();
-    this.port = server.getPort();
-    logger.info("server started, listening on " + this.port);
-    Runtime.getRuntime().addShutdownHook(new Thread() {
-      @Override
-      public void run() {
-        // Use stderr here since the logger may have been reset by its JVM shutdown hook.
-        System.err.println("*** shutting down gRPC server since JVM is shutting down");
-        try {
-          MessageServer.this.stop();
-        } catch (InterruptedException e) {
-          e.printStackTrace(System.err);
-        }
-        System.err.println("*** server shut down");
-      }
-    });
+    System.out.println("server started, listening on " + this.getPort());
+//    Runtime.getRuntime().addShutdownHook(new Thread() {
+//      @Override
+//      public void run() {
+//        // Use stderr here since the logger may have been reset by its JVM shutdown hook.
+//        System.err.println("*** shutting down gRPC server since JVM is shutting down");
+//        try {
+//          MessageServer.this.stop();
+//        } catch (InterruptedException e) {
+//          e.printStackTrace(System.err);
+//        }
+//        System.err.println("*** server shut down");
+//      }
+//    });
   }
 
   /**
