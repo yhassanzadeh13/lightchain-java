@@ -17,7 +17,6 @@ public class Hub {
    */
   public Hub() {
     this.networks = new ConcurrentHashMap<>();
-    this.entities = new ConcurrentHashMap<>();
   }
 
   /**
