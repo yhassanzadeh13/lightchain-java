@@ -11,7 +11,6 @@ import network.Network;
  */
 public class Hub {
   private final ConcurrentHashMap<Identifier, Network> networks;
-  private final ConcurrentHashMap<Identifier, Entity> entities;
 
   /**
    * Create a hub.
@@ -45,7 +44,6 @@ public class Hub {
     } catch (IllegalArgumentException ex) {
       throw new IllegalStateException("target network failed on receiving unicast: " + ex.getMessage());
     }
-
   }
 
   /**
