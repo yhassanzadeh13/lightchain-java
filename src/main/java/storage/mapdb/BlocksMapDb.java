@@ -3,6 +3,7 @@ package storage.mapdb;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Map;
+import java.util.NavigableMap;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import model.lightchain.Block;
@@ -23,6 +24,7 @@ public class BlocksMapDb implements Blocks {
   private final ReentrantReadWriteLock lock;
   private static final String MAP_NAME = "blocks_map";
   private final BTreeMap<Object[],Block> blocksMap;
+  private final byte[] idBytes;
 
   public BlocksMapDb(String filePath) {
     this.db = DBMaker.fileDB(filePath).make();
@@ -30,6 +32,7 @@ public class BlocksMapDb implements Blocks {
     blocksMap = (BTreeMap<Object[], Block>) this.db.treeMap(MAP_NAME)
         .keySerializer(new SerializerArrayTuple(Serializer.BYTE_ARRAY,Serializer.INTEGER))
         .createOrOpen();
+    this.idBytes=null;
   }
 
   /**
@@ -40,10 +43,10 @@ public class BlocksMapDb implements Blocks {
    */
   @Override
   public boolean has(Identifier blockId) {
-    for(Object[] objects : blocksMap.keySet()){
-      if(objects[0] == blockId.getBytes()){
-        return true;
-      }
+    NavigableMap<Object[],Block> blockNavigableMap =blocksMap.prefixSubMap(new Object[]{blockId.getBytes()});
+    System.out.println(blockNavigableMap.values());
+    if(!blockNavigableMap.isEmpty()){
+      return true;
     }
     return false;
   }
@@ -57,22 +60,24 @@ public class BlocksMapDb implements Blocks {
    */
   @Override
   public boolean add(Block block) {
-    boolean addBool;
+    Boolean addBool;
     try {
       lock.writeLock().lock();
-      System.out.println("Block id BEFORE put :"+block.id());
+  /*    System.out.println("Block id BEFORE put :"+block.id().getBytes());
       System.out.println("Block previousId BEFORE put :"+block.getPreviousBlockId());
-      System.out.println("Block height BEFORE put :"+block.getHeight());
+      System.out.println("Block height BEFORE put :"+block.getHeight());*/
       Object[] objects = new Object[]{block.id().getBytes(),block.getHeight()};
       addBool= blocksMap.putIfAbsentBoolean(objects,block);
+
+     /* System.out.println(blocksMap.getValues());
       System.out.println("Block id AFTER put :"+blocksMap.get(objects).id());
       System.out.println("Block previousID AFTER put :"+blocksMap.get(objects).getPreviousBlockId());
       System.out.println("Block height AFTER put :"+blocksMap.get(objects).getHeight());
-      System.out.println();
+      System.out.println();*/
     } finally {
       lock.writeLock().unlock();
     }
-    return addBool;
+    return !addBool;
 
   }
 
@@ -101,12 +106,8 @@ public class BlocksMapDb implements Blocks {
    */
   @Override
   public Block byId(Identifier blockId) {
-    for(Object[] objects : blocksMap.keySet()){
-      if(objects[0] == blockId.getBytes()){
-        return blocksMap.get(objects);
-      }
-    }
-    return null;
+    NavigableMap<Object[],Block> blockNavigableMap =blocksMap.prefixSubMap(new Object[]{blockId.getBytes()});
+    return blockNavigableMap.firstEntry().getValue();
   }
 
   /**
@@ -117,11 +118,13 @@ public class BlocksMapDb implements Blocks {
    */
   @Override
   public Block atHeight(int height) {
+    /*for(byte[] bytes :)
     for(Object[] objects : blocksMap.keySet()){
       if((Integer) objects[1] == height){
         return blocksMap.get(objects);
       }
-    }
+    }*/
+
     return null;
   }
 

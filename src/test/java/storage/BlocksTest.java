@@ -77,7 +77,13 @@ public class BlocksTest {
   @Test
   void sequentialAddTest() throws IOException {
     for (Block block : allBlocks){
-      db.add(block);
+      Assertions.assertTrue(db.add(block));
+    }
+    for (Block block : allBlocks){
+      Assertions.assertFalse(db.add(block));
+    }
+    for (Block block : allBlocks){
+     Assertions.assertTrue(db.has(block.id()));
     }
     db.closeDb();
     FileUtils.deleteDirectory(new File(tempdir.toString()));
