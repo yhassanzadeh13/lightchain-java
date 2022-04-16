@@ -38,7 +38,7 @@ public class MessageClient {
   private final MessengerGrpc.MessengerStub asyncStub;
 
   /**
-   * Construct client for accessing MessageServer using the existing channel.
+   * Constructor.
    */
   public MessageClient(Channel channel) {
     asyncStub = MessengerGrpc.newStub(channel);
@@ -57,7 +57,7 @@ public class MessageClient {
 
       @Override
       public void onError(Throwable t) {
-        System.err.println("deliver Failed: " + Status.fromThrowable(t));
+        System.err.println("deliver failed: " + Status.fromThrowable(t));
         finishLatch.countDown();
       }
 

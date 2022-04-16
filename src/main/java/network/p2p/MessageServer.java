@@ -21,6 +21,7 @@ import java.util.HashMap;
 import java.util.concurrent.TimeUnit;
 
 import com.google.protobuf.Empty;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.grpc.Server;
 import io.grpc.ServerBuilder;
 import io.grpc.stub.StreamObserver;
@@ -93,6 +94,7 @@ public class MessageServer {
   /**
    * Concrete implementation of the gRPC Serverside response methods.
    */
+  @SuppressFBWarnings(value = "EI_EXPOSE_REP2", justification = "meant to be externally mutable")
   public class MessengerImpl extends MessengerGrpc.MessengerImplBase {
     /**
      * Function for the gRPC server.
