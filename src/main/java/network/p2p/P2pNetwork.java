@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import model.Entity;
@@ -62,6 +63,7 @@ public class P2pNetwork implements network.Network {
    *
    * @param idToAddressMap map from identifiers to addresses.
    */
+  @SuppressFBWarnings(value = "EI_EXPOSE_REP2", justification = "intentionally mutable externally")
   public void setIdToAddressMap(ConcurrentMap<Identifier, String> idToAddressMap) {
     this.idToAddressMap = idToAddressMap;
   }

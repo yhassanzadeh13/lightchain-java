@@ -79,6 +79,7 @@ public class MessageServer {
    */
   public void start() throws IOException {
     server.start();
+    // TODO: replace with info log
     System.out.println("server started, listening on " + this.getPort());
   }
 
@@ -106,30 +107,35 @@ public class MessageServer {
     public StreamObserver<Message> deliver(StreamObserver<Empty> responseObserver) {
       return new StreamObserver<Message>() {
         @Override
+        @SuppressFBWarnings(value = "DM_EXIT", justification = "meant to fail VM safely upon error")
         public void onNext(Message message) {
-
+          // TODO: replace with info log
           System.out.println("Received Entity");
           System.out.println("OriginID: " + message.getOriginId().toStringUtf8());
           System.out.println("Channel: " + message.getChannel());
           System.out.println("Type: " + message.getType());
 
+          // TODO: check that this node is among target ids
           if (engineChannelTable.containsKey(message.getChannel())) {
             JsonEncoder encoder = new JsonEncoder();
             EncodedEntity e = new EncodedEntity(message.getPayload().toByteArray(), message.getType());
             try {
               engineChannelTable.get(message.getChannel()).process(encoder.decode(e));
             } catch (ClassNotFoundException ex) {
+              // TODO: replace with fatal log
               System.err.println("could not decode incoming message");
               ex.printStackTrace();
               System.exit(1);
             }
           } else {
+            // TODO: replace with error log
             System.err.println("no channel found for incoming message: " + message.getChannel());
           }
         }
 
         @Override
         public void onError(Throwable t) {
+          // TODO: replace with error log
           System.err.println("encountered error in deliver: " + t);
         }
 
