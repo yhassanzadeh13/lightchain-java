@@ -1,8 +1,9 @@
 package networking.p2p;
 
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -17,6 +18,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import unittest.fixtures.EntityFixture;
 import unittest.fixtures.EntityFixtureList;
+import unittest.fixtures.IdentifierFixture;
 
 /**
  * Encapsulates tests for gRPC implementation of the networking layer.
@@ -45,11 +47,11 @@ public class NetworkTest {
   @Test
   void testTwoP2pNetworksTwoEngines() {
     AtomicInteger threadErrorCount = new AtomicInteger();
-    P2pNetwork network1 = new P2pNetwork(PORT_ZERO);
+    P2pNetwork network1 = new P2pNetwork(IdentifierFixture.newIdentifier(), PORT_ZERO);
     MockEngine engineA1 = new MockEngine();
     Conduit conduitC1 = network1.register(engineA1, channel1);
 
-    P2pNetwork network2 = new P2pNetwork(PORT_ZERO);
+    P2pNetwork network2 = new P2pNetwork(IdentifierFixture.newIdentifier(), PORT_ZERO);
     MockEngine engineA2 = new MockEngine();
     network2.register(engineA2, channel1);
 
@@ -59,8 +61,7 @@ public class NetworkTest {
 
     try {
       Assertions.assertEquals(threadErrorCount.get(), 0);
-      conduitC1.unicast(entity, new Identifier(("localhost:" + network2.getPort())
-          .getBytes(StandardCharsets.UTF_8)));
+      conduitC1.unicast(entity, network2.getId());
     } catch (LightChainNetworkingException e) {
       Assertions.fail();
     }
@@ -77,11 +78,11 @@ public class NetworkTest {
 
     CountDownLatch unicastDone = new CountDownLatch(concurrencyDegree);
 
-    P2pNetwork network1 = new P2pNetwork(PORT_ZERO);
+    P2pNetwork network1 = new P2pNetwork(IdentifierFixture.newIdentifier(), PORT_ZERO);
     MockEngine engineA1 = new MockEngine();
     Conduit conduit1 = network1.register(engineA1, channel1);
 
-    P2pNetwork network2 = new P2pNetwork(PORT_ZERO);
+    P2pNetwork network2 = new P2pNetwork(IdentifierFixture.newIdentifier(), PORT_ZERO);
     MockEngine engineA2 = new MockEngine();
     network2.register(engineA2, channel1);
 
@@ -94,8 +95,7 @@ public class NetworkTest {
       int finalI = i;
       unicastThreads[i] = new Thread(() -> {
         try {
-          conduit1.unicast(entities.get(finalI), new Identifier(("localhost:" + network2.getPort())
-              .getBytes(StandardCharsets.UTF_8)));
+          conduit1.unicast(entities.get(finalI), network2.getId());
 
           unicastDone.countDown();
         } catch (LightChainNetworkingException e) {
@@ -134,11 +134,11 @@ public class NetworkTest {
     AtomicInteger threadError = new AtomicInteger();
     CountDownLatch unicastDone = new CountDownLatch(concurrencyDegree);
 
-    P2pNetwork network1 = new P2pNetwork(PORT_ZERO);
+    P2pNetwork network1 = new P2pNetwork(IdentifierFixture.newIdentifier(), PORT_ZERO);
     MockEngine engineA1 = new MockEngine();
     Conduit conduitC1 = network1.register(engineA1, channel1);
 
-    P2pNetwork network2 = new P2pNetwork(PORT_ZERO);
+    P2pNetwork network2 = new P2pNetwork(IdentifierFixture.newIdentifier(), PORT_ZERO);
     MockEngine engineA2 = new MockEngine();
     Conduit conduitC2 = network2.register(engineA2, channel1);
 
@@ -154,12 +154,10 @@ public class NetworkTest {
       unicastThreads[i] = new Thread(() -> {
         try {
           // A1 -> A2
-          conduitC1.unicast(entitiesFromA1toA2.get(finalI), new Identifier(("localhost:" + network2.getPort())
-              .getBytes(StandardCharsets.UTF_8)));
+          conduitC1.unicast(entitiesFromA1toA2.get(finalI), network2.getId());
 
           // A2 -> A1
-          conduitC2.unicast(entitiesFromA2toA1.get(finalI), new Identifier(("localhost:" + network1.getPort())
-              .getBytes(StandardCharsets.UTF_8)));
+          conduitC2.unicast(entitiesFromA2toA1.get(finalI), network1.getId());
 
           unicastDone.countDown();
         } catch (LightChainNetworkingException e) {
@@ -199,13 +197,13 @@ public class NetworkTest {
     AtomicInteger threadError = new AtomicInteger();
     CountDownLatch unicastDone = new CountDownLatch(concurrencyDegree);
 
-    P2pNetwork network1 = new P2pNetwork(PORT_ZERO);
+    P2pNetwork network1 = new P2pNetwork(IdentifierFixture.newIdentifier(), PORT_ZERO);
     MockEngine engineA1 = new MockEngine();
     Conduit conduitA1 = network1.register(engineA1, channel1);
     MockEngine engineB1 = new MockEngine();
     Conduit conduitB1 = network1.register(engineB1, channel2);
 
-    P2pNetwork network2 = new P2pNetwork(PORT_ZERO);
+    P2pNetwork network2 = new P2pNetwork(IdentifierFixture.newIdentifier(), PORT_ZERO);
     MockEngine engineA2 = new MockEngine();
     MockEngine engineB2 = new MockEngine();
     network2.register(engineA2, channel1);
@@ -221,10 +219,8 @@ public class NetworkTest {
       unicastThreads[i] = new Thread(() -> {
 
         try {
-          conduitA1.unicast(entitiesOnChannel1.get(finalI), new Identifier(("localhost:" + network2.getPort())
-              .getBytes(StandardCharsets.UTF_8)));
-          conduitB1.unicast(entitiesOnChannel2.get(finalI), new Identifier(("localhost:" + network2.getPort())
-              .getBytes(StandardCharsets.UTF_8)));
+          conduitA1.unicast(entitiesOnChannel1.get(finalI), network2.getId());
+          conduitB1.unicast(entitiesOnChannel2.get(finalI), network2.getId());
           unicastDone.countDown();
         } catch (LightChainNetworkingException e) {
           threadError.getAndIncrement();
@@ -261,7 +257,7 @@ public class NetworkTest {
    */
   @Test
   void testRegisterToOccupiedChannel() {
-    P2pNetwork network1 = new P2pNetwork(PORT_ZERO);
+    P2pNetwork network1 = new P2pNetwork(IdentifierFixture.newIdentifier(), PORT_ZERO);
     MockEngine a1 = new MockEngine();
     network1.register(a1, channel1);
     MockEngine b1 = new MockEngine();
@@ -300,5 +296,13 @@ public class NetworkTest {
       Assertions.fail();
     }
 
+    ConcurrentMap<Identifier, String> idToAddressMap = new ConcurrentHashMap<>();
+    for (P2pNetwork network : networks) {
+      idToAddressMap.put(network.getId(), network.getAddress());
+    }
+
+    for (P2pNetwork network : networks) {
+      network.setIdToAddressMap(idToAddressMap);
+    }
   }
 }

@@ -63,7 +63,6 @@ public class MessageServer {
     return this.engineChannelTable.get(channel);
   }
 
-
   /**
    * Registers an engine on the give channel.
    *
