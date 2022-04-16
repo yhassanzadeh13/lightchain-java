@@ -1,4 +1,4 @@
-package networking;
+package networking.stub;
 
 import java.util.concurrent.ConcurrentHashMap;
 

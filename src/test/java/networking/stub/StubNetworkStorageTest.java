@@ -1,4 +1,4 @@
-package networking;
+package networking.stub;
 
 /**
  * Encapsulates tests for the storage side of the stub network.
