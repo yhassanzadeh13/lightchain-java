@@ -17,6 +17,7 @@ import networking.MockEngine;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import unittest.fixtures.EntityFixture;
+import unittest.fixtures.EntityFixtureList;
 
 /**
  * Encapsulates tests for gRPC implementation of the networking layer.
@@ -87,17 +88,17 @@ public class NetworkTest {
     network2.register(engineA2, channel1);
 
     startNetworks(new P2pNetwork[]{network1, network2});
+    ArrayList<Entity> entities = EntityFixtureList.newList(concurrencyDegree);
 
+    // unicasting each message separately.
     Thread[] unicastThreads = new Thread[concurrencyDegree];
     for (int i = 0; i < concurrencyDegree; i++) {
+      int finalI = i;
       unicastThreads[i] = new Thread(() -> {
-        Entity entity = new EntityFixture();
         try {
-          conduit1.unicast(entity, new Identifier(("localhost:" + network2.getPort())
+          conduit1.unicast(entities.get(finalI), new Identifier(("localhost:" + network2.getPort())
               .getBytes(StandardCharsets.UTF_8)));
-          if (!engineA2.hasReceived(entity)) {
-            threadError.getAndIncrement();
-          }
+
           unicatDone.countDown();
         } catch (LightChainNetworkingException e) {
           threadError.getAndIncrement();
@@ -116,6 +117,12 @@ public class NetworkTest {
       Assertions.fail();
     }
     Assertions.assertEquals(0, threadError.get());
+
+    // asserts engine A2 has received all entities.
+    for(int i = 0; i < concurrencyDegree; i++){
+      Assertions.assertTrue(engineA2.hasReceived(entities.get(i)));
+    }
+
   }
   //
   //  /**
