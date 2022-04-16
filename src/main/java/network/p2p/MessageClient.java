@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package network.p2p;
 
 import java.util.concurrent.CountDownLatch;
@@ -60,7 +59,7 @@ public class MessageClient {
 
       @Override
       public void onError(Throwable t) {
-        warning("deliver Failed: {0}", Status.fromThrowable(t));
+        System.err.println("deliver Failed: " + Status.fromThrowable(t));
         finishLatch.countDown();
       }
 
@@ -101,16 +100,7 @@ public class MessageClient {
 
     // Receiving happens asynchronously
     if (!finishLatch.await(1, TimeUnit.MINUTES)) {
-      warning("deliver can not finish within 1 minutes");
+      System.err.println("deliver can not finish within 1 minutes");
     }
   }
-
-  private void info(String msg, Object... params) {
-    logger.log(Level.INFO, msg, params);
-  }
-
-  private void warning(String msg, Object... params) {
-    logger.log(Level.WARNING, msg, params);
-  }
-
 }

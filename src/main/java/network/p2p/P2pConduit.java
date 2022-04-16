@@ -3,6 +3,7 @@ package network.p2p;
 import java.io.IOException;
 import java.util.ArrayList;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import model.Entity;
 import model.exceptions.LightChainDistributedStorageException;
 import model.exceptions.LightChainNetworkingException;
@@ -15,6 +16,7 @@ public class P2pConduit implements network.Conduit {
   private final P2pNetwork network;
   private final String channel;
 
+  @SuppressFBWarnings(value = "EI_EXPOSE_REP2", justification = "network is intentionally mutable externally")
   public P2pConduit(P2pNetwork network, String channel) {
     this.network = network;
     this.channel = channel;

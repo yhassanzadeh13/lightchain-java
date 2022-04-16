@@ -19,8 +19,6 @@ package network.p2p;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.concurrent.TimeUnit;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import com.google.protobuf.ByteString;
 import com.google.protobuf.Empty;
@@ -38,7 +36,7 @@ import protocol.Engine;
  */
 public class MessageServer {
   private final Server server;
-  private HashMap<String, Engine> engineChannelTable;
+  private final HashMap<String, Engine> engineChannelTable;
 
   /**
    * Create a MessageServer using ServerBuilder as a base.
@@ -67,7 +65,7 @@ public class MessageServer {
    * Registers an engine on the give channel.
    *
    * @param channel channel for which engine is registered on.
-   * @param engine the engine to be registered on this channel.
+   * @param engine  the engine to be registered on this channel.
    * @throws IllegalStateException if an engine already exists on this channel.
    */
   public void setEngine(String channel, Engine engine) throws IllegalStateException {
@@ -107,8 +105,6 @@ public class MessageServer {
    * Concrete implementation of the gRPC Serverside response methods.
    */
   public class MessengerImpl extends MessengerGrpc.MessengerImplBase {
-    private final Logger logger = Logger.getLogger(MessengerImpl.class.getName());
-
     /**
      * Function for the gRPC server.
      *
@@ -129,7 +125,7 @@ public class MessageServer {
 
           int i = 0;
           for (ByteString s : message.getTargetIdsList()) {
-            System.out.println("Target " + i++ + ": " + s.toStringUtf8());
+            System.out.println("target " + i++ + ": " + s.toStringUtf8());
 
             if (engineChannelTable.containsKey(s.toStringUtf8())) {
 
@@ -145,7 +141,7 @@ public class MessageServer {
               }
 
             } else {
-              System.out.println("This Network does not have the channel " + s.toStringUtf8());
+              System.out.println("this Network does not have the channel " + s.toStringUtf8());
             }
 
           }
@@ -154,7 +150,7 @@ public class MessageServer {
 
         @Override
         public void onError(Throwable t) {
-          logger.log(Level.WARNING, "Encountered error in deliver", t);
+          System.err.println("encountered error in deliver: " + t);
         }
 
         @Override
