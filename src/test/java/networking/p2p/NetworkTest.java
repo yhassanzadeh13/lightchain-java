@@ -38,7 +38,6 @@ public class NetworkTest {
   private static final int PORT_ZERO = 0;
   private final String channel1 = "test-network-channel-1";
   private final String channel2 = "test-network-channel-2";
-  private ArrayList<Network> networkArrayList;
 
   /**
    * Engine A1 (on one network) can send message to Engine A2
@@ -257,7 +256,7 @@ public class NetworkTest {
   }
 
   /**
-   * Test for Registration to Occupied Channel.
+   * The p2p network throws an exception if an engine is registering itself on an already taken channel..
    */
   @Test
   void testRegisterToOccupiedChannel() {
