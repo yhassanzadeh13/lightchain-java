@@ -77,7 +77,7 @@ public class NetworkTest {
     int concurrencyDegree = 100;
     AtomicInteger threadError = new AtomicInteger();
 
-    CountDownLatch unicatDone = new CountDownLatch(concurrencyDegree);
+    CountDownLatch unicastDone = new CountDownLatch(concurrencyDegree);
 
     P2pNetwork network1 = new P2pNetwork(PORT_ZERO);
     MockEngine engineA1 = new MockEngine();
@@ -99,7 +99,7 @@ public class NetworkTest {
           conduit1.unicast(entities.get(finalI), new Identifier(("localhost:" + network2.getPort())
               .getBytes(StandardCharsets.UTF_8)));
 
-          unicatDone.countDown();
+          unicastDone.countDown();
         } catch (LightChainNetworkingException e) {
           threadError.getAndIncrement();
         }
@@ -111,7 +111,7 @@ public class NetworkTest {
     }
 
     try {
-      boolean doneOneTime = unicatDone.await(60, TimeUnit.SECONDS);
+      boolean doneOneTime = unicastDone.await(60, TimeUnit.SECONDS);
       Assertions.assertTrue(doneOneTime);
     } catch (InterruptedException e) {
       Assertions.fail();
@@ -119,78 +119,75 @@ public class NetworkTest {
     Assertions.assertEquals(0, threadError.get());
 
     // asserts engine A2 has received all entities.
-    for(int i = 0; i < concurrencyDegree; i++){
+    for (int i = 0; i < concurrencyDegree; i++) {
       Assertions.assertTrue(engineA2.hasReceived(entities.get(i)));
     }
 
   }
-  //
-  //  /**
-  //   * Test for two P2P networks with reply.
-  //   */
-  //  @Test
-  //  void testTwoP2pNetworksTwoEnginesReplyConcurrentMessages() {
-  //    int concurrencyDegree = 100;
-  //    AtomicInteger threadError = new AtomicInteger();
-  //
-  //    CountDownLatch countDownLatch = new CountDownLatch(concurrencyDegree);
-  //    CountDownLatch countDownLatchServers = new CountDownLatch(2);
-  //
-  //    Thread[] unicastThreads = new Thread[concurrencyDegree];
-  //
-  //    P2pNetwork network1 = new P2pNetwork(PORT_ZERO);
-  //    MockEngine a1 = new MockEngine();
-  //    Conduit c1 = network1.register(a1, channel1);
-  //
-  //    P2pNetwork network2 = new P2pNetwork(PORT_ZERO);
-  //    MockEngine a2 = new MockEngine();
-  //    Conduit c2 = network2.register(a2, channel1);
-  //
-  //    Thread n1Thread = new Thread(() -> {
-  //      network1.start();
-  //      countDownLatchServers.countDown();
-  //    });
-  //
-  //    Thread n2Thread = new Thread(() -> {
-  //      network2.start();
-  //      countDownLatchServers.countDown();
-  //    });
-  //
-  //    n1Thread.start();
-  //    n2Thread.start();
-  //
-  //    for (int i = 0; i < concurrencyDegree; i++) {
-  //      unicastThreads[i] = new Thread(() -> {
-  //        Entity entity = new EntityFixture();
-  //        Entity entity2 = new EntityFixture();
-  //        try {
-  //          c1.unicast(entity, new Identifier(("localhost:" + network2.getPort())
-  //              .getBytes(StandardCharsets.UTF_8)));
-  //          if (!a2.hasReceived(entity)) {
-  //            threadError.getAndIncrement();
-  //          }
-  //          c2.unicast(entity2, new Identifier(("localhost:" + network1.getPort())
-  //              .getBytes(StandardCharsets.UTF_8)));
-  //          if (!a1.hasReceived(entity2)) {
-  //            threadError.getAndIncrement();
-  //          }
-  //          countDownLatch.countDown();
-  //        } catch (LightChainNetworkingException e) {
-  //          threadError.getAndIncrement();
-  //        }
-  //      });
-  //    }
-  //    for (Thread t : unicastThreads) {
-  //      t.start();
-  //    }
-  //    try {
-  //      boolean doneOneTime = countDownLatch.await(60, TimeUnit.SECONDS);
-  //      Assertions.assertTrue(doneOneTime);
-  //    } catch (InterruptedException e) {
-  //      Assertions.fail();
-  //    }
-  //    Assertions.assertEquals(0, threadError.get());
-  //  }
+
+  /**
+   * Extends testTwoP2pNetworksTwoEnginesConcurrentMessages with Engine A2 also sending
+   * a reply message to Engine A1 for each received messages and all
+   * replies are received by Engine A1.
+   */
+  @Test
+  void testTwoP2pNetworksTwoEnginesReplyConcurrentMessages() {
+    int concurrencyDegree = 100;
+    AtomicInteger threadError = new AtomicInteger();
+    CountDownLatch unicastDone = new CountDownLatch(concurrencyDegree);
+
+    P2pNetwork network1 = new P2pNetwork(PORT_ZERO);
+    MockEngine engineA1 = new MockEngine();
+    Conduit conduitC1 = network1.register(engineA1, channel1);
+
+    P2pNetwork network2 = new P2pNetwork(PORT_ZERO);
+    MockEngine engineA2 = new MockEngine();
+    Conduit conduitC2 = network2.register(engineA2, channel1);
+
+    startNetworks(new P2pNetwork[]{network1, network2});
+
+    ArrayList<Entity> entitiesFromA1toA2 = EntityFixtureList.newList(concurrencyDegree);
+    ArrayList<Entity> entitiesFromA2toA1 = EntityFixtureList.newList(concurrencyDegree);
+
+    // unicasts
+    Thread[] unicastThreads = new Thread[concurrencyDegree];
+    for (int i = 0; i < concurrencyDegree; i++) {
+      int finalI = i;
+      unicastThreads[i] = new Thread(() -> {
+        try {
+          // A1 -> A2
+          conduitC1.unicast(entitiesFromA1toA2.get(finalI), new Identifier(("localhost:" + network2.getPort())
+              .getBytes(StandardCharsets.UTF_8)));
+
+          // A2 -> A1
+          conduitC2.unicast(entitiesFromA2toA1.get(finalI), new Identifier(("localhost:" + network1.getPort())
+              .getBytes(StandardCharsets.UTF_8)));
+
+          unicastDone.countDown();
+        } catch (LightChainNetworkingException e) {
+          threadError.getAndIncrement();
+        }
+      });
+    }
+
+    for (Thread t : unicastThreads) {
+      t.start();
+    }
+
+    try {
+      boolean doneOneTime = unicastDone.await(60, TimeUnit.SECONDS);
+      Assertions.assertTrue(doneOneTime);
+    } catch (InterruptedException e) {
+      Assertions.fail();
+    }
+    Assertions.assertEquals(0, threadError.get());
+
+    // asserts engine both A1 and A2 has received their expected messages.
+    for (int i = 0; i < concurrencyDegree; i++) {
+      Assertions.assertTrue(engineA1.hasReceived(entitiesFromA2toA1.get(i)));
+      Assertions.assertTrue(engineA2.hasReceived(entitiesFromA1toA2.get(i)));
+    }
+  }
   //
   //  /**
   //   * Test two P2P networks with four engines, concurrently messages.
