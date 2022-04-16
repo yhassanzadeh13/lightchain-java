@@ -11,7 +11,6 @@ import model.Entity;
 import model.exceptions.LightChainNetworkingException;
 import model.lightchain.Identifier;
 import network.Conduit;
-import network.Network;
 import network.p2p.P2pNetwork;
 import networking.MockEngine;
 import org.junit.jupiter.api.Assertions;
@@ -211,6 +210,8 @@ public class NetworkTest {
     MockEngine engineB2 = new MockEngine();
     network2.register(engineA2, channel1);
     network2.register(engineB2, channel2);
+
+    startNetworks(new P2pNetwork[]{network1, network2});
 
     ArrayList<Entity> entitiesOnChannel1 = EntityFixtureList.newList(concurrencyDegree);
     ArrayList<Entity> entitiesOnChannel2 = EntityFixtureList.newList(concurrencyDegree);

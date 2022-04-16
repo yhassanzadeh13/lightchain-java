@@ -3,6 +3,7 @@ package network.p2p;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
 
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
@@ -16,6 +17,10 @@ import protocol.Engine;
  */
 public class P2pNetwork implements network.Network {
   private final MessageServer server;
+  /**
+   * Translates
+   */
+  private HashMap<Identifier, String> idToAddressMap;
 
   public P2pNetwork(int port) {
     server = new MessageServer(port);

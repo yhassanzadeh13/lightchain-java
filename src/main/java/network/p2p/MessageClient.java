@@ -36,16 +36,13 @@ import network.p2p.proto.MessengerGrpc;
  * Includes the implementation of client side functionality of gRPC requests.
  */
 public class MessageClient {
-
   private static final Logger logger = Logger.getLogger(MessageClient.class.getName());
-  private final MessengerGrpc.MessengerBlockingStub blockingStub;
   private final MessengerGrpc.MessengerStub asyncStub;
 
   /**
    * Construct client for accessing MessageServer using the existing channel.
    */
   public MessageClient(Channel channel) {
-    blockingStub = MessengerGrpc.newBlockingStub(channel);
     asyncStub = MessengerGrpc.newStub(channel);
   }
 
@@ -79,12 +76,12 @@ public class MessageClient {
       JsonEncoder encoder = new JsonEncoder();
 
       Message message = Message.newBuilder()
-              .setOriginId(ByteString.copyFromUtf8("" + channel))
-              .setPayload(ByteString.copyFrom(encoder.encode(entity).getBytes()))
-              .setType(encoder.encode(entity).getType())
-              .addTargetIds(ByteString.copyFromUtf8(
-                      channel))
-              .build();
+          .setOriginId(ByteString.copyFromUtf8("" + channel))
+          .setPayload(ByteString.copyFrom(encoder.encode(entity).getBytes()))
+          .setType(encoder.encode(entity).getType())
+          .addTargetIds(ByteString.copyFromUtf8(
+              channel))
+          .build();
       requestObserver.onNext(message);
 
       if (finishLatch.getCount() == 0) {

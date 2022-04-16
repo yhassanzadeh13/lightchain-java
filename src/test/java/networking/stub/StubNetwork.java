@@ -2,6 +2,7 @@ package networking.stub;
 
 import java.util.concurrent.ConcurrentHashMap;
 
+import networking.MockConduit;
 import model.Entity;
 import model.exceptions.LightChainDistributedStorageException;
 import model.exceptions.LightChainNetworkingException;
@@ -9,7 +10,6 @@ import model.lightchain.Identifier;
 import network.Conduit;
 import network.Network;
 import network.NetworkAdapter;
-import networking.MockConduit;
 import protocol.Engine;
 import unittest.fixtures.IdentifierFixture;
 
