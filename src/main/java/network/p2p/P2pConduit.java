@@ -7,18 +7,17 @@ import model.Entity;
 import model.exceptions.LightChainDistributedStorageException;
 import model.exceptions.LightChainNetworkingException;
 import model.lightchain.Identifier;
-import protocol.Engine;
 
 /**
  * Implements Conduit for grpc-based networking layer.
  */
 public class P2pConduit implements network.Conduit {
   private final P2pNetwork network;
-  private final Engine engine;
+  private final String channel;
 
-  public P2pConduit(P2pNetwork network, Engine engine) {
+  public P2pConduit(P2pNetwork network, String channel) {
     this.network = network;
-    this.engine = engine;
+    this.channel = channel;
   }
 
   /**
@@ -31,7 +30,7 @@ public class P2pConduit implements network.Conduit {
   @Override
   public void unicast(Entity e, Identifier target) throws LightChainNetworkingException {
     try {
-      network.sendUnicast(e, target, engine);
+      network.sendUnicast(e, target, this.channel);
     } catch (IOException | InterruptedException ex) {
       throw new LightChainNetworkingException("transmission was interrupted during the unicast operation", ex);
     }

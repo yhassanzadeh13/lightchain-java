@@ -37,11 +37,8 @@ import protocol.Engine;
  * Includes the implementation of server side functionality of gRPC requests.
  */
 public class MessageServer {
-
-  private static final Logger logger = Logger.getLogger(MessageServer.class.getName());
   private final Server server;
-  HashMap<String, Engine> engineChannelTable;
-  private Thread serverThread;
+  private HashMap<String, Engine> engineChannelTable;
 
   /**
    * Create a MessageServer using ServerBuilder as a base.
@@ -53,7 +50,32 @@ public class MessageServer {
         .addService(new MessengerImpl())
         .build();
 
-    this.engineChannelTable = new HashMap<String, Engine>();
+    this.engineChannelTable = new HashMap<>();
+  }
+
+  /**
+   * Retrieves engine for the given channel.
+   *
+   * @param channel channel name.
+   * @return engine registered on this channel or null.
+   */
+  public Engine getEngine(String channel) {
+    return this.engineChannelTable.get(channel);
+  }
+
+
+  /**
+   * Registers an engine on the give channel.
+   *
+   * @param channel channel for which engine is registered on.
+   * @param engine the engine to be registered on this channel.
+   * @throws IllegalStateException if an engine already exists on this channel.
+   */
+  public void setEngine(String channel, Engine engine) throws IllegalStateException {
+    if (this.engineChannelTable.containsKey(channel)) {
+      throw new IllegalStateException("channel already exist: " + channel);
+    }
+    this.engineChannelTable.put(channel, engine);
   }
 
   /**

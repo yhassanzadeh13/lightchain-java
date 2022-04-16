@@ -48,16 +48,9 @@ public class P2pNetwork implements network.Network {
    */
   @Override
   public Conduit register(Engine e, String channel) throws IllegalStateException {
+    server.setEngine(channel, e);
 
-    if (server.engineChannelTable.containsKey(channel)) {
-      throw new IllegalStateException("channel already exist");
-    }
-
-    P2pConduit conduit = new P2pConduit(this, e);
-    server.engineChannelTable.put(channel, e);
-
-    return conduit;
-
+    return new P2pConduit(this, channel);
   }
 
   public int getPort() {
@@ -71,29 +64,17 @@ public class P2pNetwork implements network.Network {
   /**
    * Sends the provided entity to the target P2pNetwork on a specific channel by building a gRPC ManagedServer.
    *
-   * @param e            the Engine to be registered.
-   * @param target       the target MessageServer.
-   * @param sourceEngine the Engine requesting the Entity to be sent.
+   * @param e      the entity to be sent.
+   * @param target identifier of target node.
+   * @param channel the network channel on which this entity is sent.
    * @throws InterruptedException if the transmission of Entity relay is interrupted.
-   * @throws IOException          if the channel cannot be built.
+   * @throws IOException          if the gRPC channel cannot be built.
    */
-  public void sendUnicast(Entity e, Identifier target, Engine sourceEngine) throws InterruptedException, IOException {
-
+  public void sendUnicast(Entity e, Identifier target, String channel) throws InterruptedException, IOException {
     // target will be obtained from identifier when its implemented
-
     String targetServer = String.valueOf(StandardCharsets.UTF_8.decode(ByteBuffer.wrap(target.getBytes())));
 
     ManagedChannel managedChannel = ManagedChannelBuilder.forTarget(targetServer).usePlaintext().build();
-
-    // find channel of the source engine
-
-    String channel = "";
-
-    for (String c : server.engineChannelTable.keySet()) {
-      if (server.engineChannelTable.get(c).equals(sourceEngine)) {
-        channel = c;
-      }
-    }
 
     try {
       MessageClient client = new MessageClient(managedChannel);
