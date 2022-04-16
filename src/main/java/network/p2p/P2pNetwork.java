@@ -17,8 +17,9 @@ import protocol.Engine;
  */
 public class P2pNetwork implements network.Network {
   private final MessageServer server;
+
   /**
-   * Translates
+   * Translates identifier of nodes to their networking address.
    */
   private HashMap<Identifier, String> idToAddressMap;
 
