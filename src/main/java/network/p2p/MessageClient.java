@@ -13,12 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package network.p2p;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import com.google.protobuf.ByteString;
 import com.google.protobuf.Empty;
@@ -26,16 +25,16 @@ import io.grpc.Channel;
 import io.grpc.Status;
 import io.grpc.stub.StreamObserver;
 import model.Entity;
+import model.codec.EncodedEntity;
 import model.lightchain.Identifier;
 import modules.codec.JsonEncoder;
 import network.p2p.proto.Message;
 import network.p2p.proto.MessengerGrpc;
 
 /**
- * Includes the implementation of client side functionality of gRPC requests.
+ * Client side of gRPC that is responsible for sending messages from this node.
  */
 public class MessageClient {
-  private static final Logger logger = Logger.getLogger(MessageClient.class.getName());
   private final MessengerGrpc.MessengerStub asyncStub;
 
   /**
@@ -46,12 +45,11 @@ public class MessageClient {
   }
 
   /**
-   * Async client-streaming.
+   * Implements logic to asynchronously deliver message to the target.
    */
   public void deliver(Entity entity, Identifier target, String channel) throws InterruptedException {
     final CountDownLatch finishLatch = new CountDownLatch(1);
     StreamObserver<Empty> responseObserver = new StreamObserver<Empty>() {
-
       @Override
       public void onNext(Empty value) {
 
@@ -71,15 +69,14 @@ public class MessageClient {
 
     StreamObserver<Message> requestObserver = asyncStub.deliver(responseObserver);
     try {
-
       JsonEncoder encoder = new JsonEncoder();
 
+      EncodedEntity encodedEntity = encoder.encode(entity);
       Message message = Message.newBuilder()
-          .setOriginId(ByteString.copyFromUtf8("" + channel))
-          .setPayload(ByteString.copyFrom(encoder.encode(entity).getBytes()))
-          .setType(encoder.encode(entity).getType())
-          .addTargetIds(ByteString.copyFromUtf8(
-              channel))
+          .setChannel(channel)
+          .setPayload(ByteString.copyFrom(encodedEntity.getBytes()))
+          .setType(encodedEntity.getType())
+          .addTargetIds(ByteString.copyFrom(target.getBytes()))
           .build();
       requestObserver.onNext(message);
 
