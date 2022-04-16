@@ -29,6 +29,8 @@ import io.grpc.stub.StreamObserver;
 import model.Entity;
 import model.lightchain.Identifier;
 import modules.codec.JsonEncoder;
+import network.p2p.proto.Message;
+import network.p2p.proto.MessengerGrpc;
 
 /**
  * Includes the implementation of client side functionality of gRPC requests.
@@ -51,13 +53,12 @@ public class MessageClient {
    * Async client-streaming.
    */
   public void deliver(Entity entity, Identifier target, String channel) throws InterruptedException {
-    info("*** deliver");
     final CountDownLatch finishLatch = new CountDownLatch(1);
     StreamObserver<Empty> responseObserver = new StreamObserver<Empty>() {
 
       @Override
       public void onNext(Empty value) {
-        info("Sent message");
+
       }
 
       @Override
@@ -68,7 +69,6 @@ public class MessageClient {
 
       @Override
       public void onCompleted() {
-        info("Finished deliver");
         finishLatch.countDown();
       }
     };

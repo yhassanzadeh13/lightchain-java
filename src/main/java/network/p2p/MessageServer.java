@@ -29,6 +29,8 @@ import io.grpc.ServerBuilder;
 import io.grpc.stub.StreamObserver;
 import model.codec.EncodedEntity;
 import modules.codec.JsonEncoder;
+import network.p2p.proto.Message;
+import network.p2p.proto.MessengerGrpc;
 import protocol.Engine;
 
 /**
@@ -37,9 +39,9 @@ import protocol.Engine;
 public class MessageServer {
 
   private static final Logger logger = Logger.getLogger(MessageServer.class.getName());
-  private final int port;
   private final Server server;
   HashMap<String, Engine> engineChannelTable;
+  private Thread serverThread;
 
   /**
    * Create a MessageServer using ServerBuilder as a base.
@@ -47,12 +49,20 @@ public class MessageServer {
    * @param port the TCP port of the target server.
    */
   public MessageServer(int port) {
-    this.port = port;
     server = ServerBuilder.forPort(port)
-            .addService(new MessengerImpl())
-            .build();
+        .addService(new MessengerImpl())
+        .build();
 
     this.engineChannelTable = new HashMap<String, Engine>();
+  }
+
+  /**
+   * Returns the port number on which this server is listening.
+   *
+   * @return the port number on which this server is listening.
+   */
+  public int getPort() {
+    return this.server.getPort();
   }
 
   /**
@@ -60,20 +70,7 @@ public class MessageServer {
    */
   public void start() throws IOException {
     server.start();
-    logger.info("Server started, listening on " + port);
-    Runtime.getRuntime().addShutdownHook(new Thread() {
-      @Override
-      public void run() {
-        // Use stderr here since the logger may have been reset by its JVM shutdown hook.
-        System.err.println("*** shutting down gRPC server since JVM is shutting down");
-        try {
-          MessageServer.this.stop();
-        } catch (InterruptedException e) {
-          e.printStackTrace(System.err);
-        }
-        System.err.println("*** server shut down");
-      }
-    });
+    System.out.println("server started, listening on " + this.getPort());
   }
 
   /**
@@ -82,20 +79,7 @@ public class MessageServer {
    * @throws InterruptedException if the Server process gets interrupted abruptly.
    */
   public void stop() throws InterruptedException {
-    if (server != null) {
-      server.shutdown().awaitTermination(30, TimeUnit.SECONDS);
-    }
-  }
-
-  /**
-   * Await termination on the main thread since the grpc library uses daemon threads.
-   *
-   * @throws InterruptedException if the Server process gets interrupted abruptly.
-   */
-  public void blockUntilShutdown() throws InterruptedException {
-    if (server != null) {
-      server.awaitTermination();
-    }
+    server.shutdown().awaitTermination(30, TimeUnit.SECONDS);
   }
 
   /**

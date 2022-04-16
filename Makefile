@@ -4,8 +4,8 @@ generate: proto
 proto:
 	@mvn protobuf:compile-custom
 	@mvn protobuf:compile
-	@cp target/generated-sources/protobuf/java/network/p2p/* src/main/java/network/p2p
-	@cp target/generated-sources/protobuf/grpc-java/network/p2p/MessengerGrpc.java src/main/java/network/p2p
+	@cp target/generated-sources/protobuf/java/network/p2p/proto/* src/main/java/network/p2p/proto/
+	@cp target/generated-sources/protobuf/grpc-java/network/p2p/proto/MessengerGrpc.java src/main/java/network/p2p/proto/
 lint:
 	@mvn checkstyle:checkstyle
 lint-verbose:
