@@ -15,7 +15,7 @@ public class Node {
   public Node(HashMap<Identifier, String> idTable, Identifier myId) {
     this.idTable = idTable;
     this.myId = myId;
-    this.network = new P2pNetwork(0);
+    this.network = new P2pNetwork(8081);
     try {
       network.start();
     } catch (IOException e) {
@@ -28,7 +28,7 @@ public class Node {
   }
 
   public static void main(String[] args) {
-    network = new P2pNetwork(0);
+    network = new P2pNetwork(8081);
     try {
       network.start();
     } catch (IOException e) {

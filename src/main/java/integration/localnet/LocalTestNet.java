@@ -1,6 +1,7 @@
 package integration.localnet;
 
 import java.io.File;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -111,6 +112,9 @@ public class LocalTestNet extends MetricsTestNet {
     for (int i = 0; i < nodeCount; i++) {
       // Volume Creation
       this.createVolumesIfNotExist("NODE_VOLUME_"+i);
+
+      Identifier id = new Identifier(new String("NODE"+i).getBytes(StandardCharsets.UTF_8));
+      idTable.put(id,"NODE"+i);
 
       System.out.println("building local node " + i + " , please wait ....");
 
