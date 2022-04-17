@@ -1,29 +1,31 @@
 package modules.ads.merkletree;
 
-import model.crypto.Sha3256Hash;
-import model.lightchain.Identifier;
-import modules.ads.MembershipProof;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Objects;
 
+import model.crypto.Sha3256Hash;
+import modules.ads.MembershipProof;
+
+/**
+ * A proof of membership in a Merkle tree.
+ */
 public class Proof implements MembershipProof {
   private ArrayList<Sha3256Hash> path;
   private Sha3256Hash root;
 
   public Proof(ArrayList<Sha3256Hash> path, Sha3256Hash root) {
-    this.path = path;
+    this.path = new ArrayList<>(path);
     this.root = root;
   }
 
   @Override
   public ArrayList<Sha3256Hash> getPath() {
-    return path;
+    return new ArrayList<>(path);
   }
 
   public void setPath(ArrayList<Sha3256Hash> path) {
-    this.path = path;
+    this.path = new ArrayList<>(path);
   }
 
   public Sha3256Hash getRoot() {
@@ -37,8 +39,12 @@ public class Proof implements MembershipProof {
 
   @Override
   public boolean equals(Object o) {
-    if (this == o) return true;
-    if (o == null || getClass() != o.getClass()) return false;
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
     Proof proof = (Proof) o;
     for (int i = 0; i < path.size(); i++) {
       if (!Arrays.equals(path.get(i).getBytes(), proof.path.get(i).getBytes())) {

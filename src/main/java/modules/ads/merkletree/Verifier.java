@@ -9,8 +9,12 @@ import modules.ads.AuthenticatedEntity;
 import modules.ads.AuthenticatedEntityVerifier;
 import modules.ads.MembershipProof;
 
+/**
+ * Verifies the AuthenticatedEntity against its self-contained proof.
+ */
 public class Verifier implements AuthenticatedEntityVerifier {
   private static final Sha3256Hasher hasher = new Sha3256Hasher();
+
   /**
    * Verifies the AuthenticatedEntity against its self-contained proof.
    *

@@ -1,9 +1,8 @@
 package modules.ads;
 
-import model.crypto.Sha3256Hash;
-import model.lightchain.Identifier;
-
 import java.util.ArrayList;
+
+import model.crypto.Sha3256Hash;
 
 /**
  * Represents a Merkle Proof of membership against a certain root identifier.
@@ -18,7 +17,6 @@ public interface MembershipProof {
 
   /**
    * Sets the root of the authenticated data structure that this proof belongs to.
-   *
    */
   void setRoot(Sha3256Hash root);
 
@@ -31,7 +29,6 @@ public interface MembershipProof {
 
   /**
    * Sets the path of the proof of membership.
-   *
    */
   void setPath(ArrayList<Sha3256Hash> path);
 }

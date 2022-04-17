@@ -4,6 +4,9 @@ import crypto.Sha3256Hasher;
 import model.Entity;
 import model.crypto.Sha3256Hash;
 
+/**
+ * A node in the Merkle tree.
+ */
 public class MerkleNode {
   private static final Sha3256Hasher hasher = new Sha3256Hasher();
   private MerkleNode left;
@@ -12,6 +15,9 @@ public class MerkleNode {
   private boolean isLeft;
   private Sha3256Hash hash;
 
+  /**
+   * Default constructor.
+   */
   public MerkleNode() {
     this.left = null;
     this.right = null;
@@ -20,6 +26,12 @@ public class MerkleNode {
     this.hash = null;
   }
 
+  /**
+   * Constructor with entity and isLeft.
+   *
+   * @param e      input entity
+   * @param isLeft boolean that specifies if the node is left child or not
+   */
   public MerkleNode(Entity e, boolean isLeft) {
     this.left = null;
     this.right = null;
@@ -28,6 +40,11 @@ public class MerkleNode {
     this.hash = hasher.computeHash(e.id());
   }
 
+  /**
+   * Constructor with hash of the entity.
+   *
+   * @param hash input hash of the entity corresponding to that node
+   */
   public MerkleNode(Sha3256Hash hash) {
     this.left = null;
     this.right = null;
@@ -36,6 +53,13 @@ public class MerkleNode {
     this.hash = hash;
   }
 
+  /**
+   * Constructor of a parent node.
+   *
+   * @param hash input hash of the entity corresponding to that node
+   * @param left left child of the node
+   * @param right right child of the node
+   */
   public MerkleNode(Sha3256Hash hash, MerkleNode left, MerkleNode right) {
     this.left = left;
     this.right = right;
@@ -46,10 +70,6 @@ public class MerkleNode {
 
   public MerkleNode getLeft() {
     return left;
-  }
-
-  public void setLeft(MerkleNode left) {
-    this.left = left;
   }
 
   public MerkleNode getRight() {
@@ -80,10 +100,19 @@ public class MerkleNode {
     return isLeft;
   }
 
+  public void setLeft(MerkleNode left) {
+    this.left = left;
+  }
+
   public void setLeft(boolean isLeft) {
     this.isLeft = isLeft;
   }
 
+  /**
+   * Returns the sibling of the node.
+   *
+   * @return the sibling of the node
+   */
   public MerkleNode getSibling() {
     if (isLeft()) {
       return parent.getRight();

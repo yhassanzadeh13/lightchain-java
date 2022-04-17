@@ -2,6 +2,9 @@ package unittest.fixtures;
 
 import modules.ads.merkletree.MerkleTree;
 
+/**
+ * Creates a new randomly looking MerkleTree.
+ */
 public class MerkleTreeFixture {
   /**
    * Creates a new skip list with n random elements.

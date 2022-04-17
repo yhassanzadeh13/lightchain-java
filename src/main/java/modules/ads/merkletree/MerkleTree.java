@@ -1,5 +1,10 @@
 package modules.ads.merkletree;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
+
 import crypto.Sha3256Hasher;
 import model.Entity;
 import model.crypto.Sha3256Hash;
@@ -7,21 +12,21 @@ import model.lightchain.Identifier;
 import modules.ads.AuthenticatedDataStructure;
 import modules.ads.AuthenticatedEntity;
 
-import java.util.*;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
-
 /**
  * Implementation of an in-memory Authenticated Skip List
  * that is capable of storing and retrieval of LightChain entities.
  */
 public class MerkleTree implements AuthenticatedDataStructure {
-  private int size;
-  private MerkleNode root;
+  private static final Sha3256Hasher hasher = new Sha3256Hasher();
   private final ReentrantReadWriteLock lock;
   private final ArrayList<MerkleNode> leafNodes;
   private final Map<Sha3256Hash, Integer> leafNodesHashTable;
-  private static final Sha3256Hasher hasher = new Sha3256Hasher();
+  private int size;
+  private MerkleNode root;
 
+  /**
+   * Default constructor for a Merkle Tree.
+   */
   public MerkleTree() {
     this.size = 0;
     this.root = new MerkleNode();
@@ -46,30 +51,33 @@ public class MerkleTree implements AuthenticatedDataStructure {
       buildMerkleTree();
       Proof proof = getProof(e.id());
       lock.writeLock().unlock();
-      return new modules.ads.merkletree.AuthenticatedEntity(proof, e.type(), e);
+      return new AuthenticatedLightChainEntity(proof, e.type(), e);
     } else {
       Proof proof = getProof(e.id());
       lock.writeLock().unlock();
-      return new modules.ads.merkletree.AuthenticatedEntity(proof, e.type(), e);
+      return new AuthenticatedLightChainEntity(proof, e.type(), e);
     }
   }
 
   @Override
   public AuthenticatedEntity get(Entity e) {
-    lock.readLock().lock();
-    Proof proof = getProof(e.id());
-    if (proof == null) {
-      lock.readLock().unlock();
+    Proof proof;
+    if (e == null) {
       return null;
     }
-    lock.readLock().unlock();
-    return new modules.ads.merkletree.AuthenticatedEntity(proof, e.type(), e);
+    lock.readLock().lock();
+    try {
+      proof = getProof(e.id());
+    } finally {
+      lock.readLock().unlock();
+    }
+    if (proof == null) {
+      return null;
+    }
+    return new AuthenticatedLightChainEntity(proof, e.type(), e);
   }
 
   private Proof getProof(Identifier id) {
-    if (id == null) {
-      return null;
-    }
     Integer idx = leafNodesHashTable.get(hasher.computeHash(id));
     if (idx == null) {
       return null;

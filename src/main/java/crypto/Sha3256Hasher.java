@@ -41,6 +41,12 @@ public class Sha3256Hasher implements Hasher {
     }
   }
 
+  /**
+   * Computes hash of the given identifier.
+   *
+   * @param id input identifier
+   * @return SHA3-256 hash object of the entity
+   */
   public Sha3256Hash computeHash(Identifier id) {
     try {
       MessageDigest md = MessageDigest.getInstance(HASH_ALG_SHA_3_256);
@@ -51,6 +57,14 @@ public class Sha3256Hasher implements Hasher {
     }
   }
 
+  /**
+   * Commutative hashing of two given byte arrays.
+   *
+   * @param b1 first byte array.
+   * @param b2 second byte array.
+   * @return SHA3-256 hash object of the commutative concatenation (i.e. max(b1,b2) || min(b1,b2))
+   * of the two byte arrays.
+   */
   public Sha3256Hash computeHash(byte[] b1, byte[] b2) {
     try {
       MessageDigest md = MessageDigest.getInstance(HASH_ALG_SHA_3_256);
