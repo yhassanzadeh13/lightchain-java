@@ -1,9 +1,10 @@
 package network.p2p;
 
 import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.nio.charset.StandardCharsets;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import model.Entity;
@@ -16,9 +17,25 @@ import protocol.Engine;
  */
 public class P2pNetwork implements network.Network {
   private final MessageServer server;
+  /**
+   * Identifier of the lightchain node itself.
+   */
+  private final Identifier myId;
+  /**
+   * Translates identifier of nodes to their networking address.
+   */
+  private ConcurrentMap<Identifier, String> idToAddressMap;
 
-  public P2pNetwork(int port) {
-    server = new MessageServer(port);
+  /**
+   * Creates P2P network for lightchain node.
+   *
+   * @param myId identifier of lightchain node.
+   * @param port port number of lightchain node.
+   */
+  public P2pNetwork(Identifier myId, int port) {
+    this.server = new MessageServer(port);
+    this.idToAddressMap = new ConcurrentHashMap<>();
+    this.myId = myId;
   }
 
   /**
@@ -33,6 +50,25 @@ public class P2pNetwork implements network.Network {
   }
 
   /**
+   * Identifier of the node.
+   *
+   * @return identifier of the node.
+   */
+  public Identifier getId() {
+    return myId;
+  }
+
+  /**
+   * Sets idToAddressMap for this network.
+   *
+   * @param idToAddressMap map from identifiers to addresses.
+   */
+  @SuppressFBWarnings(value = "EI_EXPOSE_REP2", justification = "intentionally mutable externally")
+  public void setIdToAddressMap(ConcurrentMap<Identifier, String> idToAddressMap) {
+    this.idToAddressMap = idToAddressMap;
+  }
+
+  /**
    * Registers an Engine to the Network by providing it with a Conduit.
    *
    * @param e       the Engine to be registered.
@@ -42,16 +78,9 @@ public class P2pNetwork implements network.Network {
    */
   @Override
   public Conduit register(Engine e, String channel) throws IllegalStateException {
+    server.setEngine(channel, e);
 
-    if (server.engineChannelTable.containsKey(channel)) {
-      throw new IllegalStateException("channel already exist");
-    }
-
-    P2pConduit conduit = new P2pConduit(this, e);
-    server.engineChannelTable.put(channel, e);
-
-    return conduit;
-
+    return new P2pConduit(this, channel);
   }
 
   public int getPort() {
@@ -65,37 +94,27 @@ public class P2pNetwork implements network.Network {
   /**
    * Sends the provided entity to the target P2pNetwork on a specific channel by building a gRPC ManagedServer.
    *
-   * @param e            the Engine to be registered.
-   * @param target       the target MessageServer.
-   * @param sourceEngine the Engine requesting the Entity to be sent.
-   * @throws InterruptedException if the transmission of Entity relay is interrupted.
-   * @throws IOException          if the channel cannot be built.
+   * @param e       the entity to be sent.
+   * @param target  identifier of target node.
+   * @param channel the network channel on which this entity is sent.
+   * @throws InterruptedException     if the transmission of Entity relay is interrupted.
+   * @throws IOException              if the gRPC channel cannot be built.
+   * @throws IllegalArgumentException if target identifier does not correspond to a valid address.
    */
-  public void sendUnicast(Entity e, Identifier target, Engine sourceEngine) throws InterruptedException, IOException {
+  public void sendUnicast(Entity e, Identifier target, String channel) throws InterruptedException,
+      IOException, IllegalArgumentException {
 
-    // target will be obtained from identifier when its implemented
-
-    String targetServer = String.valueOf(StandardCharsets.UTF_8.decode(ByteBuffer.wrap(target.getBytes())));
-
-    ManagedChannel managedChannel = ManagedChannelBuilder.forTarget(targetServer).usePlaintext().build();
-
-    // find channel of the source engine
-
-    String channel = "";
-
-    for (String c : server.engineChannelTable.keySet()) {
-      if (server.engineChannelTable.get(c).equals(sourceEngine)) {
-        channel = c;
-      }
+    String targetAddress = this.idToAddressMap.get(target);
+    if (targetAddress == null) {
+      throw new IllegalArgumentException("target identifier does not exist: " + target.toString());
     }
-
+    ManagedChannel managedChannel = ManagedChannelBuilder.forTarget(targetAddress).usePlaintext().build();
     try {
       MessageClient client = new MessageClient(managedChannel);
       client.deliver(e, target, channel);
     } finally {
       managedChannel.shutdownNow();
     }
-
   }
 
 }

@@ -19,11 +19,9 @@ package network.p2p;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.concurrent.TimeUnit;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
-import com.google.protobuf.ByteString;
 import com.google.protobuf.Empty;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.grpc.Server;
 import io.grpc.ServerBuilder;
 import io.grpc.stub.StreamObserver;
@@ -37,11 +35,8 @@ import protocol.Engine;
  * Includes the implementation of server side functionality of gRPC requests.
  */
 public class MessageServer {
-
-  private static final Logger logger = Logger.getLogger(MessageServer.class.getName());
   private final Server server;
-  HashMap<String, Engine> engineChannelTable;
-  private Thread serverThread;
+  private final HashMap<String, Engine> engineChannelTable;
 
   /**
    * Create a MessageServer using ServerBuilder as a base.
@@ -53,7 +48,21 @@ public class MessageServer {
         .addService(new MessengerImpl())
         .build();
 
-    this.engineChannelTable = new HashMap<String, Engine>();
+    this.engineChannelTable = new HashMap<>();
+  }
+
+  /**
+   * Registers an engine on the give channel.
+   *
+   * @param channel channel for which engine is registered on.
+   * @param engine  the engine to be registered on this channel.
+   * @throws IllegalStateException if an engine already exists on this channel.
+   */
+  public void setEngine(String channel, Engine engine) throws IllegalStateException {
+    if (this.engineChannelTable.containsKey(channel)) {
+      throw new IllegalStateException("channel already exist: " + channel);
+    }
+    this.engineChannelTable.put(channel, engine);
   }
 
   /**
@@ -70,6 +79,7 @@ public class MessageServer {
    */
   public void start() throws IOException {
     server.start();
+    // TODO: replace with info log
     System.out.println("server started, listening on " + this.getPort());
   }
 
@@ -85,9 +95,8 @@ public class MessageServer {
   /**
    * Concrete implementation of the gRPC Serverside response methods.
    */
+  @SuppressFBWarnings(value = "EI_EXPOSE_REP2", justification = "meant to be externally mutable")
   public class MessengerImpl extends MessengerGrpc.MessengerImplBase {
-    private final Logger logger = Logger.getLogger(MessengerImpl.class.getName());
-
     /**
      * Function for the gRPC server.
      *
@@ -96,44 +105,38 @@ public class MessageServer {
      */
     @Override
     public StreamObserver<Message> deliver(StreamObserver<Empty> responseObserver) {
-
       return new StreamObserver<Message>() {
-
         @Override
+        @SuppressFBWarnings(value = "DM_EXIT", justification = "meant to fail VM safely upon error")
         public void onNext(Message message) {
-
+          // TODO: replace with info log
           System.out.println("Received Entity");
           System.out.println("OriginID: " + message.getOriginId().toStringUtf8());
+          System.out.println("Channel: " + message.getChannel());
           System.out.println("Type: " + message.getType());
 
-          int i = 0;
-          for (ByteString s : message.getTargetIdsList()) {
-            System.out.println("Target " + i++ + ": " + s.toStringUtf8());
-
-            if (engineChannelTable.containsKey(s.toStringUtf8())) {
-
-              try {
-
-                JsonEncoder encoder = new JsonEncoder();
-                EncodedEntity e = new EncodedEntity(message.getPayload().toByteArray(), message.getType());
-
-                engineChannelTable.get(s.toStringUtf8()).process(encoder.decode(e));
-
-              } catch (ClassNotFoundException e) {
-                e.printStackTrace();
-              }
-
-            } else {
-              System.out.println("This Network does not have the channel " + s.toStringUtf8());
+          // TODO: check that this node is among target ids
+          if (engineChannelTable.containsKey(message.getChannel())) {
+            JsonEncoder encoder = new JsonEncoder();
+            EncodedEntity e = new EncodedEntity(message.getPayload().toByteArray(), message.getType());
+            try {
+              engineChannelTable.get(message.getChannel()).process(encoder.decode(e));
+            } catch (ClassNotFoundException ex) {
+              // TODO: replace with fatal log
+              System.err.println("could not decode incoming message");
+              ex.printStackTrace();
+              System.exit(1);
             }
-
+          } else {
+            // TODO: replace with error log
+            System.err.println("no channel found for incoming message: " + message.getChannel());
           }
-
         }
 
         @Override
         public void onError(Throwable t) {
-          logger.log(Level.WARNING, "Encountered error in deliver", t);
+          // TODO: replace with error log
+          System.err.println("encountered error in deliver: " + t);
         }
 
         @Override

@@ -8,9 +8,10 @@ import "google/protobuf/empty.proto";
 
 message Message {
   bytes OriginId = 1;
-  repeated bytes TargetIds = 2;
-  bytes Payload = 3;
-  string Type = 4;
+  string Channel = 2;
+  repeated bytes TargetIds = 3;
+  bytes Payload = 4;
+  string Type = 5;
 }
 
 service Messenger {

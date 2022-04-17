@@ -17,6 +17,7 @@ private static final long serialVersionUID = 0L;
   }
   private Message() {
     originId_ = com.google.protobuf.ByteString.EMPTY;
+    channel_ = "";
     targetIds_ = java.util.Collections.emptyList();
     payload_ = com.google.protobuf.ByteString.EMPTY;
     type_ = "";
@@ -59,6 +60,12 @@ private static final long serialVersionUID = 0L;
             break;
           }
           case 18: {
+            java.lang.String s = input.readStringRequireUtf8();
+
+            channel_ = s;
+            break;
+          }
+          case 26: {
             if (!((mutable_bitField0_ & 0x00000001) != 0)) {
               targetIds_ = new java.util.ArrayList<com.google.protobuf.ByteString>();
               mutable_bitField0_ |= 0x00000001;
@@ -66,12 +73,12 @@ private static final long serialVersionUID = 0L;
             targetIds_.add(input.readBytes());
             break;
           }
-          case 26: {
+          case 34: {
 
             payload_ = input.readBytes();
             break;
           }
-          case 34: {
+          case 42: {
             java.lang.String s = input.readStringRequireUtf8();
 
             type_ = s;
@@ -123,10 +130,48 @@ private static final long serialVersionUID = 0L;
     return originId_;
   }
 
-  public static final int TARGETIDS_FIELD_NUMBER = 2;
+  public static final int CHANNEL_FIELD_NUMBER = 2;
+  private volatile java.lang.Object channel_;
+  /**
+   * <code>string Channel = 2;</code>
+   * @return The channel.
+   */
+  @java.lang.Override
+  public java.lang.String getChannel() {
+    java.lang.Object ref = channel_;
+    if (ref instanceof java.lang.String) {
+      return (java.lang.String) ref;
+    } else {
+      com.google.protobuf.ByteString bs = 
+          (com.google.protobuf.ByteString) ref;
+      java.lang.String s = bs.toStringUtf8();
+      channel_ = s;
+      return s;
+    }
+  }
+  /**
+   * <code>string Channel = 2;</code>
+   * @return The bytes for channel.
+   */
+  @java.lang.Override
+  public com.google.protobuf.ByteString
+      getChannelBytes() {
+    java.lang.Object ref = channel_;
+    if (ref instanceof java.lang.String) {
+      com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString.copyFromUtf8(
+              (java.lang.String) ref);
+      channel_ = b;
+      return b;
+    } else {
+      return (com.google.protobuf.ByteString) ref;
+    }
+  }
+
+  public static final int TARGETIDS_FIELD_NUMBER = 3;
   private java.util.List<com.google.protobuf.ByteString> targetIds_;
   /**
-   * <code>repeated bytes TargetIds = 2;</code>
+   * <code>repeated bytes TargetIds = 3;</code>
    * @return A list containing the targetIds.
    */
   @java.lang.Override
@@ -135,14 +180,14 @@ private static final long serialVersionUID = 0L;
     return targetIds_;
   }
   /**
-   * <code>repeated bytes TargetIds = 2;</code>
+   * <code>repeated bytes TargetIds = 3;</code>
    * @return The count of targetIds.
    */
   public int getTargetIdsCount() {
     return targetIds_.size();
   }
   /**
-   * <code>repeated bytes TargetIds = 2;</code>
+   * <code>repeated bytes TargetIds = 3;</code>
    * @param index The index of the element to return.
    * @return The targetIds at the given index.
    */
@@ -150,10 +195,10 @@ private static final long serialVersionUID = 0L;
     return targetIds_.get(index);
   }
 
-  public static final int PAYLOAD_FIELD_NUMBER = 3;
+  public static final int PAYLOAD_FIELD_NUMBER = 4;
   private com.google.protobuf.ByteString payload_;
   /**
-   * <code>bytes Payload = 3;</code>
+   * <code>bytes Payload = 4;</code>
    * @return The payload.
    */
   @java.lang.Override
@@ -161,10 +206,10 @@ private static final long serialVersionUID = 0L;
     return payload_;
   }
 
-  public static final int TYPE_FIELD_NUMBER = 4;
+  public static final int TYPE_FIELD_NUMBER = 5;
   private volatile java.lang.Object type_;
   /**
-   * <code>string Type = 4;</code>
+   * <code>string Type = 5;</code>
    * @return The type.
    */
   @java.lang.Override
@@ -181,7 +226,7 @@ private static final long serialVersionUID = 0L;
     }
   }
   /**
-   * <code>string Type = 4;</code>
+   * <code>string Type = 5;</code>
    * @return The bytes for type.
    */
   @java.lang.Override
@@ -216,14 +261,17 @@ private static final long serialVersionUID = 0L;
     if (!originId_.isEmpty()) {
       output.writeBytes(1, originId_);
     }
+    if (!com.google.protobuf.GeneratedMessageV3.isStringEmpty(channel_)) {
+      com.google.protobuf.GeneratedMessageV3.writeString(output, 2, channel_);
+    }
     for (int i = 0; i < targetIds_.size(); i++) {
-      output.writeBytes(2, targetIds_.get(i));
+      output.writeBytes(3, targetIds_.get(i));
     }
     if (!payload_.isEmpty()) {
-      output.writeBytes(3, payload_);
+      output.writeBytes(4, payload_);
     }
     if (!com.google.protobuf.GeneratedMessageV3.isStringEmpty(type_)) {
-      com.google.protobuf.GeneratedMessageV3.writeString(output, 4, type_);
+      com.google.protobuf.GeneratedMessageV3.writeString(output, 5, type_);
     }
     unknownFields.writeTo(output);
   }
@@ -238,6 +286,9 @@ private static final long serialVersionUID = 0L;
       size += com.google.protobuf.CodedOutputStream
         .computeBytesSize(1, originId_);
     }
+    if (!com.google.protobuf.GeneratedMessageV3.isStringEmpty(channel_)) {
+      size += com.google.protobuf.GeneratedMessageV3.computeStringSize(2, channel_);
+    }
     {
       int dataSize = 0;
       for (int i = 0; i < targetIds_.size(); i++) {
@@ -249,10 +300,10 @@ private static final long serialVersionUID = 0L;
     }
     if (!payload_.isEmpty()) {
       size += com.google.protobuf.CodedOutputStream
-        .computeBytesSize(3, payload_);
+        .computeBytesSize(4, payload_);
     }
     if (!com.google.protobuf.GeneratedMessageV3.isStringEmpty(type_)) {
-      size += com.google.protobuf.GeneratedMessageV3.computeStringSize(4, type_);
+      size += com.google.protobuf.GeneratedMessageV3.computeStringSize(5, type_);
     }
     size += unknownFields.getSerializedSize();
     memoizedSize = size;
@@ -271,6 +322,8 @@ private static final long serialVersionUID = 0L;
 
     if (!getOriginId()
         .equals(other.getOriginId())) return false;
+    if (!getChannel()
+        .equals(other.getChannel())) return false;
     if (!getTargetIdsList()
         .equals(other.getTargetIdsList())) return false;
     if (!getPayload()
@@ -290,6 +343,8 @@ private static final long serialVersionUID = 0L;
     hash = (19 * hash) + getDescriptor().hashCode();
     hash = (37 * hash) + ORIGINID_FIELD_NUMBER;
     hash = (53 * hash) + getOriginId().hashCode();
+    hash = (37 * hash) + CHANNEL_FIELD_NUMBER;
+    hash = (53 * hash) + getChannel().hashCode();
     if (getTargetIdsCount() > 0) {
       hash = (37 * hash) + TARGETIDS_FIELD_NUMBER;
       hash = (53 * hash) + getTargetIdsList().hashCode();
@@ -433,6 +488,8 @@ private static final long serialVersionUID = 0L;
       super.clear();
       originId_ = com.google.protobuf.ByteString.EMPTY;
 
+      channel_ = "";
+
       targetIds_ = java.util.Collections.emptyList();
       bitField0_ = (bitField0_ & ~0x00000001);
       payload_ = com.google.protobuf.ByteString.EMPTY;
@@ -467,6 +524,7 @@ private static final long serialVersionUID = 0L;
       network.p2p.proto.Message result = new network.p2p.proto.Message(this);
       int from_bitField0_ = bitField0_;
       result.originId_ = originId_;
+      result.channel_ = channel_;
       if (((bitField0_ & 0x00000001) != 0)) {
         targetIds_ = java.util.Collections.unmodifiableList(targetIds_);
         bitField0_ = (bitField0_ & ~0x00000001);
@@ -524,6 +582,10 @@ private static final long serialVersionUID = 0L;
       if (other == network.p2p.proto.Message.getDefaultInstance()) return this;
       if (other.getOriginId() != com.google.protobuf.ByteString.EMPTY) {
         setOriginId(other.getOriginId());
+      }
+      if (!other.getChannel().isEmpty()) {
+        channel_ = other.channel_;
+        onChanged();
       }
       if (!other.targetIds_.isEmpty()) {
         if (targetIds_.isEmpty()) {
@@ -606,6 +668,82 @@ private static final long serialVersionUID = 0L;
       return this;
     }
 
+    private java.lang.Object channel_ = "";
+    /**
+     * <code>string Channel = 2;</code>
+     * @return The channel.
+     */
+    public java.lang.String getChannel() {
+      java.lang.Object ref = channel_;
+      if (!(ref instanceof java.lang.String)) {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        channel_ = s;
+        return s;
+      } else {
+        return (java.lang.String) ref;
+      }
+    }
+    /**
+     * <code>string Channel = 2;</code>
+     * @return The bytes for channel.
+     */
+    public com.google.protobuf.ByteString
+        getChannelBytes() {
+      java.lang.Object ref = channel_;
+      if (ref instanceof String) {
+        com.google.protobuf.ByteString b = 
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        channel_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+    /**
+     * <code>string Channel = 2;</code>
+     * @param value The channel to set.
+     * @return This builder for chaining.
+     */
+    public Builder setChannel(
+        java.lang.String value) {
+      if (value == null) {
+    throw new NullPointerException();
+  }
+  
+      channel_ = value;
+      onChanged();
+      return this;
+    }
+    /**
+     * <code>string Channel = 2;</code>
+     * @return This builder for chaining.
+     */
+    public Builder clearChannel() {
+      
+      channel_ = getDefaultInstance().getChannel();
+      onChanged();
+      return this;
+    }
+    /**
+     * <code>string Channel = 2;</code>
+     * @param value The bytes for channel to set.
+     * @return This builder for chaining.
+     */
+    public Builder setChannelBytes(
+        com.google.protobuf.ByteString value) {
+      if (value == null) {
+    throw new NullPointerException();
+  }
+  checkByteStringIsUtf8(value);
+      
+      channel_ = value;
+      onChanged();
+      return this;
+    }
+
     private java.util.List<com.google.protobuf.ByteString> targetIds_ = java.util.Collections.emptyList();
     private void ensureTargetIdsIsMutable() {
       if (!((bitField0_ & 0x00000001) != 0)) {
@@ -614,7 +752,7 @@ private static final long serialVersionUID = 0L;
        }
     }
     /**
-     * <code>repeated bytes TargetIds = 2;</code>
+     * <code>repeated bytes TargetIds = 3;</code>
      * @return A list containing the targetIds.
      */
     public java.util.List<com.google.protobuf.ByteString>
@@ -623,14 +761,14 @@ private static final long serialVersionUID = 0L;
                java.util.Collections.unmodifiableList(targetIds_) : targetIds_;
     }
     /**
-     * <code>repeated bytes TargetIds = 2;</code>
+     * <code>repeated bytes TargetIds = 3;</code>
      * @return The count of targetIds.
      */
     public int getTargetIdsCount() {
       return targetIds_.size();
     }
     /**
-     * <code>repeated bytes TargetIds = 2;</code>
+     * <code>repeated bytes TargetIds = 3;</code>
      * @param index The index of the element to return.
      * @return The targetIds at the given index.
      */
@@ -638,7 +776,7 @@ private static final long serialVersionUID = 0L;
       return targetIds_.get(index);
     }
     /**
-     * <code>repeated bytes TargetIds = 2;</code>
+     * <code>repeated bytes TargetIds = 3;</code>
      * @param index The index to set the value at.
      * @param value The targetIds to set.
      * @return This builder for chaining.
@@ -654,7 +792,7 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <code>repeated bytes TargetIds = 2;</code>
+     * <code>repeated bytes TargetIds = 3;</code>
      * @param value The targetIds to add.
      * @return This builder for chaining.
      */
@@ -668,7 +806,7 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <code>repeated bytes TargetIds = 2;</code>
+     * <code>repeated bytes TargetIds = 3;</code>
      * @param values The targetIds to add.
      * @return This builder for chaining.
      */
@@ -681,7 +819,7 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <code>repeated bytes TargetIds = 2;</code>
+     * <code>repeated bytes TargetIds = 3;</code>
      * @return This builder for chaining.
      */
     public Builder clearTargetIds() {
@@ -693,7 +831,7 @@ private static final long serialVersionUID = 0L;
 
     private com.google.protobuf.ByteString payload_ = com.google.protobuf.ByteString.EMPTY;
     /**
-     * <code>bytes Payload = 3;</code>
+     * <code>bytes Payload = 4;</code>
      * @return The payload.
      */
     @java.lang.Override
@@ -701,7 +839,7 @@ private static final long serialVersionUID = 0L;
       return payload_;
     }
     /**
-     * <code>bytes Payload = 3;</code>
+     * <code>bytes Payload = 4;</code>
      * @param value The payload to set.
      * @return This builder for chaining.
      */
@@ -715,7 +853,7 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <code>bytes Payload = 3;</code>
+     * <code>bytes Payload = 4;</code>
      * @return This builder for chaining.
      */
     public Builder clearPayload() {
@@ -727,7 +865,7 @@ private static final long serialVersionUID = 0L;
 
     private java.lang.Object type_ = "";
     /**
-     * <code>string Type = 4;</code>
+     * <code>string Type = 5;</code>
      * @return The type.
      */
     public java.lang.String getType() {
@@ -743,7 +881,7 @@ private static final long serialVersionUID = 0L;
       }
     }
     /**
-     * <code>string Type = 4;</code>
+     * <code>string Type = 5;</code>
      * @return The bytes for type.
      */
     public com.google.protobuf.ByteString
@@ -760,7 +898,7 @@ private static final long serialVersionUID = 0L;
       }
     }
     /**
-     * <code>string Type = 4;</code>
+     * <code>string Type = 5;</code>
      * @param value The type to set.
      * @return This builder for chaining.
      */
@@ -775,7 +913,7 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <code>string Type = 4;</code>
+     * <code>string Type = 5;</code>
      * @return This builder for chaining.
      */
     public Builder clearType() {
@@ -785,7 +923,7 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <code>string Type = 4;</code>
+     * <code>string Type = 5;</code>
      * @param value The bytes for type to set.
      * @return This builder for chaining.
      */

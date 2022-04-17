@@ -3,6 +3,7 @@ package network.p2p;
 import java.io.IOException;
 import java.util.ArrayList;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import model.Entity;
 import model.exceptions.LightChainDistributedStorageException;
 import model.exceptions.LightChainNetworkingException;
@@ -14,11 +15,12 @@ import protocol.Engine;
  */
 public class P2pConduit implements network.Conduit {
   private final P2pNetwork network;
-  private final Engine engine;
+  private final String channel;
 
-  public P2pConduit(P2pNetwork network, Engine engine) {
+  @SuppressFBWarnings(value = "EI_EXPOSE_REP2", justification = "network is intentionally mutable externally")
+  public P2pConduit(P2pNetwork network, String channel) {
     this.network = network;
-    this.engine = engine;
+    this.channel = channel;
   }
 
   /**
@@ -31,8 +33,8 @@ public class P2pConduit implements network.Conduit {
   @Override
   public void unicast(Entity e, Identifier target) throws LightChainNetworkingException {
     try {
-      network.sendUnicast(e, target, engine);
-    } catch (IOException | InterruptedException ex) {
+      network.sendUnicast(e, target, this.channel);
+    } catch (IOException | InterruptedException | IllegalArgumentException ex) {
       throw new LightChainNetworkingException("transmission was interrupted during the unicast operation", ex);
     }
   }

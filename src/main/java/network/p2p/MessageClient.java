@@ -18,8 +18,6 @@ package network.p2p;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import com.google.protobuf.ByteString;
 import com.google.protobuf.Empty;
@@ -27,35 +25,31 @@ import io.grpc.Channel;
 import io.grpc.Status;
 import io.grpc.stub.StreamObserver;
 import model.Entity;
+import model.codec.EncodedEntity;
 import model.lightchain.Identifier;
 import modules.codec.JsonEncoder;
 import network.p2p.proto.Message;
 import network.p2p.proto.MessengerGrpc;
 
 /**
- * Includes the implementation of client side functionality of gRPC requests.
+ * Client side of gRPC that is responsible for sending messages from this node.
  */
 public class MessageClient {
-
-  private static final Logger logger = Logger.getLogger(MessageClient.class.getName());
-  private final MessengerGrpc.MessengerBlockingStub blockingStub;
   private final MessengerGrpc.MessengerStub asyncStub;
 
   /**
-   * Construct client for accessing MessageServer using the existing channel.
+   * Constructor.
    */
   public MessageClient(Channel channel) {
-    blockingStub = MessengerGrpc.newBlockingStub(channel);
     asyncStub = MessengerGrpc.newStub(channel);
   }
 
   /**
-   * Async client-streaming.
+   * Implements logic to asynchronously deliver message to the target.
    */
   public void deliver(Entity entity, Identifier target, String channel) throws InterruptedException {
     final CountDownLatch finishLatch = new CountDownLatch(1);
     StreamObserver<Empty> responseObserver = new StreamObserver<Empty>() {
-
       @Override
       public void onNext(Empty value) {
 
@@ -63,7 +57,7 @@ public class MessageClient {
 
       @Override
       public void onError(Throwable t) {
-        warning("deliver Failed: {0}", Status.fromThrowable(t));
+        System.err.println("deliver failed: " + Status.fromThrowable(t));
         finishLatch.countDown();
       }
 
@@ -75,16 +69,15 @@ public class MessageClient {
 
     StreamObserver<Message> requestObserver = asyncStub.deliver(responseObserver);
     try {
-
       JsonEncoder encoder = new JsonEncoder();
 
+      EncodedEntity encodedEntity = encoder.encode(entity);
       Message message = Message.newBuilder()
-              .setOriginId(ByteString.copyFromUtf8("" + channel))
-              .setPayload(ByteString.copyFrom(encoder.encode(entity).getBytes()))
-              .setType(encoder.encode(entity).getType())
-              .addTargetIds(ByteString.copyFromUtf8(
-                      channel))
-              .build();
+          .setChannel(channel)
+          .setPayload(ByteString.copyFrom(encodedEntity.getBytes()))
+          .setType(encodedEntity.getType())
+          .addTargetIds(ByteString.copyFrom(target.getBytes()))
+          .build();
       requestObserver.onNext(message);
 
       if (finishLatch.getCount() == 0) {
@@ -104,16 +97,7 @@ public class MessageClient {
 
     // Receiving happens asynchronously
     if (!finishLatch.await(1, TimeUnit.MINUTES)) {
-      warning("deliver can not finish within 1 minutes");
+      System.err.println("deliver can not finish within 1 minutes");
     }
   }
-
-  private void info(String msg, Object... params) {
-    logger.log(Level.INFO, msg, params);
-  }
-
-  private void warning(String msg, Object... params) {
-    logger.log(Level.WARNING, msg, params);
-  }
-
 }
