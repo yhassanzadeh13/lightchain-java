@@ -1,4 +1,4 @@
-package networking;
+package networking.stub;
 
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -9,6 +9,7 @@ import model.lightchain.Identifier;
 import network.Conduit;
 import network.Network;
 import network.NetworkAdapter;
+import networking.MockConduit;
 import protocol.Engine;
 import unittest.fixtures.IdentifierFixture;
 

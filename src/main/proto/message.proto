@@ -1,0 +1,19 @@
+syntax = "proto3";
+option java_multiple_files = true;
+//option java_generic_services = true;
+
+package network.p2p.proto;
+
+import "google/protobuf/empty.proto";
+
+message Message {
+  bytes OriginId = 1;
+  string Channel = 2;
+  repeated bytes TargetIds = 3;
+  bytes Payload = 4;
+  string Type = 5;
+}
+
+service Messenger {
+  rpc Deliver(stream Message) returns (google.protobuf.Empty) {}
+}

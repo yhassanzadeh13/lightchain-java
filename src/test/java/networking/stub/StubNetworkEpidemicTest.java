@@ -1,4 +1,4 @@
-package networking;
+package networking.stub;
 
 import java.util.ArrayList;
 import java.util.concurrent.CountDownLatch;
@@ -8,6 +8,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import model.Entity;
 import model.exceptions.LightChainNetworkingException;
 import network.Conduit;
+import networking.MockEngine;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
