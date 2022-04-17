@@ -2,7 +2,6 @@ package modules.ads;
 
 import model.crypto.Sha3256Hash;
 import modules.ads.merkletree.MerkleTree;
-import modules.ads.merkletree.Proof;
 import modules.ads.merkletree.Verifier;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -10,7 +9,6 @@ import unittest.fixtures.EntityFixture;
 import unittest.fixtures.MerkleTreeFixture;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 
 /**
  * Encapsulates tests for an authenticated and concurrent implementation of SkipList ADS.

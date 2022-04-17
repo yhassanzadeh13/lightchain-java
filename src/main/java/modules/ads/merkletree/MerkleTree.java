@@ -15,9 +15,10 @@ import java.util.*;
  */
 public class MerkleTree implements AuthenticatedDataStructure {
   private static final Sha3256Hasher hasher = new Sha3256Hasher();
-  private MerkleNode root = new MerkleNode();
   private final ArrayList<MerkleNode> leafNodes = new ArrayList<>();
-  private final ArrayList<Entity> entities = new ArrayList<>();
+  private final Map<Sha3256Hash, Integer> leafNodesHashTable = new HashMap<>();
+  private MerkleNode root = new MerkleNode();
+  private int size = 0;
 
   public MerkleTree() {
   }
@@ -27,15 +28,12 @@ public class MerkleTree implements AuthenticatedDataStructure {
     if (e == null) {
       return null;
     }
-    int idx = -1;
-    for (int i = 0; i < entities.size(); i++) {
-      if (entities.get(i).id().equals(e.id())) {
-        idx = i;
-      }
-    }
-    if (idx == -1) {
-      entities.add(e);
+    Sha3256Hash hash = hasher.computeHash(e.id());
+    Integer idx = leafNodesHashTable.get(hash);
+    if (idx == null) {
       leafNodes.add(new MerkleNode(e, false));
+      leafNodesHashTable.put(hash, size);
+      size++;
       buildMerkleTree();
       Proof proof = getProof(e.id());
       return new modules.ads.merkletree.AuthenticatedEntity(proof, e.type(), e);
@@ -55,13 +53,11 @@ public class MerkleTree implements AuthenticatedDataStructure {
   }
 
   private Proof getProof(Identifier id) {
-    int idx = -1;
-    for (int i = 0; i < entities.size(); i++) {
-      if (entities.get(i).id().equals(id)) {
-        idx = i;
-      }
+    if (id == null) {
+      return null;
     }
-    if (idx == -1) {
+    Integer idx = leafNodesHashTable.get(hasher.computeHash(id));
+    if (idx == null) {
       return null;
     }
     ArrayList<Sha3256Hash> path = new ArrayList<>();
@@ -72,6 +68,7 @@ public class MerkleTree implements AuthenticatedDataStructure {
     }
     return new Proof(path, root.getHash());
   }
+
   private void buildMerkleTree() {
     ArrayList<MerkleNode> parentNodes = new ArrayList<>();
     ArrayList<MerkleNode> childNodes = new ArrayList<>(leafNodes);
