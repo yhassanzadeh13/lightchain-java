@@ -8,24 +8,33 @@ import modules.ads.AuthenticatedDataStructure;
 import modules.ads.AuthenticatedEntity;
 
 import java.util.*;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 /**
  * Implementation of an in-memory Authenticated Skip List
  * that is capable of storing and retrieval of LightChain entities.
  */
 public class MerkleTree implements AuthenticatedDataStructure {
+  private int size;
+  private MerkleNode root;
+  private final ReentrantReadWriteLock lock;
+  private final ArrayList<MerkleNode> leafNodes;
+  private final Map<Sha3256Hash, Integer> leafNodesHashTable;
   private static final Sha3256Hasher hasher = new Sha3256Hasher();
-  private final ArrayList<MerkleNode> leafNodes = new ArrayList<>();
-  private final Map<Sha3256Hash, Integer> leafNodesHashTable = new HashMap<>();
-  private MerkleNode root = new MerkleNode();
-  private int size = 0;
 
   public MerkleTree() {
+    this.size = 0;
+    this.root = new MerkleNode();
+    this.leafNodes = new ArrayList<>();
+    this.lock = new ReentrantReadWriteLock();
+    this.leafNodesHashTable = new HashMap<>();
   }
 
   @Override
   public AuthenticatedEntity put(Entity e) {
+    lock.writeLock().lock();
     if (e == null) {
+      lock.writeLock().unlock();
       return null;
     }
     Sha3256Hash hash = hasher.computeHash(e.id());
@@ -36,19 +45,24 @@ public class MerkleTree implements AuthenticatedDataStructure {
       size++;
       buildMerkleTree();
       Proof proof = getProof(e.id());
+      lock.writeLock().unlock();
       return new modules.ads.merkletree.AuthenticatedEntity(proof, e.type(), e);
     } else {
       Proof proof = getProof(e.id());
+      lock.writeLock().unlock();
       return new modules.ads.merkletree.AuthenticatedEntity(proof, e.type(), e);
     }
   }
 
   @Override
   public AuthenticatedEntity get(Entity e) {
+    lock.readLock().lock();
     Proof proof = getProof(e.id());
     if (proof == null) {
+      lock.readLock().unlock();
       return null;
     }
+    lock.readLock().unlock();
     return new modules.ads.merkletree.AuthenticatedEntity(proof, e.type(), e);
   }
 
