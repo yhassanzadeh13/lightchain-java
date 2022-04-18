@@ -1,10 +1,8 @@
 package bootstrap;
 
-import model.Entity;
 import model.exceptions.LightChainNetworkingException;
 import model.lightchain.Identifier;
 import network.Conduit;
-import network.p2p.P2pConduit;
 import network.p2p.P2pNetwork;
 import protocol.Engine;
 
@@ -13,7 +11,6 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.TimeUnit;
@@ -62,7 +59,7 @@ public class Node {
     while (true) {
 
       try {
-        TimeUnit.SECONDS.sleep(1);
+        TimeUnit.MILLISECONDS.sleep(1000);
       } catch (InterruptedException e) {
         e.printStackTrace();
       }

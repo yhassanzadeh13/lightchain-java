@@ -48,11 +48,10 @@ public class BroadcastEngine implements Engine {
 
     receivedEntityIds.add(e.id());
 
-    System.out.println("Total Received " + totalReceived());
-    System.out.println(" ");
-
     System.out.println("The content of the last message is: ");
     System.out.println(((HelloMessageEntity) e).content);
+    System.out.println("Total Received " + totalReceived());
+    System.out.println("");
 
     lock.writeLock().unlock();
   }

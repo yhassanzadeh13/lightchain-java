@@ -15,15 +15,19 @@ public class Bootstrap {
 
   public static void main(String[] args) {
 
-    int nodeCount = 100;
+    int nodeCount = 10;
+
     ConcurrentMap<Identifier, String> idTable;
 
     LocalTestNet testNet = new LocalTestNet(nodeCount);
 
     try {
-      idTable = testNet.createNodeContainers();
+
+      idTable = testNet.createBootstrapFile();
 
       writeToOutput(idTable);
+
+      testNet.createNodeContainers();
 
       for (Identifier id : idTable.keySet()) {
         System.out.println(id.toString() + " " + idTable.get(id));

@@ -2,17 +2,17 @@ package integration.localnet;
 
 import java.io.File;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.TimeUnit;
 
 import com.github.dockerjava.api.command.BuildImageResultCallback;
 import com.github.dockerjava.api.command.CreateContainerResponse;
 import com.github.dockerjava.api.model.Bind;
 import com.github.dockerjava.api.model.HostConfig;
 import metrics.integration.MetricsTestNet;
+import model.exceptions.LightChainNetworkingException;
 import model.lightchain.Identifier;
 
 /**
@@ -91,14 +91,13 @@ public class LocalTestNet extends MetricsTestNet {
     System.out.println("local testnet is up and running!");
   }
 
-  public ConcurrentMap createNodeContainers() throws IllegalStateException {
-
-    ConcurrentMap<Identifier, String> idTable = new ConcurrentHashMap<Identifier, String>();
+  public void createNodeContainers() throws IllegalStateException {
 
     super.runMetricsTestNet();
 
     // Node Container
     String imageId = dockerClient.buildImageCmd()
+            .withTags(new HashSet<String>(Arrays.asList("image")))
             .withDockerfile(new File(NODE_DOCKER_FILE))
             .withPull(true)
             .exec(new BuildImageResultCallback())
@@ -117,9 +116,6 @@ public class LocalTestNet extends MetricsTestNet {
       // Volume Creation
       this.createVolumesIfNotExist("NODE_VOLUME_"+i);
 
-      Identifier id = new Identifier(new String("NODE"+i).getBytes(StandardCharsets.UTF_8));
-      idTable.put(id,"NODE"+i+":8081");
-
       System.out.println("building local node " + i + " , please wait ....");
 
       CreateContainerResponse nodeServer = this.dockerClient
@@ -134,13 +130,36 @@ public class LocalTestNet extends MetricsTestNet {
 
     }
 
+    Thread[] containerThreads = new Thread[nodeCount];
     for (int i = 0; i < nodeCount; i++) {
-      dockerClient
-              .startContainerCmd(containers.get(i).getId())
-              .exec();
-      System.out.println("Node " + i + " is up and running!");
+      int finalI = i;
+      containerThreads[i] = new Thread(() -> {
+          dockerClient
+                  .startContainerCmd(containers.get(finalI).getId())
+                  .exec();
+          System.out.println("Node " + finalI + " is up and running!");
+      });
     }
 
+    for (Thread t : containerThreads) {
+      try {
+        TimeUnit.MILLISECONDS.sleep(100);
+      } catch (InterruptedException e) {
+        e.printStackTrace();
+      }
+      t.start();
+    }
+
+  }
+
+  public ConcurrentMap createBootstrapFile(){
+
+    ConcurrentMap<Identifier, String> idTable = new ConcurrentHashMap<Identifier, String>();
+
+    for (int i = 0; i < nodeCount; i++) {
+      Identifier id = new Identifier(new String("NODE"+i).getBytes(StandardCharsets.UTF_8));
+      idTable.put(id,"NODE"+i+":8081");
+    }
 
     return idTable;
 
