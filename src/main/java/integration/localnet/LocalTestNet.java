@@ -5,6 +5,8 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 import com.github.dockerjava.api.command.BuildImageResultCallback;
 import com.github.dockerjava.api.command.CreateContainerResponse;
@@ -89,9 +91,9 @@ public class LocalTestNet extends MetricsTestNet {
     System.out.println("local testnet is up and running!");
   }
 
-  public HashMap createNodeContainers() throws IllegalStateException {
+  public ConcurrentMap createNodeContainers() throws IllegalStateException {
 
-    HashMap<Identifier, String> idTable = new HashMap<Identifier, String>();
+    ConcurrentMap<Identifier, String> idTable = new ConcurrentHashMap<Identifier, String>();
 
     super.runMetricsTestNet();
 
@@ -109,12 +111,14 @@ public class LocalTestNet extends MetricsTestNet {
             .withBinds(serverBinds)
             .withNetworkMode(NETWORK_NAME);
 
+    ArrayList<CreateContainerResponse> containers = new ArrayList<>();
+
     for (int i = 0; i < nodeCount; i++) {
       // Volume Creation
       this.createVolumesIfNotExist("NODE_VOLUME_"+i);
 
       Identifier id = new Identifier(new String("NODE"+i).getBytes(StandardCharsets.UTF_8));
-      idTable.put(id,"NODE"+i);
+      idTable.put(id,"NODE"+i+":8081");
 
       System.out.println("building local node " + i + " , please wait ....");
 
@@ -123,15 +127,20 @@ public class LocalTestNet extends MetricsTestNet {
               .withName("NODE"+i)
               .withTty(true)
               .withHostConfig(hostConfig)
+              .withCmd("NODE"+i,"bootstrap.txt")
               .exec();
 
-      dockerClient
-              .startContainerCmd(nodeServer.getId())
-              .exec();
-
-      System.out.println("Node " + i + " is up and running! at address: ");
+      containers.add(nodeServer);
 
     }
+
+    for (int i = 0; i < nodeCount; i++) {
+      dockerClient
+              .startContainerCmd(containers.get(i).getId())
+              .exec();
+      System.out.println("Node " + i + " is up and running!");
+    }
+
 
     return idTable;
 

@@ -2,10 +2,14 @@ package bootstrap;
 
 import model.Entity;
 import model.lightchain.Identifier;
+import network.Conduit;
+import network.p2p.P2pNetwork;
 import protocol.Engine;
 
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 /**
@@ -15,9 +19,20 @@ public class BroadcastEngine implements Engine {
   private final ReentrantReadWriteLock lock;
   private final Set<Identifier> receivedEntityIds;
 
+  ConcurrentMap<Identifier, String> idTable;
+  Identifier myId;
+
   public BroadcastEngine() {
     this.receivedEntityIds = new HashSet<>();
     this.lock = new ReentrantReadWriteLock();
+  }
+
+  public BroadcastEngine(ConcurrentMap<Identifier, String> idTable, Identifier myId) {
+    this.receivedEntityIds = new HashSet<>();
+    this.lock = new ReentrantReadWriteLock();
+
+    this.idTable = idTable;
+    this.myId = myId;
   }
 
   /**
@@ -32,6 +47,12 @@ public class BroadcastEngine implements Engine {
     lock.writeLock().lock();
 
     receivedEntityIds.add(e.id());
+
+    System.out.println("Total Received " + totalReceived());
+    System.out.println(" ");
+
+    System.out.println("The content of the last message is: ");
+    System.out.println(((HelloMessageEntity) e).content);
 
     lock.writeLock().unlock();
   }
