@@ -1,11 +1,5 @@
 package bootstrap;
 
-import model.exceptions.LightChainNetworkingException;
-import model.lightchain.Identifier;
-import network.Conduit;
-import network.p2p.P2pNetwork;
-import protocol.Engine;
-
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
@@ -15,6 +9,16 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.TimeUnit;
 
+import model.exceptions.LightChainNetworkingException;
+import model.lightchain.Identifier;
+import network.Conduit;
+import network.p2p.P2pNetwork;
+import protocol.Engine;
+
+/**
+ * Node class representing the implementation of a singular structure capable of utilizing different engines, which
+ * may use Networks in order to transmit and receive Entities amongst themselves.
+ */
 public class Node {
 
   static ConcurrentMap<Identifier, String> idTable;
@@ -23,6 +27,11 @@ public class Node {
   static Engine engine;
   static Conduit conduit;
 
+  /**
+   * Main method.
+   *
+   * @param args Arguments.
+   */
   public static void main(String[] args) {
 
     // Set myID

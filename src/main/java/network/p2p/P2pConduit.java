@@ -8,7 +8,6 @@ import model.Entity;
 import model.exceptions.LightChainDistributedStorageException;
 import model.exceptions.LightChainNetworkingException;
 import model.lightchain.Identifier;
-import protocol.Engine;
 
 /**
  * Implements Conduit for grpc-based networking layer.

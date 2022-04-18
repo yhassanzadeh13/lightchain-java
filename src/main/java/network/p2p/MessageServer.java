@@ -111,10 +111,10 @@ public class MessageServer {
         public void onNext(Message message) {
           // TODO: replace with info log
           // TODO: uncomment once viable
-//          System.out.println("Received Entity");
-//          System.out.println("OriginID: " + message.getOriginId().toStringUtf8());
-//          System.out.println("Channel: " + message.getChannel());
-//          System.out.println("Type: " + message.getType());
+          // System.out.println("Received Entity");
+          // System.out.println("OriginID: " + message.getOriginId().toStringUtf8());
+          // System.out.println("Channel: " + message.getChannel());
+          // System.out.println("Type: " + message.getType());
 
           // TODO: check that this node is among target ids
           if (engineChannelTable.containsKey(message.getChannel())) {

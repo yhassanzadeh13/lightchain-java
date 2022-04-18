@@ -12,7 +12,6 @@ import com.github.dockerjava.api.command.CreateContainerResponse;
 import com.github.dockerjava.api.model.Bind;
 import com.github.dockerjava.api.model.HostConfig;
 import metrics.integration.MetricsTestNet;
-import model.exceptions.LightChainNetworkingException;
 import model.lightchain.Identifier;
 
 /**
@@ -39,7 +38,7 @@ public class LocalTestNet extends MetricsTestNet {
   }
 
   public LocalTestNet(int nodeCount) {
-    this.nodeCount=nodeCount;
+    this.nodeCount = nodeCount;
   }
 
   /**
@@ -53,24 +52,24 @@ public class LocalTestNet extends MetricsTestNet {
 
     // HTTP Server Container
     String imageId = dockerClient.buildImageCmd()
-        .withDockerfile(new File(DOCKER_FILE))
-        .withPull(true)
-        .exec(new BuildImageResultCallback())
-        .awaitImageId();
+            .withDockerfile(new File(DOCKER_FILE))
+            .withPull(true)
+            .exec(new BuildImageResultCallback())
+            .awaitImageId();
 
     List<Bind> serverBinds = new ArrayList<Bind>();
     serverBinds.add(Bind.parse(SERVER_VOLUME_BINDING));
 
     HostConfig hostConfig = new HostConfig()
-        .withBinds(serverBinds)
-        .withNetworkMode(NETWORK_NAME);
+            .withBinds(serverBinds)
+            .withNetworkMode(NETWORK_NAME);
 
     return this.dockerClient
-        .createContainerCmd(imageId)
-        .withName(SERVER)
-        .withTty(true)
-        .withHostConfig(hostConfig)
-        .exec();
+            .createContainerCmd(imageId)
+            .withName(SERVER)
+            .withTty(true)
+            .withHostConfig(hostConfig)
+            .exec();
   }
 
   /**
@@ -85,15 +84,18 @@ public class LocalTestNet extends MetricsTestNet {
 
     CreateContainerResponse httpServer = this.createServerContainer();
     dockerClient
-        .startContainerCmd(httpServer.getId())
-        .exec();
+            .startContainerCmd(httpServer.getId())
+            .exec();
 
     System.out.println("local testnet is up and running!");
   }
 
+  /**
+   * Creates and runs a node network accompanied by a metrics generator server.
+   *
+   * @throws IllegalStateException when container creation faces an illegal state.
+   */
   public void createNodeContainers() throws IllegalStateException {
-
-    super.runMetricsTestNet();
 
     // Node Container
     String imageId = dockerClient.buildImageCmd()
@@ -114,30 +116,32 @@ public class LocalTestNet extends MetricsTestNet {
 
     for (int i = 0; i < nodeCount; i++) {
       // Volume Creation
-      this.createVolumesIfNotExist("NODE_VOLUME_"+i);
+      this.createVolumesIfNotExist("NODE_VOLUME_" + i);
 
       System.out.println("building local node " + i + " , please wait ....");
 
       CreateContainerResponse nodeServer = this.dockerClient
               .createContainerCmd(imageId)
-              .withName("NODE"+i)
+              .withName("NODE" + i)
               .withTty(true)
               .withHostConfig(hostConfig)
-              .withCmd("NODE"+i,"bootstrap.txt")
+              .withCmd("NODE" + i, "bootstrap.txt")
               .exec();
 
       containers.add(nodeServer);
 
     }
 
+    super.runMetricsTestNet();
+
     Thread[] containerThreads = new Thread[nodeCount];
     for (int i = 0; i < nodeCount; i++) {
       int finalI = i;
       containerThreads[i] = new Thread(() -> {
-          dockerClient
-                  .startContainerCmd(containers.get(finalI).getId())
-                  .exec();
-          System.out.println("Node " + finalI + " is up and running!");
+        dockerClient
+                .startContainerCmd(containers.get(finalI).getId())
+                .exec();
+        System.out.println("Node " + finalI + " is up and running!");
       });
     }
 
@@ -152,13 +156,16 @@ public class LocalTestNet extends MetricsTestNet {
 
   }
 
-  public ConcurrentMap createBootstrapFile(){
+  /**
+   * Builds and returns a ConcurrentMap of nodes to be bootstrapped.
+   */
+  public ConcurrentMap createBootstrapFile() {
 
     ConcurrentMap<Identifier, String> idTable = new ConcurrentHashMap<Identifier, String>();
 
     for (int i = 0; i < nodeCount; i++) {
-      Identifier id = new Identifier(new String("NODE"+i).getBytes(StandardCharsets.UTF_8));
-      idTable.put(id,"NODE"+i+":8081");
+      Identifier id = new Identifier(new String("NODE" + i).getBytes(StandardCharsets.UTF_8));
+      idTable.put(id, "NODE" + i + ":8081");
     }
 
     return idTable;

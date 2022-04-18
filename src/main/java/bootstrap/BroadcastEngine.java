@@ -1,16 +1,13 @@
 package bootstrap;
 
-import model.Entity;
-import model.lightchain.Identifier;
-import network.Conduit;
-import network.p2p.P2pNetwork;
-import protocol.Engine;
-
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+
+import model.Entity;
+import model.lightchain.Identifier;
+import protocol.Engine;
 
 /**
  * Represents a mock implementation of Engine interface for testing.
@@ -27,6 +24,12 @@ public class BroadcastEngine implements Engine {
     this.lock = new ReentrantReadWriteLock();
   }
 
+  /**
+   *  Constructor for BroadcastEngine.
+   *
+   * @param idTable idTable containing all Nodes and their addresses.
+   * @param myId id of the Node on which the Engine operates.
+   */
   public BroadcastEngine(ConcurrentMap<Identifier, String> idTable, Identifier myId) {
     this.receivedEntityIds = new HashSet<>();
     this.lock = new ReentrantReadWriteLock();
@@ -50,7 +53,7 @@ public class BroadcastEngine implements Engine {
 
     System.out.println("The content of the last message is: ");
     System.out.println(((HelloMessageEntity) e).content);
-    System.out.println("Total Received " + totalReceived());
+    System.out.println("Total Unique Entries Received " + totalReceived());
     System.out.println("");
 
     lock.writeLock().unlock();

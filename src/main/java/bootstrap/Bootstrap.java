@@ -1,18 +1,26 @@
 package bootstrap;
 
-import integration.localnet.LocalTestNet;
-import model.lightchain.Identifier;
-
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.concurrent.ConcurrentMap;
 
+import integration.localnet.LocalTestNet;
+import model.lightchain.Identifier;
+
+/**
+ * Bootstrap class to facilitate the generation of LightChain Nodes running on different Docker containers.
+ */
 public class Bootstrap {
 
-  final static String OUTPUT_PATH = "bootstrap.txt";
+  static final String OUTPUT_PATH = "bootstrap.txt";
 
+  /**
+   * Main method.
+   *
+   * @param args Arguments.
+   */
   public static void main(String[] args) {
 
     int nodeCount = 10;
@@ -34,7 +42,7 @@ public class Bootstrap {
       }
 
     } catch (IllegalStateException e) {
-      System.err.println("could not initialize and run node net: " + e.getMessage());
+      System.err.println("could not initialize and run the Node network: " + e.getMessage());
       System.exit(1);
     }
 
