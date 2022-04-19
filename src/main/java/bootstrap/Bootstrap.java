@@ -1,9 +1,7 @@
 package bootstrap;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
+import java.util.Map;
 import java.util.concurrent.ConcurrentMap;
 
 import integration.localnet.LocalTestNet;
@@ -37,8 +35,8 @@ public class Bootstrap {
 
       testNet.createNodeContainers();
 
-      for (Identifier id : idTable.keySet()) {
-        System.out.println(id.toString() + " " + idTable.get(id));
+      for (Map.Entry<Identifier, String> id : idTable.entrySet()) {
+        System.out.println(id.getKey().toString() + " " + idTable.get(id.getKey()));
       }
 
     } catch (IllegalStateException e) {
@@ -52,10 +50,10 @@ public class Bootstrap {
 
     File file = new File(OUTPUT_PATH);
     try {
-      BufferedWriter writer = new BufferedWriter(new FileWriter(file));
-      for (Identifier id : idTable.keySet()) {
-        writer.write(id + ":" + idTable.get(id));
-        writer.newLine();
+      FileOutputStream fileStream = new FileOutputStream(file);
+      Writer writer = new OutputStreamWriter(fileStream, "UTF-8");
+      for (Map.Entry<Identifier, String> id : idTable.entrySet()) {
+        writer.write(id.getKey() + ":" + idTable.get(id.getKey()) + "\n");
       }
       writer.flush();
       writer.close();

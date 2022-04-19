@@ -150,7 +150,6 @@ public class LocalTestNet extends MetricsTestNet {
         TimeUnit.MILLISECONDS.sleep(100);
       } catch (InterruptedException e) {
         System.err.println("thread operation interrupted: " + e);
-        System.exit(1);
       }
       t.start();
     }
@@ -165,7 +164,7 @@ public class LocalTestNet extends MetricsTestNet {
     ConcurrentMap<Identifier, String> idTable = new ConcurrentHashMap<Identifier, String>();
 
     for (int i = 0; i < nodeCount; i++) {
-      Identifier id = new Identifier(new String("NODE" + i).getBytes(StandardCharsets.UTF_8));
+      Identifier id = new Identifier(("NODE" + i).getBytes(StandardCharsets.UTF_8));
       idTable.put(id, "NODE" + i + ":8081");
     }
 

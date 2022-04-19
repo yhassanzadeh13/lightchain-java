@@ -2,6 +2,7 @@ package bootstrap;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.TimeUnit;
@@ -52,8 +53,8 @@ public class Node {
     System.out.println("Hello world! I'm Node at Port: " + network.getPort());
     System.out.println("My ID is: " + myId);
     System.out.println("ID Table Database AFAIK: ");
-    for (Identifier id : idTable.keySet()) {
-      System.out.println(id + " " + idTable.get(id));
+    for (Map.Entry<Identifier, String> id : idTable.entrySet()) {
+      System.out.println(id.getKey() + " " + idTable.get(id.getKey()));
     }
 
     sendHelloMessagesToAll();
@@ -70,14 +71,14 @@ public class Node {
         e.printStackTrace();
       }
 
-      for (Identifier id : idTable.keySet()) {
+      for (Map.Entry<Identifier, String> id : idTable.entrySet()) {
 
-        if (!id.toString().equals(myId.toString())) {
+        if (!id.getKey().toString().equals(myId.toString())) {
 
-          HelloMessageEntity e = new HelloMessageEntity("Hello from " + myId + " to " + id);
+          HelloMessageEntity e = new HelloMessageEntity("Hello from " + myId + " to " + id.getKey());
 
           try {
-            conduit.unicast(e, id);
+            conduit.unicast(e, id.getKey());
           } catch (LightChainNetworkingException ex) {
             System.err.println("could not send the entity: " + ex);
             System.exit(1);
@@ -99,7 +100,9 @@ public class Node {
 
       File idTableFile = new File(path);
 
-      BufferedReader reader = new BufferedReader(new FileReader(idTableFile));
+      InputStream inputStream = new FileInputStream(idTableFile);
+      Reader readerStream = new InputStreamReader(inputStream, "UTF-8");
+      BufferedReader reader = new BufferedReader(readerStream);
 
       String line;
 
