@@ -1,6 +1,7 @@
 package modules.ads.merkletree;
 
 import crypto.Sha3256Hasher;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import model.Entity;
 import model.crypto.Sha3256Hash;
 
@@ -56,11 +57,11 @@ public class MerkleNode {
   /**
    * Constructor of a parent node.
    *
-   * @param hash input hash of the entity corresponding to that node
-   * @param left left child of the node
+   * @param hash  input hash of the entity corresponding to that node
+   * @param left  left child of the node
    * @param right right child of the node
    */
-  @SuppressWarnings("EI_EXPOSE_REP2")
+  @SuppressFBWarnings(value = "EI_EXPOSE_REP2", justification = "left and right is intentionally mutable externally")
   public MerkleNode(Sha3256Hash hash, MerkleNode left, MerkleNode right) {
     this.left = left;
     this.right = right;
@@ -69,26 +70,27 @@ public class MerkleNode {
     this.hash = hash;
   }
 
-  @SuppressWarnings("EI_EXPOSE_REP")
+  @SuppressFBWarnings(value = "EI_EXPOSE_REP", justification = "internal representation is intentionally returned")
   public MerkleNode getLeft() {
     return left;
   }
 
-  @SuppressWarnings("EI_EXPOSE_REP")
+  @SuppressFBWarnings(value = "EI_EXPOSE_REP", justification = "internal representation is intentionally returned")
   public MerkleNode getRight() {
     return right;
   }
 
+  @SuppressFBWarnings(value = "EI_EXPOSE_REP2", justification = "right is intentionally mutable externally")
   public void setRight(MerkleNode right) {
     this.right = right;
   }
 
-  @SuppressWarnings("EI_EXPOSE_REP")
+  @SuppressFBWarnings(value = "EI_EXPOSE_REP", justification = "internal representation is intentionally returned")
   public MerkleNode getParent() {
     return parent;
   }
 
-  @SuppressWarnings("EI_EXPOSE_REP2")
+  @SuppressFBWarnings(value = "EI_EXPOSE_REP2", justification = "parent is intentionally mutable externally")
   public void setParent(MerkleNode parent) {
     this.parent = parent;
   }
@@ -105,12 +107,11 @@ public class MerkleNode {
     return isLeft;
   }
 
-  @SuppressWarnings("EI_EXPOSE_REP2")
+  @SuppressFBWarnings(value = "EI_EXPOSE_REP2", justification = "left is intentionally mutable externally")
   public void setLeft(MerkleNode left) {
     this.left = left;
   }
 
-  @SuppressWarnings("EI_EXPOSE_REP2")
   public void setLeft(boolean isLeft) {
     this.isLeft = isLeft;
   }
