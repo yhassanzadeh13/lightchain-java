@@ -21,7 +21,7 @@ public class MerkleTreeTest {
 
   @Test
   public void testVerification() {
-    MerkleTree merkleTree = MerkleTreeFixture.createSkipList(5);
+    MerkleTree merkleTree = MerkleTreeFixture.createMerkleTree(5);
     Entity entity = new EntityFixture();
     merkleTree.put(entity);
     AuthenticatedEntity authenticatedEntity = merkleTree.get(entity);
@@ -31,7 +31,7 @@ public class MerkleTreeTest {
 
   @Test
   public void testPutGetSameProof() {
-    MerkleTree merkleTree = MerkleTreeFixture.createSkipList(5);
+    MerkleTree merkleTree = MerkleTreeFixture.createMerkleTree(5);
     Entity entity1 = new EntityFixture();
     AuthenticatedEntity authenticatedEntityPut = merkleTree.put(entity1);
     MembershipProof proofPut = authenticatedEntityPut.getMembershipProof();
@@ -46,7 +46,7 @@ public class MerkleTreeTest {
 
   @Test
   public void testPutExistingEntity() {
-    MerkleTree merkleTree = MerkleTreeFixture.createSkipList(5);
+    MerkleTree merkleTree = MerkleTreeFixture.createMerkleTree(5);
     Entity entity = new EntityFixture();
     AuthenticatedEntity authenticatedEntityPut = merkleTree.put(entity);
     MembershipProof proofPut = authenticatedEntityPut.getMembershipProof();
@@ -61,7 +61,7 @@ public class MerkleTreeTest {
     AtomicInteger threadError = new AtomicInteger();
     CountDownLatch countDownLatch = new CountDownLatch(concurrencyDegree);
     Thread[] merkleTreeThreads = new Thread[concurrencyDegree];
-    MerkleTree merkleTree = MerkleTreeFixture.createSkipList(5);
+    MerkleTree merkleTree = MerkleTreeFixture.createMerkleTree(5);
     for (int i = 0; i < concurrencyDegree; i++) {
       merkleTreeThreads[i] = new Thread(() -> {
         Entity entity = new EntityFixture();
@@ -92,7 +92,7 @@ public class MerkleTreeTest {
 
   @Test
   public void testGetNonExistingEntity() {
-    MerkleTree merkleTree = MerkleTreeFixture.createSkipList(5);
+    MerkleTree merkleTree = MerkleTreeFixture.createMerkleTree(5);
     Entity entity = new EntityFixture();
     AuthenticatedEntity authenticatedEntity = merkleTree.get(entity);
     Assertions.assertNull(authenticatedEntity);
@@ -100,14 +100,14 @@ public class MerkleTreeTest {
 
   @Test
   public void testNullInsertion() {
-    MerkleTree merkleTree = MerkleTreeFixture.createSkipList(5);
+    MerkleTree merkleTree = MerkleTreeFixture.createMerkleTree(5);
     AuthenticatedEntity authenticatedEntity = merkleTree.put(null);
     Assertions.assertNull(authenticatedEntity);
   }
 
   @Test
   public void testManipulatedRoot() {
-    MerkleTree merkleTree = MerkleTreeFixture.createSkipList(5);
+    MerkleTree merkleTree = MerkleTreeFixture.createMerkleTree(5);
     Entity entity = new EntityFixture();
     AuthenticatedEntity authenticatedEntity = merkleTree.put(entity);
     MembershipProof proof = authenticatedEntity.getMembershipProof();
@@ -119,7 +119,7 @@ public class MerkleTreeTest {
 
   @Test
   public void testManipulatedEntity() {
-    MerkleTree merkleTree = MerkleTreeFixture.createSkipList(5);
+    MerkleTree merkleTree = MerkleTreeFixture.createMerkleTree(5);
     Entity entity = new EntityFixture();
     AuthenticatedEntity authenticatedEntity = merkleTree.put(entity);
     authenticatedEntity.setEntity(new EntityFixture());
@@ -129,7 +129,7 @@ public class MerkleTreeTest {
 
   @Test
   public void testManipulatedProof() {
-    MerkleTree merkleTree = MerkleTreeFixture.createSkipList(5);
+    MerkleTree merkleTree = MerkleTreeFixture.createMerkleTree(5);
     Entity entity = new EntityFixture();
     AuthenticatedEntity authenticatedEntity = merkleTree.put(entity);
     MembershipProof proof = authenticatedEntity.getMembershipProof();
