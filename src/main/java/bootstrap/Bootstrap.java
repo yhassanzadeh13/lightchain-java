@@ -60,7 +60,8 @@ public class Bootstrap {
       writer.flush();
       writer.close();
     } catch (IOException e) {
-      e.printStackTrace();
+      System.err.println("could open/close the file: " + e);
+      System.exit(1);
     }
 
   }

@@ -149,7 +149,8 @@ public class LocalTestNet extends MetricsTestNet {
       try {
         TimeUnit.MILLISECONDS.sleep(100);
       } catch (InterruptedException e) {
-        e.printStackTrace();
+        System.err.println("thread operation interrupted: " + e);
+        System.exit(1);
       }
       t.start();
     }

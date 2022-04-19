@@ -1,9 +1,6 @@
 package bootstrap;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -48,12 +45,12 @@ public class Node {
     try {
       network.start();
     } catch (IOException e) {
-      e.printStackTrace();
+      System.err.println("could start the network: " + e);
+      System.exit(1);
     }
 
     System.out.println("Hello world! I'm Node at Port: " + network.getPort());
     System.out.println("My ID is: " + myId);
-
     System.out.println("ID Table Database AFAIK: ");
     for (Identifier id : idTable.keySet()) {
       System.out.println(id + " " + idTable.get(id));
@@ -82,7 +79,8 @@ public class Node {
           try {
             conduit.unicast(e, id);
           } catch (LightChainNetworkingException ex) {
-            ex.printStackTrace();
+            System.err.println("could not send the entity: " + ex);
+            System.exit(1);
           }
 
         }
@@ -113,8 +111,12 @@ public class Node {
 
       }
       reader.close();
-    } catch (Exception e) {
-      e.printStackTrace();
+    } catch (FileNotFoundException e) {
+      System.err.println("could find the file: " + e);
+      System.exit(1);
+    } catch (IOException e) {
+      System.err.println("could open/close the file: " + e);
+      System.exit(1);
     }
 
     return map;
