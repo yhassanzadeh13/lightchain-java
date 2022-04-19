@@ -17,13 +17,19 @@ public class ProposerEngine implements NewBlockSubscriber, Engine {
    * Creating new block: proposer engine has a shared storage component with ingest engine, i.e., transactions and
    * blocks. If the minimum number of validated transactions in the pending transactions' storage are available, then
    * proposer engine fetches them, creates a block out of them, runs validator assignment with validation tag, and
-   * sends it to the validators.
+   * sends it to the validators. If it does not have minimum number of validated transactions, it waits till it
+   * the minimum number is satisfied.
+   *
    *
    * @param blockHeight block height.
    * @param blockId     identifier of block.
+   * @throws IllegalStateException when it receives a new validated block while it is pending for its previously
+   *                               proposed block to get validated.
+   * @throws IllegalArgumentException when its parameters do not match a validated block from database.
    */
   @Override
-  public void onNewValidatedBlock(int blockHeight, Identifier blockId) {
+  public void onNewValidatedBlock(int blockHeight, Identifier blockId) throws IllegalStateException,
+      IllegalArgumentException {
 
   }
 
