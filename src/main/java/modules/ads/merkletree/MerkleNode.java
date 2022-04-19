@@ -60,6 +60,7 @@ public class MerkleNode {
    * @param left left child of the node
    * @param right right child of the node
    */
+  @SuppressWarnings("EI_EXPOSE_REP2")
   public MerkleNode(Sha3256Hash hash, MerkleNode left, MerkleNode right) {
     this.left = left;
     this.right = right;
@@ -68,10 +69,12 @@ public class MerkleNode {
     this.hash = hash;
   }
 
+  @SuppressWarnings("EI_EXPOSE_REP")
   public MerkleNode getLeft() {
     return left;
   }
 
+  @SuppressWarnings("EI_EXPOSE_REP")
   public MerkleNode getRight() {
     return right;
   }
@@ -80,10 +83,12 @@ public class MerkleNode {
     this.right = right;
   }
 
+  @SuppressWarnings("EI_EXPOSE_REP")
   public MerkleNode getParent() {
     return parent;
   }
 
+  @SuppressWarnings("EI_EXPOSE_REP2")
   public void setParent(MerkleNode parent) {
     this.parent = parent;
   }
@@ -100,10 +105,12 @@ public class MerkleNode {
     return isLeft;
   }
 
+  @SuppressWarnings("EI_EXPOSE_REP2")
   public void setLeft(MerkleNode left) {
     this.left = left;
   }
 
+  @SuppressWarnings("EI_EXPOSE_REP2")
   public void setLeft(boolean isLeft) {
     this.isLeft = isLeft;
   }
