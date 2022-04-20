@@ -36,11 +36,11 @@ public class MerkleTree implements AuthenticatedDataStructure {
   }
 
   @Override
-  public AuthenticatedEntity put(Entity e) {
+  public AuthenticatedEntity put(Entity e) throws IllegalArgumentException {
     lock.writeLock().lock();
     if (e == null) {
       lock.writeLock().unlock();
-      return null;
+      throw new IllegalArgumentException("Entity cannot be null");
     }
     Sha3256Hash hash = hasher.computeHash(e.id());
     Integer idx = leafNodesHashTable.get(hash);
@@ -60,10 +60,10 @@ public class MerkleTree implements AuthenticatedDataStructure {
   }
 
   @Override
-  public AuthenticatedEntity get(Entity e) {
+  public AuthenticatedEntity get(Entity e) throws IllegalArgumentException {
     Proof proof;
     if (e == null) {
-      return null;
+      throw new IllegalArgumentException("Entity cannot be null");
     }
     lock.readLock().lock();
     try {

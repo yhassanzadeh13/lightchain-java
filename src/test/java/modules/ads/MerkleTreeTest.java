@@ -115,13 +115,14 @@ public class MerkleTreeTest {
   }
 
   /**
-   * Tests if inserting null gives null.
+   * Tests if inserting null throws IllegalArgumentException.
    */
   @Test
   public void testNullInsertion() {
     MerkleTree merkleTree = MerkleTreeFixture.createMerkleTree(5);
-    AuthenticatedEntity authenticatedEntity = merkleTree.put(null);
-    Assertions.assertNull(authenticatedEntity);
+    Assertions.assertThrows(IllegalArgumentException.class, () -> {
+      AuthenticatedEntity authenticatedEntity = merkleTree.put(null);
+    });
   }
 
   /**
