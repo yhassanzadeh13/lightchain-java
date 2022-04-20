@@ -106,7 +106,7 @@ public class MerkleTree implements AuthenticatedDataStructure {
       while (idx < len) {
         MerkleNode left = childNodes.get(idx);
         left.setLeft(true);
-        MerkleNode right = null;
+        MerkleNode right;
         if (idx + 1 < len) {
           right = childNodes.get(idx + 1);
         } else {

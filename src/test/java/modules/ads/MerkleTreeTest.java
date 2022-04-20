@@ -7,6 +7,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import model.Entity;
 import model.crypto.Sha3256Hash;
+import model.lightchain.Identifier;
 import modules.ads.merkletree.MerkleTree;
 import modules.ads.merkletree.Verifier;
 import org.junit.jupiter.api.Assertions;
@@ -69,34 +70,62 @@ public class MerkleTreeTest {
    * Concurrently puts and gets entities and checks if their proofs are correct (thread safety check).
    */
   @Test
-  public void testConcurrentPut() {
+  public void testConcurrentPutGet() {
     int concurrencyDegree = 100;
+    ArrayList<Entity> entities = new ArrayList<>();
+    ArrayList<Identifier> ids = new ArrayList<>();
     AtomicInteger threadError = new AtomicInteger();
-    CountDownLatch countDownLatch = new CountDownLatch(concurrencyDegree);
-    Thread[] merkleTreeThreads = new Thread[concurrencyDegree];
+    CountDownLatch countDownLatchPut = new CountDownLatch(concurrencyDegree);
+    CountDownLatch countDownLatchGet = new CountDownLatch(concurrencyDegree);
+    Thread[] putThreads = new Thread[concurrencyDegree];
+    Thread[] getThreads = new Thread[concurrencyDegree];
     MerkleTree merkleTree = MerkleTreeFixture.createMerkleTree(5);
     for (int i = 0; i < concurrencyDegree; i++) {
-      merkleTreeThreads[i] = new Thread(() -> {
-        Entity entity = new EntityFixture();
+      Entity entity = new EntityFixture();
+      entities.add(entity);
+      ids.add(entity.id());
+    }
+    for (int i = 0; i < concurrencyDegree; i++) {
+      Entity entity = entities.get(i);
+      putThreads[i] = new Thread(() -> {
         try {
           merkleTree.put(entity);
-          AuthenticatedEntity authenticatedEntity = merkleTree.get(entity.id());
-          Verifier verifier = new Verifier();
-          if (!verifier.verify(authenticatedEntity)) {
-            threadError.getAndIncrement();
-          }
-          countDownLatch.countDown();
+          countDownLatchPut.countDown();
         } catch (NullPointerException e) {
           threadError.getAndIncrement();
         }
       });
     }
-    for (Thread t : merkleTreeThreads) {
+    for (Thread t : putThreads) {
       t.start();
     }
     try {
-      boolean doneOneTime = countDownLatch.await(60, TimeUnit.SECONDS);
-      Assertions.assertTrue(doneOneTime);
+      boolean doneOneTimePut = countDownLatchPut.await(60, TimeUnit.SECONDS);
+      Assertions.assertTrue(doneOneTimePut);
+    } catch (InterruptedException e) {
+      Assertions.fail();
+    }
+    for (int i = 0; i < concurrencyDegree; i++) {
+      Identifier id = ids.get(i);
+      getThreads[i] = new Thread(() -> {
+        try {
+          AuthenticatedEntity authenticatedEntity = merkleTree.get(id);
+          Verifier verifier = new Verifier();
+          if (!verifier.verify(authenticatedEntity)) {
+            threadError.getAndIncrement();
+          }
+          countDownLatchGet.countDown();
+        } catch (NullPointerException e) {
+          threadError.getAndIncrement();
+        }
+      });
+    }
+    for (Thread t : getThreads) {
+      t.start();
+    }
+    try {
+      boolean doneOneTimeGet = countDownLatchGet.await(60, TimeUnit.SECONDS);
+      Assertions.assertTrue(doneOneTimeGet);
     } catch (InterruptedException e) {
       Assertions.fail();
     }
@@ -121,7 +150,7 @@ public class MerkleTreeTest {
   public void testNullInsertion() {
     MerkleTree merkleTree = MerkleTreeFixture.createMerkleTree(5);
     Assertions.assertThrows(IllegalArgumentException.class, () -> {
-      AuthenticatedEntity authenticatedEntity = merkleTree.put(null);
+      merkleTree.put(null);
     });
   }
 
