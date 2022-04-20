@@ -75,18 +75,15 @@ public class MerkleTree implements AuthenticatedDataStructure {
     } finally {
       lock.readLock().unlock();
     }
-    if (proof == null) {
-      return null;
-    }
     Entity e = entityHashTable.get(id);
     return new AuthenticatedLightChainEntity(proof, e.type(), e);
   }
 
-  private Proof getProof(Identifier id) {
+  private Proof getProof(Identifier id) throws IllegalArgumentException {
     Sha3256Hash hash = new Sha3256Hash(id.getBytes());
     Integer idx = leafNodesHashTable.get(hash);
     if (idx == null) {
-      return null;
+      throw new IllegalArgumentException("Identifier not found");
     }
     ArrayList<Sha3256Hash> path = new ArrayList<>();
     MerkleNode currNode = leafNodes.get(idx);

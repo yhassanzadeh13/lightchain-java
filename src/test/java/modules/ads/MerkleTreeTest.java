@@ -133,14 +133,15 @@ public class MerkleTreeTest {
   }
 
   /**
-   * Tests if getting an entity that does not exist in the merkle tree gives null.
+   * Tests if getting an entity that does not exist in the merkle tree throws IllegalArgumentException.
    */
   @Test
   public void testGetNonExistingEntity() {
     MerkleTree merkleTree = MerkleTreeFixture.createMerkleTree(5);
     Entity entity = new EntityFixture();
-    AuthenticatedEntity authenticatedEntity = merkleTree.get(entity.id());
-    Assertions.assertNull(authenticatedEntity);
+    Assertions.assertThrows(IllegalArgumentException.class, () -> {
+      merkleTree.get(entity.id());
+    });
   }
 
   /**
