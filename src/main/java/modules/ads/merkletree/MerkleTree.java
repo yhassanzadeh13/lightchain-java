@@ -42,7 +42,7 @@ public class MerkleTree implements AuthenticatedDataStructure {
       lock.writeLock().unlock();
       throw new IllegalArgumentException("Entity cannot be null");
     }
-    Sha3256Hash hash = hasher.computeHash(e.id());
+    Sha3256Hash hash = new Sha3256Hash(e.id().getBytes());
     Integer idx = leafNodesHashTable.get(hash);
     if (idx == null) {
       leafNodes.add(new MerkleNode(e, false));
@@ -78,7 +78,8 @@ public class MerkleTree implements AuthenticatedDataStructure {
   }
 
   private Proof getProof(Identifier id) {
-    Integer idx = leafNodesHashTable.get(hasher.computeHash(id));
+    Sha3256Hash hash = new Sha3256Hash(id.getBytes());
+    Integer idx = leafNodesHashTable.get(hash);
     if (idx == null) {
       return null;
     }
