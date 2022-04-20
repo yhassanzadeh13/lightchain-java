@@ -15,10 +15,13 @@ import unittest.fixtures.EntityFixture;
 import unittest.fixtures.MerkleTreeFixture;
 
 /**
- * Encapsulates tests for an authenticated and concurrent implementation of SkipList ADS.
+ * Encapsulates tests for an authenticated and concurrent implementation of MerkleTree ADS.
  */
 public class MerkleTreeTest {
 
+  /**
+   * A basic test for one concurrent put and get operations.
+   */
   @Test
   public void testVerification() {
     MerkleTree merkleTree = MerkleTreeFixture.createMerkleTree(5);
@@ -29,6 +32,10 @@ public class MerkleTreeTest {
     Assertions.assertTrue(verifier.verify(authenticatedEntity));
   }
 
+  /**
+   * Tests both if putting and getting the same entity gives same proof
+   * and putting another entity gives different proofs.
+   */
   @Test
   public void testPutGetSameProof() {
     MerkleTree merkleTree = MerkleTreeFixture.createMerkleTree(5);
@@ -44,6 +51,9 @@ public class MerkleTreeTest {
     Assertions.assertNotEquals(proofPut, proofPut2);
   }
 
+  /**
+   * Tests if putting an existing entity does not change the proof.
+   */
   @Test
   public void testPutExistingEntity() {
     MerkleTree merkleTree = MerkleTreeFixture.createMerkleTree(5);
@@ -55,6 +65,9 @@ public class MerkleTreeTest {
     Assertions.assertEquals(proofPut, proofPutAgain);
   }
 
+  /**
+   * Concurrently puts and gets entities and checks if their proofs are correct (thread safety check).
+   */
   @Test
   public void testConcurrentPut() {
     int concurrencyDegree = 100;
@@ -90,6 +103,9 @@ public class MerkleTreeTest {
     Assertions.assertEquals(0, threadError.get());
   }
 
+  /**
+   * Tests if getting an entity that does not exist in the merkle tree gives null.
+   */
   @Test
   public void testGetNonExistingEntity() {
     MerkleTree merkleTree = MerkleTreeFixture.createMerkleTree(5);
@@ -98,6 +114,9 @@ public class MerkleTreeTest {
     Assertions.assertNull(authenticatedEntity);
   }
 
+  /**
+   * Tests if inserting null gives null.
+   */
   @Test
   public void testNullInsertion() {
     MerkleTree merkleTree = MerkleTreeFixture.createMerkleTree(5);
@@ -105,6 +124,9 @@ public class MerkleTreeTest {
     Assertions.assertNull(authenticatedEntity);
   }
 
+  /**
+   * Tests if the proof verifies when root is changed.
+   */
   @Test
   public void testManipulatedRoot() {
     MerkleTree merkleTree = MerkleTreeFixture.createMerkleTree(5);
@@ -117,6 +139,9 @@ public class MerkleTreeTest {
     Assertions.assertFalse(verifier.verify(authenticatedEntity));
   }
 
+  /**
+   * Tests if the proof verifies when entity is changed.
+   */
   @Test
   public void testManipulatedEntity() {
     MerkleTree merkleTree = MerkleTreeFixture.createMerkleTree(5);
@@ -127,6 +152,9 @@ public class MerkleTreeTest {
     Assertions.assertFalse(verifier.verify(authenticatedEntity));
   }
 
+  /**
+   * Tests if the proof verifies when proof is changed.
+   */
   @Test
   public void testManipulatedProof() {
     MerkleTree merkleTree = MerkleTreeFixture.createMerkleTree(5);
