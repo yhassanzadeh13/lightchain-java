@@ -27,7 +27,7 @@ public class MerkleTreeTest {
     MerkleTree merkleTree = MerkleTreeFixture.createMerkleTree(5);
     Entity entity = new EntityFixture();
     merkleTree.put(entity);
-    AuthenticatedEntity authenticatedEntity = merkleTree.get(entity);
+    AuthenticatedEntity authenticatedEntity = merkleTree.get(entity.id());
     Verifier verifier = new Verifier();
     Assertions.assertTrue(verifier.verify(authenticatedEntity));
   }
@@ -42,7 +42,7 @@ public class MerkleTreeTest {
     Entity entity1 = new EntityFixture();
     AuthenticatedEntity authenticatedEntityPut = merkleTree.put(entity1);
     MembershipProof proofPut = authenticatedEntityPut.getMembershipProof();
-    AuthenticatedEntity authenticatedEntityGet = merkleTree.get(entity1);
+    AuthenticatedEntity authenticatedEntityGet = merkleTree.get(entity1.id());
     MembershipProof proofGet = authenticatedEntityGet.getMembershipProof();
     Entity entity2 = new EntityFixture();
     AuthenticatedEntity authenticatedEntityPut2 = merkleTree.put(entity2);
@@ -80,7 +80,7 @@ public class MerkleTreeTest {
         Entity entity = new EntityFixture();
         try {
           merkleTree.put(entity);
-          AuthenticatedEntity authenticatedEntity = merkleTree.get(entity);
+          AuthenticatedEntity authenticatedEntity = merkleTree.get(entity.id());
           Verifier verifier = new Verifier();
           if (!verifier.verify(authenticatedEntity)) {
             threadError.getAndIncrement();
@@ -110,7 +110,7 @@ public class MerkleTreeTest {
   public void testGetNonExistingEntity() {
     MerkleTree merkleTree = MerkleTreeFixture.createMerkleTree(5);
     Entity entity = new EntityFixture();
-    AuthenticatedEntity authenticatedEntity = merkleTree.get(entity);
+    AuthenticatedEntity authenticatedEntity = merkleTree.get(entity.id());
     Assertions.assertNull(authenticatedEntity);
   }
 

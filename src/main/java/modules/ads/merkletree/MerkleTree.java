@@ -21,6 +21,7 @@ public class MerkleTree implements AuthenticatedDataStructure {
   private final ReentrantReadWriteLock lock;
   private final ArrayList<MerkleNode> leafNodes;
   private final Map<Sha3256Hash, Integer> leafNodesHashTable;
+  private final Map<Identifier, Entity> entityHashTable;
   private int size;
   private MerkleNode root;
 
@@ -33,6 +34,7 @@ public class MerkleTree implements AuthenticatedDataStructure {
     this.leafNodes = new ArrayList<>();
     this.lock = new ReentrantReadWriteLock();
     this.leafNodesHashTable = new HashMap<>();
+    this.entityHashTable = new HashMap<>();
   }
 
   @Override
@@ -47,6 +49,7 @@ public class MerkleTree implements AuthenticatedDataStructure {
       if (idx == null) {
         leafNodes.add(new MerkleNode(e, false));
         leafNodesHashTable.put(hash, size);
+        entityHashTable.put(e.id(), e);
         size++;
         buildMerkleTree();
         Proof proof = getProof(e.id());
@@ -61,20 +64,21 @@ public class MerkleTree implements AuthenticatedDataStructure {
   }
 
   @Override
-  public AuthenticatedEntity get(Entity e) throws IllegalArgumentException {
+  public AuthenticatedEntity get(Identifier id) throws IllegalArgumentException {
     Proof proof;
-    if (e == null) {
-      throw new IllegalArgumentException("Entity cannot be null");
+    if (id == null) {
+      throw new IllegalArgumentException("Identifier cannot be null");
     }
     try {
       lock.readLock().lock();
-      proof = getProof(e.id());
+      proof = getProof(id);
     } finally {
       lock.readLock().unlock();
     }
     if (proof == null) {
       return null;
     }
+    Entity e = entityHashTable.get(id);
     return new AuthenticatedLightChainEntity(proof, e.type(), e);
   }
 

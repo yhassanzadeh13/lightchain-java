@@ -1,6 +1,7 @@
 package modules.ads;
 
 import model.Entity;
+import model.lightchain.Identifier;
 
 /**
  * Models AuthenticatedDataStructure (ADS) and a key-value store of entities supported with membership proofs.
@@ -8,5 +9,5 @@ import model.Entity;
 public interface AuthenticatedDataStructure {
   AuthenticatedEntity put(Entity e);
 
-  AuthenticatedEntity get(Entity e);
+  AuthenticatedEntity get(Identifier id);
 }
