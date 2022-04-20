@@ -37,25 +37,26 @@ public class MerkleTree implements AuthenticatedDataStructure {
 
   @Override
   public AuthenticatedEntity put(Entity e) throws IllegalArgumentException {
-    lock.writeLock().lock();
-    if (e == null) {
+    try {
+      lock.writeLock().lock();
+      if (e == null) {
+        throw new IllegalArgumentException("Entity cannot be null");
+      }
+      Sha3256Hash hash = new Sha3256Hash(e.id().getBytes());
+      Integer idx = leafNodesHashTable.get(hash);
+      if (idx == null) {
+        leafNodes.add(new MerkleNode(e, false));
+        leafNodesHashTable.put(hash, size);
+        size++;
+        buildMerkleTree();
+        Proof proof = getProof(e.id());
+        return new AuthenticatedLightChainEntity(proof, e.type(), e);
+      } else {
+        Proof proof = getProof(e.id());
+        return new AuthenticatedLightChainEntity(proof, e.type(), e);
+      }
+    } finally {
       lock.writeLock().unlock();
-      throw new IllegalArgumentException("Entity cannot be null");
-    }
-    Sha3256Hash hash = new Sha3256Hash(e.id().getBytes());
-    Integer idx = leafNodesHashTable.get(hash);
-    if (idx == null) {
-      leafNodes.add(new MerkleNode(e, false));
-      leafNodesHashTable.put(hash, size);
-      size++;
-      buildMerkleTree();
-      Proof proof = getProof(e.id());
-      lock.writeLock().unlock();
-      return new AuthenticatedLightChainEntity(proof, e.type(), e);
-    } else {
-      Proof proof = getProof(e.id());
-      lock.writeLock().unlock();
-      return new AuthenticatedLightChainEntity(proof, e.type(), e);
     }
   }
 
@@ -65,8 +66,8 @@ public class MerkleTree implements AuthenticatedDataStructure {
     if (e == null) {
       throw new IllegalArgumentException("Entity cannot be null");
     }
-    lock.readLock().lock();
     try {
+      lock.readLock().lock();
       proof = getProof(e.id());
     } finally {
       lock.readLock().unlock();
