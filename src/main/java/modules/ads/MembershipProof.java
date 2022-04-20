@@ -31,4 +31,6 @@ public interface MembershipProof {
    * Sets the path of the proof of membership.
    */
   void setPath(ArrayList<Sha3256Hash> path);
+
+  ArrayList<Boolean> getIsLeftNode();
 }

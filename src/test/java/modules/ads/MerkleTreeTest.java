@@ -193,7 +193,7 @@ public class MerkleTreeTest {
     AuthenticatedEntity authenticatedEntity = merkleTree.put(entity);
     MembershipProof proof = authenticatedEntity.getMembershipProof();
     ArrayList<Sha3256Hash> proofPath = proof.getPath();
-    proofPath.add(new Sha3256Hash(new byte[32]));
+    proofPath.set(0, new Sha3256Hash(new byte[32]));
     proof.setPath(proofPath);
     authenticatedEntity.setMembershipProof(proof);
     Verifier verifier = new Verifier();

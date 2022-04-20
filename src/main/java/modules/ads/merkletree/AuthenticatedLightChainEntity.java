@@ -19,7 +19,7 @@ public class AuthenticatedLightChainEntity extends modules.ads.AuthenticatedEnti
    * @param e     the entity
    */
   public AuthenticatedLightChainEntity(Proof proof, String type, Entity e) {
-    this.membershipProof = new Proof(proof.getPath(), proof.getRoot());
+    this.membershipProof = new Proof(proof.getPath(), proof.getRoot(), proof.getIsLeftNode());
     this.type = type;
     this.entity = e;
   }
@@ -44,10 +44,11 @@ public class AuthenticatedLightChainEntity extends modules.ads.AuthenticatedEnti
 
   @Override
   public MembershipProof getMembershipProof() {
-    return new Proof(membershipProof.getPath(), membershipProof.getRoot());
+    return new Proof(membershipProof.getPath(), membershipProof.getRoot(), membershipProof.getIsLeftNode());
   }
 
   public void setMembershipProof(MembershipProof membershipProof) {
-    this.membershipProof = new Proof(membershipProof.getPath(), membershipProof.getRoot());;
+    this.membershipProof = new Proof(membershipProof.getPath(), membershipProof.getRoot(),
+            membershipProof.getIsLeftNode());
   }
 }

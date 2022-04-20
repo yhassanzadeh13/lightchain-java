@@ -3,7 +3,6 @@ package crypto;
 import java.io.ByteArrayOutputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.Arrays;
 
 import model.codec.EncodedEntity;
 import model.crypto.Sha3256Hash;
@@ -68,11 +67,7 @@ public class Sha3256Hasher implements Hasher {
   public Sha3256Hash computeHash(byte[] b1, byte[] b2) {
     try {
       MessageDigest md = MessageDigest.getInstance(HASH_ALG_SHA_3_256);
-      int compare = Arrays.compare(b1, b2);
-      if (compare > 0) {
-        return new Sha3256Hash(md.digest(concat(b1, b2)));
-      }
-      return new Sha3256Hash(md.digest(concat(b2, b1)));
+      return new Sha3256Hash(md.digest(concat(b1, b2)));
     } catch (NoSuchAlgorithmException ex) {
       throw new IllegalStateException(HASH_ALG_SHA_3_256 + "algorithm not found.", ex);
     }

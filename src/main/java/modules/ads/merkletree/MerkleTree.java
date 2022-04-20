@@ -80,6 +80,7 @@ public class MerkleTree implements AuthenticatedDataStructure {
   }
 
   private Proof getProof(Identifier id) throws IllegalArgumentException {
+    ArrayList<Boolean> isLeftNode = new ArrayList<>();
     Sha3256Hash hash = new Sha3256Hash(id.getBytes());
     Integer idx = leafNodesHashTable.get(hash);
     if (idx == null) {
@@ -89,9 +90,10 @@ public class MerkleTree implements AuthenticatedDataStructure {
     MerkleNode currNode = leafNodes.get(idx);
     while (currNode != root) {
       path.add(currNode.getSibling().getHash());
+      isLeftNode.add(currNode.isLeft());
       currNode = currNode.getParent();
     }
-    return new Proof(path, root.getHash());
+    return new Proof(path, root.getHash(), isLeftNode);
   }
 
   private void buildMerkleTree() {

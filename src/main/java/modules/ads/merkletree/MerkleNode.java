@@ -61,7 +61,7 @@ public class MerkleNode {
    * @param left  left child of the node
    * @param right right child of the node
    */
-  @SuppressFBWarnings(value = "EI_EXPOSE_REP2", justification = "left and right is intentionally mutable externally")
+  @SuppressFBWarnings(value = "EI_EXPOSE_REP2", justification = "left and right are intentionally mutable externally")
   public MerkleNode(Sha3256Hash hash, MerkleNode left, MerkleNode right) {
     this.left = left;
     this.right = right;
