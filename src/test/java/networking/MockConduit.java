@@ -1,5 +1,9 @@
 package networking;
 
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Set;
+
 import model.Entity;
 import model.exceptions.LightChainDistributedStorageException;
 import model.exceptions.LightChainNetworkingException;
@@ -14,10 +18,18 @@ public class MockConduit implements Conduit {
 
   private final String channel;
   private final NetworkAdapter networkAdapter;
+  private final Set<Identifier> sentEntities;
 
+  /**
+   * Constructor.
+   *
+   * @param channel channel on which it sends the entities.
+   * @param adapter instance of the networking layer.
+   */
   public MockConduit(String channel, NetworkAdapter adapter) {
     this.channel = channel;
     this.networkAdapter = adapter;
+    this.sentEntities = new HashSet<>();
   }
 
   /**
@@ -29,6 +41,7 @@ public class MockConduit implements Conduit {
    */
   @Override
   public void unicast(Entity e, Identifier target) throws LightChainNetworkingException {
+    this.sentEntities.add(e.id());
     this.networkAdapter.unicast(e, target, channel);
   }
 
@@ -54,6 +67,15 @@ public class MockConduit implements Conduit {
   @Override
   public Entity get(Identifier identifier) throws LightChainDistributedStorageException {
     return null;
+  }
+
+  @Override
+  public ArrayList<Entity> allEntities() throws LightChainDistributedStorageException {
+    return null;
+  }
+
+  public boolean hasSent(Identifier entityId) {
+    return this.sentEntities.contains(entityId);
   }
 
 }
