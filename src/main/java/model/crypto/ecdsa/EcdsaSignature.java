@@ -1,10 +1,11 @@
 package model.crypto.ecdsa;
 
+import java.io.Serializable;
+
 import model.codec.EntityType;
 import model.crypto.Signature;
 import model.lightchain.Identifier;
 
-import java.io.Serializable;
 
 /**
  * ECDSA signature implementation with signer ID.

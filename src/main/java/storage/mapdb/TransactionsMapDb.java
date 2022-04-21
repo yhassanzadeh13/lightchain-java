@@ -110,8 +110,8 @@ public class TransactionsMapDb implements Transactions {
    * @return all transactions stored tranin database.
    */
   @Override
-  public ArrayList <Transaction> all() {
-    ArrayList <Transaction> allTransactions = new ArrayList <>();
+  public ArrayList<Transaction> all() {
+    ArrayList<Transaction> allTransactions = new ArrayList<>();
     for (Object transaction : transactionsMap.values()) {
       allTransactions.add((Transaction) transaction);
     }

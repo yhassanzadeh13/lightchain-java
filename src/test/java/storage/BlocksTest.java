@@ -1,13 +1,5 @@
 package storage;
 
-import model.lightchain.Block;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.testcontainers.shaded.org.apache.commons.io.FileUtils;
-import storage.mapdb.BlocksMapDb;
-import unittest.fixtures.BlockFixture;
-
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -17,6 +9,15 @@ import java.util.ArrayList;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+
+import model.lightchain.Block;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.testcontainers.shaded.org.apache.commons.io.FileUtils;
+import storage.mapdb.BlocksMapDb;
+import unittest.fixtures.BlockFixture;
+
 
 /**
  * Encapsulates tests for block database.
@@ -66,7 +67,8 @@ public class BlocksTest {
   void setUp() throws IOException {
     Path currentRelativePath = Paths.get("");
     tempdir = Files.createTempDirectory(currentRelativePath, TEMP_DIR);
-    db = new BlocksMapDb(tempdir.toAbsolutePath() + "/" + TEMP_FILE_ID, tempdir.toAbsolutePath() + "/" + TEMP_FILE_HEIGHT);
+    db = new BlocksMapDb(tempdir.toAbsolutePath() + "/" + TEMP_FILE_ID,
+        tempdir.toAbsolutePath() + "/" + TEMP_FILE_HEIGHT);
     allBlocks = new ArrayList<>();
     for (int i = 0; i < 10; i++) {
       allBlocks.add(BlockFixture.newBlock());
@@ -265,7 +267,8 @@ public class BlocksTest {
         Assertions.assertFalse(db.has(allBlocks.get(i).id()) || db.all().contains(allBlocks.get(i)));
       } else {
         Assertions.assertTrue(db.has(allBlocks.get(i).id()) && db.all().contains(allBlocks.get(i))
-            && db.all().contains(db.atHeight(allBlocks.get(i).getHeight())) && db.all().contains(db.byId(allBlocks.get(i).id())));
+            && db.all().contains(db.atHeight(allBlocks.get(i).getHeight()))
+            && db.all().contains(db.byId(allBlocks.get(i).id())));
       }
     }
     db.closeDb();
@@ -657,7 +660,7 @@ public class BlocksTest {
     }
     /*
     Retrieving all concurrently.
-     */
+    */
     CountDownLatch doneAll = new CountDownLatch(concurrencyDegree);
     Thread[] allThreads = new Thread[concurrencyDegree];
     ArrayList<Block> all = db.all();
@@ -685,7 +688,7 @@ public class BlocksTest {
      */
     CountDownLatch addDuplicateDone = new CountDownLatch(concurrencyDegree);
     Thread[] addDuplicateThreads = new Thread[concurrencyDegree];
-     /*
+    /*
     Adding all blocks concurrently.
      */
     for (int i = 0; i < allBlocks.size(); i++) {
