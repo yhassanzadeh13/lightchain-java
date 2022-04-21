@@ -1,4 +1,4 @@
-package networking;
+package networking.stub;
 
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -11,14 +11,12 @@ import network.Network;
  */
 public class Hub {
   private final ConcurrentHashMap<Identifier, Network> networks;
-  private final ConcurrentHashMap<Identifier, Entity> entities;
 
   /**
    * Create a hub.
    */
   public Hub() {
     this.networks = new ConcurrentHashMap<>();
-    this.entities = new ConcurrentHashMap<>();
   }
 
   /**
@@ -45,7 +43,6 @@ public class Hub {
     } catch (IllegalArgumentException ex) {
       throw new IllegalStateException("target network failed on receiving unicast: " + ex.getMessage());
     }
-
   }
 
   /**
