@@ -5,8 +5,6 @@ import java.io.Serializable;
 import model.codec.EntityType;
 import model.crypto.Signature;
 
-
-
 /**
  * Represents a LightChain transaction in form of a token transfer between a sender and receiver.
  */
@@ -76,7 +74,7 @@ public class Transaction extends model.Entity implements Serializable {
     if (this == o) {
       return true;
     }
-    if (!(o instanceof Transaction))  {
+    if (!(o instanceof Transaction)) {
       return false;
     }
     Transaction that = (Transaction) o;

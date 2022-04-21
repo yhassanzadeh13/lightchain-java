@@ -1,6 +1,7 @@
 package storage.mapdb;
 
 import java.util.ArrayList;
+import java.util.Objects;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import model.lightchain.Block;
@@ -12,25 +13,29 @@ import storage.Blocks;
  * Implementation of Transactions interface.
  */
 public class BlocksMapDb implements Blocks {
-  private final DB dbID;
+  private final DB dbId;
   private final DB dbHeight;
   private final ReentrantReadWriteLock lock;
   private static final String MAP_NAME_ID = "blocks_map_id";
   private static final String MAP_NAME_HEIGHT = "blocks_map_height";
   private final HTreeMap blocksIdMap;
-  private final HTreeMap <Integer,ArrayList<Identifier>>blocksHeightMap;
+  private final HTreeMap<Integer, ArrayList<Identifier>> blocksHeightMap;
 
-
-  public BlocksMapDb(String filePathId,String filePathHeight) {
-    this.dbID = DBMaker.fileDB(filePathId).make();
+  /**
+   * Creates blocks mapdb.
+   *
+   * @param filePathId     of id,block mapdb.
+   * @param filePathHeight of height,id mapdb.
+   */
+  public BlocksMapDb(String filePathId, String filePathHeight) {
+    this.dbId = DBMaker.fileDB(filePathId).make();
     this.lock = new ReentrantReadWriteLock();
-    blocksIdMap = this.dbID.hashMap(MAP_NAME_ID)
+    blocksIdMap = this.dbId.hashMap(MAP_NAME_ID)
         .keySerializer(Serializer.BYTE_ARRAY)
         .createOrOpen();
     this.dbHeight = DBMaker.fileDB(filePathHeight).make();
     blocksHeightMap = (HTreeMap<Integer, ArrayList<Identifier>>) this.dbHeight.hashMap(MAP_NAME_HEIGHT)
         .createOrOpen();
-
   }
 
   /**
@@ -65,23 +70,22 @@ public class BlocksMapDb implements Blocks {
     try {
       lock.writeLock().lock();
       addBooleanId = blocksIdMap.putIfAbsentBoolean(block.id().getBytes(), block);
-      if (addBooleanId){
-        blocksHeightMap.compute(integer,(key,value)->{
+      if (addBooleanId) {
+        blocksHeightMap.compute(integer, (key, value) -> {
           final ArrayList<Identifier> newBlockArray;
-          if(value == null){
+          if (value == null) {
             newBlockArray = new ArrayList<>();
           } else {
             newBlockArray = new ArrayList<>(value);
           }
           newBlockArray.add(block.id());
-          return  newBlockArray;
+          return newBlockArray;
         });
       }
     } finally {
       lock.writeLock().unlock();
     }
     return addBooleanId;
-
   }
 
   /**
@@ -98,8 +102,8 @@ public class BlocksMapDb implements Blocks {
       lock.writeLock().lock();
       Block block = byId(blockId);
       removeBoolean = blocksIdMap.remove(blockId.getBytes(), block);
-      if(removeBoolean){
-       blocksHeightMap.get(block.getHeight()).remove(blockId);
+      if (removeBoolean) {
+        Objects.requireNonNull(blocksHeightMap.get(block.getHeight())).remove(blockId);
       }
     } finally {
       lock.writeLock().unlock();
@@ -110,6 +114,7 @@ public class BlocksMapDb implements Blocks {
   /**
    * Returns the block with given identifier.
    * t
+   *
    * @param blockId identifier of the block.
    * @return the block itself if exists and null otherwise.
    */
@@ -131,7 +136,7 @@ public class BlocksMapDb implements Blocks {
   @Override
   public Block atHeight(int height) {
     lock.readLock().lock();
-    Identifier identifier =  blocksHeightMap.get(height).get(0);
+    Identifier identifier = Objects.requireNonNull(blocksHeightMap.get(height)).get(0);
     Block block = byId(identifier);
     lock.readLock().unlock();
     return block;
@@ -150,9 +155,12 @@ public class BlocksMapDb implements Blocks {
     }
     return allBlocks;
   }
+
+  /**
+   * Close the db.
+   */
   public void closeDb() {
-    dbID.close();
+    dbId.close();
     dbHeight.close();
   }
-
 }
