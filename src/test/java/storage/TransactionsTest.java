@@ -26,7 +26,7 @@ public class TransactionsTest {
   private static final String TEMP_DIR = "tempdir";
   private static final String TEMP_FILE = "tempfile.db";
   private Path tempdir;
-  private ArrayList<Transaction> allTransactions;
+  private ArrayList <Transaction> allTransactions;
   private TransactionsMapDb db;
   // TODO: implement a unit test for each of the following scenarios:
   // IMPORTANT NOTE: each test must have a separate instance of database, and the database MUST only created on a
@@ -64,7 +64,7 @@ public class TransactionsTest {
     Path currentRelativePath = Paths.get("");
     tempdir = Files.createTempDirectory(currentRelativePath, TEMP_DIR);
     db = new TransactionsMapDb(tempdir.toAbsolutePath() + "/" + TEMP_FILE);
-    allTransactions = new ArrayList<>();
+    allTransactions = new ArrayList <>();
     for (int i = 0; i < 10; i++) {
       allTransactions.add(TransactionFixture.newTransaction(10));
     }
@@ -83,7 +83,7 @@ public class TransactionsTest {
     for (Transaction transaction : allTransactions) {
       Assertions.assertTrue(db.has(transaction.id()));
     }
-    ArrayList<Transaction> all = db.all();
+    ArrayList <Transaction> all = db.all();
     Assertions.assertEquals(all.size(), 10);
     for (Transaction transaction : all) {
       Assertions.assertTrue(allTransactions.contains(transaction));
@@ -177,7 +177,7 @@ public class TransactionsTest {
      */
     CountDownLatch doneAll = new CountDownLatch(concurrencyDegree);
     Thread[] allThreads = new Thread[concurrencyDegree];
-    ArrayList<Transaction> all = db.all();
+    ArrayList <Transaction> all = db.all();
     for (int i = 0; i < all.size(); i++) {
       int finalI = i;
       allThreads[i] = new Thread(() -> {
@@ -351,7 +351,7 @@ public class TransactionsTest {
     for (Transaction transaction : allTransactions) {
       Assertions.assertTrue(db.has(transaction.id()));
     }
-    ArrayList<Transaction> all = db.all();
+    ArrayList <Transaction> all = db.all();
     Assertions.assertEquals(all.size(), 10);
     for (Transaction transaction : all) {
       Assertions.assertTrue(allTransactions.contains(transaction));
@@ -461,7 +461,7 @@ public class TransactionsTest {
      */
     CountDownLatch doneAll = new CountDownLatch(concurrencyDegree);
     Thread[] allThreads = new Thread[concurrencyDegree];
-    ArrayList<Transaction> all = db.all();
+    ArrayList <Transaction> all = db.all();
     for (int i = 0; i < all.size(); i++) {
       int finalI = i;
       allThreads[i] = new Thread(() -> {
