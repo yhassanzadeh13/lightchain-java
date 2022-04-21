@@ -103,7 +103,10 @@ public class BlocksMapDb implements Blocks {
       Block block = byId(blockId);
       removeBoolean = blocksIdMap.remove(blockId.getBytes(), block);
       if (removeBoolean) {
-        Objects.requireNonNull(blocksHeightMap.get(block.getHeight())).remove(blockId);
+        ArrayList <Identifier> identifierArrayList = blocksHeightMap.get(block.getHeight());
+        if (identifierArrayList != null) {
+          identifierArrayList.remove(blockId);
+        }
       }
     } finally {
       lock.writeLock().unlock();
@@ -122,7 +125,6 @@ public class BlocksMapDb implements Blocks {
   public Block byId(Identifier blockId) {
     lock.readLock().lock();
     Block block = (Block) blocksIdMap.get(blockId.getBytes());
-
     lock.readLock().unlock();
     return block;
   }
@@ -135,10 +137,17 @@ public class BlocksMapDb implements Blocks {
    */
   @Override
   public Block atHeight(int height) {
-    lock.readLock().lock();
-    Identifier identifier = Objects.requireNonNull(blocksHeightMap.get(height)).get(0);
-    Block block = byId(identifier);
-    lock.readLock().unlock();
+    Block block = null;
+    try {
+      lock.readLock().lock();
+      ArrayList <Identifier> identifierArrayList = blocksHeightMap.get(height);
+      if (identifierArrayList != null) {
+        Identifier identifier = identifierArrayList.get(0);
+        block = byId(identifier);
+      }
+    } finally {
+      lock.readLock().unlock();
+    }
     return block;
   }
 
