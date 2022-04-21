@@ -102,7 +102,7 @@ public class TransactionsTest {
     AtomicInteger threadError = new AtomicInteger();
     CountDownLatch addDone = new CountDownLatch(concurrencyDegree);
     Thread[] addThreads = new Thread[concurrencyDegree];
-     /*
+    /*
     Adding all transactions concurrently.
      */
     for (int i = 0; i < allTransactions.size(); i++) {
@@ -123,7 +123,7 @@ public class TransactionsTest {
     } catch (InterruptedException e) {
       Assertions.fail();
     }
-     /*
+    /*
     Checking correctness of insertion by Has.
      */
     CountDownLatch hasDone = new CountDownLatch(concurrencyDegree);
@@ -235,7 +235,7 @@ public class TransactionsTest {
     AtomicInteger threadError = new AtomicInteger();
     CountDownLatch addDone = new CountDownLatch(concurrencyDegree);
     Thread[] addThreads = new Thread[concurrencyDegree];
-     /*
+    /*
     Adding all transactions concurrently.
      */
     for (int i = 0; i < allTransactions.size(); i++) {
@@ -256,7 +256,7 @@ public class TransactionsTest {
     } catch (InterruptedException e) {
       Assertions.fail();
     }
-   /*
+    /*
     Removing first 5 concurrently
      */
     int removeTill = concurrencyDegree / 2;
@@ -362,8 +362,8 @@ public class TransactionsTest {
     for (Transaction transaction : allTransactions) {
       Assertions.assertFalse(db.add(transaction));
     }
-   /*
-   After trying duplication, check again.
+    /*
+    After trying duplication, check again.
     */
     for (Transaction transaction : allTransactions) {
       Assertions.assertTrue(db.has(transaction.id()));
@@ -407,7 +407,7 @@ public class TransactionsTest {
     } catch (InterruptedException e) {
       Assertions.fail();
     }
-     /*
+    /*
     Checking correctness of insertion by Has.
      */
     CountDownLatch hasDone = new CountDownLatch(concurrencyDegree);
@@ -486,7 +486,7 @@ public class TransactionsTest {
      */
     CountDownLatch addDuplicateDone = new CountDownLatch(concurrencyDegree);
     Thread[] addDuplicateThreads = new Thread[concurrencyDegree];
-     /*
+    /*
     Adding all transactions concurrently.
      */
     for (int i = 0; i < allTransactions.size(); i++) {

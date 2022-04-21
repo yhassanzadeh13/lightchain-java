@@ -6,8 +6,7 @@ import model.codec.EntityType;
 import model.crypto.Signature;
 import model.lightchain.Identifier;
 
-
-/**
+ /**
  * ECDSA signature implementation with signer ID.
  */
 public class EcdsaSignature extends Signature implements Serializable {

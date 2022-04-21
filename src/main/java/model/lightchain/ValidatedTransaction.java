@@ -5,7 +5,6 @@ import java.io.Serializable;
 import model.codec.EntityType;
 import model.crypto.Signature;
 
-
 /**
  * A ValidatedTransaction is a wrapper around a Transaction that carries a proof of assigned validators that attests
  * the transaction passed local validation of validators.

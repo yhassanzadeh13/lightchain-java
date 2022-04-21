@@ -18,7 +18,6 @@ import org.testcontainers.shaded.org.apache.commons.io.FileUtils;
 import storage.mapdb.BlocksMapDb;
 import unittest.fixtures.BlockFixture;
 
-
 /**
  * Encapsulates tests for block database.
  */
