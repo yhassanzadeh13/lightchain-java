@@ -39,6 +39,16 @@ public class ValidatedTransaction extends Transaction implements Serializable {
   }
 
   @Override
+  public int hashCode() {
+    return super.hashCode();
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    return super.equals(o);
+  }
+
+  @Override
   public String type() {
     return EntityType.TYPE_VALIDATED_TRANSACTION;
   }

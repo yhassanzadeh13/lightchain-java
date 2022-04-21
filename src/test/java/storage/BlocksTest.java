@@ -111,9 +111,9 @@ public class BlocksTest {
     AtomicInteger threadError = new AtomicInteger();
     CountDownLatch addDone = new CountDownLatch(concurrencyDegree);
     Thread[] addThreads = new Thread[concurrencyDegree];
-     /*
+    /*
     Adding all blocks concurrently.
-     */
+    */
     for (int i = 0; i < allBlocks.size(); i++) {
       int finalI = i;
       addThreads[i] = new Thread(() -> {
@@ -134,7 +134,7 @@ public class BlocksTest {
     }
     /*
     Checking correctness of insertion by Has.
-     */
+    */
     CountDownLatch hasDone = new CountDownLatch(concurrencyDegree);
     Thread[] hasThreads = new Thread[concurrencyDegree];
     for (int i = 0; i < allBlocks.size(); i++) {
@@ -156,9 +156,9 @@ public class BlocksTest {
     } catch (InterruptedException e) {
       Assertions.fail();
     }
-     /*
+    /*
     Checking correctness of insertion byID.
-     */
+    */
     CountDownLatch getDone = new CountDownLatch(concurrencyDegree);
     Thread[] getThreads = new Thread[concurrencyDegree];
     for (int i = 0; i < allBlocks.size(); i++) {
@@ -180,9 +180,9 @@ public class BlocksTest {
     } catch (InterruptedException e) {
       Assertions.fail();
     }
-     /*
+    /*
     Checking correctness of insertion by atHeight.
-     */
+    */
     CountDownLatch heightDone = new CountDownLatch(concurrencyDegree);
     Thread[] heightThreats = new Thread[concurrencyDegree];
     for (int i = 0; i < allBlocks.size(); i++) {
@@ -206,7 +206,7 @@ public class BlocksTest {
     }
     /*
     Retrieving all concurrently.
-     */
+    */
     CountDownLatch doneAll = new CountDownLatch(concurrencyDegree);
     Thread[] allThreads = new Thread[concurrencyDegree];
     ArrayList<Block> all = db.all();
@@ -281,9 +281,9 @@ public class BlocksTest {
     AtomicInteger threadError = new AtomicInteger();
     CountDownLatch addDone = new CountDownLatch(concurrencyDegree);
     Thread[] addThreads = new Thread[concurrencyDegree];
-     /*
+    /*
     Adding all blocks concurrently.
-     */
+    */
     for (int i = 0; i < allBlocks.size(); i++) {
       int finalI = i;
       addThreads[i] = new Thread(() -> {
@@ -304,7 +304,7 @@ public class BlocksTest {
     }
     /*
     Checking correctness of insertion by Has.
-     */
+    */
     CountDownLatch hasDone = new CountDownLatch(concurrencyDegree);
     Thread[] hasThreads = new Thread[concurrencyDegree];
     for (int i = 0; i < allBlocks.size(); i++) {
@@ -325,9 +325,9 @@ public class BlocksTest {
     } catch (InterruptedException e) {
       Assertions.fail();
     }
-     /*
+    /*
     Checking correctness of insertion byID.
-     */
+    */
     CountDownLatch getDone = new CountDownLatch(concurrencyDegree);
     Thread[] getThreads = new Thread[concurrencyDegree];
     for (int i = 0; i < allBlocks.size(); i++) {
@@ -349,9 +349,9 @@ public class BlocksTest {
     } catch (InterruptedException e) {
       Assertions.fail();
     }
-     /*
+    /*
     Checking correctness of insertion by atHeight.
-     */
+    */
     CountDownLatch heightDone = new CountDownLatch(concurrencyDegree);
     Thread[] heightThreats = new Thread[concurrencyDegree];
     for (int i = 0; i < allBlocks.size(); i++) {
@@ -375,7 +375,7 @@ public class BlocksTest {
     }
     /*
     Retrieving all concurrently.
-     */
+    */
     CountDownLatch doneAll = new CountDownLatch(concurrencyDegree);
     Thread[] allThreads = new Thread[concurrencyDegree];
     ArrayList<Block> all = db.all();
@@ -478,7 +478,7 @@ public class BlocksTest {
     } catch (InterruptedException e) {
       Assertions.fail();
     }
-     /*
+    /*
     Check atHeight after removing first five blocks
      */
     CountDownLatch getByHeight = new CountDownLatch(concurrencyDegree / 2);
@@ -562,7 +562,7 @@ public class BlocksTest {
     AtomicInteger threadError = new AtomicInteger();
     CountDownLatch addDone = new CountDownLatch(concurrencyDegree);
     Thread[] addThreads = new Thread[concurrencyDegree];
-     /*
+    /*
     Adding all blocks concurrently.
      */
     for (int i = 0; i < allBlocks.size(); i++) {
@@ -607,7 +607,7 @@ public class BlocksTest {
     } catch (InterruptedException e) {
       Assertions.fail();
     }
-     /*
+    /*
     Checking correctness of insertion byID.
      */
     CountDownLatch getDone = new CountDownLatch(concurrencyDegree);
@@ -631,7 +631,7 @@ public class BlocksTest {
     } catch (InterruptedException e) {
       Assertions.fail();
     }
-     /*
+    /*
     Checking correctness of insertion by atHeight.
      */
     CountDownLatch heightDone = new CountDownLatch(concurrencyDegree);
@@ -706,7 +706,7 @@ public class BlocksTest {
     } catch (InterruptedException e) {
       Assertions.fail();
     }
-     /*
+    /*
     Checking correctness of insertion by Has after duplication.
      */
     CountDownLatch hasDone2 = new CountDownLatch(concurrencyDegree);
@@ -730,7 +730,7 @@ public class BlocksTest {
     } catch (InterruptedException e) {
       Assertions.fail();
     }
-     /*
+    /*
     Checking correctness of insertion byID after duplication.
      */
     CountDownLatch getDone2 = new CountDownLatch(concurrencyDegree);
@@ -754,7 +754,7 @@ public class BlocksTest {
     } catch (InterruptedException e) {
       Assertions.fail();
     }
-     /*
+    /*
     Checking correctness of insertion by atHeight after duplication.
      */
     CountDownLatch heightDone2 = new CountDownLatch(concurrencyDegree);
