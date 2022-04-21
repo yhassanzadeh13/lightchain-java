@@ -10,9 +10,10 @@ import modules.codec.JsonEncoder;
 import org.mapdb.DB;
 import org.mapdb.DBMaker;
 import org.mapdb.HTreeMap;
+import org.mapdb.Serializer;
 
 public class Distributed implements storage.Distributed {
-  private final JsonEncoder encoder = new JsonEncoder();
+
   private final DB db;
   private final ReentrantReadWriteLock lock;
   private static final String MAP_NAME = "distributed_map";
@@ -25,6 +26,7 @@ public class Distributed implements storage.Distributed {
     this.db = DBMaker.fileDB(filePath).make();
     this.lock = new ReentrantReadWriteLock();
     distributedMap = this.db.hashMap(MAP_NAME)
+        .keySerializer(Serializer.BYTE_ARRAY)
         .createOrOpen();
   }
 
@@ -55,6 +57,7 @@ public class Distributed implements storage.Distributed {
    */
   @Override
   public boolean add(Entity e) {
+    JsonEncoder encoder = new JsonEncoder();
     boolean addBoolean;
     try {
       lock.writeLock().lock();
@@ -74,6 +77,7 @@ public class Distributed implements storage.Distributed {
    */
   @Override
   public boolean remove(Entity e) {
+    JsonEncoder encoder = new JsonEncoder();
     boolean removeBoolean;
     try {
       lock.writeLock().lock();
@@ -92,12 +96,14 @@ public class Distributed implements storage.Distributed {
    */
   @Override
   public Entity get(Identifier entityId) {
-    Entity decodedEntity = null;
+
+    Entity decodedEntity=null;
 
     try {
+      JsonEncoder encoder = new JsonEncoder();
       lock.readLock().lock();
       EncodedEntity encodedEntity = (EncodedEntity) distributedMap.get(entityId.getBytes());
-      assert encodedEntity != null;
+      System.out.println(encodedEntity.getType());
       decodedEntity = encoder.decode(encodedEntity);
     } catch (ClassNotFoundException e) {
       //throw new ClassNotFoundException("could not found the class"+e);
@@ -114,6 +120,7 @@ public class Distributed implements storage.Distributed {
    */
   @Override
   public ArrayList<Entity> all() {
+    JsonEncoder encoder = new JsonEncoder();
     ArrayList<Entity> allEntities = new ArrayList<>();
     for (Object encodedEntity : distributedMap.values()) {
       try {
@@ -123,5 +130,12 @@ public class Distributed implements storage.Distributed {
       }
     }
     return allEntities;
+  }
+
+  /**
+   * It closes the database.
+   */
+  public void closeDb() {
+    db.close();
   }
 }

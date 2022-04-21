@@ -8,7 +8,7 @@ import model.lightchain.Identifier;
 /**
  * Represents abstract data type for the cryptographic digital signature used in LightChain.
  */
-public abstract class Signature extends Entity implements Serializable {
+public abstract class Signature extends Entity {
   /**
    * The signature value in bytes.
    */
@@ -30,4 +30,6 @@ public abstract class Signature extends Entity implements Serializable {
   public byte[] getBytes() {
     return bytes.clone();
   }
+
+
 }

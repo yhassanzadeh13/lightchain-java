@@ -1,9 +1,34 @@
 package storage;
 
+import model.Entity;
+import model.lightchain.Block;
+import modules.codec.JsonEncoder;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.testcontainers.shaded.org.apache.commons.io.FileUtils;
+import storage.mapdb.BlocksMapDb;
+import storage.mapdb.Distributed;
+import unittest.fixtures.BlockFixture;
+import unittest.fixtures.TransactionFixture;
+
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+
 /**
  * Encapsulates tests for distributed storage.
  */
 public class DistributedTest {
+
+  private static final String TEMP_DIR = "tempdir";
+  private static final String TEMP_FILE_ID = "tempfileID.db";
+  private Path tempdir;
+  private ArrayList<Entity> allEntities;
+  private Distributed db;
   // TODO: implement a unit test for each of the following scenarios:
   // IMPORTANT NOTE: each test must have a separate instance of database, and the database MUST only created on a
   // temporary directory.
@@ -36,5 +61,52 @@ public class DistributedTest {
   //    Add should return false for each of them, while has should still return true, and get should be
   //    able to retrieve the entity.
   // 6. Repeat test case 5 for concurrently adding entities as well as concurrently querying the
-  //    database for has, get. 
+  //    database for has, get.
+
+  /**
+   * Set the tests up.
+   */
+  @BeforeEach
+  void setUp() throws IOException {
+    Path currentRelativePath = Paths.get("");
+    tempdir = Files.createTempDirectory(currentRelativePath, TEMP_DIR);
+    db = new Distributed(tempdir.toAbsolutePath() + "/" + TEMP_FILE_ID);
+    allEntities = new ArrayList<>();
+    for (int i = 0; i < 10; i++) {
+      allEntities.add(BlockFixture.newBlock(10));
+    }
+    for (int i = 0; i < 10; i++) {
+      allEntities.add(TransactionFixture.newTransaction(10));
+    }
+  }
+
+  /**
+   * Adding entities sequentially.
+   *
+   * @throws IOException throw IOException.
+   */
+  @Test
+  void sequentialAddTest() throws IOException, ClassNotFoundException {
+    for (Entity entity : allEntities){
+      Assertions.assertTrue(db.add(entity));
+    }
+    for (Entity entity : allEntities){
+      Assertions.assertTrue(db.has(entity.id()));
+    }
+    JsonEncoder encoder = new JsonEncoder();
+    Entity entityx =BlockFixture.newBlock();
+    System.out.println(encoder.decode(encoder.encode(entityx)));
+
+    for (Entity entity : allEntities){
+      Assertions.assertTrue(allEntities.contains(db.get(entity.id())));
+    }
+    ArrayList<Entity> all = db.all();
+    Assertions.assertEquals(all.size(),20);
+    for (Entity entity : allEntities){
+      Assertions.assertTrue(all.contains(entity));
+    }
+    db.closeDb();
+    FileUtils.deleteDirectory(new File(tempdir.toString()));
+  }
+
 }
