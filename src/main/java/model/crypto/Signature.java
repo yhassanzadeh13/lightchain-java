@@ -3,10 +3,12 @@ package model.crypto;
 import model.Entity;
 import model.lightchain.Identifier;
 
+import java.io.Serializable;
+
 /**
  * Represents abstract data type for the cryptographic digital signature used in LightChain.
  */
-public abstract class Signature extends Entity {
+public abstract class Signature extends Entity implements Serializable {
   /**
    * The signature value in bytes.
    */

@@ -1,9 +1,9 @@
 package model.lightchain;
 
+import java.io.Serializable;
+
 import model.codec.EntityType;
 import model.crypto.Signature;
-
-import java.io.Serializable;
 
 /**
  * Represents a LightChain Block that encapsulates set of ValidatedTransaction(s).

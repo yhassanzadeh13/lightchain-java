@@ -1,38 +1,36 @@
 package storage.mapdb;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Map;
-import java.util.NavigableMap;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import model.lightchain.Block;
 import model.lightchain.Identifier;
-import org.mapdb.BTreeMap;
-import org.mapdb.DB;
-import org.mapdb.DBMaker;
-import org.mapdb.Serializer;
-import org.mapdb.serializer.SerializerArrayTuple;
+import org.mapdb.*;
 import storage.Blocks;
-
 
 /**
  * Implementation of Transactions interface.
  */
 public class BlocksMapDb implements Blocks {
-  private final DB db;
+  private final DB dbID;
+  private final DB dbHeight;
   private final ReentrantReadWriteLock lock;
-  private static final String MAP_NAME = "blocks_map";
-  private final BTreeMap<Object[],Block> blocksMap;
-  private final byte[] idBytes;
+  private static final String MAP_NAME_ID = "blocks_map_id";
+  private static final String MAP_NAME_HEIGHT = "blocks_map_height";
+  private final HTreeMap blocksIdMap;
+  private final HTreeMap <Integer,ArrayList<Identifier>>blocksHeightMap;
 
-  public BlocksMapDb(String filePath) {
-    this.db = DBMaker.fileDB(filePath).make();
+
+  public BlocksMapDb(String filePathId,String filePathHeight) {
+    this.dbID = DBMaker.fileDB(filePathId).make();
     this.lock = new ReentrantReadWriteLock();
-    blocksMap = (BTreeMap<Object[], Block>) this.db.treeMap(MAP_NAME)
-        .keySerializer(new SerializerArrayTuple(Serializer.BYTE_ARRAY,Serializer.INTEGER))
+    blocksIdMap = this.dbID.hashMap(MAP_NAME_ID)
+        .keySerializer(Serializer.BYTE_ARRAY)
         .createOrOpen();
-    this.idBytes=null;
+    this.dbHeight = DBMaker.fileDB(filePathHeight).make();
+    blocksHeightMap = (HTreeMap<Integer, ArrayList<Identifier>>) this.dbHeight.hashMap(MAP_NAME_HEIGHT)
+        .createOrOpen();
+
   }
 
   /**
@@ -43,11 +41,14 @@ public class BlocksMapDb implements Blocks {
    */
   @Override
   public boolean has(Identifier blockId) {
-    NavigableMap<Object[],Block> blockNavigableMap =blocksMap.prefixSubMap(new Object[]{blockId.getBytes()});
-    if(!blockNavigableMap.isEmpty()){
-      return true;
+    boolean hasBoolean;
+    try {
+      lock.readLock().lock();
+      hasBoolean = blocksIdMap.containsKey(blockId.getBytes());
+    } finally {
+      lock.readLock().unlock();
     }
-    return false;
+    return hasBoolean;
   }
 
   /**
@@ -59,24 +60,27 @@ public class BlocksMapDb implements Blocks {
    */
   @Override
   public boolean add(Block block) {
-    Boolean addBool;
+    boolean addBooleanId;
+    Integer integer = block.getHeight();
     try {
       lock.writeLock().lock();
-    System.out.println("Block id BEFORE put :"+block.id());
-      System.out.println("Block previousId BEFORE put :"+block.getPreviousBlockId());
-      System.out.println("Block height BEFORE put :"+block.getHeight());
-      Object[] objects = new Object[]{block.id().getBytes(),block.getHeight()};
-      addBool= blocksMap.putIfAbsentBoolean(objects,block);
-
-
-      System.out.println("Block id AFTER put :"+blocksMap.get(objects).id());
-      System.out.println("Block previousID AFTER put :"+blocksMap.get(objects).getPreviousBlockId());
-      System.out.println("Block height AFTER put :"+blocksMap.get(objects).getHeight());
-      System.out.println();
+      addBooleanId = blocksIdMap.putIfAbsentBoolean(block.id().getBytes(), block);
+      if (addBooleanId){
+        blocksHeightMap.compute(integer,(key,value)->{
+          final ArrayList<Identifier> newBlockArray;
+          if(value == null){
+            newBlockArray = new ArrayList<>();
+          } else {
+            newBlockArray = new ArrayList<>(value);
+          }
+          newBlockArray.add(block.id());
+          return  newBlockArray;
+        });
+      }
     } finally {
       lock.writeLock().unlock();
     }
-    return !addBool;
+    return addBooleanId;
 
   }
 
@@ -89,24 +93,33 @@ public class BlocksMapDb implements Blocks {
    */
   @Override
   public boolean remove(Identifier blockId) {
-    for(Object[] objects : blocksMap.keySet()){
-      if(objects[0] == blockId.getBytes()){
-        return blocksMap.remove(objects,blocksMap.get(objects));
+    boolean removeBoolean;
+    try {
+      lock.writeLock().lock();
+      Block block = byId(blockId);
+      removeBoolean = blocksIdMap.remove(blockId.getBytes(), block);
+      if(removeBoolean){
+       blocksHeightMap.get(block.getHeight()).remove(blockId);
       }
+    } finally {
+      lock.writeLock().unlock();
     }
-    return false;
+    return removeBoolean;
   }
 
   /**
    * Returns the block with given identifier.
-   *
+   * t
    * @param blockId identifier of the block.
    * @return the block itself if exists and null otherwise.
    */
   @Override
   public Block byId(Identifier blockId) {
-    NavigableMap<Object[],Block> blockNavigableMap =blocksMap.prefixSubMap(new Object[]{blockId.getBytes()});
-    return blockNavigableMap.firstEntry().getValue();
+    lock.readLock().lock();
+    Block block = (Block) blocksIdMap.get(blockId.getBytes());
+
+    lock.readLock().unlock();
+    return block;
   }
 
   /**
@@ -117,14 +130,11 @@ public class BlocksMapDb implements Blocks {
    */
   @Override
   public Block atHeight(int height) {
-    /*for(byte[] bytes :)
-    for(Object[] objects : blocksMap.keySet()){
-      if((Integer) objects[1] == height){
-        return blocksMap.get(objects);
-      }
-    }*/
-
-    return null;
+    lock.readLock().lock();
+    Identifier identifier =  blocksHeightMap.get(height).get(0);
+    Block block = byId(identifier);
+    lock.readLock().unlock();
+    return block;
   }
 
   /**
@@ -134,13 +144,15 @@ public class BlocksMapDb implements Blocks {
    */
   @Override
   public ArrayList<Block> all() {
-    ArrayList<Block> allBlocks =new ArrayList<>();
-    for(Block block : blocksMap.getValues()){
-      allBlocks.add(block);
+    ArrayList<Block> allBlocks = new ArrayList<>();
+    for (Object block : blocksIdMap.values()) {
+      allBlocks.add((Block) block);
     }
     return allBlocks;
   }
   public void closeDb() {
-    db.close();
+    dbID.close();
+    dbHeight.close();
   }
+
 }

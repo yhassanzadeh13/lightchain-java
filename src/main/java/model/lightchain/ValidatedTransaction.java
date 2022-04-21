@@ -3,11 +3,13 @@ package model.lightchain;
 import model.codec.EntityType;
 import model.crypto.Signature;
 
+import java.io.Serializable;
+
 /**
  * A ValidatedTransaction is a wrapper around a Transaction that carries a proof of assigned validators that attests
  * the transaction passed local validation of validators.
  */
-public class ValidatedTransaction extends Transaction {
+public class ValidatedTransaction extends Transaction implements Serializable {
   /**
    * Represents the signatures of assigned validators to this transaction.
    */

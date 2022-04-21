@@ -315,8 +315,8 @@ public class TransactionsTest {
       int finalI = i;
       int finalI1 = i + 5;
       getThreads[i] = new Thread(() -> {
-        if (!allTransactions.contains(db.get(allTransactions.get(finalI).id()))
-            || allTransactions.contains(db.get(allTransactions.get(finalI1).id()))) {
+        if (allTransactions.contains(db.get(allTransactions.get(finalI).id()))
+            || !allTransactions.contains(db.get(allTransactions.get(finalI1).id()))) {
           threadError.getAndIncrement();
         }
         getDone.countDown();
@@ -332,12 +332,13 @@ public class TransactionsTest {
     } catch (InterruptedException e) {
       Assertions.fail();
     }
+    Assertions.assertEquals(0, threadError.get());
     db.closeDb();
     FileUtils.deleteDirectory(new File(tempdir.toString()));
   }
 
   /**
-   * Add 10 identifiers already exist and return false expected.
+   * Add 10 transaction already exist and return false expected.
    */
   @Test
   void duplicationTest() throws IOException {
@@ -370,9 +371,11 @@ public class TransactionsTest {
     for (Transaction transaction : allTransactions) {
       Assertions.assertTrue(allTransactions.contains(db.get(transaction.id())));
     }
+
     db.closeDb();
     FileUtils.deleteDirectory(new File(tempdir.toString()));
   }
+
   /**
    * Concurrent version of duplicationTest.
    */
@@ -553,6 +556,7 @@ public class TransactionsTest {
     } catch (InterruptedException e) {
       Assertions.fail();
     }
+    Assertions.assertEquals(0, threadError.get());
     db.closeDb();
     FileUtils.deleteDirectory(new File(tempdir.toString()));
   }
