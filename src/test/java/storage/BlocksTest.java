@@ -27,7 +27,7 @@ public class BlocksTest {
   private static final String TEMP_FILE_ID = "tempfileID.db";
   private static final String TEMP_FILE_HEIGHT = "tempfileHEIGHT.db";
   private Path tempdir;
-  private ArrayList <Block> allBlocks;
+  private ArrayList<Block> allBlocks;
   private BlocksMapDb db;
   // TODO: implement a unit test for each of the following scenarios:
   // IMPORTANT NOTE: each test must have a separate instance of database, and the database MUST only created on a
@@ -67,7 +67,7 @@ public class BlocksTest {
     Path currentRelativePath = Paths.get("");
     tempdir = Files.createTempDirectory(currentRelativePath, TEMP_DIR);
     db = new BlocksMapDb(tempdir.toAbsolutePath() + "/" + TEMP_FILE_ID, tempdir.toAbsolutePath() + "/" + TEMP_FILE_HEIGHT);
-    allBlocks = new ArrayList <>();
+    allBlocks = new ArrayList<>();
     for (int i = 0; i < 10; i++) {
       allBlocks.add(BlockFixture.newBlock());
     }
@@ -92,7 +92,7 @@ public class BlocksTest {
     for (Block block : allBlocks) {
       Assertions.assertTrue(allBlocks.contains(db.byId(block.id())));
     }
-    ArrayList <Block> all = db.all();
+    ArrayList<Block> all = db.all();
     Assertions.assertEquals(all.size(), 10);
     for (Block block : all) {
       Assertions.assertTrue(allBlocks.contains(block));
@@ -209,7 +209,7 @@ public class BlocksTest {
      */
     CountDownLatch doneAll = new CountDownLatch(concurrencyDegree);
     Thread[] allThreads = new Thread[concurrencyDegree];
-    ArrayList <Block> all = db.all();
+    ArrayList<Block> all = db.all();
     for (int i = 0; i < all.size(); i++) {
       int finalI = i;
       allThreads[i] = new Thread(() -> {
@@ -252,7 +252,7 @@ public class BlocksTest {
     for (Block block : allBlocks) {
       Assertions.assertTrue(allBlocks.contains(db.byId(block.id())));
     }
-    ArrayList <Block> all = db.all();
+    ArrayList<Block> all = db.all();
     Assertions.assertEquals(all.size(), 10);
     for (Block block : all) {
       Assertions.assertTrue(allBlocks.contains(block));
@@ -378,7 +378,7 @@ public class BlocksTest {
      */
     CountDownLatch doneAll = new CountDownLatch(concurrencyDegree);
     Thread[] allThreads = new Thread[concurrencyDegree];
-    ArrayList <Block> all = db.all();
+    ArrayList<Block> all = db.all();
     for (int i = 0; i < all.size(); i++) {
       int finalI = i;
       allThreads[i] = new Thread(() -> {
@@ -527,7 +527,7 @@ public class BlocksTest {
     for (Block block : allBlocks) {
       Assertions.assertTrue(allBlocks.contains(db.byId(block.id())));
     }
-    ArrayList <Block> all = db.all();
+    ArrayList<Block> all = db.all();
     Assertions.assertEquals(all.size(), 10);
     for (Block block : all) {
       Assertions.assertTrue(allBlocks.contains(block));
@@ -660,7 +660,7 @@ public class BlocksTest {
      */
     CountDownLatch doneAll = new CountDownLatch(concurrencyDegree);
     Thread[] allThreads = new Thread[concurrencyDegree];
-    ArrayList <Block> all = db.all();
+    ArrayList<Block> all = db.all();
     for (int i = 0; i < all.size(); i++) {
       int finalI = i;
       allThreads[i] = new Thread(() -> {
@@ -783,7 +783,7 @@ public class BlocksTest {
      */
     CountDownLatch doneAll2 = new CountDownLatch(concurrencyDegree);
     Thread[] allThreads2 = new Thread[concurrencyDegree];
-    ArrayList <Block> all2 = db.all();
+    ArrayList<Block> all2 = db.all();
     for (int i = 0; i < all2.size(); i++) {
       int finalI = i;
       allThreads2[i] = new Thread(() -> {

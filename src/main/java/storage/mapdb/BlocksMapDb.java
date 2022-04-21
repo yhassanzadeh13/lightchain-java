@@ -19,7 +19,7 @@ public class BlocksMapDb implements Blocks {
   private static final String MAP_NAME_ID = "blocks_map_id";
   private static final String MAP_NAME_HEIGHT = "blocks_map_height";
   private final HTreeMap blocksIdMap;
-  private final HTreeMap <Integer, ArrayList <Identifier>> blocksHeightMap;
+  private final HTreeMap<Integer, ArrayList<Identifier>> blocksHeightMap;
 
   /**
    * Creates blocks mapdb.
@@ -34,7 +34,7 @@ public class BlocksMapDb implements Blocks {
         .keySerializer(Serializer.BYTE_ARRAY)
         .createOrOpen();
     this.dbHeight = DBMaker.fileDB(filePathHeight).make();
-    blocksHeightMap = (HTreeMap <Integer, ArrayList <Identifier>>) this.dbHeight.hashMap(MAP_NAME_HEIGHT)
+    blocksHeightMap = (HTreeMap<Integer, ArrayList<Identifier>>) this.dbHeight.hashMap(MAP_NAME_HEIGHT)
         .createOrOpen();
   }
 
@@ -72,11 +72,11 @@ public class BlocksMapDb implements Blocks {
       addBooleanId = blocksIdMap.putIfAbsentBoolean(block.id().getBytes(), block);
       if (addBooleanId) {
         blocksHeightMap.compute(integer, (key, value) -> {
-          final ArrayList <Identifier> newBlockArray;
+          final ArrayList<Identifier> newBlockArray;
           if (value == null) {
-            newBlockArray = new ArrayList <>();
+            newBlockArray = new ArrayList<>();
           } else {
-            newBlockArray = new ArrayList <>(value);
+            newBlockArray = new ArrayList<>(value);
           }
           newBlockArray.add(block.id());
           return newBlockArray;
@@ -103,7 +103,7 @@ public class BlocksMapDb implements Blocks {
       Block block = byId(blockId);
       removeBoolean = blocksIdMap.remove(blockId.getBytes(), block);
       if (removeBoolean) {
-        ArrayList <Identifier> identifierArrayList = blocksHeightMap.get(block.getHeight());
+        ArrayList<Identifier> identifierArrayList = blocksHeightMap.get(block.getHeight());
         if (identifierArrayList != null) {
           identifierArrayList.remove(blockId);
         }
@@ -140,7 +140,7 @@ public class BlocksMapDb implements Blocks {
     Block block = null;
     try {
       lock.readLock().lock();
-      ArrayList <Identifier> identifierArrayList = blocksHeightMap.get(height);
+      ArrayList<Identifier> identifierArrayList = blocksHeightMap.get(height);
       if (identifierArrayList != null) {
         Identifier identifier = identifierArrayList.get(0);
         block = byId(identifier);
@@ -157,8 +157,8 @@ public class BlocksMapDb implements Blocks {
    * @return all stored blocks in database.
    */
   @Override
-  public ArrayList <Block> all() {
-    ArrayList <Block> allBlocks = new ArrayList <>();
+  public ArrayList<Block> all() {
+    ArrayList<Block> allBlocks = new ArrayList<>();
     for (Object block : blocksIdMap.values()) {
       allBlocks.add((Block) block);
     }
