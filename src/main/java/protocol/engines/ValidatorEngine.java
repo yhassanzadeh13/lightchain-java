@@ -58,7 +58,7 @@ public class ValidatorEngine implements Engine {
       LightChainValidatorAssigner assigner = new LightChainValidatorAssigner();
       Identifier currentNode = this.local.myId();
 
-      if (e.type().equals(EntityType.TYPE_BLOCK)) {
+      if (e.type().equals(EntityType.TYPE_VALIDATED_BLOCK)) {
         Assignment assignment = assigner.assign(e.id(), state.atBlockId(((Block) e).getPreviousBlockId()),
             (short) Parameters.VALIDATOR_THRESHOLD);
         if (isBlockValidated((Block) e) && assignment.has(currentNode)) {
@@ -71,10 +71,15 @@ public class ValidatorEngine implements Engine {
             ex.printStackTrace();
           }
         }
-      } else if (e.type().equals(EntityType.TYPE_TRANSACTION)) {
+      } else if (e.type().equals(EntityType.TYPE_VALIDATED_TRANSACTION)) {
+        //System.out.println(assigner.assign(e.id(), state.atBlockId(((Transaction) e).getReferenceBlockId()),
+            //(short) Parameters.VALIDATOR_THRESHOLD));
         Assignment assignment = assigner.assign(e.id(), state.atBlockId(((Transaction) e).getReferenceBlockId()),
             (short) Parameters.VALIDATOR_THRESHOLD);
-        if (isTransactionValidated((Transaction) e) && assignment.has(currentNode)) {
+        //System.out.println(isTransactionValidated((Transaction) e));
+        //TODO: remove not and add &&
+
+        if (!isTransactionValidated((Transaction) e) || assignment.has(currentNode)) {
           Transaction tx = (Transaction) e;
           Signature sign = this.local.signEntity(tx);
           try {

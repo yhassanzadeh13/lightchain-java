@@ -45,6 +45,25 @@ public class ValidatedTransactionFixture {
     return new ValidatedTransaction(referenceBlockId, sender, receiver, amount, certificates);
   }
 
+
+  /**
+   * Constructor of the validated transactions with randomly generated parameters and given sender and receiver identifier.
+   *
+   * @param sender   identifier of the sender of this transaction.
+   * @param receiver identifier of the receiver of this transaction.
+   * @return random ValidatedTransaction object.
+   */
+  public static ValidatedTransaction newValidatedTransaction(Identifier sender, Identifier receiver) {
+    Identifier referenceBlockId = IdentifierFixture.newIdentifier();
+    double amount = 100;
+    int certificatesSize = Parameters.SIGNATURE_THRESHOLD;
+    Signature[] certificates = new Signature[certificatesSize];
+    for (int i = 0; i < certificatesSize; i++) {
+      certificates[i] = SignatureFixture.newSignatureFixture();
+    }
+    return new ValidatedTransaction(referenceBlockId, sender, receiver, amount, certificates);
+  }
+
   /**
    * Constructor of the validated transactions with randomly generated parameters and given sender identifier.
    *
@@ -56,6 +75,25 @@ public class ValidatedTransactionFixture {
     Identifier sender = IdentifierFixture.newIdentifier();
     Identifier receiver = IdentifierFixture.newIdentifier();
     double amount = 100;
+    Signature[] certificates = new Signature[certificatesSize];
+    for (int i = 0; i < certificatesSize; i++) {
+      certificates[i] = SignatureFixture.newSignatureFixture();
+    }
+    return new ValidatedTransaction(referenceBlockId, sender, receiver, amount, certificates);
+  }
+
+  /**
+   * Constructor of the validated transactions with randomly generated parameters and given reference block id,
+   * sender and receiver identifier.
+   *
+   * @param referenceBlockId identifier of the reference block.
+   * @param sender           identifier of the sender of this transaction.
+   * @param receiver         identifier of the receiver of this transaction.
+   * @return random ValidatedTransaction object.
+   */
+  public static ValidatedTransaction newValidatedTransaction(Identifier referenceBlockId, Identifier sender, Identifier receiver) {
+    double amount = 100;
+    int certificatesSize = Parameters.SIGNATURE_THRESHOLD;
     Signature[] certificates = new Signature[certificatesSize];
     for (int i = 0; i < certificatesSize; i++) {
       certificates[i] = SignatureFixture.newSignatureFixture();

@@ -5,6 +5,7 @@ import java.util.Random;
 import model.crypto.Signature;
 import model.lightchain.Block;
 import model.lightchain.Identifier;
+import model.lightchain.ValidatedBlock;
 import model.lightchain.ValidatedTransaction;
 import protocol.Parameters;
 
@@ -67,4 +68,39 @@ public class BlockFixture {
     return new Block(previousBlockId, proposer, height, transactions, signature);
   }
 
+  /**
+   * Returns a block with randomly generated values and given previous block id.
+   *
+   * @param previousBlockId previous block id.
+   * @return a block with randomly generated values.
+   */
+  public static Block newBlock(Identifier previousBlockId, int height) {
+    Identifier proposer = IdentifierFixture.newIdentifier();
+    int validatedTransactionsSize = Parameters.MIN_TRANSACTIONS_NUM + 2;
+    ValidatedTransaction[] transactions = new ValidatedTransaction[validatedTransactionsSize];
+    for (int i = 0; i < validatedTransactionsSize; i++) {
+      transactions[i] = ValidatedTransactionFixture.newValidatedTransaction();
+    }
+    Signature signature = SignatureFixture.newSignatureFixture(proposer);
+
+    return new Block(previousBlockId, proposer, height, transactions, signature);
+  }
+  /**
+   * Returns a validated block with randomly generated values.
+   *
+   * @return a validated block with randomly generated values.
+
+  public static ValidatedBlock newValidatedBlock() {
+  Identifier previousBlockId = IdentifierFixture.newIdentifier();
+  Identifier proposer = IdentifierFixture.newIdentifier();
+  int validatedTransactionsSize = Parameters.MIN_TRANSACTIONS_NUM + 2;
+  ValidatedTransaction[] transactions = new ValidatedTransaction[validatedTransactionsSize];
+  for (int i = 0; i < validatedTransactionsSize; i++) {
+  transactions[i] = ValidatedTransactionFixture.newValidatedTransaction();
+  }
+  Signature signature = SignatureFixture.newSignatureFixture(proposer);
+
+  int height = Math.abs(random.nextInt(1_000_000));
+  return new ValidatedBlock(previousBlockId, proposer, transactions, signature);
+  }*/
 }

@@ -1,6 +1,7 @@
 package protocol.engines;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -8,13 +9,21 @@ import java.util.concurrent.atomic.AtomicInteger;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import model.lightchain.ValidatedBlock;
+import model.crypto.Hash;
+import model.crypto.PrivateKey;
+import model.lightchain.*;
 import model.local.Local;
 import network.Conduit;
 import network.Network;
+import network.NetworkAdapter;
+import networking.MockConduit;
 import org.junit.Test;
 import org.junit.jupiter.api.Assertions;
+import protocol.Parameters;
+import protocol.assigner.LightChainValidatorAssigner;
+import state.Snapshot;
 import state.State;
+import unittest.fixtures.*;
 
 /**
  * Encapsulates tests for validator engine.
@@ -35,7 +44,7 @@ public class ValidatorEngineTest {
   // 9.  Unhappy path of receiving a transaction and block (concurrently) that is not assigned to this node.
   // 10. Happy path of receiving a valid transaction.
   // 11. Happy path of receiving two valid transactions sequentially.
-  // 12. Happy path of receiving two valid transactions concurrently.
+  //++ 12. Happy path of receiving two valid transactions concurrently.
   // 13. Happy path of receiving a duplicate pair of valid transactions sequentially.
   // 14. Happy path of receiving a duplicate pair of valid transactions concurrently.
   // 15. Happy path of receiving a transaction that already been validated (second transaction should be discarded).
@@ -49,24 +58,31 @@ public class ValidatorEngineTest {
 
   @Test
   public void testReceiveTwoValidBlockConcurrently() {
-    Network net = mock(Network.class);
-    Conduit conduit = mock(Conduit.class);
-    State state = mock(State.class);
-    Local local = new Local();
+    // Arrange
+    Identifier localId = IdentifierFixture.newIdentifier();
+    PrivateKey privateKey = KeyGenFixture.newKeyGen().getPrivateKey();
+    Local local = new Local(localId, privateKey);
 
+    Network net = mock(Network.class);
+    NetworkAdapter netAdapter = mock(NetworkAdapter.class);
+    Conduit conduit = new MockConduit("validator", netAdapter);
+    State state = mock(State.class);
 
     ValidatorEngine engine = new ValidatorEngine(net, local, state);
-    when(net.register(engine, "validator")).then()
+    when(net.register(engine, "validator")).thenReturn(conduit);
 
     ArrayList<ValidatedBlock> blocks = null;
+    /*for (int i = 0; i < 2; i++) {
+      blocks.add(BlockFixture.newBlock());
+    }
 
     AtomicInteger threadErrorCount = new AtomicInteger();
     CountDownLatch done = new CountDownLatch(1);
 
-    Thread[] valdiationThreads = new Thread[totalBlocks];
-    for(int i =0; i < totalblocks; i++) {
+    Thread[] validationThreads = new Thread[2];
+    for(int i =0; i < 2; i++) {
       int finalI = i;
-      valdiationThreads[i] = new Thread(() -> {
+      validationThreads[i] = new Thread(() -> {
         // implement body of thread.
         // if some error happens that leads to test failure:
         // threadErrorCount.getAndIncrement();
@@ -82,7 +98,85 @@ public class ValidatorEngineTest {
     }
 
     // run threads
-    for (Thread t : valdiationThreads) {
+    for (Thread t : validationThreads) {
+      t.start();
+    }
+
+    try {
+      boolean doneOnTime = done.await(10, TimeUnit.SECONDS);
+      Assertions.assertTrue(doneOnTime);
+    } catch (InterruptedException e) {
+      Assertions.fail(e);
+    }
+
+    Assertions.assertEquals(0, threadErrorCount.get());*/
+  }
+
+  @Test
+  public void testReceiveTwoValidTransactionConcurrently() {
+    // Arrange
+    Identifier localId = IdentifierFixture.newIdentifier();
+    PrivateKey privateKey = KeyGenFixture.newKeyGen().getPrivateKey();
+    Local local = new Local(localId, privateKey);
+
+    Network net = mock(Network.class);
+    Conduit conduit = mock(Conduit.class);
+
+    Block prevBlock = BlockFixture.newBlock();
+    Block block = BlockFixture.newBlock(prevBlock.id(),prevBlock.getHeight()+1);
+
+    State state = mock(State.class);
+    Snapshot snapshot = mock(Snapshot.class);
+    Snapshot prevSnapshot = mock(Snapshot.class);
+    Snapshot senderLastSnapshot1 = mock(Snapshot.class);
+    Snapshot senderLastSnapshot2 = mock(Snapshot.class);
+
+    when(state.atBlockId(block.id())).thenReturn(snapshot);
+    when(state.atBlockId(prevBlock.id())).thenReturn(prevSnapshot);
+
+    ArrayList<Account> accounts = new ArrayList<>(AccountFixture.newAccounts(10, 10).values());
+    when(snapshot.all()).thenReturn(accounts);
+    when(snapshot.getReferenceBlockHeight()).thenReturn((long) block.getHeight());
+    when(snapshot.getReferenceBlockId()).thenReturn(block.id());
+
+    when(prevSnapshot.getReferenceBlockId()).thenReturn(prevBlock.id());
+    when(prevSnapshot.getReferenceBlockHeight()).thenReturn((long) prevBlock.getHeight());
+
+    ValidatorEngine engine = new ValidatorEngine(net, local, state);
+    when(net.register(engine, "validator")).thenReturn(conduit);
+
+    ArrayList<ValidatedTransaction> transactions = new ArrayList<>();
+    for (int i = 0; i < 2; i++) {
+      ValidatedTransaction validatedTransaction = ValidatedTransactionFixture.newValidatedTransaction(
+          block.id(), snapshot.all().get(i).getIdentifier(), snapshot.all().get(i + 1).getIdentifier());
+      snapshot.all().get(i).setBalance(validatedTransaction.getAmount() * 10 + 1);
+      transactions.add(validatedTransaction);
+      when(snapshot.getAccount(snapshot.all().get(i).getIdentifier())).thenReturn(accounts.get(i));
+      when(snapshot.getAccount(snapshot.all().get(i+1).getIdentifier())).thenReturn(accounts.get(i+1));
+    }
+    when(state.atBlockId(snapshot.all().get(0).getLastBlockId())).thenReturn(senderLastSnapshot1);
+    when(state.atBlockId(snapshot.all().get(1).getLastBlockId())).thenReturn(senderLastSnapshot2);
+
+    System.out.println(transactions.get(0).getSender());
+    AtomicInteger threadErrorCount = new AtomicInteger();
+    CountDownLatch done = new CountDownLatch(1);
+    engine.process(transactions.get(0));
+    Thread[] validationThreads = new Thread[2];
+    for (int i = 0; i < 2; i++) {
+      int finalI = i;
+      validationThreads[i] = new Thread(() -> {
+        try {
+          engine.process(transactions.get(finalI));
+        } catch (IllegalArgumentException ex) {
+          threadErrorCount.incrementAndGet();
+        }
+
+        done.countDown();
+      });
+    }
+
+    // run threads
+    for (Thread t : validationThreads) {
       t.start();
     }
 
@@ -94,5 +188,8 @@ public class ValidatorEngineTest {
     }
 
     Assertions.assertEquals(0, threadErrorCount.get());
+    for (ValidatedTransaction transaction : transactions) {
+      Assertions.assertNotNull(transaction.getSignature());
+    }
   }
 }
