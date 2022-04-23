@@ -5,6 +5,9 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
+import io.prometheus.client.Counter;
+import metrics.collectors.LightChainCollector;
+import metrics.collectors.MetricServer;
 import model.Entity;
 import model.lightchain.Identifier;
 import protocol.Engine;
@@ -16,12 +19,18 @@ public class BroadcastEngine implements Engine {
   private final ReentrantReadWriteLock lock;
   private final Set<Identifier> receivedEntityIds;
 
+  LightChainCollector collector;
+  Counter helloMessageReceiveCount;
+
   ConcurrentMap<Identifier, String> idTable;
   Identifier myId;
+  MetricServer server;
 
   public BroadcastEngine() {
     this.receivedEntityIds = new HashSet<>();
     this.lock = new ReentrantReadWriteLock();
+    this.server = new MetricServer(8082);
+
   }
 
   /**
@@ -31,11 +40,31 @@ public class BroadcastEngine implements Engine {
    * @param myId id of the Node on which the Engine operates.
    */
   public BroadcastEngine(ConcurrentMap<Identifier, String> idTable, Identifier myId) {
-    this.receivedEntityIds = new HashSet<>();
-    this.lock = new ReentrantReadWriteLock();
-
+    this();
     this.idTable = idTable;
     this.myId = myId;
+
+    // Metric Server Initiation
+    try {
+
+      collector = new LightChainCollector();
+
+      // possibly change the namespace and subsystem values
+      helloMessageReceiveCount = collector.counter().register("hello_message_receive_count",
+              "consensus", myId.toString(), "Number of hello messages received");
+
+    } catch (IllegalArgumentException ex) {
+      System.err.println("Could not initialize the metrics with the provided arguments" + ex);
+      System.exit(1);
+    }
+
+    try {
+      server.start();
+    } catch (IllegalStateException ex) {
+      System.err.println("Could not start the Metric Server");
+      System.exit(1);
+    }
+
   }
 
   /**
@@ -50,6 +79,8 @@ public class BroadcastEngine implements Engine {
     lock.writeLock().lock();
 
     receivedEntityIds.add(e.id());
+
+    helloMessageReceiveCount.inc(1);
 
     System.out.println("The content of the last message is: ");
     System.out.println(((HelloMessageEntity) e).content);

@@ -2,11 +2,13 @@ package integration.localnet;
 
 import java.io.File;
 import java.nio.charset.StandardCharsets;
+import java.rmi.server.LogStream;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.TimeUnit;
 
+import com.github.dockerjava.api.DockerClient;
 import com.github.dockerjava.api.command.BuildImageResultCallback;
 import com.github.dockerjava.api.command.CreateContainerResponse;
 import com.github.dockerjava.api.model.Bind;
@@ -141,6 +143,9 @@ public class LocalTestNet extends MetricsTestNet {
         dockerClient
                 .startContainerCmd(containers.get(finalI).getId())
                 .exec();
+
+        dockerClient.logContainerCmd(containers.get(finalI).getId());
+
         System.out.println("Node " + finalI + " is up and running!");
       });
     }
