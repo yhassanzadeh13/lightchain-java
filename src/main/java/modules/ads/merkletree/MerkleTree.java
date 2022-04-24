@@ -4,13 +4,11 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
-import com.google.gson.Gson;
 import crypto.Sha3256Hasher;
 import model.Entity;
 import model.crypto.Sha3256Hash;
@@ -152,10 +150,6 @@ public class MerkleTree implements AuthenticatedDataStructure, Serializable {
     } catch (IOException e) {
       e.printStackTrace();
     }
-    /*
-    Gson gson = new Gson();
-    byte[] bytes = gson.toJson(this).getBytes(StandardCharsets.UTF_8);
-    */
     return null;
   }
 }

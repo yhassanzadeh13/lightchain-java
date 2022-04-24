@@ -200,7 +200,7 @@ public class MerkleTreeTest {
 
     for (int i = 0; i < concurrencyDegree; i++) {
       Entity entity;
-      if (type.equals(EntityType.TYPE_ACCOUNT)) {
+      if (type == EntityType.TYPE_ACCOUNT) {
         entity = AccountFixture.newAccount(IdentifierFixture.newIdentifier());
       } else {
         entity = new EntityFixture();

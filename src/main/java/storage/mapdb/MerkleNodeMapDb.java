@@ -1,10 +1,14 @@
 package storage.mapdb;
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import com.google.gson.Gson;
+import model.Entity;
 import modules.ads.merkletree.MerkleNode;
 import org.mapdb.DB;
 import org.mapdb.DBMaker;
@@ -60,11 +64,22 @@ public class MerkleNodeMapDb implements MerkleNodes {
   public ArrayList<MerkleNode> all() {
     ArrayList<MerkleNode> nodes = new ArrayList<>();
     for (byte[] element : merkleNodeMap.keySet()) {
-      Gson gson = new Gson();
-      String json = new String(element.clone(), StandardCharsets.UTF_8);
-      MerkleNode node = gson.fromJson(json, MerkleNode.class);
-      nodes.add(node);
+      try {
+        ByteArrayInputStream bis = new ByteArrayInputStream(element);
+        ObjectInputStream inp = null;
+        inp = new ObjectInputStream(bis);
+        MerkleNode node = (MerkleNode) inp.readObject();
+        nodes.add(node);
+      } catch (IOException e) {
+        e.printStackTrace();
+      } catch (ClassNotFoundException e) {
+        throw new RuntimeException(e);
+      }
     }
     return nodes;
+  }
+
+  public void closeDb() {
+    db.close();
   }
 }

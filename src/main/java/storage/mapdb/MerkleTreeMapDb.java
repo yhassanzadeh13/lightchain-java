@@ -1,87 +1,164 @@
 package storage.mapdb;
 
 import java.io.*;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
-import com.google.gson.Gson;
+import crypto.Sha3256Hasher;
+import model.Entity;
+import model.crypto.Sha3256Hash;
+import model.lightchain.Identifier;
+import modules.ads.merkletree.MerkleNode;
+import modules.ads.merkletree.MerkleProof;
 import modules.ads.merkletree.MerkleTree;
-import org.mapdb.DB;
-import org.mapdb.DBMaker;
-import org.mapdb.HTreeMap;
-import org.mapdb.Serializer;
-import storage.MerkleTrees;
+import modules.ads.merkletree.MerkleTreeAuthenticatedEntity;
 
-public class MerkleTreeMapDb implements MerkleTrees {
-  private final DB db;
+public class MerkleTreeMapDb extends MerkleTree {
+  private final MerkleNodeMapDb merkleNodeMapDb;
+  private final EntityMapDb entityMapDb;
+  private static final Sha3256Hasher hasher = new Sha3256Hasher();
   private final ReentrantReadWriteLock lock;
-  private static final String MAP_NAME = "merkle_tree_map";
-  private final HTreeMap<byte[], byte[]> merkleTreeMap;
+  private final ArrayList<MerkleNode> leafNodes;
+  private final Map<Sha3256Hash, Integer> leafNodesHashTable;
+  private final Map<Identifier, Entity> entityHashTable;
+  private int size;
+  private MerkleNode root;
 
-  public MerkleTreeMapDb(String filePath) {
-    this.db = DBMaker.fileDB(filePath).make();
+  public MerkleTreeMapDb(MerkleNodeMapDb merkleNodeMapDb, EntityMapDb entityMapDb) {
+    this.merkleNodeMapDb = merkleNodeMapDb;
+    this.entityMapDb = entityMapDb;
+    this.size = 0;
+    this.root = new MerkleNode();
+    this.leafNodes = new ArrayList<>();
     this.lock = new ReentrantReadWriteLock();
-    this.merkleTreeMap = db.hashMap(MAP_NAME).
-            keySerializer(Serializer.BYTE_ARRAY)
-            .valueSerializer(Serializer.BYTE_ARRAY)
-            .createOrOpen();
+    this.leafNodesHashTable = new HashMap<>();
+    this.entityHashTable = new HashMap<>();
   }
 
   @Override
-  public boolean add(MerkleTree tree) {
-    boolean addBoolean;
+  public modules.ads.AuthenticatedEntity put(Entity e) throws IllegalArgumentException {
     try {
       lock.writeLock().lock();
-      addBoolean = merkleTreeMap.putIfAbsentBoolean(tree.getBytes(), tree.getBytes());
+      if (!entityMapDb.has(e)) {
+        entityMapDb.add(e);
+      }
+      if (e == null) {
+        throw new IllegalArgumentException("entity cannot be null");
+      }
+      Sha3256Hash hash = new Sha3256Hash(e.id().getBytes());
+      Integer idx = leafNodesHashTable.get(hash);
+      if (idx == null) {
+        MerkleNode newNode = new MerkleNode(e, false);
+        if (!merkleNodeMapDb.has(newNode)) {
+          merkleNodeMapDb.add(newNode);
+        }
+        leafNodes.add(newNode);
+        leafNodesHashTable.put(hash, size);
+        entityHashTable.put(e.id(), e);
+        size++;
+        buildMerkleTree();
+        MerkleProof proof = getProof(e.id());
+        return new MerkleTreeAuthenticatedEntity(proof, e.type(), e);
+      } else {
+        MerkleProof proof = getProof(e.id());
+        return new MerkleTreeAuthenticatedEntity(proof, e.type(), e);
+      }
     } finally {
       lock.writeLock().unlock();
     }
-    return addBoolean;
   }
 
   @Override
-  public boolean has(MerkleTree tree) {
-    boolean hasBoolean;
+  public modules.ads.AuthenticatedEntity get(Identifier id) throws IllegalArgumentException {
+    MerkleProof proof;
+    if (id == null) {
+      throw new IllegalArgumentException("identifier cannot be null");
+    }
     try {
       lock.readLock().lock();
-      hasBoolean = merkleTreeMap.containsKey(tree.getBytes());
+      proof = getProof(id);
+      Entity e = entityHashTable.get(id);
+      return new MerkleTreeAuthenticatedEntity(proof, e.type(), e);
     } finally {
       lock.readLock().unlock();
     }
-    return hasBoolean;
   }
 
-  @Override
-  public boolean remove(MerkleTree tree) {
-    return merkleTreeMap.remove(tree.getBytes(), tree.getBytes());
-  }
-
-  @Override
-  public ArrayList<MerkleTree> all() {
-    ArrayList<MerkleTree> trees = new ArrayList<>();
-    for (byte[] element : merkleTreeMap.keySet()) {
-      try {
-      ByteArrayInputStream bis = new ByteArrayInputStream(element);
-      ObjectInputStream inp = null;
-      inp = new ObjectInputStream(bis);
-      MerkleTree tree = (MerkleTree) inp.readObject();
-      /*
-      Gson gson = new Gson();
-      String json = new String(element.clone(), StandardCharsets.UTF_8);
-      MerkleTree tree = gson.fromJson(json, MerkleTree.class);
-       */
-      trees.add(tree);
-      } catch (IOException e) {
-        e.printStackTrace();
-      } catch (ClassNotFoundException e) {
-        throw new RuntimeException(e);
-      }
+  private MerkleProof getProof(Identifier id) throws IllegalArgumentException {
+    ArrayList<Boolean> isLeftNode = new ArrayList<>();
+    Sha3256Hash hash = new Sha3256Hash(id.getBytes());
+    Integer idx = leafNodesHashTable.get(hash);
+    if (idx == null) {
+      throw new IllegalArgumentException("identifier not found");
     }
-    return trees;
+    ArrayList<Sha3256Hash> path = new ArrayList<>();
+    MerkleNode currentNode = leafNodes.get(idx);
+    while (currentNode != root) {
+      path.add(currentNode.getSibling().getHash());
+      isLeftNode.add(currentNode.isLeft());
+      currentNode = currentNode.getParent();
+    }
+    return new MerkleProof(path, root.getHash(), isLeftNode);
+  }
+
+  private void buildMerkleTree() {
+    // keeps nodes of the current level of the merkle tree
+    // will be updated bottom up
+    // initialized with leaves
+    ArrayList<MerkleNode> currentLevelNodes = new ArrayList<>(leafNodes);
+
+    // keeps nodes of the next level of merkle tree
+    // used as an intermediary data structure.
+    ArrayList<MerkleNode> nextLevelNodes = new ArrayList<>();
+
+    while (currentLevelNodes.size() > 1) { // more than one current node, means we have not yet reached root.
+      for (int i = 0; i < currentLevelNodes.size(); i += 2) {
+        // pairs up current level nodes as siblings for next level.
+        MerkleNode left = currentLevelNodes.get(i);
+        left.setLeft(true);
+
+        MerkleNode right;
+        if (i + 1 < currentLevelNodes.size()) {
+          right = currentLevelNodes.get(i + 1); // we have a right node
+        } else {
+          // TODO: edge case need to get fixed.
+          right = new MerkleNode(left.getHash());
+        }
+        Sha3256Hash hash = hasher.computeHash(left.getHash().getBytes(), right.getHash().getBytes());
+        MerkleNode parent = new MerkleNode(hash, left, right);
+        left.setParent(parent);
+        right.setParent(parent);
+        nextLevelNodes.add(parent);
+      }
+      currentLevelNodes = nextLevelNodes;
+      nextLevelNodes = new ArrayList<>();
+    }
+    root = currentLevelNodes.get(0);
+  }
+
+  public int size() {
+    return this.size;
+  }
+
+  public byte[] getBytes() {
+    try {
+      ByteArrayOutputStream bos = new ByteArrayOutputStream();
+      ObjectOutputStream out = null;
+      out = new ObjectOutputStream(bos);
+      out.writeObject(this);
+      out.flush();
+      byte[] bytes = bos.toByteArray();
+      return bytes;
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+    return null;
   }
 
   public void closeDb() {
-    db.close();
+    merkleNodeMapDb.closeDb();
+    entityMapDb.closeDb();
   }
 }
