@@ -10,7 +10,7 @@ public class MerkleTreeFixture {
    * Creates a new skip list with n random elements.
    *
    * @param n number of elements to create
-   * @return a new skip list with n random elements
+   * @return a new merkle tree with n random elements.
    */
   public static MerkleTree createMerkleTree(int n) {
     MerkleTree merkleTree = new MerkleTree();
