@@ -11,7 +11,7 @@ import modules.ads.MembershipProof;
 /**
  * A proof of membership in a Merkle tree.
  */
-public class Proof implements MembershipProof {
+public class MerkleProof implements MembershipProof {
   private ArrayList<Sha3256Hash> path;
   private ArrayList<Boolean> isLeftNode;
   private Sha3256Hash root;
@@ -23,7 +23,7 @@ public class Proof implements MembershipProof {
    * @param root the root
    * @param isLeftNode the list of isLeft Boolean values of the hashes
    */
-  public Proof(ArrayList<Sha3256Hash> path, Sha3256Hash root, ArrayList<Boolean> isLeftNode) {
+  public MerkleProof(ArrayList<Sha3256Hash> path, Sha3256Hash root, ArrayList<Boolean> isLeftNode) {
     this.path = new ArrayList<>(path);
     this.root = root;
     this.isLeftNode = new ArrayList<>(isLeftNode);
@@ -43,18 +43,8 @@ public class Proof implements MembershipProof {
     return isLeftNode;
   }
 
-  @SuppressFBWarnings(value = "EI_EXPOSE_REP2", justification = "setIsLeftNode is intentionally mutable externally")
-  public void setIsLeftNode(ArrayList<Boolean> isLeftNode) {
-    this.isLeftNode = isLeftNode;
-  }
-
   public Sha3256Hash getRoot() {
     return root;
-  }
-
-  @Override
-  public void setRoot(Sha3256Hash root) {
-    this.root = root;
   }
 
   @Override
@@ -65,7 +55,7 @@ public class Proof implements MembershipProof {
     if (o == null || getClass() != o.getClass()) {
       return false;
     }
-    Proof proof = (Proof) o;
+    MerkleProof proof = (MerkleProof) o;
     for (int i = 0; i < path.size(); i++) {
       if (!Arrays.equals(path.get(i).getBytes(), proof.path.get(i).getBytes())) {
         return false;

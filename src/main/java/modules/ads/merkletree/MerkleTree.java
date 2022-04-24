@@ -51,10 +51,10 @@ public class MerkleTree implements AuthenticatedDataStructure {
         entityHashTable.put(e.id(), e);
         size++;
         buildMerkleTree();
-        Proof proof = getProof(e.id());
+        MerkleProof proof = getProof(e.id());
         return new MerkleTreeAuthenticatedEntity(proof, e.type(), e);
       } else {
-        Proof proof = getProof(e.id());
+        MerkleProof proof = getProof(e.id());
         return new MerkleTreeAuthenticatedEntity(proof, e.type(), e);
       }
     } finally {
@@ -64,7 +64,7 @@ public class MerkleTree implements AuthenticatedDataStructure {
 
   @Override
   public modules.ads.AuthenticatedEntity get(Identifier id) throws IllegalArgumentException {
-    Proof proof;
+    MerkleProof proof;
     if (id == null) {
       throw new IllegalArgumentException("Identifier cannot be null");
     }
@@ -78,7 +78,7 @@ public class MerkleTree implements AuthenticatedDataStructure {
     return new MerkleTreeAuthenticatedEntity(proof, e.type(), e);
   }
 
-  private Proof getProof(Identifier id) throws IllegalArgumentException {
+  private MerkleProof getProof(Identifier id) throws IllegalArgumentException {
     ArrayList<Boolean> isLeftNode = new ArrayList<>();
     Sha3256Hash hash = new Sha3256Hash(id.getBytes());
     Integer idx = leafNodesHashTable.get(hash);
@@ -92,7 +92,7 @@ public class MerkleTree implements AuthenticatedDataStructure {
       isLeftNode.add(currNode.isLeft());
       currNode = currNode.getParent();
     }
-    return new Proof(path, root.getHash(), isLeftNode);
+    return new MerkleProof(path, root.getHash(), isLeftNode);
   }
 
   private void buildMerkleTree() {
