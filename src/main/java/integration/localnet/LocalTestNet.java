@@ -9,10 +9,13 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.TimeUnit;
 
 import com.github.dockerjava.api.DockerClient;
+import com.github.dockerjava.api.async.ResultCallbackTemplate;
 import com.github.dockerjava.api.command.BuildImageResultCallback;
 import com.github.dockerjava.api.command.CreateContainerResponse;
 import com.github.dockerjava.api.model.Bind;
+import com.github.dockerjava.api.model.Frame;
 import com.github.dockerjava.api.model.HostConfig;
+import com.github.dockerjava.core.command.LogContainerResultCallback;
 import metrics.integration.MetricsTestNet;
 import model.lightchain.Identifier;
 
@@ -140,22 +143,37 @@ public class LocalTestNet extends MetricsTestNet {
     for (int i = 0; i < nodeCount; i++) {
       int finalI = i;
       containerThreads[i] = new Thread(() -> {
+
+        try {
+          TimeUnit.MILLISECONDS.sleep(1000);
+        } catch (InterruptedException e) {
+          System.err.println("thread operation interrupted: " + e);
+        }
+
         dockerClient
                 .startContainerCmd(containers.get(finalI).getId())
                 .exec();
 
-        dockerClient.logContainerCmd(containers.get(finalI).getId());
+        dockerClient
+                .logContainerCmd(containers.get(finalI).getId())
+                .withStdErr(true)
+                .withStdOut(true)
+                .withFollowStream(true)
+                .withSince((int) (System.currentTimeMillis() / 1000))
+                .exec(new ResultCallbackTemplate<LogContainerResultCallback, Frame>() {
+                  @Override
+                  public void onNext(Frame frame) {
+                    System.out.print("Node " + finalI + "> " + new String(frame.getPayload()));
+                  }
+                });
 
         System.out.println("Node " + finalI + " is up and running!");
+
+        while(true);
       });
     }
 
     for (Thread t : containerThreads) {
-      try {
-        TimeUnit.MILLISECONDS.sleep(100);
-      } catch (InterruptedException e) {
-        System.err.println("thread operation interrupted: " + e);
-      }
       t.start();
     }
 

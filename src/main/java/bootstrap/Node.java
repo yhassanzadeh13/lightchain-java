@@ -52,10 +52,6 @@ public class Node {
 
     System.out.println("Hello world! I'm Node at Port: " + network.getPort());
     System.out.println("My ID is: " + myId);
-    System.out.println("ID Table Database AFAIK: ");
-    for (Map.Entry<Identifier, String> id : idTable.entrySet()) {
-      System.out.println(id.getKey() + " " + idTable.get(id.getKey()));
-    }
 
     sendHelloMessagesToAll();
 
