@@ -6,7 +6,7 @@ import modules.ads.MembershipProof;
 /**
  * An entity with its membership proof and type.
  */
-public class AuthenticatedLightChainEntity extends modules.ads.AuthenticatedEntity {
+public class AuthenticatedEntity extends modules.ads.AuthenticatedEntity {
   private MembershipProof membershipProof;
   private String type;
   private Entity entity;
@@ -18,7 +18,7 @@ public class AuthenticatedLightChainEntity extends modules.ads.AuthenticatedEnti
    * @param type  the type of the entity
    * @param e     the entity
    */
-  public AuthenticatedLightChainEntity(Proof proof, String type, Entity e) {
+  public AuthenticatedEntity(Proof proof, String type, Entity e) {
     this.membershipProof = new Proof(proof.getPath(), proof.getRoot(), proof.getIsLeftNode());
     this.type = type;
     this.entity = e;

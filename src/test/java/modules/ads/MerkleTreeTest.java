@@ -8,8 +8,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import model.Entity;
 import model.crypto.Sha3256Hash;
 import model.lightchain.Identifier;
+import modules.ads.merkletree.AuthenticatedEntityVerifier;
 import modules.ads.merkletree.MerkleTree;
-import modules.ads.merkletree.Verifier;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import unittest.fixtures.EntityFixture;
@@ -21,15 +21,19 @@ import unittest.fixtures.MerkleTreeFixture;
 public class MerkleTreeTest {
 
   /**
-   * A basic test for one concurrent put and get operations.
+   * A basic test for one sequential put and get operations.
    */
   @Test
   public void testVerification() {
     MerkleTree merkleTree = MerkleTreeFixture.createMerkleTree(5);
+    Assertions.assertEquals(merkleTree.size(), 5); // fixture sanity check.
+
     Entity entity = new EntityFixture();
     merkleTree.put(entity);
+    Assertions.assertEquals(merkleTree.size(), 6);
+
     AuthenticatedEntity authenticatedEntity = merkleTree.get(entity.id());
-    Verifier verifier = new Verifier();
+    AuthenticatedEntityVerifier verifier = new AuthenticatedEntityVerifier();
     Assertions.assertTrue(verifier.verify(authenticatedEntity));
   }
 
@@ -40,16 +44,31 @@ public class MerkleTreeTest {
   @Test
   public void testPutGetSameProof() {
     MerkleTree merkleTree = MerkleTreeFixture.createMerkleTree(5);
-    Entity entity1 = new EntityFixture();
-    AuthenticatedEntity authenticatedEntityPut = merkleTree.put(entity1);
-    MembershipProof proofPut = authenticatedEntityPut.getMembershipProof();
-    AuthenticatedEntity authenticatedEntityGet = merkleTree.get(entity1.id());
-    MembershipProof proofGet = authenticatedEntityGet.getMembershipProof();
-    Entity entity2 = new EntityFixture();
-    AuthenticatedEntity authenticatedEntityPut2 = merkleTree.put(entity2);
-    MembershipProof proofPut2 = authenticatedEntityPut2.getMembershipProof();
-    Assertions.assertEquals(proofPut, proofGet);
-    Assertions.assertNotEquals(proofPut, proofPut2);
+    Assertions.assertEquals(merkleTree.size(), 5); // fixture sanity check.
+    Entity e1 = new EntityFixture();
+
+    // putting e1
+    AuthenticatedEntity authenticatedEntityPut = merkleTree.put(e1);
+    MembershipProof proofPutE1 = authenticatedEntityPut.getMembershipProof();
+    Assertions.assertEquals(merkleTree.size(), 6);
+
+    // getting e1
+    AuthenticatedEntity authE1Get = merkleTree.get(e1.id());
+    MembershipProof proofGetE1 = authE1Get.getMembershipProof();
+
+    // putting e2
+    Entity e2 = new EntityFixture();
+    AuthenticatedEntity authE2Put = merkleTree.put(e2);
+    Assertions.assertEquals(merkleTree.size(), 7);
+
+    // getting e2
+    MembershipProof proofPutE2 = authE2Put.getMembershipProof();
+
+    // proofs for putting and getting e1 should be the same.
+    Assertions.assertEquals(proofPutE1, proofGetE1);
+
+    // proofs for putting e1 and e2 must be different.
+    Assertions.assertNotEquals(proofPutE1, proofPutE2);
   }
 
   /**
@@ -110,7 +129,7 @@ public class MerkleTreeTest {
       getThreads[i] = new Thread(() -> {
         try {
           AuthenticatedEntity authenticatedEntity = merkleTree.get(id);
-          Verifier verifier = new Verifier();
+          AuthenticatedEntityVerifier verifier = new AuthenticatedEntityVerifier();
           if (!verifier.verify(authenticatedEntity)) {
             threadError.getAndIncrement();
           }
@@ -166,7 +185,7 @@ public class MerkleTreeTest {
     MembershipProof proof = authenticatedEntity.getMembershipProof();
     proof.setRoot(new Sha3256Hash(new byte[32]));
     authenticatedEntity.setMembershipProof(proof);
-    Verifier verifier = new Verifier();
+    AuthenticatedEntityVerifier verifier = new AuthenticatedEntityVerifier();
     Assertions.assertFalse(verifier.verify(authenticatedEntity));
   }
 
@@ -179,7 +198,7 @@ public class MerkleTreeTest {
     Entity entity = new EntityFixture();
     AuthenticatedEntity authenticatedEntity = merkleTree.put(entity);
     authenticatedEntity.setEntity(new EntityFixture());
-    Verifier verifier = new Verifier();
+    AuthenticatedEntityVerifier verifier = new AuthenticatedEntityVerifier();
     Assertions.assertFalse(verifier.verify(authenticatedEntity));
   }
 
@@ -196,7 +215,7 @@ public class MerkleTreeTest {
     proofPath.set(0, new Sha3256Hash(new byte[32]));
     proof.setPath(proofPath);
     authenticatedEntity.setMembershipProof(proof);
-    Verifier verifier = new Verifier();
+    AuthenticatedEntityVerifier verifier = new AuthenticatedEntityVerifier();
     Assertions.assertFalse(verifier.verify(authenticatedEntity));
   }
 }

@@ -6,13 +6,12 @@ import java.util.Arrays;
 import crypto.Sha3256Hasher;
 import model.crypto.Sha3256Hash;
 import modules.ads.AuthenticatedEntity;
-import modules.ads.AuthenticatedEntityVerifier;
 import modules.ads.MembershipProof;
 
 /**
  * Verifies the AuthenticatedEntity against its self-contained proof.
  */
-public class Verifier implements AuthenticatedEntityVerifier {
+public class AuthenticatedEntityVerifier implements modules.ads.AuthenticatedEntityVerifier {
   private static final Sha3256Hasher hasher = new Sha3256Hasher();
 
   /**

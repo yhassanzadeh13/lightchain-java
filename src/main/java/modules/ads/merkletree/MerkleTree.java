@@ -10,7 +10,6 @@ import model.Entity;
 import model.crypto.Sha3256Hash;
 import model.lightchain.Identifier;
 import modules.ads.AuthenticatedDataStructure;
-import modules.ads.AuthenticatedEntity;
 
 /**
  * Implementation of an in-memory Authenticated Skip List
@@ -38,7 +37,7 @@ public class MerkleTree implements AuthenticatedDataStructure {
   }
 
   @Override
-  public AuthenticatedEntity put(Entity e) throws IllegalArgumentException {
+  public modules.ads.AuthenticatedEntity put(Entity e) throws IllegalArgumentException {
     try {
       lock.writeLock().lock();
       if (e == null) {
@@ -53,10 +52,10 @@ public class MerkleTree implements AuthenticatedDataStructure {
         size++;
         buildMerkleTree();
         Proof proof = getProof(e.id());
-        return new AuthenticatedLightChainEntity(proof, e.type(), e);
+        return new AuthenticatedEntity(proof, e.type(), e);
       } else {
         Proof proof = getProof(e.id());
-        return new AuthenticatedLightChainEntity(proof, e.type(), e);
+        return new AuthenticatedEntity(proof, e.type(), e);
       }
     } finally {
       lock.writeLock().unlock();
@@ -64,7 +63,7 @@ public class MerkleTree implements AuthenticatedDataStructure {
   }
 
   @Override
-  public AuthenticatedEntity get(Identifier id) throws IllegalArgumentException {
+  public modules.ads.AuthenticatedEntity get(Identifier id) throws IllegalArgumentException {
     Proof proof;
     if (id == null) {
       throw new IllegalArgumentException("Identifier cannot be null");
@@ -76,7 +75,7 @@ public class MerkleTree implements AuthenticatedDataStructure {
       lock.readLock().unlock();
     }
     Entity e = entityHashTable.get(id);
-    return new AuthenticatedLightChainEntity(proof, e.type(), e);
+    return new AuthenticatedEntity(proof, e.type(), e);
   }
 
   private Proof getProof(Identifier id) throws IllegalArgumentException {
@@ -122,5 +121,9 @@ public class MerkleTree implements AuthenticatedDataStructure {
       parentNodes = new ArrayList<>();
     }
     root = childNodes.get(0);
+  }
+
+  public int size() {
+    return this.size;
   }
 }
