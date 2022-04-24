@@ -200,7 +200,7 @@ public class MerkleTreeTest {
 
     for (int i = 0; i < concurrencyDegree; i++) {
       Entity entity;
-      if (type == EntityType.TYPE_ACCOUNT) {
+      if (type.equals(EntityType.TYPE_ACCOUNT)) {
         entity = AccountFixture.newAccount(IdentifierFixture.newIdentifier());
       } else {
         entity = new EntityFixture();
@@ -273,9 +273,7 @@ public class MerkleTreeTest {
     entity = entity != null ? entity : new EntityFixture();
     Entity finalEntity = entity;
     MerkleTree finalMerkleTree = merkleTree;
-    Assertions.assertThrows(IllegalArgumentException.class, () -> {
-      finalMerkleTree.get(finalEntity.id());
-    });
+    Assertions.assertThrows(IllegalArgumentException.class, () -> finalMerkleTree.get(finalEntity.id()));
   }
 
   /**
@@ -287,9 +285,7 @@ public class MerkleTreeTest {
     merkleTree = merkleTree != null ? merkleTree : MerkleTreeFixture.createMerkleTree(5);
     Assertions.assertEquals(merkleTree.size(), 5); // fixture sanity check.
     MerkleTree finalMerkleTree = merkleTree;
-    Assertions.assertThrows(IllegalArgumentException.class, () -> {
-      finalMerkleTree.put(null);
-    });
+    Assertions.assertThrows(IllegalArgumentException.class, () -> finalMerkleTree.put(null));
   }
 
   /**
