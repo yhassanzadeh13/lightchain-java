@@ -62,8 +62,7 @@ public class Sha3256Hasher implements Hasher {
    *
    * @param b1 first byte array.
    * @param b2 second byte array.
-   * @return SHA3-256 hash object of the commutative concatenation (i.e. max(b1,b2) || min(b1,b2))
-   * of the two byte arrays.
+   * @return SHA3-256 hash object of the commutative concatenation of the two byte arrays.
    */
   public Sha3256Hash computeHash(byte[] b1, byte[] b2) {
     try {
