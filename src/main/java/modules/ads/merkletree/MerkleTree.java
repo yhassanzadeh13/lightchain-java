@@ -86,41 +86,48 @@ public class MerkleTree implements AuthenticatedDataStructure {
       throw new IllegalArgumentException("identifier not found");
     }
     ArrayList<Sha3256Hash> path = new ArrayList<>();
-    MerkleNode currNode = leafNodes.get(idx);
-    while (currNode != root) {
-      path.add(currNode.getSibling().getHash());
-      isLeftNode.add(currNode.isLeft());
-      currNode = currNode.getParent();
+    MerkleNode currentNode = leafNodes.get(idx);
+    while (currentNode != root) {
+      path.add(currentNode.getSibling().getHash());
+      isLeftNode.add(currentNode.isLeft());
+      currentNode = currentNode.getParent();
     }
     return new MerkleProof(path, root.getHash(), isLeftNode);
   }
 
   private void buildMerkleTree() {
-    ArrayList<MerkleNode> parentNodes = new ArrayList<>();
-    ArrayList<MerkleNode> childNodes = new ArrayList<>(leafNodes);
-    while (childNodes.size() > 1) {
-      int idx = 0;
-      int len = childNodes.size();
-      while (idx < len) {
-        MerkleNode left = childNodes.get(idx);
+    // keeps nodes of the current level of the merkle tree
+    // will be updated bottom up
+    // initialized with leaves
+    ArrayList<MerkleNode> currentLevelNodes = new ArrayList<>(leafNodes);
+
+    // keeps nodes of the next level of merkle tree
+    // used as an intermediary data structure.
+    ArrayList<MerkleNode> nextLevelNodes = new ArrayList<>();
+
+    while (currentLevelNodes.size() > 1) { // more than one current node, means we have not yet reached root.
+      for (int i = 0; i < currentLevelNodes.size(); i += 2) {
+        // pairs up current level nodes as siblings for next level.
+        MerkleNode left = currentLevelNodes.get(i);
         left.setLeft(true);
+
         MerkleNode right;
-        if (idx + 1 < len) {
-          right = childNodes.get(idx + 1);
+        if (i + 1 < currentLevelNodes.size()) {
+          right = currentLevelNodes.get(i + 1); // we have a right node
         } else {
+          // TODO: edge case need to get fixed.
           right = new MerkleNode(left.getHash());
         }
         Sha3256Hash hash = hasher.computeHash(left.getHash().getBytes(), right.getHash().getBytes());
         MerkleNode parent = new MerkleNode(hash, left, right);
         left.setParent(parent);
         right.setParent(parent);
-        parentNodes.add(parent);
-        idx += 2;
+        nextLevelNodes.add(parent);
       }
-      childNodes = parentNodes;
-      parentNodes = new ArrayList<>();
+      currentLevelNodes = nextLevelNodes;
+      nextLevelNodes = new ArrayList<>();
     }
-    root = childNodes.get(0);
+    root = currentLevelNodes.get(0);
   }
 
   public int size() {
