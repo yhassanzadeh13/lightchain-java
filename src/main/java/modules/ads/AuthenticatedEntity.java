@@ -7,7 +7,7 @@ import model.Entity;
  * that entity against a root identifier.
  */
 public abstract class AuthenticatedEntity extends Entity {
-  abstract Entity getEntity();
+  public abstract Entity getEntity();
 
-  abstract MembershipProof getMembershipProof();
+  public abstract MembershipProof getMembershipProof();
 }
