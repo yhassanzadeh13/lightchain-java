@@ -8,10 +8,10 @@ import java.util.concurrent.atomic.AtomicInteger;
 import model.Entity;
 import model.crypto.Sha3256Hash;
 import model.lightchain.Identifier;
-import modules.ads.merkletree.MerkleTreeAuthenticatedEntityVerifier;
+import modules.ads.merkletree.MerkleProof;
 import modules.ads.merkletree.MerkleTree;
 import modules.ads.merkletree.MerkleTreeAuthenticatedEntity;
-import modules.ads.merkletree.MerkleProof;
+import modules.ads.merkletree.MerkleTreeAuthenticatedEntityVerifier;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import unittest.fixtures.EntityFixture;
@@ -217,7 +217,6 @@ public class MerkleTreeTest {
         authenticatedEntity.type(),
         authenticatedEntity.getEntity());
 
-
     MerkleTreeAuthenticatedEntityVerifier verifier = new MerkleTreeAuthenticatedEntityVerifier();
     // authenticated entity must be verified.
     Assertions.assertTrue(verifier.verify(authenticatedEntity));
@@ -264,7 +263,6 @@ public class MerkleTreeTest {
             proof.getIsLeftNode()),
         authenticatedEntity.type(),
         authenticatedEntity.getEntity());
-
 
     MerkleTreeAuthenticatedEntityVerifier verifier = new MerkleTreeAuthenticatedEntityVerifier();
     Assertions.assertTrue(verifier.verify(authenticatedEntity)); // original authenticated entity passes verification.

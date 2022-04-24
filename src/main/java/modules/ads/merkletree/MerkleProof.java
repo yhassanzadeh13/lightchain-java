@@ -13,14 +13,14 @@ import modules.ads.MembershipProof;
  */
 public class MerkleProof implements MembershipProof {
   private ArrayList<Sha3256Hash> path;
-  private ArrayList<Boolean> isLeftNode;
-  private Sha3256Hash root;
+  private final ArrayList<Boolean> isLeftNode;
+  private final Sha3256Hash root;
 
   /**
    * Constructs a proof from a list of hashes and a root.
    *
-   * @param path the list of hashes
-   * @param root the root
+   * @param path       the list of hashes
+   * @param root       the root
    * @param isLeftNode the list of isLeft Boolean values of the hashes
    */
   public MerkleProof(ArrayList<Sha3256Hash> path, Sha3256Hash root, ArrayList<Boolean> isLeftNode) {

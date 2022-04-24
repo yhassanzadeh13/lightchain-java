@@ -22,6 +22,5 @@ public interface MembershipProof {
    */
   ArrayList<Sha3256Hash> getPath();
 
-
   ArrayList<Boolean> getIsLeftNode();
 }

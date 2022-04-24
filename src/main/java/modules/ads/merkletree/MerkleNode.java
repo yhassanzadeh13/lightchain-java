@@ -80,11 +80,6 @@ public class MerkleNode {
     return right;
   }
 
-  @SuppressFBWarnings(value = "EI_EXPOSE_REP2", justification = "right is intentionally mutable externally")
-  public void setRight(MerkleNode right) {
-    this.right = right;
-  }
-
   @SuppressFBWarnings(value = "EI_EXPOSE_REP", justification = "internal representation is intentionally returned")
   public MerkleNode getParent() {
     return parent;
@@ -99,17 +94,8 @@ public class MerkleNode {
     return hash;
   }
 
-  public void setHash(Sha3256Hash hash) {
-    this.hash = hash;
-  }
-
   public boolean isLeft() {
     return isLeft;
-  }
-
-  @SuppressFBWarnings(value = "EI_EXPOSE_REP2", justification = "left is intentionally mutable externally")
-  public void setLeft(MerkleNode left) {
-    this.left = left;
   }
 
   public void setLeft(boolean isLeft) {
@@ -128,5 +114,4 @@ public class MerkleNode {
       return parent.getLeft();
     }
   }
-
 }

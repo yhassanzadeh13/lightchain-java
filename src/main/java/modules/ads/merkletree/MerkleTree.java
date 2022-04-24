@@ -41,7 +41,7 @@ public class MerkleTree implements AuthenticatedDataStructure {
     try {
       lock.writeLock().lock();
       if (e == null) {
-        throw new IllegalArgumentException("Entity cannot be null");
+        throw new IllegalArgumentException("entity cannot be null");
       }
       Sha3256Hash hash = new Sha3256Hash(e.id().getBytes());
       Integer idx = leafNodesHashTable.get(hash);
@@ -66,16 +66,16 @@ public class MerkleTree implements AuthenticatedDataStructure {
   public modules.ads.AuthenticatedEntity get(Identifier id) throws IllegalArgumentException {
     MerkleProof proof;
     if (id == null) {
-      throw new IllegalArgumentException("Identifier cannot be null");
+      throw new IllegalArgumentException("identifier cannot be null");
     }
     try {
       lock.readLock().lock();
       proof = getProof(id);
+      Entity e = entityHashTable.get(id);
+      return new MerkleTreeAuthenticatedEntity(proof, e.type(), e);
     } finally {
       lock.readLock().unlock();
     }
-    Entity e = entityHashTable.get(id);
-    return new MerkleTreeAuthenticatedEntity(proof, e.type(), e);
   }
 
   private MerkleProof getProof(Identifier id) throws IllegalArgumentException {
@@ -83,7 +83,7 @@ public class MerkleTree implements AuthenticatedDataStructure {
     Sha3256Hash hash = new Sha3256Hash(id.getBytes());
     Integer idx = leafNodesHashTable.get(hash);
     if (idx == null) {
-      throw new IllegalArgumentException("Identifier not found");
+      throw new IllegalArgumentException("identifier not found");
     }
     ArrayList<Sha3256Hash> path = new ArrayList<>();
     MerkleNode currNode = leafNodes.get(idx);
