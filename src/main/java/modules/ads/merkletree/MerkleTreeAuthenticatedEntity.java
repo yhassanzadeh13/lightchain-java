@@ -7,9 +7,9 @@ import modules.ads.MembershipProof;
  * An entity with its membership proof and type.
  */
 public class MerkleTreeAuthenticatedEntity extends modules.ads.AuthenticatedEntity {
-  private MembershipProof membershipProof;
-  private String type;
-  private Entity entity;
+  private final MembershipProof membershipProof;
+  private final String type;
+  private final Entity entity;
 
   /**
    * Constructor of an authenticated entity.
@@ -29,26 +29,13 @@ public class MerkleTreeAuthenticatedEntity extends modules.ads.AuthenticatedEnti
     return type;
   }
 
-  public void setType(String type) {
-    this.type = type;
-  }
-
   @Override
   public Entity getEntity() {
     return entity;
   }
 
-  public void setEntity(Entity entity) {
-    this.entity = entity;
-  }
-
   @Override
   public MembershipProof getMembershipProof() {
     return new Proof(membershipProof.getPath(), membershipProof.getRoot(), membershipProof.getIsLeftNode());
-  }
-
-  public void setMembershipProof(MembershipProof membershipProof) {
-    this.membershipProof = new Proof(membershipProof.getPath(), membershipProof.getRoot(),
-            membershipProof.getIsLeftNode());
   }
 }
