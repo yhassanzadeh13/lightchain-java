@@ -32,6 +32,7 @@ public class ValidatorEngine implements Engine {
     this.local = local;
     this.con = net.register(this, "validator");
     this.state = state;
+    //System.out.println("ValidatorEngine started"+net.register(this, "validator"));
   }
 
   private static final ReentrantLock lock = new ReentrantLock();
@@ -72,14 +73,11 @@ public class ValidatorEngine implements Engine {
           }
         }
       } else if (e.type().equals(EntityType.TYPE_VALIDATED_TRANSACTION)) {
-        //System.out.println(assigner.assign(e.id(), state.atBlockId(((Transaction) e).getReferenceBlockId()),
-            //(short) Parameters.VALIDATOR_THRESHOLD));
         Assignment assignment = assigner.assign(e.id(), state.atBlockId(((Transaction) e).getReferenceBlockId()),
             (short) Parameters.VALIDATOR_THRESHOLD);
-        //System.out.println(isTransactionValidated((Transaction) e));
         //TODO: remove not and add &&
 
-        if (!isTransactionValidated((Transaction) e) || assignment.has(currentNode)) {
+        if (isTransactionValidated((Transaction) e) || assignment.has(currentNode)) {
           Transaction tx = (Transaction) e;
           Signature sign = this.local.signEntity(tx);
           try {
@@ -104,6 +102,7 @@ public class ValidatorEngine implements Engine {
 
   private boolean isTransactionValidated(Transaction t) {
     TransactionValidator verifier = new TransactionValidator(state);
+    System.out.println(verifier.isAuthenticated(t));
     return verifier.isSound(t) && verifier.senderHasEnoughBalance(t) && verifier.isAuthenticated(t) && verifier.isCorrect(t);
   }
 }

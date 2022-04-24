@@ -111,7 +111,7 @@ public class ValidatorEngineTest {
 
     Assertions.assertEquals(0, threadErrorCount.get());*/
   }
-
+  ValidatorEngine engine;
   @Test
   public void testReceiveTwoValidTransactionConcurrently() {
     // Arrange
@@ -120,7 +120,8 @@ public class ValidatorEngineTest {
     Local local = new Local(localId, privateKey);
 
     Network net = mock(Network.class);
-    Conduit conduit = mock(Conduit.class);
+    NetworkAdapter networkAdapter = mock(NetworkAdapter.class);
+    Conduit conduit = new MockConduit("validator", networkAdapter);
 
     Block prevBlock = BlockFixture.newBlock();
     Block block = BlockFixture.newBlock(prevBlock.id(),prevBlock.getHeight()+1);
@@ -142,8 +143,9 @@ public class ValidatorEngineTest {
     when(prevSnapshot.getReferenceBlockId()).thenReturn(prevBlock.id());
     when(prevSnapshot.getReferenceBlockHeight()).thenReturn((long) prevBlock.getHeight());
 
-    ValidatorEngine engine = new ValidatorEngine(net, local, state);
     when(net.register(engine, "validator")).thenReturn(conduit);
+    engine = new ValidatorEngine(net, local, state);
+
 
     ArrayList<ValidatedTransaction> transactions = new ArrayList<>();
     for (int i = 0; i < 2; i++) {
@@ -157,7 +159,7 @@ public class ValidatorEngineTest {
     when(state.atBlockId(snapshot.all().get(0).getLastBlockId())).thenReturn(senderLastSnapshot1);
     when(state.atBlockId(snapshot.all().get(1).getLastBlockId())).thenReturn(senderLastSnapshot2);
 
-    System.out.println(transactions.get(0).getSender());
+    System.out.println("sign is "+transactions.get(0).getSignature());
     AtomicInteger threadErrorCount = new AtomicInteger();
     CountDownLatch done = new CountDownLatch(1);
     engine.process(transactions.get(0));
@@ -170,7 +172,6 @@ public class ValidatorEngineTest {
         } catch (IllegalArgumentException ex) {
           threadErrorCount.incrementAndGet();
         }
-
         done.countDown();
       });
     }

@@ -24,7 +24,10 @@ public class ValidatedTransactionFixture {
     for (int i = 0; i < certificatesSize; i++) {
       certificates[i] = SignatureFixture.newSignatureFixture();
     }
-    return new ValidatedTransaction(referenceBlockId, sender, receiver, amount, certificates);
+    ValidatedTransaction valTrans = new ValidatedTransaction(referenceBlockId, sender, receiver, amount, certificates);
+    Signature sign = SignatureFixture.newSignatureFixture();
+    valTrans.setSignature(sign);
+    return valTrans;
   }
 
   /**
@@ -42,7 +45,10 @@ public class ValidatedTransactionFixture {
     for (int i = 0; i < certificatesSize; i++) {
       certificates[i] = SignatureFixture.newSignatureFixture();
     }
-    return new ValidatedTransaction(referenceBlockId, sender, receiver, amount, certificates);
+    ValidatedTransaction valTrans = new ValidatedTransaction(referenceBlockId, sender, receiver, amount, certificates);
+    Signature sign = SignatureFixture.newSignatureFixture();
+    valTrans.setSignature(sign);
+    return valTrans;
   }
 
 
@@ -61,7 +67,10 @@ public class ValidatedTransactionFixture {
     for (int i = 0; i < certificatesSize; i++) {
       certificates[i] = SignatureFixture.newSignatureFixture();
     }
-    return new ValidatedTransaction(referenceBlockId, sender, receiver, amount, certificates);
+    ValidatedTransaction valTrans = new ValidatedTransaction(referenceBlockId, sender, receiver, amount, certificates);
+    Signature sign = SignatureFixture.newSignatureFixture();
+    valTrans.setSignature(sign);
+    return valTrans;
   }
 
   /**
@@ -79,7 +88,10 @@ public class ValidatedTransactionFixture {
     for (int i = 0; i < certificatesSize; i++) {
       certificates[i] = SignatureFixture.newSignatureFixture();
     }
-    return new ValidatedTransaction(referenceBlockId, sender, receiver, amount, certificates);
+    ValidatedTransaction valTrans = new ValidatedTransaction(referenceBlockId, sender, receiver, amount, certificates);
+    Signature sign = SignatureFixture.newSignatureFixture();
+    valTrans.setSignature(sign);
+    return valTrans;
   }
 
   /**
@@ -98,6 +110,9 @@ public class ValidatedTransactionFixture {
     for (int i = 0; i < certificatesSize; i++) {
       certificates[i] = SignatureFixture.newSignatureFixture();
     }
-    return new ValidatedTransaction(referenceBlockId, sender, receiver, amount, certificates);
+    ValidatedTransaction valTrans = new ValidatedTransaction(referenceBlockId, sender, receiver, amount, certificates);
+    Signature sign = SignatureFixture.newSignatureFixture();
+    valTrans.setSignature(sign);
+    return valTrans;
   }
 }
