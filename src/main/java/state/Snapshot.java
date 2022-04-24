@@ -31,7 +31,7 @@ public interface Snapshot {
    * @return account corresponding to the given identifier at this snapshot, or null if such an account
    * does not exist.
    */
-  Entity getAccount(Identifier identifier);
+  Account getAccount(Identifier identifier);
 
   /**
    * The list of accounts in this snapshot.
