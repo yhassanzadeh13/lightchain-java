@@ -8,7 +8,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import model.Entity;
 import model.crypto.Sha3256Hash;
 import model.lightchain.Identifier;
-import modules.ads.merkletree.AuthenticatedEntityVerifier;
+import modules.ads.merkletree.MerkleTreeAuthenticatedEntityVerifier;
 import modules.ads.merkletree.MerkleTree;
 import modules.ads.merkletree.MerkleTreeAuthenticatedEntity;
 import modules.ads.merkletree.MerkleProof;
@@ -36,7 +36,7 @@ public class MerkleTreeTest {
     Assertions.assertEquals(merkleTree.size(), 6);
 
     AuthenticatedEntity authenticatedEntity = merkleTree.get(entity.id());
-    AuthenticatedEntityVerifier verifier = new AuthenticatedEntityVerifier();
+    MerkleTreeAuthenticatedEntityVerifier verifier = new MerkleTreeAuthenticatedEntityVerifier();
     Assertions.assertTrue(verifier.verify(authenticatedEntity));
   }
 
@@ -150,7 +150,7 @@ public class MerkleTreeTest {
       getThreads[i] = new Thread(() -> {
         try {
           AuthenticatedEntity authenticatedEntity = merkleTree.get(id);
-          AuthenticatedEntityVerifier verifier = new AuthenticatedEntityVerifier();
+          MerkleTreeAuthenticatedEntityVerifier verifier = new MerkleTreeAuthenticatedEntityVerifier();
           if (!verifier.verify(authenticatedEntity)) {
             threadError.getAndIncrement();
           }
@@ -218,7 +218,7 @@ public class MerkleTreeTest {
         authenticatedEntity.getEntity());
 
 
-    AuthenticatedEntityVerifier verifier = new AuthenticatedEntityVerifier();
+    MerkleTreeAuthenticatedEntityVerifier verifier = new MerkleTreeAuthenticatedEntityVerifier();
     // authenticated entity must be verified.
     Assertions.assertTrue(verifier.verify(authenticatedEntity));
     // tampered authenticated entity must be failed.
@@ -240,7 +240,7 @@ public class MerkleTreeTest {
         authenticatedEntity.type(),
         new EntityFixture());
 
-    AuthenticatedEntityVerifier verifier = new AuthenticatedEntityVerifier();
+    MerkleTreeAuthenticatedEntityVerifier verifier = new MerkleTreeAuthenticatedEntityVerifier();
     Assertions.assertTrue(verifier.verify(authenticatedEntity)); // original authenticated entity passes verification.
     Assertions.assertFalse(verifier.verify(tamperedEntity)); // tampered entity fails verification.
   }
@@ -266,7 +266,7 @@ public class MerkleTreeTest {
         authenticatedEntity.getEntity());
 
 
-    AuthenticatedEntityVerifier verifier = new AuthenticatedEntityVerifier();
+    MerkleTreeAuthenticatedEntityVerifier verifier = new MerkleTreeAuthenticatedEntityVerifier();
     Assertions.assertTrue(verifier.verify(authenticatedEntity)); // original authenticated entity passes verification.
     Assertions.assertFalse(verifier.verify(tamperedEntity)); // tampered entity fails verification.
   }

@@ -11,8 +11,7 @@ import modules.ads.MembershipProof;
 /**
  * Verifies the AuthenticatedEntity against its self-contained proof.
  */
-public class AuthenticatedEntityVerifier implements modules.ads.AuthenticatedEntityVerifier {
-  private static final Sha3256Hasher hasher = new Sha3256Hasher();
+public class MerkleTreeAuthenticatedEntityVerifier implements modules.ads.AuthenticatedEntityVerifier {
 
   /**
    * Verifies the AuthenticatedEntity against its self-contained proof.
@@ -22,24 +21,25 @@ public class AuthenticatedEntityVerifier implements modules.ads.AuthenticatedEnt
    */
   @Override
   public boolean verify(AuthenticatedEntity authenticatedEntity) {
+    Sha3256Hasher hasher = new Sha3256Hasher();
     MembershipProof proof = authenticatedEntity.getMembershipProof();
     ArrayList<Boolean> isLeftNode = proof.getIsLeftNode();
-    Sha3256Hash root = proof.getRoot();
     ArrayList<Sha3256Hash> proofPath = proof.getPath();
+
     Sha3256Hash initialHash = hasher.computeHash(authenticatedEntity.getEntity().id());
-    Sha3256Hash currHash;
+    Sha3256Hash currentHash;
     if (isLeftNode.get(0)) {
-      currHash = hasher.computeHash(initialHash, proofPath.get(0));
+      currentHash = hasher.computeHash(initialHash, proofPath.get(0));
     } else {
-      currHash = hasher.computeHash(proofPath.get(0), initialHash);
+      currentHash = hasher.computeHash(proofPath.get(0), initialHash);
     }
     for (int i = 1; i < proofPath.size(); i++) {
       if (isLeftNode.get(i)) {
-        currHash = hasher.computeHash(currHash, proofPath.get(i));
+        currentHash = hasher.computeHash(currentHash, proofPath.get(i));
       } else {
-        currHash = hasher.computeHash(proofPath.get(i), currHash);
+        currentHash = hasher.computeHash(proofPath.get(i), currentHash);
       }
     }
-    return Arrays.equals(root.getBytes(), currHash.getBytes());
+    return Arrays.equals(proof.getRoot().getBytes(), currentHash.getBytes());
   }
 }
