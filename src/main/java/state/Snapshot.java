@@ -2,6 +2,7 @@ package state;
 
 import java.util.ArrayList;
 
+import model.Entity;
 import model.lightchain.Account;
 import model.lightchain.Identifier;
 
@@ -30,7 +31,7 @@ public interface Snapshot {
    * @return account corresponding to the given identifier at this snapshot, or null if such an account
    * does not exist.
    */
-  Account getAccount(Identifier identifier);
+  Entity getAccount(Identifier identifier);
 
   /**
    * The list of accounts in this snapshot.

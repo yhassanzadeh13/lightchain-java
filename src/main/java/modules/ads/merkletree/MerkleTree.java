@@ -133,4 +133,12 @@ public class MerkleTree implements AuthenticatedDataStructure {
   public int size() {
     return this.size;
   }
+
+  public ArrayList<Entity> all() {
+    ArrayList<Entity> entities = new ArrayList<>();
+    for(Identifier id : entityHashTable.keySet()) {
+      entities.add(entityHashTable.get(id));
+    }
+    return entities;
+  }
 }
