@@ -52,10 +52,10 @@ public class MerkleTree implements AuthenticatedDataStructure {
         size++;
         buildMerkleTree();
         Proof proof = getProof(e.id());
-        return new AuthenticatedEntity(proof, e.type(), e);
+        return new MerkleTreeAuthenticatedEntity(proof, e.type(), e);
       } else {
         Proof proof = getProof(e.id());
-        return new AuthenticatedEntity(proof, e.type(), e);
+        return new MerkleTreeAuthenticatedEntity(proof, e.type(), e);
       }
     } finally {
       lock.writeLock().unlock();
@@ -75,7 +75,7 @@ public class MerkleTree implements AuthenticatedDataStructure {
       lock.readLock().unlock();
     }
     Entity e = entityHashTable.get(id);
-    return new AuthenticatedEntity(proof, e.type(), e);
+    return new MerkleTreeAuthenticatedEntity(proof, e.type(), e);
   }
 
   private Proof getProof(Identifier id) throws IllegalArgumentException {

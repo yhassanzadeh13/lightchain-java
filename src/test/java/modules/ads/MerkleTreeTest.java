@@ -10,6 +10,7 @@ import model.crypto.Sha3256Hash;
 import model.lightchain.Identifier;
 import modules.ads.merkletree.AuthenticatedEntityVerifier;
 import modules.ads.merkletree.MerkleTree;
+import modules.ads.merkletree.MerkleTreeAuthenticatedEntity;
 import modules.ads.merkletree.Proof;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -211,7 +212,7 @@ public class MerkleTreeTest {
 
     // creates a tampered proof with random root.
     Proof tamperedProof = new Proof(proof.getPath(), new Sha3256Hash(new byte[32]), proof.getIsLeftNode());
-    AuthenticatedEntity tamperedAuthenticatedEntity = new modules.ads.merkletree.AuthenticatedEntity(
+    AuthenticatedEntity tamperedAuthenticatedEntity = new MerkleTreeAuthenticatedEntity(
         tamperedProof,
         authenticatedEntity.type(),
         authenticatedEntity.getEntity());
@@ -234,7 +235,7 @@ public class MerkleTreeTest {
     Entity entity = new EntityFixture();
     AuthenticatedEntity authenticatedEntity = merkleTree.put(entity);
 
-    AuthenticatedEntity tamperedEntity = new modules.ads.merkletree.AuthenticatedEntity(
+    AuthenticatedEntity tamperedEntity = new MerkleTreeAuthenticatedEntity(
         (Proof) authenticatedEntity.getMembershipProof(),
         authenticatedEntity.type(),
         new EntityFixture());
@@ -256,7 +257,7 @@ public class MerkleTreeTest {
     AuthenticatedEntity authenticatedEntity = merkleTree.put(entity);
     MembershipProof proof = authenticatedEntity.getMembershipProof();
 
-    AuthenticatedEntity tamperedEntity = new modules.ads.merkletree.AuthenticatedEntity(
+    AuthenticatedEntity tamperedEntity = new MerkleTreeAuthenticatedEntity(
         new Proof(Sha3256HashFixture.newSha3256HashArrayList(
             proof.getPath().size()),
             proof.getRoot(),
