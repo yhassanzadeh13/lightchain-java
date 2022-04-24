@@ -1,10 +1,16 @@
 package modules.ads.merkletree;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
+import com.google.gson.Gson;
 import crypto.Sha3256Hasher;
 import model.Entity;
 import model.crypto.Sha3256Hash;
@@ -15,7 +21,7 @@ import modules.ads.AuthenticatedDataStructure;
  * Implementation of an in-memory Authenticated Skip List
  * that is capable of storing and retrieval of LightChain entities.
  */
-public class MerkleTree implements AuthenticatedDataStructure {
+public class MerkleTree implements AuthenticatedDataStructure, Serializable {
   private static final Sha3256Hasher hasher = new Sha3256Hasher();
   private final ReentrantReadWriteLock lock;
   private final ArrayList<MerkleNode> leafNodes;
@@ -132,5 +138,24 @@ public class MerkleTree implements AuthenticatedDataStructure {
 
   public int size() {
     return this.size;
+  }
+
+  public byte[] getBytes() {
+    try {
+      ByteArrayOutputStream bos = new ByteArrayOutputStream();
+      ObjectOutputStream out = null;
+      out = new ObjectOutputStream(bos);
+      out.writeObject(this);
+      out.flush();
+      byte[] bytes = bos.toByteArray();
+      return bytes;
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+    /*
+    Gson gson = new Gson();
+    byte[] bytes = gson.toJson(this).getBytes(StandardCharsets.UTF_8);
+    */
+    return null;
   }
 }

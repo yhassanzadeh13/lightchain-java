@@ -1,5 +1,9 @@
 package modules.ads.merkletree;
 
+import java.io.Serializable;
+import java.nio.charset.StandardCharsets;
+
+import com.google.gson.Gson;
 import crypto.Sha3256Hasher;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import model.Entity;
@@ -8,7 +12,7 @@ import model.crypto.Sha3256Hash;
 /**
  * A node in the Merkle tree.
  */
-public class MerkleNode {
+public class MerkleNode implements Serializable {
   private static final Sha3256Hasher hasher = new Sha3256Hasher();
   private MerkleNode left;
   private MerkleNode right;
@@ -113,5 +117,11 @@ public class MerkleNode {
     } else {
       return parent.getLeft();
     }
+  }
+
+  public byte[] getBytes() {
+    Gson gson = new Gson();
+    byte[] bytes = gson.toJson(this).getBytes(StandardCharsets.UTF_8);
+    return bytes;
   }
 }
