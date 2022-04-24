@@ -1,11 +1,13 @@
 package model.lightchain;
 
+import model.Entity;
+import model.codec.EntityType;
 import model.crypto.PublicKey;
 
 /**
  * Represents a LightChain account which is the constituent of the SnapShot.
  */
-public class Account {
+public class Account extends Entity {
   /**
    * Unique identifier of the account.
    */
@@ -71,5 +73,25 @@ public class Account {
 
   public int getStake() {
     return this.stake;
+  }
+
+  /**
+   * Type of this entity.
+   *
+   * @return type of this entity.
+   */
+  @Override
+  public String type() {
+    return EntityType.TYPE_ACCOUNT;
+  }
+
+  /**
+   * Identifier of this account.
+   *
+   * @return identifier of this Account
+   */
+  @Override
+  public Identifier id() {
+    return this.identifier;
   }
 }
