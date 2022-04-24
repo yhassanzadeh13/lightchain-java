@@ -2,7 +2,6 @@ package state;
 
 import java.util.ArrayList;
 
-import model.Entity;
 import model.lightchain.Account;
 import model.lightchain.Identifier;
 

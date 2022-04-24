@@ -86,7 +86,7 @@ public class Account extends Entity {
   }
 
   /**
-   * Identifier of this Account
+   * Identifier of this account.
    *
    * @return identifier of this Account
    */

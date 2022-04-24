@@ -7,6 +7,9 @@ import model.lightchain.Account;
 import model.lightchain.Identifier;
 import modules.ads.merkletree.MerkleTree;
 
+/**
+ * Implements a simplified merkle tree based model of the protocol snapshot at a given block.
+ */
 public class MerkleSnapshot implements state.Snapshot {
   private final Identifier rootBlockId;
   private final long rootBlockHeight;
