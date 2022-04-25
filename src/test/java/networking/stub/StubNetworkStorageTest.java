@@ -40,9 +40,9 @@ public class StubNetworkStorageTest {
     StubNetwork stubNetwork1 = new StubNetwork(hub);
     MockEngine a1 = new MockEngine();
     Conduit ca1 = stubNetwork1.register(a1, channel1);
-  /*
-  Create the other network.
-   */
+    /*
+    Create the other network.
+    */
     StubNetwork stubNetwork2 = new StubNetwork(hub);
     MockEngine b1 = new MockEngine();
     Conduit cb1 = stubNetwork2.register(b1, channel1);
