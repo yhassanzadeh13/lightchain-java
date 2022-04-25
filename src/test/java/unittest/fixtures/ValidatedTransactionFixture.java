@@ -1,5 +1,6 @@
 package unittest.fixtures;
 
+import model.crypto.PublicKey;
 import model.crypto.Signature;
 import model.lightchain.Identifier;
 import model.lightchain.ValidatedTransaction;
@@ -24,8 +25,9 @@ public class ValidatedTransactionFixture {
     for (int i = 0; i < certificatesSize; i++) {
       certificates[i] = SignatureFixture.newSignatureFixture();
     }
+
     ValidatedTransaction valTrans = new ValidatedTransaction(referenceBlockId, sender, receiver, amount, certificates);
-    Signature sign = SignatureFixture.newSignatureFixture();
+    Signature sign = SignatureFixture.newSignatureFixture(valTrans.id());
     valTrans.setSignature(sign);
     return valTrans;
   }
@@ -46,7 +48,7 @@ public class ValidatedTransactionFixture {
       certificates[i] = SignatureFixture.newSignatureFixture();
     }
     ValidatedTransaction valTrans = new ValidatedTransaction(referenceBlockId, sender, receiver, amount, certificates);
-    Signature sign = SignatureFixture.newSignatureFixture();
+    Signature sign = SignatureFixture.newSignatureFixture(valTrans.id());
     valTrans.setSignature(sign);
     return valTrans;
   }
@@ -68,7 +70,7 @@ public class ValidatedTransactionFixture {
       certificates[i] = SignatureFixture.newSignatureFixture();
     }
     ValidatedTransaction valTrans = new ValidatedTransaction(referenceBlockId, sender, receiver, amount, certificates);
-    Signature sign = SignatureFixture.newSignatureFixture();
+    Signature sign = SignatureFixture.newSignatureFixture(valTrans.id());
     valTrans.setSignature(sign);
     return valTrans;
   }
@@ -89,7 +91,7 @@ public class ValidatedTransactionFixture {
       certificates[i] = SignatureFixture.newSignatureFixture();
     }
     ValidatedTransaction valTrans = new ValidatedTransaction(referenceBlockId, sender, receiver, amount, certificates);
-    Signature sign = SignatureFixture.newSignatureFixture();
+    Signature sign = SignatureFixture.newSignatureFixture(valTrans.id());
     valTrans.setSignature(sign);
     return valTrans;
   }
