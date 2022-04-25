@@ -1,5 +1,6 @@
 package modules.codec;
 
+import java.io.*;
 import java.lang.reflect.Type;
 import java.nio.charset.StandardCharsets;
 
@@ -10,7 +11,7 @@ import model.codec.EncodedEntity;
 /**
  * Implements encoding and decoding using JSON.
  */
-public class JsonEncoder implements Codec {
+public class JsonEncoder implements Codec, Serializable {
   /**
    * Encodes an Entity to an EncodedEntity.
    *
@@ -19,8 +20,17 @@ public class JsonEncoder implements Codec {
    */
   @Override
   public EncodedEntity encode(Entity e) {
-    Gson gson = new Gson();
-    byte[] bytes = gson.toJson(e).getBytes(StandardCharsets.UTF_8);
+    byte[] bytes = new byte[0];
+    try {
+      ByteArrayOutputStream bos = new ByteArrayOutputStream();
+      ObjectOutputStream out = null;
+      out = new ObjectOutputStream(bos);
+      out.writeObject(e);
+      out.flush();
+      bytes = bos.toByteArray();
+    } catch (IOException ex) {
+      ex.printStackTrace();
+    }
     String type = e.getClass().getCanonicalName();
     return new EncodedEntity(bytes, type);
   }
@@ -33,9 +43,17 @@ public class JsonEncoder implements Codec {
    */
   @Override
   public Entity decode(EncodedEntity e) throws ClassNotFoundException {
-    Gson gson = new Gson();
-    String json = new String(e.getBytes().clone(), StandardCharsets.UTF_8);
-    return gson.fromJson(json, (Type) Class.forName(e.getType()));
-
+    Entity entity = null;
+    try {
+      ByteArrayInputStream bis = new ByteArrayInputStream(e.getBytes().clone());
+      ObjectInputStream inp = null;
+      inp = new ObjectInputStream(bis);
+      entity = (Entity) (Class.forName(e.getType())).cast(inp.readObject());
+    } catch (IOException ex) {
+      ex.printStackTrace();
+    } catch (ClassNotFoundException ex) {
+      throw new RuntimeException(ex);
+    }
+    return entity;
   }
 }

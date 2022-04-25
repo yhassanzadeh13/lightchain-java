@@ -94,7 +94,7 @@ public class DistributedTest {
       Assertions.assertTrue(db.has(entity.id()));
     }
     JsonEncoder encoder = new JsonEncoder();
-    Entity entityx =BlockFixture.newBlock();
+    Entity entityx = BlockFixture.newBlock();
     System.out.println(encoder.decode(encoder.encode(entityx)));
 
     for (Entity entity : allEntities){

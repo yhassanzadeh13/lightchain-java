@@ -17,7 +17,7 @@ public class JsonEncoderTest {
   @Test
   public void testEncodingRoundTrip() throws ClassNotFoundException {
     JsonEncoder encoder = new JsonEncoder();
-    EntityFixture entity = new EntityFixture();
+    Entity entity = new EntityFixture();
     Entity entityChanged = encoder.decode(encoder.encode(entity));
     Assertions.assertEquals(entity, entityChanged);
     System.out.println("Entities are equal: " + entity.equals(entityChanged));
