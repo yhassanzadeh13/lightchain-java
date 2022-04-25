@@ -39,19 +39,19 @@ public class StubNetworkStorageTest {
     this.hub = new Hub();
     StubNetwork stubNetwork1 = new StubNetwork(hub);
     MockEngine a1 = new MockEngine();
-    Conduit cA1 = stubNetwork1.register(a1, channel1);
+    Conduit ca1 = stubNetwork1.register(a1, channel1);
   /*
   Create the other network.
    */
     StubNetwork stubNetwork2 = new StubNetwork(hub);
     MockEngine b1 = new MockEngine();
-    Conduit cB1 = stubNetwork2.register(b1, channel1);
+    Conduit cb1 = stubNetwork2.register(b1, channel1);
     MockEngine b2 = new MockEngine();
-    Conduit cB2 = stubNetwork2.register(b2, channel2);
+    Conduit cb2 = stubNetwork2.register(b2, channel2);
     Entity entity = new EntityFixture();
     try {
-      cA1.put(entity);
-      if (!cB1.get(entity.id()).equals(entity) || cB2.get(entity.id()) != null) {
+      ca1.put(entity);
+      if (!cb1.get(entity.id()).equals(entity) || cb2.get(entity.id()) != null) {
         Assertions.fail();
       }
     } catch (LightChainDistributedStorageException e) {
@@ -73,20 +73,20 @@ public class StubNetworkStorageTest {
 
     StubNetwork stubNetwork1 = new StubNetwork(hub);
     MockEngine a1 = new MockEngine();
-    Conduit cA1 = stubNetwork1.register(a1, channel1);
+    Conduit ca1 = stubNetwork1.register(a1, channel1);
 
     StubNetwork stubNetwork2 = new StubNetwork(hub);
     MockEngine b1 = new MockEngine();
-    Conduit cB1 = stubNetwork2.register(b1, channel1);
+    Conduit cb1 = stubNetwork2.register(b1, channel1);
     MockEngine b2 = new MockEngine();
-    Conduit cB2 = stubNetwork2.register(b2, channel2);
+    Conduit cb2 = stubNetwork2.register(b2, channel2);
     for (int i = 0; i < concurrencyDegree; i++) {
       entityThreads[i] = new Thread(() -> {
         Entity entity = new EntityFixture();
         try {
-          cA1.put(entity);
+          ca1.put(entity);
           putDone.countDown();
-          if (!cB1.get(entity.id()).equals(entity) || cB2.get(entity.id()) != null) {
+          if (!cb1.get(entity.id()).equals(entity) || cb2.get(entity.id()) != null) {
             threadError.getAndIncrement();
           }
         } catch (LightChainDistributedStorageException e) {
@@ -120,13 +120,13 @@ public class StubNetworkStorageTest {
 
     StubNetwork stubNetwork1 = new StubNetwork(hub);
     MockEngine a1 = new MockEngine();
-    Conduit cA1 = stubNetwork1.register(a1, channel1);
+    Conduit ca1 = stubNetwork1.register(a1, channel1);
 
     StubNetwork stubNetwork2 = new StubNetwork(hub);
     MockEngine b1 = new MockEngine();
-    Conduit cB1 = stubNetwork2.register(b1, channel1);
+    Conduit cb1 = stubNetwork2.register(b1, channel1);
     MockEngine b2 = new MockEngine();
-    Conduit cB2 = stubNetwork2.register(b2, channel2);
+    Conduit cb2 = stubNetwork2.register(b2, channel2);
     ArrayList<Entity> allEntities = new ArrayList<>();
     for (int i = 0; i < concurrencyDegree; i++) {
       allEntities.add(new EntityFixture());
@@ -135,7 +135,7 @@ public class StubNetworkStorageTest {
       int finalI = i;
       entityThreads[i] = new Thread(() -> {
         try {
-          cA1.put(allEntities.get(finalI));
+          ca1.put(allEntities.get(finalI));
           putDone.countDown();
         } catch (LightChainDistributedStorageException e) {
           threadError.getAndIncrement();
@@ -153,8 +153,8 @@ public class StubNetworkStorageTest {
       Assertions.fail();
     }
     try {
-      ArrayList<Entity> firstChannelEntities = cB1.allEntities();
-      ArrayList<Entity> secondChannelEntities = cB2.allEntities();
+      ArrayList<Entity> firstChannelEntities = cb1.allEntities();
+      ArrayList<Entity> secondChannelEntities = cb2.allEntities();
       for (Entity entity : allEntities) {
         Assertions.assertTrue(firstChannelEntities.contains(entity)
             && !secondChannelEntities.contains(entity));

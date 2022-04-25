@@ -60,7 +60,8 @@ public class Hub {
    * @return entity.
    * @throws LightChainDistributedStorageException any unhappy path taken on storing the Entity.
    */
-  public Entity getEntityFromChannel(Identifier identifier, String namespace) throws LightChainDistributedStorageException {
+  public Entity getEntityFromChannel(Identifier identifier, String namespace)
+      throws LightChainDistributedStorageException {
     try {
       lock.readLock().lock();
       if (namespace.equals(channel1)) {

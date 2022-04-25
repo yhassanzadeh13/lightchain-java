@@ -2,7 +2,6 @@ package networking.stub;
 
 import java.util.ArrayList;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import model.Entity;
 import model.exceptions.LightChainDistributedStorageException;
