@@ -27,7 +27,7 @@ public class Bootstrap {
    */
   public static void main(String[] args) {
 
-    int nodeCount = 10;
+    int nodeCount = 5;
 
     ConcurrentMap<Identifier, String> idTable;
 
@@ -45,7 +45,7 @@ public class Bootstrap {
         System.out.println(id.getKey().toString() + " " + idTable.get(id.getKey()));
       }
 
-      writeTargetJSON(idTableModifierForMetricsServerPort(idTable));
+      writeTargetJson(idTableModifierForMetricsServerPort(idTable));
 
     } catch (IllegalStateException e) {
       System.err.println("could not initialize and run the Node network: " + e.getMessage());
@@ -54,7 +54,8 @@ public class Bootstrap {
 
   }
 
-  private static ConcurrentMap<Identifier, String> idTableModifierForMetricsServerPort(ConcurrentMap<Identifier, String> idTable) {
+  private static ConcurrentMap<Identifier, String>
+      idTableModifierForMetricsServerPort(ConcurrentMap<Identifier, String> idTable) {
     ConcurrentMap modifiedMap = new ConcurrentHashMap<Identifier, String>();
 
     for (Map.Entry<Identifier, String> id : idTable.entrySet()) {
@@ -83,10 +84,9 @@ public class Bootstrap {
 
   }
 
-  private static void writeTargetJSON(ConcurrentMap<Identifier, String> idTable) {
+  private static void writeTargetJson(ConcurrentMap<Identifier, String> idTable) {
 
     try {
-      BufferedWriter writer = Files.newBufferedWriter(Paths.get(PROM_CONFIG_PATH));
 
       Map<String, Object> nodes = new HashMap<>();
 
@@ -101,6 +101,8 @@ public class Bootstrap {
 
       Map[] pm = new Map[1];
       pm[0] = nodes;
+
+      BufferedWriter writer = Files.newBufferedWriter(Paths.get(PROM_CONFIG_PATH));
 
       writer.write(gson.toJson(pm));
 

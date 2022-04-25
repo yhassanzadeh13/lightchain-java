@@ -26,6 +26,9 @@ public class BroadcastEngine implements Engine {
   Identifier myId;
   MetricServer server;
 
+  /**
+   * Constructor for BroadcastEngine.
+   */
   public BroadcastEngine() {
     this.receivedEntityIds = new HashSet<>();
     this.lock = new ReentrantReadWriteLock();

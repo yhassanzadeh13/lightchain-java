@@ -9,14 +9,14 @@ import io.prometheus.client.exporter.HTTPServer;
  */
 public class MetricServer {
   private HTTPServer server;
-  private int SERVER_PORT;
+  private int serverPort;
 
   public MetricServer() {
-    this.SERVER_PORT = 8081;
+    this.serverPort = 8081;
   }
 
-  public MetricServer(int SERVER_PORT) {
-    this.SERVER_PORT = SERVER_PORT;
+  public MetricServer(int serverPort) {
+    this.serverPort = serverPort;
   }
 
   /**
@@ -25,7 +25,7 @@ public class MetricServer {
   public void start() {
 
     try {
-      server = new HTTPServer(SERVER_PORT);
+      server = new HTTPServer(serverPort);
     } catch (IOException e) {
       throw new IllegalStateException("could not start metrics server:\t" + e);
     }
