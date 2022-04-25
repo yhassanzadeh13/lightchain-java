@@ -18,8 +18,6 @@ import unittest.fixtures.IdentifierFixture;
  * A mock implementation of networking layer as a test util.
  */
 public class StubNetwork implements Network, NetworkAdapter {
-  private final String channel1 = "test-network-channel-1";
-  private final String channel2 = "test-network-channel-2";
   private final ConcurrentHashMap<String, Engine> engines;
   private final Hub hub;
   private final Identifier identifier;
