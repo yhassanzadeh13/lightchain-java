@@ -2,8 +2,7 @@ package unittest.fixtures;
 
 import java.util.ArrayList;
 
-import model.lightchain.Identifier;
-import modules.ads.merkletree.MerkleTree;
+import modules.ads.merkletree.MerkleTreeInMemoryState;
 
 /**
  * Creates a new randomly looking MerkleTree.
@@ -15,8 +14,8 @@ public class MerkleTreeFixture {
    * @param n number of elements to create
    * @return a new merkle tree with n random elements.
    */
-  public static MerkleTree createMerkleTree(int n) {
-    MerkleTree merkleTree = new MerkleTree();
+  public static MerkleTreeInMemoryState createMerkleTree(int n) {
+    MerkleTreeInMemoryState merkleTree = new MerkleTreeInMemoryState();
     for (int i = 0; i < n; i++) {
       merkleTree.put(new EntityFixture());
     }
@@ -30,8 +29,8 @@ public class MerkleTreeFixture {
    * @param m number of elements in each tree
    * @return an array list of n merkle trees with m random elements.
    */
-  public static ArrayList<MerkleTree> newMerkleTrees(int n, int m) {
-    ArrayList<MerkleTree> trees = new ArrayList<>();
+  public static ArrayList<MerkleTreeInMemoryState> newMerkleTrees(int n, int m) {
+    ArrayList<MerkleTreeInMemoryState> trees = new ArrayList<>();
     for (int i = 0; i < n; i++) {
       trees.add(createMerkleTree(m));
     }

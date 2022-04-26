@@ -2,6 +2,7 @@ package modules.ads.merkletree;
 
 import java.io.Serializable;
 import java.nio.charset.StandardCharsets;
+import java.util.Objects;
 
 import com.google.gson.Gson;
 import crypto.Sha3256Hasher;
@@ -117,6 +118,19 @@ public class MerkleNode implements Serializable {
     } else {
       return parent.getLeft();
     }
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+    MerkleNode that = (MerkleNode) o;
+    return hash.equals(that.hash);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(left, right, parent, isLeft, hash);
   }
 
   public byte[] getBytes() {

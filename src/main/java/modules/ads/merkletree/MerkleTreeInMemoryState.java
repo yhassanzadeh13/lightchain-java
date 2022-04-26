@@ -19,25 +19,21 @@ import modules.ads.AuthenticatedDataStructure;
  * Implementation of an in-memory Authenticated Skip List
  * that is capable of storing and retrieval of LightChain entities.
  */
-public class MerkleTree implements AuthenticatedDataStructure, Serializable {
+public class MerkleTreeInMemoryState implements AuthenticatedDataStructure, Serializable {
   private static final Sha3256Hasher hasher = new Sha3256Hasher();
   private final ReentrantReadWriteLock lock;
-  private final ArrayList<MerkleNode> leafNodes;
-  private final Map<Sha3256Hash, Integer> leafNodesHashTable;
-  private final Map<Identifier, Entity> entityHashTable;
+  private final MerkleTreeState state;
   private int size;
   private MerkleNode root;
 
   /**
    * Default constructor for a Merkle Tree.
    */
-  public MerkleTree() {
+  public MerkleTreeInMemoryState() {
     this.size = 0;
     this.root = new MerkleNode();
-    this.leafNodes = new ArrayList<>();
     this.lock = new ReentrantReadWriteLock();
-    this.leafNodesHashTable = new HashMap<>();
-    this.entityHashTable = new HashMap<>();
+    this.state = new MerkleTreeState();
   }
 
   @Override
@@ -48,11 +44,11 @@ public class MerkleTree implements AuthenticatedDataStructure, Serializable {
         throw new IllegalArgumentException("entity cannot be null");
       }
       Sha3256Hash hash = new Sha3256Hash(e.id().getBytes());
-      Integer idx = leafNodesHashTable.get(hash);
-      if (idx == null) {
-        leafNodes.add(new MerkleNode(e, false));
-        leafNodesHashTable.put(hash, size);
-        entityHashTable.put(e.id(), e);
+      int idx = state.getNodeIndex(hash);
+      if (idx == -1) {
+        state.addLeafNode(new MerkleNode(e, false));
+        state.putLeafNodeHash(hash, size);
+        state.putEntityHashTable(e.id(), e);
         size++;
         buildMerkleTree();
         MerkleProof proof = getProof(e.id());
@@ -75,7 +71,7 @@ public class MerkleTree implements AuthenticatedDataStructure, Serializable {
     try {
       lock.readLock().lock();
       proof = getProof(id);
-      Entity e = entityHashTable.get(id);
+      Entity e = state.getEntity(id);
       return new MerkleTreeAuthenticatedEntity(proof, e.type(), e);
     } finally {
       lock.readLock().unlock();
@@ -85,12 +81,12 @@ public class MerkleTree implements AuthenticatedDataStructure, Serializable {
   private MerkleProof getProof(Identifier id) throws IllegalArgumentException {
     ArrayList<Boolean> isLeftNode = new ArrayList<>();
     Sha3256Hash hash = new Sha3256Hash(id.getBytes());
-    Integer idx = leafNodesHashTable.get(hash);
-    if (idx == null) {
+    int idx = state.getNodeIndex(hash);
+    if (idx == -1) {
       throw new IllegalArgumentException("identifier not found");
     }
     ArrayList<Sha3256Hash> path = new ArrayList<>();
-    MerkleNode currentNode = leafNodes.get(idx);
+    MerkleNode currentNode = state.getNode(idx);
     while (currentNode != root) {
       path.add(currentNode.getSibling().getHash());
       isLeftNode.add(currentNode.isLeft());
@@ -103,7 +99,7 @@ public class MerkleTree implements AuthenticatedDataStructure, Serializable {
     // keeps nodes of the current level of the merkle tree
     // will be updated bottom up
     // initialized with leaves
-    ArrayList<MerkleNode> currentLevelNodes = new ArrayList<>(leafNodes);
+    ArrayList<MerkleNode> currentLevelNodes = new ArrayList<>(state.getLeafNodes());
 
     // keeps nodes of the next level of merkle tree
     // used as an intermediary data structure.
@@ -151,5 +147,9 @@ public class MerkleTree implements AuthenticatedDataStructure, Serializable {
       e.printStackTrace();
     }
     return null;
+  }
+
+  public MerkleTreeState getState() {
+    return state;
   }
 }
