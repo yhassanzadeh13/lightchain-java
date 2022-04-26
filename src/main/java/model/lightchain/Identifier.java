@@ -1,5 +1,6 @@
 package model.lightchain;
 
+import java.io.Serializable;
 import java.util.Arrays;
 
 import io.ipfs.multibase.Multibase;
@@ -7,7 +8,7 @@ import io.ipfs.multibase.Multibase;
 /**
  * Represents a 32-byte unique identifier for an entity. Normally is computed as the hash value of the entity.
  */
-public class Identifier {
+public class Identifier implements Serializable {
   public static final int Size = 32;
   private final byte[] value;
 

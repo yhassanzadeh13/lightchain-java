@@ -20,6 +20,5 @@ public class JsonEncoderTest {
     EntityFixture entity = new EntityFixture();
     Entity entityChanged = encoder.decode(encoder.encode(entity));
     Assertions.assertEquals(entity, entityChanged);
-    System.out.println("Entities are equal: " + entity.equals(entityChanged));
   }
 }
