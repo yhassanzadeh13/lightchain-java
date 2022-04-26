@@ -1,12 +1,12 @@
 package model;
 
+import java.io.Serializable;
+
 import crypto.Sha3256Hasher;
 import model.codec.EncodedEntity;
 import model.crypto.Hash;
 import model.lightchain.Identifier;
 import modules.codec.JsonEncoder;
-
-import java.io.Serializable;
 
 /**
  * Entity represents the unit of data model in LightChain. Everything meant to be sent over the network, stored
