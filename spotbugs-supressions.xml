@@ -15,4 +15,7 @@
     <Match>
         <Class name="network.p2p.proto.Message$Builder"/>
     </Match>
+    <Match>
+        <Class name="network.p2p.proto.GetReply"/>
+    </Match>
 </FindBugsFilter>
