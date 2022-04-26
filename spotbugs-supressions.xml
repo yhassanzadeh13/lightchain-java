@@ -18,4 +18,22 @@
     <Match>
         <Class name="network.p2p.proto.GetReply"/>
     </Match>
+    <Match>
+        <Class name="network.p2p.proto.GetReply$Builder"/>
+    </Match>
+    <Match>
+        <Class name="network.p2p.proto.GetRequest"/>
+    </Match>
+    <Match>
+        <Class name="network.p2p.proto.GetRequest$Builder"/>
+    </Match>
+    <Match>
+        <Class name="network.p2p.proto.PutMessage"/>
+    </Match>
+    <Match>
+        <Class name="network.p2p.proto.PutMessage$Builder"/>
+    </Match>
+    <Match>
+        <Class name="network.p2p.proto.StorageOuterClass"/>
+    </Match>
 </FindBugsFilter>
