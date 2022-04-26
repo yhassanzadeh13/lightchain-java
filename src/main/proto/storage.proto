@@ -21,7 +21,7 @@ message GetReply {
   string Type = 2;
 }
 
-service Messenger {
+service Storage {
   rpc Put(stream PutMessage) returns (google.protobuf.Empty) {}
   rpc Get(stream GetRequest) returns (stream GetReply) {}
 }
