@@ -1,5 +1,7 @@
 package model;
 
+import java.io.Serializable;
+
 import crypto.Sha3256Hasher;
 import model.codec.EncodedEntity;
 import model.crypto.Hash;
@@ -10,7 +12,7 @@ import modules.codec.JsonEncoder;
  * Entity represents the unit of data model in LightChain. Everything meant to be sent over the network, stored
  * in memory, or a database must extend the Entity class.
  */
-public abstract class Entity {
+public abstract class Entity implements Serializable {
   /**
    * Computes the collision resistant hash value of entity.
    *

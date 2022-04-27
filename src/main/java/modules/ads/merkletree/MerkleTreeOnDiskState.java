@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import crypto.Sha3256Hasher;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import model.Entity;
 import model.crypto.Sha3256Hash;
 import model.lightchain.Identifier;
@@ -25,6 +26,7 @@ public class MerkleTreeOnDiskState implements AuthenticatedDataStructure, Merkle
   /**
    * Default constructor for an on disk Merkle Tree.
    */
+  @SuppressFBWarnings(value = "EI_EXPOSE_REP2", justification = "state is intentionally mutable externally")
   public MerkleTreeOnDiskState(MerkleTreeStateMapDb stateMapDb) {
     this.size = 0;
     this.root = new MerkleNode();

@@ -3,6 +3,7 @@ package storage.mapdb;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
@@ -16,7 +17,7 @@ import storage.MerkleTreeStates;
 /**
  * StateMapDb implementation for on-disk MerkleTreeState storage.
  */
-public class MerkleTreeStateMapDb implements MerkleTreeStates {
+public class MerkleTreeStateMapDb implements MerkleTreeStates, Serializable {
   private final DB db;
   private final ReentrantReadWriteLock lock;
   private static final String MAP_NAME = "merkle_tree_state_map";

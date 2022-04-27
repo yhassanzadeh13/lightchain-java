@@ -12,6 +12,7 @@ import java.util.Objects;
 import model.Entity;
 import model.crypto.Sha3256Hash;
 import model.lightchain.Identifier;
+import storage.MerkleTreeStates;
 
 /**
  * This class represents the state of the Merkle Tree.
@@ -31,12 +32,21 @@ public class MerkleTreeState implements Serializable {
   }
 
   /**
+   * Constructor.
+   */
+  public MerkleTreeState(MerkleTreeState state) {
+    this.leafNodes = state.getLeafNodes();
+    this.leafNodesHashTable = state.getLeafNodesHashTable();
+    this.entityHashTable = state.getEntityHashTable();
+  }
+
+  /**
    * Returns the leaf nodes of the Merkle Tree.
    *
    * @return the leaf nodes of the Merkle Tree
    */
   public ArrayList<MerkleNode> getLeafNodes() {
-    return leafNodes;
+    return new ArrayList<>(leafNodes);
   }
 
   /**
@@ -45,7 +55,7 @@ public class MerkleTreeState implements Serializable {
    * @return the hash table of the leaf nodes
    */
   public Map<Sha3256Hash, Integer> getLeafNodesHashTable() {
-    return leafNodesHashTable;
+    return new HashMap<>(leafNodesHashTable);
   }
 
   /**
@@ -54,7 +64,7 @@ public class MerkleTreeState implements Serializable {
    * @return the hash table of the entities
    */
   public Map<Identifier, Entity> getEntityHashTable() {
-    return entityHashTable;
+    return new HashMap<>(entityHashTable);
   }
 
   /**

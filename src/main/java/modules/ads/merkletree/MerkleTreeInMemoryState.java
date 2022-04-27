@@ -129,6 +129,6 @@ public class MerkleTreeInMemoryState implements AuthenticatedDataStructure, Seri
   }
 
   public MerkleTreeState getState() {
-    return state;
+    return new MerkleTreeState(this.state);
   }
 }
