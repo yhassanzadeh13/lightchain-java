@@ -37,6 +37,7 @@ public class MerkleTreeStateMapDb implements MerkleTreeStates {
    * Adds a merkle tree state to the storage, returns true if it is new, false if it already exists.
    *
    * @param merkleTreeState merkle tree state to be added to storage.
+   *
    * @return true if it is new, false if it already exists.
    */
   @Override
@@ -55,6 +56,7 @@ public class MerkleTreeStateMapDb implements MerkleTreeStates {
    * Checks existence of a merkle tree state on the storage.
    *
    * @param merkleTreeState merkle tree state to be checked.
+   *
    * @return true if it exists on the storage, false otherwise.
    */
   @Override
@@ -69,6 +71,14 @@ public class MerkleTreeStateMapDb implements MerkleTreeStates {
     return hasBoolean;
   }
 
+  /**
+   * Removes the state1 and adds the state2.
+   *
+   * @param state1 the state to be removed.
+   * @param state2 the state to be added.
+   *
+   * @return
+   */
   public boolean changeTo(MerkleTreeState state1, MerkleTreeState state2) {
     return this.remove(state1) && this.add(state2);
   }
@@ -77,6 +87,7 @@ public class MerkleTreeStateMapDb implements MerkleTreeStates {
    * Removes a merkle tree state from the storage.
    *
    * @param merkleTreeState merkle tree state to be removed.
+   *
    * @return true if it exists and removed, false otherwise.
    */
   @Override

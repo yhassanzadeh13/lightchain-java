@@ -11,6 +11,9 @@ import model.lightchain.Identifier;
 import modules.ads.AuthenticatedDataStructure;
 import storage.mapdb.MerkleTreeStateMapDb;
 
+/**
+ * On disk MerkleTree class.
+ */
 public class MerkleTreeOnDiskState implements AuthenticatedDataStructure, MerkleTree, Serializable {
   private static final Sha3256Hasher hasher = new Sha3256Hasher();
   private final ReentrantReadWriteLock lock;

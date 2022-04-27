@@ -16,6 +16,9 @@ import storage.mapdb.MerkleTreeStateMapDb;
 import unittest.fixtures.EntityFixture;
 import unittest.fixtures.MerkleTreeStateMapDbFixture;
 
+/**
+ * Tests for MerkleTreeOnDiskState.
+ */
 public class MerkleTreeOnDiskStateTest {
   private static final String TEMP_DIR = "tempdir";
   private static Path tempdir;

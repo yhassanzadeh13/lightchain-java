@@ -13,47 +13,97 @@ import model.Entity;
 import model.crypto.Sha3256Hash;
 import model.lightchain.Identifier;
 
+/**
+ * This class represents the state of the Merkle Tree.
+ */
 public class MerkleTreeState implements Serializable {
   private ArrayList<MerkleNode> leafNodes;
   private Map<Sha3256Hash, Integer> leafNodesHashTable;
   private Map<Identifier, Entity> entityHashTable;
 
+  /**
+   * Constructor.
+   */
   public MerkleTreeState() {
     this.leafNodes = new ArrayList<>();
     this.leafNodesHashTable = new HashMap<>();
     this.entityHashTable = new HashMap<>();
   }
 
+  /**
+   * Constructor.
+   *
+   * @param leafNodes          the leaf nodes of the Merkle Tree
+   * @param leafNodesHashTable the hash table of the leaf nodes
+   * @param entityHashTable    the hash table of the entities
+   */
   public MerkleTreeState(ArrayList<MerkleNode> leafNodes, Map<Sha3256Hash, Integer> leafNodesHashTable, Map<Identifier, Entity> entityHashTable) {
     this.leafNodes = leafNodes;
     this.leafNodesHashTable = leafNodesHashTable;
     this.entityHashTable = entityHashTable;
   }
 
+  /**
+   * Returns the leaf nodes of the Merkle Tree.
+   *
+   * @return the leaf nodes of the Merkle Tree
+   */
   public ArrayList<MerkleNode> getLeafNodes() {
     return leafNodes;
   }
 
+  /**
+   * Returns the hash table of the leaf nodes.
+   *
+   * @return the hash table of the leaf nodes
+   */
   public Map<Sha3256Hash, Integer> getLeafNodesHashTable() {
     return leafNodesHashTable;
   }
 
+  /**
+   * Returns the hash table of the entities.
+   *
+   * @return the hash table of the entities
+   */
   public Map<Identifier, Entity> getEntityHashTable() {
     return entityHashTable;
   }
 
+  /**
+   * Adds a leaf node to the Merkle Tree.
+   *
+   * @param node the leaf node to be added
+   */
   public void addLeafNode(MerkleNode node) {
     this.leafNodes.add(node);
   }
 
+  /**
+   * Adds a leaf node to the hash table of the leaf nodes.
+   *
+   * @param hash the hash of the leaf node
+   * @param idx  the index of the leaf node
+   */
   public void putLeafNodeHash(Sha3256Hash hash, Integer idx) {
     this.leafNodesHashTable.put(hash, idx);
   }
 
+  /**
+   * Adds an entity to the hash table of the entities.
+   *
+   * @param id the identifier of the entity
+   * @param e  the entity
+   */
   public void putEntityHashTable(Identifier id, Entity e) {
     this.entityHashTable.put(id, e);
   }
 
+  /**
+   * Returns the index of the node.
+   *
+   * @return the index of the node
+   */
   public int getNodeIndex(Sha3256Hash hash) {
     if (this.leafNodesHashTable.get(hash) != null) {
       return this.leafNodesHashTable.get(hash);
@@ -61,6 +111,11 @@ public class MerkleTreeState implements Serializable {
     return -1;
   }
 
+  /**
+   * Returns the entity from hash table with a given id.
+   *
+   * @return the entity
+   */
   public Entity getEntity(Identifier id) {
     if (this.entityHashTable.get(id) != null) {
       return this.entityHashTable.get(id);
@@ -68,10 +123,24 @@ public class MerkleTreeState implements Serializable {
     return null;
   }
 
+  /**
+   * Returns the node from its index.
+   *
+   * @param idx the index of the node
+   *
+   * @return the node
+   */
   public MerkleNode getNode(int idx) {
     return this.leafNodes.get(idx);
   }
 
+  /**
+   * Returns if o is equal to this.
+   *
+   * @param o the object to be compared
+   *
+   * @return true if o is equal to this, false otherwise
+   */
   @Override
   public boolean equals(Object o) {
     if (this == o) return true;
@@ -80,11 +149,21 @@ public class MerkleTreeState implements Serializable {
     return leafNodes.equals(that.leafNodes);
   }
 
+  /**
+   * Returns the hash code of this.
+   *
+   * @return the hash code of this
+   */
   @Override
   public int hashCode() {
     return Objects.hash(leafNodes);
   }
 
+  /**
+   * Returns a byte array representation of this.
+   *
+   * @return a byte array representation of this
+   */
   public byte[] getBytes() {
     try {
       ByteArrayOutputStream bos = new ByteArrayOutputStream();

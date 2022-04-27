@@ -9,6 +9,9 @@ import model.Entity;
 import model.crypto.Sha3256Hash;
 import model.lightchain.Identifier;
 
+/**
+ * MerkleTree interface.
+ */
 public interface MerkleTree {
 
   /**

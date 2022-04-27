@@ -1,10 +1,7 @@
 package modules.codec;
 
 import java.io.*;
-import java.lang.reflect.Type;
-import java.nio.charset.StandardCharsets;
 
-import com.google.gson.Gson;
 import model.Entity;
 import model.codec.EncodedEntity;
 
@@ -16,6 +13,7 @@ public class JsonEncoder implements Codec, Serializable {
    * Encodes an Entity to an EncodedEntity.
    *
    * @param e input Entity.
+   *
    * @return the JSON encoded representation of Entity.
    */
   @Override
@@ -39,6 +37,7 @@ public class JsonEncoder implements Codec, Serializable {
    * Decodes a JSON EncodedEntity to its original Entity type.
    *
    * @param e input JSON EncodedEntity.
+   *
    * @return original Entity type.
    */
   @Override
