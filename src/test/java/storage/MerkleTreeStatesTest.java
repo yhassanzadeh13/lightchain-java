@@ -1,16 +1,5 @@
 package storage;
 
-import model.lightchain.Identifier;
-import modules.ads.merkletree.MerkleTreeState;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.testcontainers.shaded.org.apache.commons.io.FileUtils;
-import storage.mapdb.IdentifierMapDb;
-import storage.mapdb.MerkleTreeStateMapDb;
-import unittest.fixtures.IdentifierFixture;
-import unittest.fixtures.MerkleTreeStateFixture;
-
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -20,6 +9,14 @@ import java.util.ArrayList;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+
+import modules.ads.merkletree.MerkleTreeState;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.testcontainers.shaded.org.apache.commons.io.FileUtils;
+import storage.mapdb.MerkleTreeStateMapDb;
+import unittest.fixtures.MerkleTreeStateFixture;
 
 /**
  * Encapsulates tests for merkle tree states database.
@@ -306,7 +303,8 @@ public class MerkleTreeStatesTest {
   /**
    * Concurrent version of duplicationTest.
    */
-  @Test void concurrentDuplicationTest() throws IOException {
+  @Test
+  void concurrentDuplicationTest() throws IOException {
     int concurrencyDegree = 10;
 
     /*

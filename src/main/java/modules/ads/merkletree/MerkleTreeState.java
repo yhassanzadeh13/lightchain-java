@@ -1,14 +1,17 @@
 package modules.ads.merkletree;
 
-import model.Entity;
-import model.crypto.Sha3256Hash;
-import model.lightchain.Identifier;
-
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
+
+import model.Entity;
+import model.crypto.Sha3256Hash;
+import model.lightchain.Identifier;
 
 public class MerkleTreeState implements Serializable {
   private ArrayList<MerkleNode> leafNodes;

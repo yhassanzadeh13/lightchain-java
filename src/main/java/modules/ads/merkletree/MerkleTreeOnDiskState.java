@@ -1,15 +1,15 @@
 package modules.ads.merkletree;
 
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
+
 import crypto.Sha3256Hasher;
 import model.Entity;
 import model.crypto.Sha3256Hash;
 import model.lightchain.Identifier;
 import modules.ads.AuthenticatedDataStructure;
 import storage.mapdb.MerkleTreeStateMapDb;
-
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 public class MerkleTreeOnDiskState implements AuthenticatedDataStructure, MerkleTree, Serializable {
   private static final Sha3256Hasher hasher = new Sha3256Hasher();

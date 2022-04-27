@@ -13,6 +13,7 @@ public class MerkleTreeFixture {
    * Creates a new merkle tree with n random elements.
    *
    * @param n number of elements to create
+   *
    * @return a new merkle tree with n random elements.
    */
   public static MerkleTreeInMemoryState createInMemoryStateMerkleTree(int n) {
@@ -28,6 +29,7 @@ public class MerkleTreeFixture {
    *
    * @param n number of trees to create
    * @param m number of elements in each tree
+   *
    * @return an array list of n merkle trees with m random elements.
    */
   public static ArrayList<MerkleTreeInMemoryState> newMerkleTrees(int n, int m) {

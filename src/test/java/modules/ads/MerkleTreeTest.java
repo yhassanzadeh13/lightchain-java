@@ -9,7 +9,10 @@ import model.Entity;
 import model.codec.EntityType;
 import model.crypto.Sha3256Hash;
 import model.lightchain.Identifier;
-import modules.ads.merkletree.*;
+import modules.ads.merkletree.MerkleProof;
+import modules.ads.merkletree.MerkleTree;
+import modules.ads.merkletree.MerkleTreeAuthenticatedEntity;
+import modules.ads.merkletree.MerkleTreeAuthenticatedEntityVerifier;
 import org.junit.jupiter.api.Assertions;
 import unittest.fixtures.*;
 
@@ -21,7 +24,7 @@ public class MerkleTreeTest {
   /**
    * Generic function to test putting and verifying an entity in a merkle tree.
    *
-   * @param entity the entity to put in the merkle tree
+   * @param entity     the entity to put in the merkle tree
    * @param merkleTree the merkle tree to put the entity in
    */
   public static void testVerification(Entity entity, MerkleTree merkleTree) {
@@ -40,7 +43,7 @@ public class MerkleTreeTest {
    * Generic function to test both putting and getting the same entity gives same proof
    * and putting another entity gives different proofs.
    *
-   * @param e1 the entity to put in the merkle tree
+   * @param e1         the entity to put in the merkle tree
    * @param merkleTree the merkle tree to put the entity in
    */
   public static void testPutGetSameProof(Entity e1, MerkleTree merkleTree) {
@@ -75,7 +78,7 @@ public class MerkleTreeTest {
   /**
    * Generic function which tests putting an existing entity does not change the proof.
    *
-   * @param entity the entity to put in the merkle tree
+   * @param entity     the entity to put in the merkle tree
    * @param merkleTree the merkle tree to put the entity in
    */
   public static void testPutExistingEntity(Entity entity, MerkleTree merkleTree) {
@@ -101,7 +104,7 @@ public class MerkleTreeTest {
    * Generic function which concurrently puts and gets entities and checks their proofs are correct
    * (thread safety check).
    *
-   * @param type the type of entity which is put in the merkle tree
+   * @param type       the type of entity which is put in the merkle tree
    * @param merkleTree the merkle tree to put the entity in
    */
   public static void testConcurrentPutGet(String type, MerkleTree merkleTree) {
@@ -186,7 +189,7 @@ public class MerkleTreeTest {
    * Generic function which tests getting an entity that does not exist in the merkle tree
    * throws IllegalArgumentException.
    *
-   * @param entity the entity to put in the merkle tree
+   * @param entity     the entity to put in the merkle tree
    * @param merkleTree the merkle tree to put the entity in
    */
   public static void testGetNonExistingEntity(Entity entity, MerkleTree merkleTree) {
@@ -213,7 +216,7 @@ public class MerkleTreeTest {
   /**
    * Generic function which tests the proof verification fails when root is changed.
    *
-   * @param entity the entity to put in the merkle tree
+   * @param entity     the entity to put in the merkle tree
    * @param merkleTree the merkle tree to put the entity in
    */
   public static void testManipulatedRoot(Entity entity, MerkleTree merkleTree) {
@@ -226,9 +229,9 @@ public class MerkleTreeTest {
     // creates a tampered proof with random root.
     MerkleProof tamperedProof = new MerkleProof(proof.getPath(), new Sha3256Hash(new byte[32]), proof.getIsLeftNode());
     AuthenticatedEntity tamperedAuthenticatedEntity = new MerkleTreeAuthenticatedEntity(
-            tamperedProof,
-            authenticatedEntity.type(),
-            authenticatedEntity.getEntity());
+        tamperedProof,
+        authenticatedEntity.type(),
+        authenticatedEntity.getEntity());
 
     MerkleTreeAuthenticatedEntityVerifier verifier = new MerkleTreeAuthenticatedEntityVerifier();
     // authenticated entity must be verified.
@@ -240,7 +243,7 @@ public class MerkleTreeTest {
   /**
    * Generic function which tests the proof verification fails when entity is changed.
    *
-   * @param entity the entity to put in the merkle tree
+   * @param entity     the entity to put in the merkle tree
    * @param merkleTree the merkle tree to put the entity in
    */
   public static void testManipulatedEntity(Entity entity, MerkleTree merkleTree) {
@@ -250,9 +253,9 @@ public class MerkleTreeTest {
     AuthenticatedEntity authenticatedEntity = merkleTree.put(entity);
 
     AuthenticatedEntity tamperedEntity = new MerkleTreeAuthenticatedEntity(
-            (MerkleProof) authenticatedEntity.getMembershipProof(),
-            authenticatedEntity.type(),
-            new EntityFixture());
+        (MerkleProof) authenticatedEntity.getMembershipProof(),
+        authenticatedEntity.type(),
+        new EntityFixture());
 
     MerkleTreeAuthenticatedEntityVerifier verifier = new MerkleTreeAuthenticatedEntityVerifier();
     Assertions.assertTrue(verifier.verify(authenticatedEntity)); // original authenticated entity passes verification.
@@ -262,7 +265,7 @@ public class MerkleTreeTest {
   /**
    * Generic function which tests the proof fails verification when proof part of authenticated entity is changed.
    *
-   * @param entity the entity to put in the merkle tree
+   * @param entity     the entity to put in the merkle tree
    * @param merkleTree the merkle tree to put the entity in
    */
   public static void testManipulatedProof(Entity entity, MerkleTree merkleTree) {
@@ -273,12 +276,12 @@ public class MerkleTreeTest {
     MembershipProof proof = authenticatedEntity.getMembershipProof();
 
     AuthenticatedEntity tamperedEntity = new MerkleTreeAuthenticatedEntity(
-            new MerkleProof(Sha3256HashFixture.newSha3256HashArrayList(
-                    proof.getPath().size()),
-                    proof.getRoot(),
-                    proof.getIsLeftNode()),
-            authenticatedEntity.type(),
-            authenticatedEntity.getEntity());
+        new MerkleProof(Sha3256HashFixture.newSha3256HashArrayList(
+            proof.getPath().size()),
+            proof.getRoot(),
+            proof.getIsLeftNode()),
+        authenticatedEntity.type(),
+        authenticatedEntity.getEntity());
 
     MerkleTreeAuthenticatedEntityVerifier verifier = new MerkleTreeAuthenticatedEntityVerifier();
     Assertions.assertTrue(verifier.verify(authenticatedEntity)); // original authenticated entity passes verification.

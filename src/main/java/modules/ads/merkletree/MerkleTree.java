@@ -1,22 +1,22 @@
 package modules.ads.merkletree;
 
-import model.Entity;
-import model.crypto.Sha3256Hash;
-import model.lightchain.Identifier;
-
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.util.ArrayList;
+
+import model.Entity;
+import model.crypto.Sha3256Hash;
+import model.lightchain.Identifier;
 
 public interface MerkleTree {
 
   /**
    * Returns the membership proof of the given identifier.
    *
-   * @param id the identifier whose membership proof is to be returned
+   * @param id    the identifier whose membership proof is to be returned
    * @param state the state of the merkle tree
-   * @param root the root of the merkle tree
+   * @param root  the root of the merkle tree
    *
    * @return the membership proof of the given identifier
    * @throws IllegalArgumentException if the given identifier is not in the merkle tree
@@ -41,9 +41,9 @@ public interface MerkleTree {
   /**
    * Puts the given entity into the state and returns the state.
    *
-   * @param e the entity to be put into the state
+   * @param e     the entity to be put into the state
    * @param state the state to be updated
-   * @param size the size of the state
+   * @param size  the size of the state
    *
    * @return the updated state
    */

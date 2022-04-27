@@ -1,9 +1,9 @@
 package unittest.fixtures;
 
+import java.util.ArrayList;
+
 import modules.ads.merkletree.MerkleTreeInMemoryState;
 import modules.ads.merkletree.MerkleTreeState;
-
-import java.util.ArrayList;
 
 /**
  * Encapsulates utilities for a merkle tree state.

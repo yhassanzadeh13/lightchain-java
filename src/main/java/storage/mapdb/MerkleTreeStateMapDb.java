@@ -1,18 +1,17 @@
 package storage.mapdb;
 
-import model.lightchain.Identifier;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.util.ArrayList;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
+
 import modules.ads.merkletree.MerkleTreeState;
 import org.mapdb.DB;
 import org.mapdb.DBMaker;
 import org.mapdb.HTreeMap;
 import org.mapdb.Serializer;
 import storage.MerkleTreeStates;
-
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.util.ArrayList;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 public class MerkleTreeStateMapDb implements MerkleTreeStates {
   private final DB db;
@@ -93,20 +92,20 @@ public class MerkleTreeStateMapDb implements MerkleTreeStates {
   @Override
   public ArrayList<MerkleTreeState> all() {
     ArrayList<MerkleTreeState> states;
-      states = new ArrayList<>();
-      for (byte[] element : merkleTreeStateMap.keySet()) {
-        try {
-          ByteArrayInputStream bis = new ByteArrayInputStream(element);
-          ObjectInputStream inp = null;
-          inp = new ObjectInputStream(bis);
-          MerkleTreeState state = (MerkleTreeState) inp.readObject();
-          states.add(state);
-        } catch (IOException e) {
-          e.printStackTrace();
-        } catch (ClassNotFoundException e) {
-          throw new RuntimeException(e);
-        }
+    states = new ArrayList<>();
+    for (byte[] element : merkleTreeStateMap.keySet()) {
+      try {
+        ByteArrayInputStream bis = new ByteArrayInputStream(element);
+        ObjectInputStream inp = null;
+        inp = new ObjectInputStream(bis);
+        MerkleTreeState state = (MerkleTreeState) inp.readObject();
+        states.add(state);
+      } catch (IOException e) {
+        e.printStackTrace();
+      } catch (ClassNotFoundException e) {
+        throw new RuntimeException(e);
       }
+    }
     return states;
   }
 
