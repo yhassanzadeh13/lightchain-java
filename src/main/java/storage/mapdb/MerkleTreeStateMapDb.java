@@ -70,6 +70,10 @@ public class MerkleTreeStateMapDb implements MerkleTreeStates {
     return hasBoolean;
   }
 
+  public boolean changeTo(MerkleTreeState state1, MerkleTreeState state2) {
+    return this.remove(state1) && this.add(state2);
+  }
+
   /**
    * Removes a merkle tree state from the storage.
    *
@@ -111,5 +115,27 @@ public class MerkleTreeStateMapDb implements MerkleTreeStates {
    */
   public void closeDb() {
     db.close();
+  }
+
+  /**
+   * Returns true if the database is empty, false if not.
+   *
+   * @return true if the database is empty, false if not.
+   */
+  public boolean isEmpty() {
+    return merkleTreeStateMap.isEmpty();
+  }
+
+  /**
+   * Returns the last element on the database.
+   *
+   * @return the last element on the database.
+   */
+  public MerkleTreeState getLatest() {
+    ArrayList<MerkleTreeState> states = this.all();
+    if (states.isEmpty()) {
+      return null;
+    }
+    return states.get(states.size() - 1);
   }
 }

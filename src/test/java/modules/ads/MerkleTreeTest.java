@@ -9,12 +9,8 @@ import model.Entity;
 import model.codec.EntityType;
 import model.crypto.Sha3256Hash;
 import model.lightchain.Identifier;
-import modules.ads.merkletree.MerkleProof;
-import modules.ads.merkletree.MerkleTreeInMemoryState;
-import modules.ads.merkletree.MerkleTreeAuthenticatedEntity;
-import modules.ads.merkletree.MerkleTreeAuthenticatedEntityVerifier;
+import modules.ads.merkletree.*;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
 import unittest.fixtures.*;
 
 /**
@@ -23,88 +19,14 @@ import unittest.fixtures.*;
 public class MerkleTreeTest {
 
   /**
-   * Test putting and verifying a random entity in a random merkle tree.
-   */
-  @Test
-  public void testVerificationNoArg() {
-    testVerification(null, null);
-  }
-
-  /**
-   * Tests both putting and getting the same random entity gives same proof and putting
-   * another entity gives different proofs.
-   */
-  @Test
-  public void testPutGetSameProofNoArg() {
-    testPutGetSameProof(null, null);
-  }
-
-  /**
-   * Tests putting an existing entity does not change the proof with a random entity and merkle tree.
-   */
-  @Test
-  public void testPutExistingEntityNoArg() {
-    testPutExistingEntity(null, null);
-  }
-
-  /**
-   * Concurrently puts and gets entities and checks their proofs are correct (thread safety check).
-   */
-  @Test
-  public void testConcurrentPutGetNoArg() {
-    testConcurrentPutGet(null, null);
-  }
-
-  /**
-   * Tests getting an entity that does not exist in the merkle tree throws IllegalArgumentException
-   * with a random entity and merkle tree.
-   */
-  @Test
-  public void testGetNonExistingEntityNoArg() {
-    testGetNonExistingEntity(null, null);
-  }
-
-  /**
-   * Tests inserting null throws IllegalArgumentException with a random merkle tree.
-   */
-  @Test
-  public void testNullInsertionNoArg() {
-    testNullInsertion(null);
-  }
-
-  /**
-   * Tests the proof verification fails when root is changed with random entities and merkle tree.
-   */
-  @Test
-  public void testManipulatedRootNoArg() {
-    testManipulatedRoot(null, null);
-  }
-
-  /**
-   * Tests the proof verification fails when entity is changed with random entity and merkle tree.
-   */
-  @Test
-  public void testManipulatedEntityNoArg() {
-    testManipulatedEntity(null, null);
-  }
-
-  /**
-   * Tests the proof verification fails when entity is changed with random entity and merkle tree.
-   */
-  @Test
-  public void testManipulatedProofNoArg() {
-    testManipulatedProof(null, null);
-  }
-
-  /**
    * Generic function to test putting and verifying an entity in a merkle tree.
    *
    * @param entity the entity to put in the merkle tree
    * @param merkleTree the merkle tree to put the entity in
    */
-  public static void testVerification(Entity entity, MerkleTreeInMemoryState merkleTree) {
+  public static void testVerification(Entity entity, MerkleTree merkleTree) {
     entity = entity != null ? entity : new EntityFixture();
-    merkleTree = merkleTree != null ? merkleTree : MerkleTreeFixture.createMerkleTree(5);
+    merkleTree = merkleTree != null ? merkleTree : MerkleTreeFixture.createInMemoryStateMerkleTree(5);
     Assertions.assertEquals(merkleTree.size(), 5); // fixture sanity check.
     merkleTree.put(entity);
     Assertions.assertEquals(merkleTree.size(), 6);
@@ -121,8 +43,8 @@ public class MerkleTreeTest {
    * @param e1 the entity to put in the merkle tree
    * @param merkleTree the merkle tree to put the entity in
    */
-  public static void testPutGetSameProof(Entity e1, MerkleTreeInMemoryState merkleTree) {
-    merkleTree = merkleTree != null ? merkleTree : MerkleTreeFixture.createMerkleTree(5);
+  public static void testPutGetSameProof(Entity e1, MerkleTree merkleTree) {
+    merkleTree = merkleTree != null ? merkleTree : MerkleTreeFixture.createInMemoryStateMerkleTree(5);
     Assertions.assertEquals(merkleTree.size(), 5); // fixture sanity check.
     e1 = e1 != null ? e1 : new EntityFixture();
 
@@ -156,9 +78,9 @@ public class MerkleTreeTest {
    * @param entity the entity to put in the merkle tree
    * @param merkleTree the merkle tree to put the entity in
    */
-  public static void testPutExistingEntity(Entity entity, MerkleTreeInMemoryState merkleTree) {
+  public static void testPutExistingEntity(Entity entity, MerkleTree merkleTree) {
     entity = entity != null ? entity : new EntityFixture();
-    merkleTree = merkleTree != null ? merkleTree : MerkleTreeFixture.createMerkleTree(5);
+    merkleTree = merkleTree != null ? merkleTree : MerkleTreeFixture.createInMemoryStateMerkleTree(5);
     Assertions.assertEquals(merkleTree.size(), 5); // fixture sanity check.
 
     // first time put
@@ -182,7 +104,7 @@ public class MerkleTreeTest {
    * @param type the type of entity which is put in the merkle tree
    * @param merkleTree the merkle tree to put the entity in
    */
-  public static void testConcurrentPutGet(String type, MerkleTreeInMemoryState merkleTree) {
+  public static void testConcurrentPutGet(String type, MerkleTree merkleTree) {
     int concurrencyDegree = 100;
     ArrayList<Entity> entities = new ArrayList<>();
     ArrayList<Identifier> ids = new ArrayList<>();
@@ -194,8 +116,8 @@ public class MerkleTreeTest {
     Thread[] putThreads = new Thread[concurrencyDegree];
     Thread[] getThreads = new Thread[concurrencyDegree];
 
-    merkleTree = merkleTree != null ? merkleTree : MerkleTreeFixture.createMerkleTree(0);
-    MerkleTreeInMemoryState finalMerkleTree = merkleTree;
+    merkleTree = merkleTree != null ? merkleTree : MerkleTreeFixture.createInMemoryStateMerkleTree(0);
+    MerkleTree finalMerkleTree = merkleTree;
     Assertions.assertEquals(merkleTree.size(), 0); // fixture sanity check.
 
     for (int i = 0; i < concurrencyDegree; i++) {
@@ -267,12 +189,12 @@ public class MerkleTreeTest {
    * @param entity the entity to put in the merkle tree
    * @param merkleTree the merkle tree to put the entity in
    */
-  public static void testGetNonExistingEntity(Entity entity, MerkleTreeInMemoryState merkleTree) {
-    merkleTree = merkleTree != null ? merkleTree : MerkleTreeFixture.createMerkleTree(5);
+  public static void testGetNonExistingEntity(Entity entity, MerkleTree merkleTree) {
+    merkleTree = merkleTree != null ? merkleTree : MerkleTreeFixture.createInMemoryStateMerkleTree(5);
     Assertions.assertEquals(merkleTree.size(), 5); // fixture sanity check.
     entity = entity != null ? entity : new EntityFixture();
     Entity finalEntity = entity;
-    MerkleTreeInMemoryState finalMerkleTree = merkleTree;
+    MerkleTree finalMerkleTree = merkleTree;
     Assertions.assertThrows(IllegalArgumentException.class, () -> finalMerkleTree.get(finalEntity.id()));
   }
 
@@ -281,10 +203,10 @@ public class MerkleTreeTest {
    *
    * @param merkleTree the merkle tree to put null
    */
-  public static void testNullInsertion(MerkleTreeInMemoryState merkleTree) {
-    merkleTree = merkleTree != null ? merkleTree : MerkleTreeFixture.createMerkleTree(5);
+  public static void testNullInsertion(MerkleTree merkleTree) {
+    merkleTree = merkleTree != null ? merkleTree : MerkleTreeFixture.createInMemoryStateMerkleTree(5);
     Assertions.assertEquals(merkleTree.size(), 5); // fixture sanity check.
-    MerkleTreeInMemoryState finalMerkleTree = merkleTree;
+    MerkleTree finalMerkleTree = merkleTree;
     Assertions.assertThrows(IllegalArgumentException.class, () -> finalMerkleTree.put(null));
   }
 
@@ -294,9 +216,9 @@ public class MerkleTreeTest {
    * @param entity the entity to put in the merkle tree
    * @param merkleTree the merkle tree to put the entity in
    */
-  public static void testManipulatedRoot(Entity entity, MerkleTreeInMemoryState merkleTree) {
+  public static void testManipulatedRoot(Entity entity, MerkleTree merkleTree) {
     entity = entity != null ? entity : new EntityFixture();
-    merkleTree = merkleTree != null ? merkleTree : MerkleTreeFixture.createMerkleTree(5);
+    merkleTree = merkleTree != null ? merkleTree : MerkleTreeFixture.createInMemoryStateMerkleTree(5);
     Assertions.assertEquals(merkleTree.size(), 5); // fixture sanity check.
     AuthenticatedEntity authenticatedEntity = merkleTree.put(entity);
     MembershipProof proof = authenticatedEntity.getMembershipProof();
@@ -321,9 +243,9 @@ public class MerkleTreeTest {
    * @param entity the entity to put in the merkle tree
    * @param merkleTree the merkle tree to put the entity in
    */
-  public static void testManipulatedEntity(Entity entity, MerkleTreeInMemoryState merkleTree) {
+  public static void testManipulatedEntity(Entity entity, MerkleTree merkleTree) {
     entity = entity != null ? entity : new EntityFixture();
-    merkleTree = merkleTree != null ? merkleTree : MerkleTreeFixture.createMerkleTree(5);
+    merkleTree = merkleTree != null ? merkleTree : MerkleTreeFixture.createInMemoryStateMerkleTree(5);
     Assertions.assertEquals(merkleTree.size(), 5); // fixture sanity check.
     AuthenticatedEntity authenticatedEntity = merkleTree.put(entity);
 
@@ -343,9 +265,9 @@ public class MerkleTreeTest {
    * @param entity the entity to put in the merkle tree
    * @param merkleTree the merkle tree to put the entity in
    */
-  public static void testManipulatedProof(Entity entity, MerkleTreeInMemoryState merkleTree) {
+  public static void testManipulatedProof(Entity entity, MerkleTree merkleTree) {
     entity = entity != null ? entity : new EntityFixture();
-    merkleTree = merkleTree != null ? merkleTree : MerkleTreeFixture.createMerkleTree(5);
+    merkleTree = merkleTree != null ? merkleTree : MerkleTreeFixture.createInMemoryStateMerkleTree(5);
     Assertions.assertEquals(merkleTree.size(), 5); // fixture sanity check.
     AuthenticatedEntity authenticatedEntity = merkleTree.put(entity);
     MembershipProof proof = authenticatedEntity.getMembershipProof();

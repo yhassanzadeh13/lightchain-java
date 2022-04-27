@@ -8,13 +8,14 @@ import modules.ads.merkletree.MerkleTreeInMemoryState;
  * Creates a new randomly looking MerkleTree.
  */
 public class MerkleTreeFixture {
+
   /**
    * Creates a new merkle tree with n random elements.
    *
    * @param n number of elements to create
    * @return a new merkle tree with n random elements.
    */
-  public static MerkleTreeInMemoryState createMerkleTree(int n) {
+  public static MerkleTreeInMemoryState createInMemoryStateMerkleTree(int n) {
     MerkleTreeInMemoryState merkleTree = new MerkleTreeInMemoryState();
     for (int i = 0; i < n; i++) {
       merkleTree.put(new EntityFixture());
@@ -32,7 +33,7 @@ public class MerkleTreeFixture {
   public static ArrayList<MerkleTreeInMemoryState> newMerkleTrees(int n, int m) {
     ArrayList<MerkleTreeInMemoryState> trees = new ArrayList<>();
     for (int i = 0; i < n; i++) {
-      trees.add(createMerkleTree(m));
+      trees.add(createInMemoryStateMerkleTree(m));
     }
     return trees;
   }

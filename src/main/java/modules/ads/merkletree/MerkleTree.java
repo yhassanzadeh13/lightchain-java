@@ -38,6 +38,15 @@ public interface MerkleTree {
     return new MerkleProof(path, root.getHash(), isLeftNode);
   }
 
+  /**
+   * Puts the given entity into the state and returns the state.
+   *
+   * @param e the entity to be put into the state
+   * @param state the state to be updated
+   * @param size the size of the state
+   *
+   * @return the updated state
+   */
   default MerkleTreeState put(Entity e, MerkleTreeState state, int size) {
     Sha3256Hash hash = new Sha3256Hash(e.id().getBytes());
     int idx = state.getNodeIndex(hash);
@@ -49,6 +58,31 @@ public interface MerkleTree {
     return state;
   }
 
+  /**
+   * Puts the given entity into the merkle tree and return AuthenticationEntity.
+   *
+   * @param e the entity to be put into the merkle tree
+   *
+   * @return AuthenticationEntity of the given entity
+   * @throws IllegalArgumentException if the entity is null
+   */
+  modules.ads.AuthenticatedEntity put(Entity e) throws IllegalArgumentException;
+
+  /**
+   * Return the AuthenticationEntity of the given identifier.
+   *
+   * @param id the identifier whose AuthenticationEntity is to be returned
+   *
+   * @return the AuthenticationEntity of the given identifier
+   * @throws IllegalArgumentException if the identifier is not found
+   */
+  modules.ads.AuthenticatedEntity get(Identifier id) throws IllegalArgumentException;
+
+  /**
+   * Returns the byte array of the merkle tree.
+   *
+   * @return the byte array of the merkle tree
+   */
   default byte[] getBytes() {
     try {
       ByteArrayOutputStream bos = new ByteArrayOutputStream();
@@ -63,5 +97,12 @@ public interface MerkleTree {
     }
     return null;
   }
+
+  /**
+   * Returns the size of the ADS.
+   *
+   * @return the size of the ADS
+   */
+  int size();
 
 }

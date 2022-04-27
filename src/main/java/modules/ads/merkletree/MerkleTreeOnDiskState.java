@@ -1,34 +1,38 @@
 package modules.ads.merkletree;
 
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
-
 import crypto.Sha3256Hasher;
 import model.Entity;
 import model.crypto.Sha3256Hash;
 import model.lightchain.Identifier;
 import modules.ads.AuthenticatedDataStructure;
+import storage.mapdb.MerkleTreeStateMapDb;
 
-/**
- * Implementation of an in-memory Authenticated Skip List
- * that is capable of storing and retrieval of LightChain entities.
- */
-public class MerkleTreeInMemoryState implements AuthenticatedDataStructure, Serializable, MerkleTree {
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
+
+public class MerkleTreeOnDiskState implements AuthenticatedDataStructure, MerkleTree, Serializable {
   private static final Sha3256Hasher hasher = new Sha3256Hasher();
   private final ReentrantReadWriteLock lock;
-  private MerkleTreeState state;
+  private MerkleTreeStateMapDb stateMapDb;
   private int size;
   private MerkleNode root;
+  private MerkleTreeState state;
 
   /**
-   * Default constructor for an in memory Merkle Tree.
+   * Default constructor for an on disk Merkle Tree.
    */
-  public MerkleTreeInMemoryState() {
+  public MerkleTreeOnDiskState(MerkleTreeStateMapDb stateMapDb) {
     this.size = 0;
     this.root = new MerkleNode();
     this.lock = new ReentrantReadWriteLock();
-    this.state = new MerkleTreeState();
+    this.stateMapDb = stateMapDb;
+    if (stateMapDb.isEmpty()) {
+      this.state = new MerkleTreeState();
+      this.stateMapDb.add(this.state);
+    } else {
+      this.state = stateMapDb.getLatest();
+    }
   }
 
   /**
@@ -47,7 +51,9 @@ public class MerkleTreeInMemoryState implements AuthenticatedDataStructure, Seri
       }
       int idx = state.getNodeIndex(new Sha3256Hash(e.id().getBytes()));
       if (idx == -1) {
-        this.state = put(e, state, size);
+        MerkleTreeState newState = put(e, state, size);
+        stateMapDb.changeTo(state, newState);
+        this.state = newState;
         size++;
         buildMerkleTree();
       }
@@ -126,9 +132,5 @@ public class MerkleTreeInMemoryState implements AuthenticatedDataStructure, Seri
    */
   public int size() {
     return this.size;
-  }
-
-  public MerkleTreeState getState() {
-    return state;
   }
 }
