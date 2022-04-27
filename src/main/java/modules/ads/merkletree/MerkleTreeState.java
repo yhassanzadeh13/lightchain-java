@@ -31,19 +31,6 @@ public class MerkleTreeState implements Serializable {
   }
 
   /**
-   * Constructor.
-   *
-   * @param leafNodes          the leaf nodes of the Merkle Tree
-   * @param leafNodesHashTable the hash table of the leaf nodes
-   * @param entityHashTable    the hash table of the entities
-   */
-  public MerkleTreeState(ArrayList<MerkleNode> leafNodes, Map<Sha3256Hash, Integer> leafNodesHashTable, Map<Identifier, Entity> entityHashTable) {
-    this.leafNodes = leafNodes;
-    this.leafNodesHashTable = leafNodesHashTable;
-    this.entityHashTable = entityHashTable;
-  }
-
-  /**
    * Returns the leaf nodes of the Merkle Tree.
    *
    * @return the leaf nodes of the Merkle Tree
@@ -143,8 +130,12 @@ public class MerkleTreeState implements Serializable {
    */
   @Override
   public boolean equals(Object o) {
-    if (this == o) return true;
-    if (o == null || getClass() != o.getClass()) return false;
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
     MerkleTreeState that = (MerkleTreeState) o;
     return leafNodes.equals(that.leafNodes);
   }

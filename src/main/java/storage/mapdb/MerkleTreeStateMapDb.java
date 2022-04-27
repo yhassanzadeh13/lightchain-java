@@ -13,6 +13,9 @@ import org.mapdb.HTreeMap;
 import org.mapdb.Serializer;
 import storage.MerkleTreeStates;
 
+/**
+ * StateMapDb implementation for on-disk MerkleTreeState storage.
+ */
 public class MerkleTreeStateMapDb implements MerkleTreeStates {
   private final DB db;
   private final ReentrantReadWriteLock lock;
@@ -77,7 +80,7 @@ public class MerkleTreeStateMapDb implements MerkleTreeStates {
    * @param state1 the state to be removed.
    * @param state2 the state to be added.
    *
-   * @return
+   * @return true if the state1 exists and removed and state2 is added, false otherwise.
    */
   public boolean changeTo(MerkleTreeState state1, MerkleTreeState state2) {
     return this.remove(state1) && this.add(state2);

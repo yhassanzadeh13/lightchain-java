@@ -4,6 +4,9 @@ import java.util.ArrayList;
 
 import modules.ads.merkletree.MerkleTreeState;
 
+/**
+ * Interface for the Merkle Tree States.
+ */
 public interface MerkleTreeStates {
 
   /**

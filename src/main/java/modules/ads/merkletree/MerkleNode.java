@@ -77,6 +77,7 @@ public class MerkleNode implements Serializable {
 
   /**
    * Returns the left child of the node.
+   *
    * @return the left child of the node
    */
   @SuppressFBWarnings(value = "EI_EXPOSE_REP", justification = "internal representation is intentionally returned")
@@ -86,6 +87,7 @@ public class MerkleNode implements Serializable {
 
   /**
    * Returns the right child of the node.
+   *
    * @return the right child of the node
    */
   @SuppressFBWarnings(value = "EI_EXPOSE_REP", justification = "internal representation is intentionally returned")
@@ -95,6 +97,7 @@ public class MerkleNode implements Serializable {
 
   /**
    * Returns the parent node of the node.
+   *
    * @return the parent node of the node
    */
   @SuppressFBWarnings(value = "EI_EXPOSE_REP", justification = "internal representation is intentionally returned")
@@ -104,7 +107,6 @@ public class MerkleNode implements Serializable {
 
   /**
    * Sets the parent node of the node.
-   * @return the parent node of the node
    */
   @SuppressFBWarnings(value = "EI_EXPOSE_REP2", justification = "parent is intentionally mutable externally")
   public void setParent(MerkleNode parent) {
@@ -155,6 +157,7 @@ public class MerkleNode implements Serializable {
    * Returns if o is equal to this node.
    *
    * @param o object to compare
+   *
    * @return true if o is equal to this node
    */
   @Override
