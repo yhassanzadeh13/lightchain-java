@@ -12,7 +12,6 @@ import java.util.Objects;
 import model.Entity;
 import model.crypto.Sha3256Hash;
 import model.lightchain.Identifier;
-import storage.MerkleTreeStates;
 
 /**
  * This class represents the state of the Merkle Tree.
