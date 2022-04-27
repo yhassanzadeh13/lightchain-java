@@ -10,42 +10,23 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import model.lightchain.Identifier;
+import modules.ads.merkletree.MerkleTreeState;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.testcontainers.shaded.org.apache.commons.io.FileUtils;
-import storage.mapdb.IdentifierMapDb;
-import unittest.fixtures.IdentifierFixture;
+import storage.mapdb.MerkleTreeStateMapDb;
+import unittest.fixtures.MerkleTreeStateFixture;
 
 /**
- * Encapsulates tests for identifiers database.
+ * Encapsulates tests for merkle tree states database.
  */
-public class IdentifiersTest {
-
+public class MerkleTreeStatesTest {
   private static final String TEMP_DIR = "tempdir";
   private static final String TEMP_FILE = "tempfile.db";
   private Path tempdir;
-  private ArrayList<Identifier> allIds;
-  private IdentifierMapDb db;
-  // TODO: implement a unit test for each of the following scenarios:
-  // IMPORTANT NOTE: each test must have a separate instance of database, and the database MUST only created on a
-  // temporary directory.
-  // In following tests by a "new" identifier, we mean an identifier that already does not exist in the database,
-  // and by a "duplicate" identifier, we mean one that already exists in the database.
-  // 1. When adding 10 new identifiers sequentially, the Add method must return true for all of them. Moreover, after
-  //    adding identifiers is done, querying the Has method for each of the identifiers should return true. Also, when
-  //    querying All method, list of all 10 identifiers must be returned.
-  // 2. Add 10 new identifiers, check that they are added correctly, i.e., while adding each identifier Add must return
-  //    true, Has returns true for each of them, and All returns list of all of them. Then Remove the first
-  //    5 identifiers.
-  //    While Removing each of them, the Remove should return true. Then query all 10 identifiers using Has.
-  //    Has should return false for the first 5 identifiers that have been removed. But for the last 5 identifiers it
-  //    should return true. Also, All should return only the last 5 identifiers.
-  // 3. Add 10 new identifiers and check that all of them are added correctly, i.e., while adding each identifier
-  //    Add must return true,
-  //    Has returns true for each of them, and All returns list of all of them. Then try Adding all of them again, and
-  //    Add should return false for each of them.
+  private ArrayList<MerkleTreeState> allStates;
+  private MerkleTreeStateMapDb db;
 
   /**
    * Set the tests up.
@@ -54,28 +35,26 @@ public class IdentifiersTest {
   void setUp() throws IOException {
     Path currentRelativePath = Paths.get("");
     tempdir = Files.createTempDirectory(currentRelativePath, TEMP_DIR);
-    db = new IdentifierMapDb(tempdir.toAbsolutePath() + "/" + TEMP_FILE);
-    allIds = IdentifierFixture.newIdentifiers(10);
+    db = new MerkleTreeStateMapDb(tempdir.toAbsolutePath() + "/" + TEMP_FILE);
+    allStates = MerkleTreeStateFixture.newStates(10);
   }
 
   /**
-   * When adding 10 new identifiers sequentially, the Add method must return true for all of them.
+   * When adding 10 new merkle tree states sequentially, the Add method must return true for all of them.
    */
   @Test
   void sequentialAddTest() throws IOException {
-    for (Identifier identifier : allIds) {
-      Assertions.assertTrue(db.add(identifier));
+    for (MerkleTreeState state : allStates) {
+      Assertions.assertTrue(db.add(state));
     }
-    for (Identifier identifier : allIds) {
-      Assertions.assertTrue(db.has(identifier));
+    for (MerkleTreeState state : allStates) {
+      Assertions.assertTrue(db.has(state));
     }
 
-    ArrayList<Identifier> all = db.all();
+    ArrayList<MerkleTreeState> all = db.all();
     Assertions.assertEquals(all.size(), 10);
-    for (Identifier identifier : all) {
-      System.out.println(identifier);
-      System.out.println(allIds);
-      Assertions.assertTrue(allIds.contains(identifier));
+    for (MerkleTreeState state : all) {
+      Assertions.assertTrue(allStates.contains(state));
     }
     db.closeDb();
     FileUtils.deleteDirectory(new File(tempdir.toString()));
@@ -93,12 +72,12 @@ public class IdentifiersTest {
     Thread[] addThreads = new Thread[concurrencyDegree];
 
     /*
-    Adding all identifiers concurrently.
+    Adding all states concurrently.
      */
-    for (int i = 0; i < allIds.size(); i++) {
+    for (int i = 0; i < allStates.size(); i++) {
       int finalI = i;
       addThreads[i] = new Thread(() -> {
-        if (!db.add(allIds.get(finalI))) {
+        if (!db.add(allStates.get(finalI))) {
           threadError.getAndIncrement();
         }
         addDone.countDown();
@@ -120,10 +99,10 @@ public class IdentifiersTest {
      */
     CountDownLatch hasDone = new CountDownLatch(concurrencyDegree);
     Thread[] hasThreads = new Thread[concurrencyDegree];
-    for (int i = 0; i < allIds.size(); i++) {
+    for (int i = 0; i < allStates.size(); i++) {
       int finalI = i;
       hasThreads[i] = new Thread(() -> {
-        if (!db.has(allIds.get(finalI))) {
+        if (!db.has(allStates.get(finalI))) {
           threadError.getAndIncrement();
         }
         hasDone.countDown();
@@ -145,12 +124,12 @@ public class IdentifiersTest {
      */
     CountDownLatch doneAll = new CountDownLatch(concurrencyDegree);
     Thread[] allThreads = new Thread[concurrencyDegree];
-    ArrayList<Identifier> all = db.all();
+    ArrayList<MerkleTreeState> all = db.all();
 
     for (int i = 0; i < all.size(); i++) {
       int finalI = i;
       allThreads[i] = new Thread(() -> {
-        if (!allIds.contains(allIds.get(finalI))) {
+        if (!allStates.contains(allStates.get(finalI))) {
           threadError.getAndIncrement();
         }
         doneAll.countDown();
@@ -173,27 +152,27 @@ public class IdentifiersTest {
   }
 
   /**
-   * Add 10 new identifiers, check that they are added correctly, i.e., while adding each identifier Add must return.
-   * true, Has returns true for each of them, and All returns list of all of them. Then Remove the first 5 identifiers.
-   * While Removing each of them, the Remove should return true. Then query all 10 identifiers using Has.
-   * Has should return false for the first 5 identifiers that have been removed. But for the last 5 identifiers it.
-   * should return true. Also, All should return only the last 5 identifiers.
+   * Add 10 new states, check that they are added correctly, i.e., while adding each state Add must return.
+   * true, Has returns true for each of them, and All returns list of all of them. Then Remove the first 5 states.
+   * While Removing each of them, the Remove should return true. Then query all 10 states using Has.
+   * Has should return false for the first 5 states that have been removed. But for the last 5 states it.
+   * should return true. Also, All should return only the last 5 states.
    */
   @Test
   void removeFirstFiveTest() throws IOException {
 
-    for (Identifier identifier : allIds) {
-      Assertions.assertTrue(db.add(identifier));
+    for (MerkleTreeState state : allStates) {
+      Assertions.assertTrue(db.add(state));
     }
     // removes the first five
     for (int i = 0; i < 5; i++) {
-      Assertions.assertTrue(db.remove(allIds.get(i)));
+      Assertions.assertTrue(db.remove(allStates.get(i)));
     }
     for (int i = 0; i < 10; i++) {
       if (i < 5) {
-        Assertions.assertFalse(db.has(allIds.get(i)) || db.all().contains(allIds.get(i)));
+        Assertions.assertFalse(db.has(allStates.get(i)) || db.all().contains(allStates.get(i)));
       } else {
-        Assertions.assertTrue(db.has(allIds.get(i)) && db.all().contains(allIds.get(i)));
+        Assertions.assertTrue(db.has(allStates.get(i)) && db.all().contains(allStates.get(i)));
       }
     }
     db.closeDb();
@@ -201,7 +180,7 @@ public class IdentifiersTest {
   }
 
   /**
-   * Concurrent version of removeFirstFiveTest.Add 10 identifier, remove first five.
+   * Concurrent version of removeFirstFiveTest.Add 10 states, remove first five.
    * Check the correct ones removed.
    */
   @Test
@@ -214,10 +193,10 @@ public class IdentifiersTest {
     /*
     Adding all concurrently.
      */
-    for (int i = 0; i < allIds.size(); i++) {
+    for (int i = 0; i < allStates.size(); i++) {
       int finalI = i;
       addThreads[i] = new Thread(() -> {
-        if (!db.add(allIds.get(finalI))) {
+        if (!db.add(allStates.get(finalI))) {
           threadError.getAndIncrement();
         }
         doneAdd.countDown();
@@ -243,7 +222,7 @@ public class IdentifiersTest {
     for (int i = 0; i < removeTill; i++) {
       int finalI = i;
       removeThreads[i] = new Thread(() -> {
-        if (!db.remove(allIds.get(finalI))) {
+        if (!db.remove(allStates.get(finalI))) {
           threadError.getAndIncrement();
         }
         doneRemove.countDown();
@@ -265,16 +244,16 @@ public class IdentifiersTest {
      */
     CountDownLatch doneHas = new CountDownLatch(concurrencyDegree);
     Thread[] hasThreads = new Thread[concurrencyDegree];
-    for (int i = 0; i < allIds.size(); i++) {
+    for (int i = 0; i < allStates.size(); i++) {
       int finalI = i;
       int finalI1 = i;
       hasThreads[i] = new Thread(() -> {
-        if (allIds.indexOf(allIds.get(finalI)) < 5) {
-          if (db.has(allIds.get(finalI1))) {
+        if (allStates.indexOf(allStates.get(finalI)) < 5) {
+          if (db.has(allStates.get(finalI1))) {
             threadError.getAndIncrement();
           }
         } else {
-          if (!db.has(allIds.get(finalI))) {
+          if (!db.has(allStates.get(finalI))) {
             threadError.getAndIncrement();
           }
         }
@@ -298,24 +277,24 @@ public class IdentifiersTest {
   }
 
   /**
-   * Add 10 new identifiers and check that all of them are added correctly, i.e., while adding each identifier.
+   * Add 10 new states and check that all of them are added correctly, i.e., while adding each state.
    * Add must return true.
    * Has returns true for each of them, and All returns list of all of them.
    * Then try Adding all of them again, and Add should return false for each of them.
    */
   @Test
   void duplicationTest() throws IOException {
-    for (Identifier identifier : allIds) {
-      Assertions.assertTrue(db.add(identifier));
+    for (MerkleTreeState state : allStates) {
+      Assertions.assertTrue(db.add(state));
     }
-    for (Identifier identifier : allIds) {
-      Assertions.assertTrue(db.has(identifier));
+    for (MerkleTreeState state : allStates) {
+      Assertions.assertTrue(db.has(state));
     }
-    for (Identifier identifier : db.all()) {
-      Assertions.assertTrue(allIds.contains(identifier));
+    for (MerkleTreeState state : db.all()) {
+      Assertions.assertTrue(allStates.contains(state));
     }
-    for (Identifier identifier : allIds) {
-      Assertions.assertFalse(db.add(identifier));
+    for (MerkleTreeState state : allStates) {
+      Assertions.assertFalse(db.add(state));
     }
     db.closeDb();
     FileUtils.deleteDirectory(new File(tempdir.toString()));
@@ -324,7 +303,8 @@ public class IdentifiersTest {
   /**
    * Concurrent version of duplicationTest.
    */
-  @Test void concurrentDuplicationTest() throws IOException {
+  @Test
+  void concurrentDuplicationTest() throws IOException {
     int concurrencyDegree = 10;
 
     /*
@@ -333,10 +313,10 @@ public class IdentifiersTest {
     AtomicInteger threadError = new AtomicInteger();
     CountDownLatch doneAdd = new CountDownLatch(concurrencyDegree);
     Thread[] addThreads = new Thread[concurrencyDegree];
-    for (int i = 0; i < allIds.size(); i++) {
+    for (int i = 0; i < allStates.size(); i++) {
       int finalI = i;
       addThreads[i] = new Thread(() -> {
-        if (!db.add(allIds.get(finalI))) {
+        if (!db.add(allStates.get(finalI))) {
           threadError.getAndIncrement();
         }
         doneAdd.countDown();
@@ -355,10 +335,10 @@ public class IdentifiersTest {
 
     CountDownLatch doneHas = new CountDownLatch(concurrencyDegree);
     Thread[] allThreads = new Thread[concurrencyDegree];
-    for (int i = 0; i < allIds.size(); i++) {
+    for (int i = 0; i < allStates.size(); i++) {
       int finalI = i;
       allThreads[i] = new Thread(() -> {
-        if (!db.has(allIds.get(finalI))) {
+        if (!db.has(allStates.get(finalI))) {
           threadError.getAndIncrement();
         }
         doneHas.countDown();
@@ -376,10 +356,10 @@ public class IdentifiersTest {
 
     CountDownLatch doneDubAdd = new CountDownLatch(concurrencyDegree);
     Thread[] addThreadsDup = new Thread[concurrencyDegree];
-    for (int i = 0; i < allIds.size(); i++) {
+    for (int i = 0; i < allStates.size(); i++) {
       int finalI = i;
       addThreadsDup[i] = new Thread(() -> {
-        if (db.add(allIds.get(finalI))) {
+        if (db.add(allStates.get(finalI))) {
           threadError.getAndIncrement();
         }
         doneDubAdd.countDown();

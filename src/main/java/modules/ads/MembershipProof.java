@@ -1,5 +1,6 @@
 package modules.ads;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 
 import model.crypto.Sha3256Hash;
@@ -7,7 +8,7 @@ import model.crypto.Sha3256Hash;
 /**
  * Represents a Merkle Proof of membership against a certain root identifier.
  */
-public interface MembershipProof {
+public interface MembershipProof extends Serializable {
   /**
    * Root of the authenticated data structure that this proof belongs to.
    *

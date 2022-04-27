@@ -6,6 +6,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import model.Entity;
+import model.codec.EntityType;
 import model.crypto.Sha3256Hash;
 import model.lightchain.Identifier;
 import modules.ads.merkletree.MerkleProof;
@@ -13,10 +14,7 @@ import modules.ads.merkletree.MerkleTree;
 import modules.ads.merkletree.MerkleTreeAuthenticatedEntity;
 import modules.ads.merkletree.MerkleTreeAuthenticatedEntityVerifier;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
-import unittest.fixtures.EntityFixture;
-import unittest.fixtures.MerkleTreeFixture;
-import unittest.fixtures.Sha3256HashFixture;
+import unittest.fixtures.*;
 
 /**
  * Encapsulates tests for an authenticated and concurrent implementation of MerkleTree ADS.
@@ -24,14 +22,15 @@ import unittest.fixtures.Sha3256HashFixture;
 public class MerkleTreeTest {
 
   /**
-   * A basic test for one sequential put and get operations.
+   * Generic function to test putting and verifying an entity in a merkle tree.
+   *
+   * @param entity     the entity to put in the merkle tree
+   * @param merkleTree the merkle tree to put the entity in
    */
-  @Test
-  public void testVerification() {
-    MerkleTree merkleTree = MerkleTreeFixture.createMerkleTree(5);
+  public static void testVerification(Entity entity, MerkleTree merkleTree) {
+    entity = entity != null ? entity : new EntityFixture();
+    merkleTree = merkleTree != null ? merkleTree : MerkleTreeFixture.createInMemoryStateMerkleTree(5);
     Assertions.assertEquals(merkleTree.size(), 5); // fixture sanity check.
-
-    Entity entity = new EntityFixture();
     merkleTree.put(entity);
     Assertions.assertEquals(merkleTree.size(), 6);
 
@@ -41,14 +40,16 @@ public class MerkleTreeTest {
   }
 
   /**
-   * Tests both putting and getting the same entity gives same proof
+   * Generic function to test both putting and getting the same entity gives same proof
    * and putting another entity gives different proofs.
+   *
+   * @param e1         the entity to put in the merkle tree
+   * @param merkleTree the merkle tree to put the entity in
    */
-  @Test
-  public void testPutGetSameProof() {
-    MerkleTree merkleTree = MerkleTreeFixture.createMerkleTree(5);
+  public static void testPutGetSameProof(Entity e1, MerkleTree merkleTree) {
+    merkleTree = merkleTree != null ? merkleTree : MerkleTreeFixture.createInMemoryStateMerkleTree(5);
     Assertions.assertEquals(merkleTree.size(), 5); // fixture sanity check.
-    Entity e1 = new EntityFixture();
+    e1 = e1 != null ? e1 : new EntityFixture();
 
     // putting e1
     AuthenticatedEntity authenticatedEntityPut = merkleTree.put(e1);
@@ -75,13 +76,15 @@ public class MerkleTreeTest {
   }
 
   /**
-   * Tests putting an existing entity does not change the proof.
+   * Generic function which tests putting an existing entity does not change the proof.
+   *
+   * @param entity     the entity to put in the merkle tree
+   * @param merkleTree the merkle tree to put the entity in
    */
-  @Test
-  public void testPutExistingEntity() {
-    MerkleTree merkleTree = MerkleTreeFixture.createMerkleTree(5);
+  public static void testPutExistingEntity(Entity entity, MerkleTree merkleTree) {
+    entity = entity != null ? entity : new EntityFixture();
+    merkleTree = merkleTree != null ? merkleTree : MerkleTreeFixture.createInMemoryStateMerkleTree(5);
     Assertions.assertEquals(merkleTree.size(), 5); // fixture sanity check.
-    Entity entity = new EntityFixture();
 
     // first time put
     AuthenticatedEntity authenticatedEntityPut = merkleTree.put(entity);
@@ -98,10 +101,13 @@ public class MerkleTreeTest {
   }
 
   /**
-   * Concurrently puts and gets entities and checks their proofs are correct (thread safety check).
+   * Generic function which concurrently puts and gets entities and checks their proofs are correct
+   * (thread safety check).
+   *
+   * @param type       the type of entity which is put in the merkle tree
+   * @param merkleTree the merkle tree to put the entity in
    */
-  @Test
-  public void testConcurrentPutGet() {
+  public static void testConcurrentPutGet(String type, MerkleTree merkleTree) {
     int concurrencyDegree = 100;
     ArrayList<Entity> entities = new ArrayList<>();
     ArrayList<Identifier> ids = new ArrayList<>();
@@ -113,11 +119,17 @@ public class MerkleTreeTest {
     Thread[] putThreads = new Thread[concurrencyDegree];
     Thread[] getThreads = new Thread[concurrencyDegree];
 
-    MerkleTree merkleTree = MerkleTreeFixture.createMerkleTree(0);
+    merkleTree = merkleTree != null ? merkleTree : MerkleTreeFixture.createInMemoryStateMerkleTree(0);
+    MerkleTree finalMerkleTree = merkleTree;
     Assertions.assertEquals(merkleTree.size(), 0); // fixture sanity check.
 
     for (int i = 0; i < concurrencyDegree; i++) {
-      Entity entity = new EntityFixture();
+      Entity entity;
+      if (type == EntityType.TYPE_ACCOUNT) {
+        entity = AccountFixture.newAccount(IdentifierFixture.newIdentifier());
+      } else {
+        entity = new EntityFixture();
+      }
       entities.add(entity);
       ids.add(entity.id());
     }
@@ -127,7 +139,7 @@ public class MerkleTreeTest {
       Entity entity = entities.get(i);
       putThreads[i] = new Thread(() -> {
         try {
-          merkleTree.put(entity);
+          finalMerkleTree.put(entity);
           putDone.countDown();
         } catch (Exception e) {
           threadError.getAndIncrement();
@@ -149,7 +161,7 @@ public class MerkleTreeTest {
       Identifier id = ids.get(i);
       getThreads[i] = new Thread(() -> {
         try {
-          AuthenticatedEntity authenticatedEntity = merkleTree.get(id);
+          AuthenticatedEntity authenticatedEntity = finalMerkleTree.get(id);
           MerkleTreeAuthenticatedEntityVerifier verifier = new MerkleTreeAuthenticatedEntityVerifier();
           if (!verifier.verify(authenticatedEntity)) {
             threadError.getAndIncrement();
@@ -174,39 +186,43 @@ public class MerkleTreeTest {
   }
 
   /**
-   * Tests getting an entity that does not exist in the merkle tree throws IllegalArgumentException.
+   * Generic function which tests getting an entity that does not exist in the merkle tree
+   * throws IllegalArgumentException.
+   *
+   * @param entity     the entity to put in the merkle tree
+   * @param merkleTree the merkle tree to put the entity in
    */
-  @Test
-  public void testGetNonExistingEntity() {
-    MerkleTree merkleTree = MerkleTreeFixture.createMerkleTree(5);
+  public static void testGetNonExistingEntity(Entity entity, MerkleTree merkleTree) {
+    merkleTree = merkleTree != null ? merkleTree : MerkleTreeFixture.createInMemoryStateMerkleTree(5);
     Assertions.assertEquals(merkleTree.size(), 5); // fixture sanity check.
-    Entity entity = new EntityFixture();
-
-    Assertions.assertThrows(IllegalArgumentException.class, () -> {
-      merkleTree.get(entity.id());
-    });
+    entity = entity != null ? entity : new EntityFixture();
+    Entity finalEntity = entity;
+    MerkleTree finalMerkleTree = merkleTree;
+    Assertions.assertThrows(IllegalArgumentException.class, () -> finalMerkleTree.get(finalEntity.id()));
   }
 
   /**
-   * Tests inserting null throws IllegalArgumentException.
+   * Generic function which tests inserting null throws IllegalArgumentException.
+   *
+   * @param merkleTree the merkle tree to put null
    */
-  @Test
-  public void testNullInsertion() {
-    MerkleTree merkleTree = MerkleTreeFixture.createMerkleTree(5);
+  public static void testNullInsertion(MerkleTree merkleTree) {
+    merkleTree = merkleTree != null ? merkleTree : MerkleTreeFixture.createInMemoryStateMerkleTree(5);
     Assertions.assertEquals(merkleTree.size(), 5); // fixture sanity check.
-    Assertions.assertThrows(IllegalArgumentException.class, () -> {
-      merkleTree.put(null);
-    });
+    MerkleTree finalMerkleTree = merkleTree;
+    Assertions.assertThrows(IllegalArgumentException.class, () -> finalMerkleTree.put(null));
   }
 
   /**
-   * Tests the proof verification fails when root is changed.
+   * Generic function which tests the proof verification fails when root is changed.
+   *
+   * @param entity     the entity to put in the merkle tree
+   * @param merkleTree the merkle tree to put the entity in
    */
-  @Test
-  public void testManipulatedRoot() {
-    MerkleTree merkleTree = MerkleTreeFixture.createMerkleTree(5);
+  public static void testManipulatedRoot(Entity entity, MerkleTree merkleTree) {
+    entity = entity != null ? entity : new EntityFixture();
+    merkleTree = merkleTree != null ? merkleTree : MerkleTreeFixture.createInMemoryStateMerkleTree(5);
     Assertions.assertEquals(merkleTree.size(), 5); // fixture sanity check.
-    Entity entity = new EntityFixture();
     AuthenticatedEntity authenticatedEntity = merkleTree.put(entity);
     MembershipProof proof = authenticatedEntity.getMembershipProof();
 
@@ -225,13 +241,15 @@ public class MerkleTreeTest {
   }
 
   /**
-   * Tests the proof verification fails when entity is changed.
+   * Generic function which tests the proof verification fails when entity is changed.
+   *
+   * @param entity     the entity to put in the merkle tree
+   * @param merkleTree the merkle tree to put the entity in
    */
-  @Test
-  public void testManipulatedEntity() {
-    MerkleTree merkleTree = MerkleTreeFixture.createMerkleTree(5);
+  public static void testManipulatedEntity(Entity entity, MerkleTree merkleTree) {
+    entity = entity != null ? entity : new EntityFixture();
+    merkleTree = merkleTree != null ? merkleTree : MerkleTreeFixture.createInMemoryStateMerkleTree(5);
     Assertions.assertEquals(merkleTree.size(), 5); // fixture sanity check.
-    Entity entity = new EntityFixture();
     AuthenticatedEntity authenticatedEntity = merkleTree.put(entity);
 
     AuthenticatedEntity tamperedEntity = new MerkleTreeAuthenticatedEntity(
@@ -245,14 +263,15 @@ public class MerkleTreeTest {
   }
 
   /**
-   * Tests the proof fails verification when proof part of authenticated entity is changed.
+   * Generic function which tests the proof fails verification when proof part of authenticated entity is changed.
+   *
+   * @param entity     the entity to put in the merkle tree
+   * @param merkleTree the merkle tree to put the entity in
    */
-  @Test
-  public void testManipulatedProof() {
-    MerkleTree merkleTree = MerkleTreeFixture.createMerkleTree(5);
+  public static void testManipulatedProof(Entity entity, MerkleTree merkleTree) {
+    entity = entity != null ? entity : new EntityFixture();
+    merkleTree = merkleTree != null ? merkleTree : MerkleTreeFixture.createInMemoryStateMerkleTree(5);
     Assertions.assertEquals(merkleTree.size(), 5); // fixture sanity check.
-
-    Entity entity = new EntityFixture();
     AuthenticatedEntity authenticatedEntity = merkleTree.put(entity);
     MembershipProof proof = authenticatedEntity.getMembershipProof();
 

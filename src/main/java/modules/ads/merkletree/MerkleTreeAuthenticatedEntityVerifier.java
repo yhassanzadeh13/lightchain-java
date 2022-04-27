@@ -1,5 +1,6 @@
 package modules.ads.merkletree;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 
@@ -11,7 +12,7 @@ import modules.ads.MembershipProof;
 /**
  * Verifies the AuthenticatedEntity against its self-contained proof.
  */
-public class MerkleTreeAuthenticatedEntityVerifier implements modules.ads.AuthenticatedEntityVerifier {
+public class MerkleTreeAuthenticatedEntityVerifier implements modules.ads.AuthenticatedEntityVerifier, Serializable {
 
   /**
    * Verifies the AuthenticatedEntity against its self-contained proof.
