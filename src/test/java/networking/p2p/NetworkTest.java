@@ -13,8 +13,10 @@ import model.exceptions.LightChainNetworkingException;
 import model.lightchain.Identifier;
 import network.Conduit;
 import network.p2p.P2pNetwork;
+import networking.MockConduit;
 import networking.MockEngine;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import unittest.fixtures.EntityFixture;
 import unittest.fixtures.EntityFixtureList;
@@ -39,7 +41,22 @@ public class NetworkTest {
   private static final int PORT_ZERO = 0;
   private final String channel1 = "test-network-channel-1";
   private final String channel2 = "test-network-channel-2";
+  private P2pNetwork[] p2pNetworks;
+  private ArrayList<MockConduit> mockConduits;
 
+  /**
+   * 10 networks, one to all concurrently.
+   */
+  @Test
+  void testTenP2pNetworksOneToAll(){
+    p2pNetworks = new P2pNetwork[10];
+    for(int i = 0 ;i <10 ; i++){
+      p2pNetworks[i] = new P2pNetwork(IdentifierFixture.newIdentifier(),PORT_ZERO);
+
+    }
+
+
+  }
   /**
    * Engine A1 (on one network) can send message to Engine A2
    * (on another network), and the message is received by Engine A2.
