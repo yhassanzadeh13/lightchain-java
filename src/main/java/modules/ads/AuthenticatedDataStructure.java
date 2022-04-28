@@ -10,4 +10,6 @@ public interface AuthenticatedDataStructure {
   AuthenticatedEntity put(Entity e);
 
   AuthenticatedEntity get(Identifier id);
+
+  int size();
 }
