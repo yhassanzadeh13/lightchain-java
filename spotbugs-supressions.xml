@@ -15,7 +15,4 @@
     <Match>
         <Class name="network.p2p.proto.Message$Builder"/>
     </Match>
-    <Match>
-        <Class name="bootstrap.BroadcastEngine"/>
-    </Match>
 </FindBugsFilter>
