@@ -97,13 +97,15 @@ public class Distributed implements storage.Distributed {
   @Override
   public Entity get(Identifier entityId) {
 
-    Entity decodedEntity=null;
+    Entity decodedEntity = null;
 
     try {
       JsonEncoder encoder = new JsonEncoder();
       lock.readLock().lock();
       EncodedEntity encodedEntity = (EncodedEntity) distributedMap.get(entityId.getBytes());
-      assert encodedEntity != null;
+      if (encodedEntity == null) {
+        return null;
+      }
       decodedEntity = encoder.decode(encodedEntity);
     } catch (ClassNotFoundException e) {
       //throw new ClassNotFoundException("could not found the class"+e);
