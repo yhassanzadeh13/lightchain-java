@@ -27,7 +27,7 @@ public class Bootstrap {
    */
   public static void main(String[] args) {
 
-    int nodeCount = 5;
+    int nodeCount = 10;
 
     ConcurrentMap<Identifier, String> idTable;
 
