@@ -18,6 +18,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Encapsulates tests for distributed storage.
@@ -87,26 +90,128 @@ public class DistributedTest {
    */
   @Test
   void sequentialAddTest() throws IOException, ClassNotFoundException {
-    for (Entity entity : allEntities){
+    for (Entity entity : allEntities) {
       Assertions.assertTrue(db.add(entity));
     }
-    for (Entity entity : allEntities){
+    for (Entity entity : allEntities) {
       Assertions.assertTrue(db.has(entity.id()));
     }
-    JsonEncoder encoder = new JsonEncoder();
-    Entity entityx = BlockFixture.newBlock();
-    System.out.println(encoder.decode(encoder.encode(entityx)));
-
-    for (Entity entity : allEntities){
+    for (Entity entity : allEntities) {
       Assertions.assertTrue(allEntities.contains(db.get(entity.id())));
     }
     ArrayList<Entity> all = db.all();
-    Assertions.assertEquals(all.size(),20);
-    for (Entity entity : allEntities){
+    Assertions.assertEquals(all.size(), 20);
+    for (Entity entity : allEntities) {
       Assertions.assertTrue(all.contains(entity));
     }
     db.closeDb();
     FileUtils.deleteDirectory(new File(tempdir.toString()));
   }
+
+  /**
+   * Concurrent version of adding entities.
+   */
+  @Test
+  void concurrentAddTest() throws IOException {
+    int concurrencyDegree = 20;
+
+    AtomicInteger threadError = new AtomicInteger();
+    CountDownLatch addDone = new CountDownLatch(concurrencyDegree);
+    Thread[] addThreads = new Thread[concurrencyDegree];
+    /*
+    Adding all transactions concurrently.
+     */
+    for (int i = 0; i < allEntities.size(); i++) {
+      int finalI = i;
+      addThreads[i] = new Thread(() -> {
+        if (!db.add(allEntities.get(finalI))) {
+          threadError.getAndIncrement();
+        }
+        addDone.countDown();
+      });
+    }
+    for (Thread t : addThreads) {
+      t.start();
+    }
+    try {
+      boolean doneOneTime = addDone.await(60, TimeUnit.SECONDS);
+      Assertions.assertTrue(doneOneTime);
+    } catch (InterruptedException e) {
+      Assertions.fail();
+    }
+    /*
+    Checking correctness of insertion by Has.
+     */
+    CountDownLatch hasDone = new CountDownLatch(concurrencyDegree);
+    Thread[] hasThreads = new Thread[concurrencyDegree];
+    for (int i = 0; i < allEntities.size(); i++) {
+      int finalI = i;
+      hasThreads[i] = new Thread(() -> {
+        if (!db.has((allEntities.get(finalI)).id())) {
+          threadError.getAndIncrement();
+        }
+        hasDone.countDown();
+      });
+    }
+
+    for (Thread t : hasThreads) {
+      t.start();
+    }
+    try {
+      boolean doneOneTime = hasDone.await(60, TimeUnit.SECONDS);
+      Assertions.assertTrue(doneOneTime);
+    } catch (InterruptedException e) {
+      Assertions.fail();
+    }
+    /*
+    Checking correctness of insertion by GET.
+     */
+    CountDownLatch getDone = new CountDownLatch(concurrencyDegree);
+    Thread[] getThreads = new Thread[concurrencyDegree];
+    for (int i = 0; i < allEntities.size(); i++) {
+      int finalI = i;
+      getThreads[i] = new Thread(() -> {
+        if (!allEntities.contains(db.get(allEntities.get(finalI).id()))) {
+          threadError.getAndIncrement();
+        }
+        getDone.countDown();
+      });
+    }
+
+    for (Thread t : getThreads) {
+      t.start();
+    }
+    try {
+      boolean doneOneTime = getDone.await(60, TimeUnit.SECONDS);
+      Assertions.assertTrue(doneOneTime);
+    } catch (InterruptedException e) {
+      Assertions.fail();
+    }
+    CountDownLatch doneAll = new CountDownLatch(concurrencyDegree);
+    Thread[] allThreads = new Thread[concurrencyDegree];
+    ArrayList<Entity> all = db.all();
+    for (int i = 0; i < all.size(); i++) {
+      int finalI = i;
+      allThreads[i] = new Thread(() -> {
+        if (!all.contains(allEntities.get(finalI))) {
+          threadError.getAndIncrement();
+        }
+        doneAll.countDown();
+      });
+    }
+
+    for (Thread t : allThreads) {
+      t.start();
+    }
+    try {
+      boolean doneOneTime = doneAll.await(60, TimeUnit.SECONDS);
+      Assertions.assertTrue(doneOneTime);
+    } catch (InterruptedException e) {
+      Assertions.fail();
+    }
+    db.closeDb();
+    FileUtils.deleteDirectory(new File(tempdir.toString()));
+  }
+
 
 }

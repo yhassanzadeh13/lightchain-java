@@ -103,7 +103,7 @@ public class Distributed implements storage.Distributed {
       JsonEncoder encoder = new JsonEncoder();
       lock.readLock().lock();
       EncodedEntity encodedEntity = (EncodedEntity) distributedMap.get(entityId.getBytes());
-      System.out.println(encodedEntity.getType());
+      assert encodedEntity != null;
       decodedEntity = encoder.decode(encodedEntity);
     } catch (ClassNotFoundException e) {
       //throw new ClassNotFoundException("could not found the class"+e);
