@@ -52,13 +52,12 @@ public class ValidatorEngine implements Engine {
   @Override
   public void process(Entity e) throws IllegalArgumentException {
 
-    if (!seenEntities.has(e.id()) &&
-        e.type().equals(EntityType.TYPE_VALIDATED_BLOCK) || e.type().equals(EntityType.TYPE_VALIDATED_TRANSACTION)) {
+    if (e.type().equals(EntityType.TYPE_VALIDATED_BLOCK) || e.type().equals(EntityType.TYPE_VALIDATED_TRANSACTION)) {
       lock.lock();
       LightChainValidatorAssigner assigner = new LightChainValidatorAssigner();
       Identifier currentNode = this.local.myId();
-
-      if (e.type().equals(EntityType.TYPE_VALIDATED_BLOCK)) {
+      System.out.println("current node: "+e.type());
+      if (!seenEntities.has(e.id()) && e.type().equals(EntityType.TYPE_VALIDATED_BLOCK)) {
         Assignment assignment = assigner.assign(e.id(), state.atBlockId(((Block) e).getPreviousBlockId()),
             (short) Parameters.VALIDATOR_THRESHOLD);
         if (isBlockValidated((Block) e) && assignment.has(currentNode)) {
@@ -72,15 +71,16 @@ public class ValidatorEngine implements Engine {
             ex.printStackTrace();
           }
         }
-      } else if (e.type().equals(EntityType.TYPE_VALIDATED_TRANSACTION)) {
+      } else if (!seenEntities.has(e.id()) && e.type().equals(EntityType.TYPE_VALIDATED_TRANSACTION)) {
         Assignment assignment = assigner.assign(e.id(), state.atBlockId(((Transaction) e).getReferenceBlockId()),
             (short) Parameters.VALIDATOR_THRESHOLD);
-        //TODO remove not
-        if (!isTransactionValidated((Transaction) e) && assignment.has(currentNode)) {
+        if (isTransactionValidated((Transaction) e) && assignment.has(currentNode)) {
           Transaction tx = (Transaction) e;
           Signature sign = this.local.signEntity(tx);
           try {
             this.con.unicast(sign, (tx.getSender()));
+            System.out.println("sign is " + sign);
+            System.out.println("sender is " + tx.getSignature());
             seenEntities.add(tx.id());
           } catch (LightChainNetworkingException ex) {
             lock.unlock();
@@ -96,13 +96,19 @@ public class ValidatorEngine implements Engine {
 
   private boolean isBlockValidated(Block b) {
     BlockValidator verifier = new BlockValidator(state);
+    System.out.println("sound"+verifier.allTransactionsSound(b));
+    System.out.println("valid"+verifier.allTransactionsValidated(b));
+    System.out.println("auth"+verifier.isAuthenticated(b));
+    System.out.println("cons"+verifier.isConsistent(b));
+    System.out.println("correct"+verifier.isCorrect(b));
+    System.out.println("dup"+verifier.noDuplicateSender(b));
+    System.out.println("stake"+verifier.proposerHasEnoughStake(b));
     return verifier.allTransactionsSound(b) && verifier.allTransactionsValidated(b) && verifier.isAuthenticated(b)
         && verifier.isConsistent(b) && verifier.isCorrect(b) && verifier.noDuplicateSender(b) && verifier.proposerHasEnoughStake(b);
   }
 
   private boolean isTransactionValidated(Transaction t) {
     TransactionValidator verifier = new TransactionValidator(state);
-    System.out.println("auth " + verifier.isAuthenticated(t));
     return verifier.isSound(t) && verifier.senderHasEnoughBalance(t) && verifier.isAuthenticated(t) && verifier.isCorrect(t);
   }
 }

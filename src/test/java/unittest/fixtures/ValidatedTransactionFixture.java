@@ -113,7 +113,7 @@ public class ValidatedTransactionFixture {
       certificates[i] = SignatureFixture.newSignatureFixture();
     }
     ValidatedTransaction valTrans = new ValidatedTransaction(referenceBlockId, sender, receiver, amount, certificates);
-    Signature sign = SignatureFixture.newSignatureFixture();
+    Signature sign = SignatureFixture.newSignatureFixture(valTrans.id());
     valTrans.setSignature(sign);
     return valTrans;
   }
