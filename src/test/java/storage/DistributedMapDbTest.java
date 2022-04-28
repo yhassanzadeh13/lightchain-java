@@ -15,20 +15,20 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.testcontainers.shaded.org.apache.commons.io.FileUtils;
-import storage.mapdb.Distributed;
+import storage.mapdb.DistributedMapDb;
 import unittest.fixtures.BlockFixture;
 import unittest.fixtures.TransactionFixture;
 
 /**
  * Encapsulates tests for distributed storage.
  */
-public class DistributedTest {
+public class DistributedMapDbTest {
 
   private static final String TEMP_DIR = "tempdir";
   private static final String TEMP_FILE_ID = "tempfileID.db";
   private Path tempdir;
   private ArrayList<Entity> allEntities;
-  private Distributed db;
+  private DistributedMapDb db;
   // TODO: implement a unit test for each of the following scenarios:
   // IMPORTANT NOTE: each test must have a separate instance of database, and the database MUST only created on a
   // temporary directory.
@@ -70,7 +70,7 @@ public class DistributedTest {
   void setUp() throws IOException {
     Path currentRelativePath = Paths.get("");
     tempdir = Files.createTempDirectory(currentRelativePath, TEMP_DIR);
-    db = new Distributed(tempdir.toAbsolutePath() + "/" + TEMP_FILE_ID);
+    db = new DistributedMapDb(tempdir.toAbsolutePath() + "/" + TEMP_FILE_ID);
     allEntities = new ArrayList<>();
     for (int i = 0; i < 10; i++) {
       allEntities.add(BlockFixture.newBlock(10));
