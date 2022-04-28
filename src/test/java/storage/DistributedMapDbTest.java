@@ -209,6 +209,7 @@ public class DistributedMapDbTest {
     } catch (InterruptedException e) {
       Assertions.fail();
     }
+    Assertions.assertEquals(0, threadError.get());
     db.closeDb();
     try {
       FileUtils.deleteDirectory(new File(tempdir.toString()));
