@@ -408,7 +408,11 @@ public class DistributedTest {
     }
   }
 
-
+  /**
+   * Concurrent version of duplication test.
+   *
+   * @throws IOException for any unhappy path for dir deletion.
+   */
   @Test
   void concurrentDuplicationTest() throws IOException {
     int concurrencyDegree = 20;

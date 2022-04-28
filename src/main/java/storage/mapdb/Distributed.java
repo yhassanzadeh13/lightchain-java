@@ -12,6 +12,9 @@ import org.mapdb.DBMaker;
 import org.mapdb.HTreeMap;
 import org.mapdb.Serializer;
 
+/**
+ * Distributed databese that store encoded entities.
+ */
 public class Distributed implements storage.Distributed {
 
   private final DB db;
@@ -20,7 +23,7 @@ public class Distributed implements storage.Distributed {
   private final HTreeMap distributedMap;
 
   /**
-   * Creates DistributedMapDb
+   * Creates DistributedMapDb.
    */
   public Distributed(String filePath) {
     this.db = DBMaker.fileDB(filePath).make();

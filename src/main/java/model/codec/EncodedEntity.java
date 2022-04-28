@@ -10,13 +10,16 @@ public class EncodedEntity implements Serializable {
   private final byte[] bytes;
   private final String type;
 
-
-
-  // EncodedEntity(id.getBytes() || byte(i), "assignment")
+  /**
+   * Creates encoded entity.
+   * @param bytes bytes of entity.
+   * @param type types of entity.
+   */
   public EncodedEntity(byte[] bytes, String type) {
     this.bytes = bytes.clone();
     this.type = type;
   }
+
   /**
    * Hashcode of entity.
    *
@@ -28,7 +31,7 @@ public class EncodedEntity implements Serializable {
   }
 
   /**
-   * Check if objects are equal
+   * Check if objects are equal.
    *
    * @param o encodedentity.
    * @return true if equals.
@@ -44,6 +47,7 @@ public class EncodedEntity implements Serializable {
     EncodedEntity that = (EncodedEntity) o;
     return Arrays.equals(this.bytes, that.bytes);
   }
+
   public byte[] getBytes() {
     return bytes.clone();
   }
