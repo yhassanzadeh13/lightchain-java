@@ -12,6 +12,7 @@ public class EncodedEntity implements Serializable {
 
   /**
    * Creates encoded entity.
+   *
    * @param bytes bytes of entity.
    * @param type types of entity.
    */

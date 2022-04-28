@@ -3,7 +3,7 @@ package storage;
 import java.util.ArrayList;
 
 import model.Entity;
-import model.lightchain.Block;
+
 import model.lightchain.Identifier;
 
 /**
