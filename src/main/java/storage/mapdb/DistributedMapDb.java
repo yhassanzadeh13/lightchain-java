@@ -15,7 +15,7 @@ import org.mapdb.Serializer;
 /**
  * Distributed databese that store encoded entities.
  */
-public class Distributed implements storage.Distributed {
+public class DistributedMapDb implements storage.Distributed {
 
   private final DB db;
   private final ReentrantReadWriteLock lock;
@@ -25,7 +25,7 @@ public class Distributed implements storage.Distributed {
   /**
    * Creates DistributedMapDb.
    */
-  public Distributed(String filePath) {
+  public DistributedMapDb(String filePath) {
     this.db = DBMaker.fileDB(filePath).make();
     this.lock = new ReentrantReadWriteLock();
     distributedMap = this.db.hashMap(MAP_NAME)
