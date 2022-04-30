@@ -1,6 +1,7 @@
 package network.p2p;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -25,6 +26,8 @@ public class P2pNetwork implements network.Network {
    * Translates identifier of nodes to their networking address.
    */
   private ConcurrentMap<Identifier, String> idToAddressMap;
+
+  private ConcurrentMap<Identifier, Entity> distributedStorageComponent;
 
   /**
    * Creates P2P network for lightchain node.
@@ -102,7 +105,7 @@ public class P2pNetwork implements network.Network {
    * @throws IllegalArgumentException if target identifier does not correspond to a valid address.
    */
   public void sendUnicast(Entity e, Identifier target, String channel) throws InterruptedException,
-      IOException, IllegalArgumentException {
+          IOException, IllegalArgumentException {
 
     String targetAddress = this.idToAddressMap.get(target);
     if (targetAddress == null) {
@@ -115,6 +118,86 @@ public class P2pNetwork implements network.Network {
     } finally {
       managedChannel.shutdownNow();
     }
+  }
+
+  public void putEntity(Entity e) {
+
+    Identifier currentID = e.id();
+    Identifier smallestID = (Identifier) idToAddressMap.keySet().toArray()[0];
+    Identifier targetID;
+
+    for (Identifier id : idToAddressMap.keySet()) {
+
+      if (currentID.comparedTo(id) == -1 && e.id().comparedTo(id) == 1) {
+        currentID = id;
+      }
+
+      if (smallestID.comparedTo(id) == 1) {
+        smallestID = id;
+      }
+
+    }
+
+    if (currentID.comparedTo(e.id()) == 0) {
+      targetID = smallestID;
+    } else {
+      targetID = currentID;
+    }
+
+    String targetAddress = this.idToAddressMap.get(targetID);
+    if (targetAddress == null) {
+      throw new IllegalArgumentException("target identifier does not exist: " + targetID.toString());
+    }
+    ManagedChannel managedChannel = ManagedChannelBuilder.forTarget(targetAddress).usePlaintext().build();
+    try {
+      MessageClient client = new MessageClient(managedChannel);
+      client.put(e);
+    } finally {
+      managedChannel.shutdownNow();
+    }
+
+  }
+
+  public Entity getEntity(Identifier identifier) {
+
+    Entity e = null;
+
+    Identifier currentID = identifier;
+    Identifier smallestID = (Identifier) idToAddressMap.keySet().toArray()[0];
+    Identifier targetID;
+
+    for (Identifier id : idToAddressMap.keySet()) {
+
+      if (currentID.comparedTo(id) == -1 && identifier.comparedTo(id) == 1) {
+        currentID = id;
+      }
+
+      if (smallestID.comparedTo(id) == 1) {
+        smallestID = id;
+      }
+
+    }
+
+    if (currentID.comparedTo(identifier) == 0) {
+      targetID = smallestID;
+    } else {
+      targetID = currentID;
+    }
+
+    String targetAddress = this.idToAddressMap.get(targetID);
+    if (targetAddress == null) {
+      throw new IllegalArgumentException("target identifier does not exist: " + targetID.toString());
+    }
+    ManagedChannel managedChannel = ManagedChannelBuilder.forTarget(targetAddress).usePlaintext().build();
+    try {
+      MessageClient client = new MessageClient(managedChannel);
+      e = client.get(identifier);
+    } finally {
+      managedChannel.shutdownNow();
+    }
+
+    return e;
+
   }
 
 }

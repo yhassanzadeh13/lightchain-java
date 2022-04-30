@@ -47,6 +47,12 @@ public class P2pConduit implements network.Conduit {
   @Override
   public void put(Entity e) throws LightChainDistributedStorageException {
 
+    try {
+      network.putEntity(e);
+    } catch (IllegalArgumentException ex) {
+      throw new LightChainDistributedStorageException();
+    }
+
   }
 
   /**
@@ -59,7 +65,13 @@ public class P2pConduit implements network.Conduit {
    */
   @Override
   public Entity get(Identifier identifier) throws LightChainDistributedStorageException {
-    return null;
+
+    try {
+      return network.getEntity(identifier);
+    } catch (IllegalArgumentException ex) {
+      throw new LightChainDistributedStorageException();
+    }
+
   }
 
   @Override
