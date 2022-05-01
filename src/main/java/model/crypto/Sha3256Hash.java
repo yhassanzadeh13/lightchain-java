@@ -1,6 +1,5 @@
 package model.crypto;
 
-import java.io.Serializable;
 import java.util.Arrays;
 
 import model.lightchain.Identifier;
@@ -9,7 +8,7 @@ import model.lightchain.Identifier;
  * Represents SHA3-256 data type which extends abstract Hash data type for
  * the cryptographic hash function used in LightChain.
  */
-public class Sha3256Hash extends Hash implements Serializable {
+public class Sha3256Hash extends Hash {
   public static final int Size = 32;
   private final byte[] hashBytes;
 
