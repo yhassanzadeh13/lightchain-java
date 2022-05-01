@@ -37,17 +37,17 @@ public final class StorageOuterClass {
   private static  com.google.protobuf.Descriptors.FileDescriptor
       descriptor;
   static {
-    java.lang.String[] descriptorData = {
+    String[] descriptorData = {
       "\n\rstorage.proto\022\021network.p2p.proto\032\033goog" +
       "le/protobuf/empty.proto\"N\n\nPutMessage\022\020\n" +
       "\010OriginId\030\001 \001(\014\022\017\n\007Channel\030\002 \001(\t\022\017\n\007Payl" +
-      "oad\030\003 \001(\014\022\014\n\004Type\030\004 \001(\t\" \n\nGetRequest\022\022\n" +
-      "\nIdentifier\030\001 \001(\014\")\n\010GetReply\022\017\n\007Payload" +
-      "\030\001 \001(\014\022\014\n\004Type\030\002 \001(\t2\224\001\n\007Storage\022@\n\003Put\022" +
-      "\035.network.p2p.proto.PutMessage\032\026.google." +
-      "protobuf.Empty\"\000(\001\022G\n\003Get\022\035.network.p2p." +
-      "proto.GetRequest\032\033.network.p2p.proto.Get" +
-      "Reply\"\000(\0010\001B\002P\001b\006proto3"
+      "oad\030\003 \001(\014\022\014\n\004Type\030\004 \001(\t\"1\n\nGetRequest\022\022\n" +
+      "\nIdentifier\030\001 \001(\014\022\017\n\007Channel\030\002 \001(\t\")\n\010Ge" +
+      "tReply\022\017\n\007Payload\030\001 \001(\014\022\014\n\004Type\030\002 \001(\t2\224\001" +
+      "\n\007Storage\022@\n\003Put\022\035.network.p2p.proto.Put" +
+      "Message\032\026.google.protobuf.Empty\"\000(\001\022G\n\003G" +
+      "et\022\035.network.p2p.proto.GetRequest\032\033.netw" +
+      "ork.p2p.proto.GetReply\"\000(\0010\001B\002P\001b\006proto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
@@ -59,19 +59,19 @@ public final class StorageOuterClass {
     internal_static_network_p2p_proto_PutMessage_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_network_p2p_proto_PutMessage_descriptor,
-        new java.lang.String[] { "OriginId", "Channel", "Payload", "Type", });
+        new String[] { "OriginId", "Channel", "Payload", "Type", });
     internal_static_network_p2p_proto_GetRequest_descriptor =
       getDescriptor().getMessageTypes().get(1);
     internal_static_network_p2p_proto_GetRequest_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_network_p2p_proto_GetRequest_descriptor,
-        new java.lang.String[] { "Identifier", });
+        new String[] { "Identifier", "Channel", });
     internal_static_network_p2p_proto_GetReply_descriptor =
       getDescriptor().getMessageTypes().get(2);
     internal_static_network_p2p_proto_GetReply_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_network_p2p_proto_GetReply_descriptor,
-        new java.lang.String[] { "Payload", "Type", });
+        new String[] { "Payload", "Type", });
     com.google.protobuf.EmptyProto.getDescriptor();
   }
 

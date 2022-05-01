@@ -12,4 +12,16 @@ public interface GetRequestOrBuilder extends
    * @return The identifier.
    */
   com.google.protobuf.ByteString getIdentifier();
+
+  /**
+   * <code>string Channel = 2;</code>
+   * @return The channel.
+   */
+  String getChannel();
+  /**
+   * <code>string Channel = 2;</code>
+   * @return The bytes for channel.
+   */
+  com.google.protobuf.ByteString
+      getChannelBytes();
 }

@@ -27,7 +27,7 @@ public final class MessageOuterClass {
   private static  com.google.protobuf.Descriptors.FileDescriptor
       descriptor;
   static {
-    java.lang.String[] descriptorData = {
+    String[] descriptorData = {
       "\n\rmessage.proto\022\021network.p2p.proto\032\033goog" +
       "le/protobuf/empty.proto\"^\n\007Message\022\020\n\010Or" +
       "iginId\030\001 \001(\014\022\017\n\007Channel\030\002 \001(\t\022\021\n\tTargetI" +
@@ -46,7 +46,7 @@ public final class MessageOuterClass {
     internal_static_network_p2p_proto_Message_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_network_p2p_proto_Message_descriptor,
-        new java.lang.String[] { "OriginId", "Channel", "TargetIds", "Payload", "Type", });
+        new String[] { "OriginId", "Channel", "TargetIds", "Payload", "Type", });
     com.google.protobuf.EmptyProto.getDescriptor();
   }
 

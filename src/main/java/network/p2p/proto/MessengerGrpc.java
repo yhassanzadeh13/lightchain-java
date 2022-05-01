@@ -15,27 +15,27 @@ public final class MessengerGrpc {
   public static final String SERVICE_NAME = "network.p2p.proto.Messenger";
 
   // Static method descriptors that strictly reflect the proto.
-  private static volatile io.grpc.MethodDescriptor<network.p2p.proto.Message,
+  private static volatile io.grpc.MethodDescriptor<Message,
       com.google.protobuf.Empty> getDeliverMethod;
 
   @io.grpc.stub.annotations.RpcMethod(
       fullMethodName = SERVICE_NAME + '/' + "Deliver",
-      requestType = network.p2p.proto.Message.class,
+      requestType = Message.class,
       responseType = com.google.protobuf.Empty.class,
       methodType = io.grpc.MethodDescriptor.MethodType.CLIENT_STREAMING)
-  public static io.grpc.MethodDescriptor<network.p2p.proto.Message,
+  public static io.grpc.MethodDescriptor<Message,
       com.google.protobuf.Empty> getDeliverMethod() {
-    io.grpc.MethodDescriptor<network.p2p.proto.Message, com.google.protobuf.Empty> getDeliverMethod;
+    io.grpc.MethodDescriptor<Message, com.google.protobuf.Empty> getDeliverMethod;
     if ((getDeliverMethod = MessengerGrpc.getDeliverMethod) == null) {
       synchronized (MessengerGrpc.class) {
         if ((getDeliverMethod = MessengerGrpc.getDeliverMethod) == null) {
           MessengerGrpc.getDeliverMethod = getDeliverMethod =
-              io.grpc.MethodDescriptor.<network.p2p.proto.Message, com.google.protobuf.Empty>newBuilder()
+              io.grpc.MethodDescriptor.<Message, com.google.protobuf.Empty>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.CLIENT_STREAMING)
               .setFullMethodName(generateFullMethodName(SERVICE_NAME, "Deliver"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
-                  network.p2p.proto.Message.getDefaultInstance()))
+                  Message.getDefaultInstance()))
               .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   com.google.protobuf.Empty.getDefaultInstance()))
               .setSchemaDescriptor(new MessengerMethodDescriptorSupplier("Deliver"))
@@ -52,7 +52,7 @@ public final class MessengerGrpc {
   public static MessengerStub newStub(io.grpc.Channel channel) {
     io.grpc.stub.AbstractStub.StubFactory<MessengerStub> factory =
       new io.grpc.stub.AbstractStub.StubFactory<MessengerStub>() {
-        @java.lang.Override
+        @Override
         public MessengerStub newStub(io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
           return new MessengerStub(channel, callOptions);
         }
@@ -67,7 +67,7 @@ public final class MessengerGrpc {
       io.grpc.Channel channel) {
     io.grpc.stub.AbstractStub.StubFactory<MessengerBlockingStub> factory =
       new io.grpc.stub.AbstractStub.StubFactory<MessengerBlockingStub>() {
-        @java.lang.Override
+        @Override
         public MessengerBlockingStub newStub(io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
           return new MessengerBlockingStub(channel, callOptions);
         }
@@ -82,7 +82,7 @@ public final class MessengerGrpc {
       io.grpc.Channel channel) {
     io.grpc.stub.AbstractStub.StubFactory<MessengerFutureStub> factory =
       new io.grpc.stub.AbstractStub.StubFactory<MessengerFutureStub>() {
-        @java.lang.Override
+        @Override
         public MessengerFutureStub newStub(io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
           return new MessengerFutureStub(channel, callOptions);
         }
@@ -96,18 +96,18 @@ public final class MessengerGrpc {
 
     /**
      */
-    public io.grpc.stub.StreamObserver<network.p2p.proto.Message> deliver(
+    public io.grpc.stub.StreamObserver<Message> deliver(
         io.grpc.stub.StreamObserver<com.google.protobuf.Empty> responseObserver) {
       return io.grpc.stub.ServerCalls.asyncUnimplementedStreamingCall(getDeliverMethod(), responseObserver);
     }
 
-    @java.lang.Override public final io.grpc.ServerServiceDefinition bindService() {
+    @Override public final io.grpc.ServerServiceDefinition bindService() {
       return io.grpc.ServerServiceDefinition.builder(getServiceDescriptor())
           .addMethod(
             getDeliverMethod(),
             io.grpc.stub.ServerCalls.asyncClientStreamingCall(
               new MethodHandlers<
-                network.p2p.proto.Message,
+                Message,
                 com.google.protobuf.Empty>(
                   this, METHODID_DELIVER)))
           .build();
@@ -122,7 +122,7 @@ public final class MessengerGrpc {
       super(channel, callOptions);
     }
 
-    @java.lang.Override
+    @Override
     protected MessengerStub build(
         io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
       return new MessengerStub(channel, callOptions);
@@ -130,7 +130,7 @@ public final class MessengerGrpc {
 
     /**
      */
-    public io.grpc.stub.StreamObserver<network.p2p.proto.Message> deliver(
+    public io.grpc.stub.StreamObserver<Message> deliver(
         io.grpc.stub.StreamObserver<com.google.protobuf.Empty> responseObserver) {
       return io.grpc.stub.ClientCalls.asyncClientStreamingCall(
           getChannel().newCall(getDeliverMethod(), getCallOptions()), responseObserver);
@@ -145,7 +145,7 @@ public final class MessengerGrpc {
       super(channel, callOptions);
     }
 
-    @java.lang.Override
+    @Override
     protected MessengerBlockingStub build(
         io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
       return new MessengerBlockingStub(channel, callOptions);
@@ -160,7 +160,7 @@ public final class MessengerGrpc {
       super(channel, callOptions);
     }
 
-    @java.lang.Override
+    @Override
     protected MessengerFutureStub build(
         io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
       return new MessengerFutureStub(channel, callOptions);
@@ -182,8 +182,8 @@ public final class MessengerGrpc {
       this.methodId = methodId;
     }
 
-    @java.lang.Override
-    @java.lang.SuppressWarnings("unchecked")
+    @Override
+    @SuppressWarnings("unchecked")
     public void invoke(Req request, io.grpc.stub.StreamObserver<Resp> responseObserver) {
       switch (methodId) {
         default:
@@ -191,8 +191,8 @@ public final class MessengerGrpc {
       }
     }
 
-    @java.lang.Override
-    @java.lang.SuppressWarnings("unchecked")
+    @Override
+    @SuppressWarnings("unchecked")
     public io.grpc.stub.StreamObserver<Req> invoke(
         io.grpc.stub.StreamObserver<Resp> responseObserver) {
       switch (methodId) {
@@ -209,12 +209,12 @@ public final class MessengerGrpc {
       implements io.grpc.protobuf.ProtoFileDescriptorSupplier, io.grpc.protobuf.ProtoServiceDescriptorSupplier {
     MessengerBaseDescriptorSupplier() {}
 
-    @java.lang.Override
+    @Override
     public com.google.protobuf.Descriptors.FileDescriptor getFileDescriptor() {
-      return network.p2p.proto.MessageOuterClass.getDescriptor();
+      return MessageOuterClass.getDescriptor();
     }
 
-    @java.lang.Override
+    @Override
     public com.google.protobuf.Descriptors.ServiceDescriptor getServiceDescriptor() {
       return getFileDescriptor().findServiceByName("Messenger");
     }
@@ -234,7 +234,7 @@ public final class MessengerGrpc {
       this.methodName = methodName;
     }
 
-    @java.lang.Override
+    @Override
     public com.google.protobuf.Descriptors.MethodDescriptor getMethodDescriptor() {
       return getServiceDescriptor().findMethodByName(methodName);
     }
