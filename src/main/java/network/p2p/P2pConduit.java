@@ -48,8 +48,8 @@ public class P2pConduit implements network.Conduit {
   public void put(Entity e) throws LightChainDistributedStorageException {
 
     try {
-      network.putEntity(e);
-    } catch (IllegalArgumentException ex) {
+      network.putEntity(e, this.channel);
+    } catch (InterruptedException | IllegalArgumentException ex) {
       throw new LightChainDistributedStorageException();
     }
 
@@ -68,7 +68,7 @@ public class P2pConduit implements network.Conduit {
 
     try {
       return network.getEntity(identifier);
-    } catch (IllegalArgumentException ex) {
+    } catch (InterruptedException | IllegalArgumentException ex) {
       throw new LightChainDistributedStorageException();
     }
 

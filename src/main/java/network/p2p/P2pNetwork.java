@@ -1,7 +1,6 @@
 package network.p2p;
 
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -26,8 +25,6 @@ public class P2pNetwork implements network.Network {
    * Translates identifier of nodes to their networking address.
    */
   private ConcurrentMap<Identifier, String> idToAddressMap;
-
-  private ConcurrentMap<Identifier, Entity> distributedStorageComponent;
 
   /**
    * Creates P2P network for lightchain node.
@@ -120,7 +117,7 @@ public class P2pNetwork implements network.Network {
     }
   }
 
-  public void putEntity(Entity e) {
+  public void putEntity(Entity e, String channel) throws InterruptedException {
 
     Identifier currentID = e.id();
     Identifier smallestID = (Identifier) idToAddressMap.keySet().toArray()[0];
@@ -151,14 +148,14 @@ public class P2pNetwork implements network.Network {
     ManagedChannel managedChannel = ManagedChannelBuilder.forTarget(targetAddress).usePlaintext().build();
     try {
       MessageClient client = new MessageClient(managedChannel);
-      client.put(e);
+      client.put(e, channel);
     } finally {
       managedChannel.shutdownNow();
     }
 
   }
 
-  public Entity getEntity(Identifier identifier) {
+  public Entity getEntity(Identifier identifier) throws InterruptedException {
 
     Entity e = null;
 
