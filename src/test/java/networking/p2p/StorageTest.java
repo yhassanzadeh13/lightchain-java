@@ -2,6 +2,7 @@ package networking.p2p;
 
 import model.Entity;
 import model.exceptions.LightChainDistributedStorageException;
+import model.exceptions.LightChainNetworkingException;
 import model.lightchain.Identifier;
 import network.Conduit;
 import network.p2p.P2pConduit;
@@ -58,14 +59,16 @@ public class StorageTest {
    * Entities on that Channel but none from the other Channel.
    */
   @Test
-  void testOne() {
+  void testOne() throws InterruptedException {
+
+    int concurrencyDegree = 10;
 
     P2pNetwork[] networks = new P2pNetwork[10];
-    Conduit[] conduits1 = new P2pConduit[10];
-    Conduit[] conduits2 = new P2pConduit[10];
+    Conduit[] conduits1 = new P2pConduit[100];
+    Conduit[] conduits2 = new P2pConduit[100];
 
-    Entity[] entitiesForChannel1 = new Entity[100];
-    Entity[] entitiesForChannel2 = new Entity[100];
+    Entity[] entitiesForChannel1 = new Entity[1000];
+    Entity[] entitiesForChannel2 = new Entity[1000];
 
     int entityCounter1 = 0;
     int entityCounter2 = 0;
@@ -82,63 +85,95 @@ public class StorageTest {
 
     }
 
-    for (int i = 0; i < networks.length; i++) {
-      for (int j = 0; j < 10; j++) {
-        entitiesForChannel1[entityCounter1++] = new EntityFixture();
-        entitiesForChannel2[entityCounter2++] = new EntityFixture();
-      }
-    }
-
-    AtomicInteger threadErrorCount = new AtomicInteger();
-
     startNetworks(networks);
 
-    try {
-      Assertions.assertEquals(threadErrorCount.get(), 0);
-
-      entityCounter1 = 0;
-      entityCounter2 = 0;
-
-      for (int i = 0; i < networks.length; i++) {
-        for (int j = 0; j < 10; j++) {
-          conduits1[i].put(entitiesForChannel1[entityCounter1++]);
-          conduits2[i].put(entitiesForChannel2[entityCounter2++]);
-        }
-      }
-
-      Set<Entity> set1;
-      Set<Entity> set2;
-
-      for (int i = 0; i < networks.length; i++) {
-
-        set1 = new HashSet<Entity>();
-        set2 = new HashSet<Entity>();
-
-        entityCounter1 = 0;
-        entityCounter2 = 0;
+    Thread[] threads = new Thread[concurrencyDegree];
+    for (int i = 0; i < concurrencyDegree; i++) {
+      int finalI = i;
+      threads[i] = new Thread(() -> {
 
         for (int j = 0; j < 100; j++) {
-          set1.add(conduits1[i].get(entitiesForChannel1[entityCounter1++].id()));
-          set2.add(conduits2[i].get(entitiesForChannel2[entityCounter2++].id()));
+          entitiesForChannel1[finalI * 100 + j] = new EntityFixture();
+          entitiesForChannel2[finalI * 100 + j] = new EntityFixture();
+        }
+
+      });
+    }
+
+    for (Thread t : threads) {
+      t.start();
+      t.join();
+    }
+
+
+    Thread[] threads2 = new Thread[concurrencyDegree];
+    for (int i = 0; i < concurrencyDegree; i++) {
+      int finalI = i;
+      threads2[i] = new Thread(() -> {
+
+        for (int j = 0; j < 100; j++) {
+          entitiesForChannel1[finalI * 100 + j] = new EntityFixture();
+          entitiesForChannel2[finalI * 100 + j] = new EntityFixture();
+          try {
+            conduits1[finalI].put(entitiesForChannel1[finalI * 10 + j]);
+            conduits2[finalI].put(entitiesForChannel2[finalI * 10 + j]);
+          } catch (LightChainDistributedStorageException e) {
+            Assertions.fail();
+          }
+        }
+
+      });
+    }
+
+    for (Thread t : threads2) {
+      t.start();
+      t.join();
+    }
+
+
+    Thread[] threads3 = new Thread[concurrencyDegree];
+    for (int i = 0; i < concurrencyDegree; i++) {
+      int finalI = i;
+      threads3[i] = new Thread(() -> {
+
+        Set<Entity> set1 = new HashSet<Entity>();
+        Set<Entity> set2 = new HashSet<Entity>();
+
+        for (int j = 0; j < 1000; j++) {
+          try {
+            set1.add(conduits1[finalI].get(entitiesForChannel1[j].id()));
+            set2.add(conduits2[finalI].get(entitiesForChannel2[j].id()));
+          } catch (LightChainDistributedStorageException e) {
+            Assertions.fail();
+          }
         }
 
         // Tests that every Entity for each Channel was retrieved by every Engine on that Channel
-        Assertions.assertEquals(100, set1.size());
-        Assertions.assertEquals(100, set2.size());
+        Assertions.assertEquals(1000, set1.size());
+        Assertions.assertEquals(1000, set2.size());
 
-      }
+      });
+    }
 
-      for (int i = 0; i < networks.length; i++) {
+    for (Thread t : threads3) {
+      t.start();
+    }
 
-        set1 = new HashSet<Entity>();
-        set2 = new HashSet<Entity>();
+    Thread[] threads4 = new Thread[concurrencyDegree];
+    for (int i = 0; i < concurrencyDegree; i++) {
+      int finalI = i;
+      threads4[i] = new Thread(() -> {
 
-        entityCounter1 = 0;
-        entityCounter2 = 0;
+        Set<Entity> set1 = new HashSet<Entity>();
+        Set<Entity> set2 = new HashSet<Entity>();
 
-        for (int j = 0; j < 100; j++) {
-          set1.add(conduits2[i].get(entitiesForChannel1[entityCounter1++].id()));
-          set2.add(conduits1[i].get(entitiesForChannel2[entityCounter2++].id()));
+        for (int j = 0; j < 1000; j++) {
+          try {
+            set1.add(conduits2[finalI].get(entitiesForChannel1[j].id()));
+            set2.add(conduits1[finalI].get(entitiesForChannel2[j].id()));
+          } catch (LightChainDistributedStorageException e) {
+            Assertions.fail();
+          }
         }
 
         // Tests that none of the Entities for specific Channels were accessible by Engines on other Channels
@@ -147,11 +182,11 @@ public class StorageTest {
         Assertions.assertEquals(set1.size(), 1);
         Assertions.assertEquals(set2.size(), 1);
 
-      }
+      });
+    }
 
-
-    } catch (LightChainDistributedStorageException e) {
-      Assertions.fail();
+    for (Thread t : threads4) {
+      t.start();
     }
 
   }
