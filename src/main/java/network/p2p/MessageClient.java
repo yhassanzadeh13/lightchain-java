@@ -167,7 +167,7 @@ public class MessageClient {
     }
   }
 
-  public Entity get(Identifier identifier) throws InterruptedException {
+  public Entity get(Identifier identifier, String channel) throws InterruptedException {
 
     final CountDownLatch finishLatch = new CountDownLatch(1);
     final Entity[] entity = {null};
@@ -208,6 +208,7 @@ public class MessageClient {
       GetRequest request = GetRequest
               .newBuilder()
               .setIdentifier(ByteString.copyFrom(identifier.getBytes()))
+              .setChannel(channel)
               .build();
 
       requestObserver.onNext(request);

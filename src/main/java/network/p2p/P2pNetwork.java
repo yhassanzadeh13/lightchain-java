@@ -155,7 +155,7 @@ public class P2pNetwork implements network.Network {
 
   }
 
-  public Entity getEntity(Identifier identifier) throws InterruptedException {
+  public Entity getEntity(Identifier identifier, String channel) throws InterruptedException {
 
     Entity e = null;
 
@@ -188,7 +188,7 @@ public class P2pNetwork implements network.Network {
     ManagedChannel managedChannel = ManagedChannelBuilder.forTarget(targetAddress).usePlaintext().build();
     try {
       MessageClient client = new MessageClient(managedChannel);
-      e = client.get(identifier);
+      e = client.get(identifier, channel);
     } finally {
       managedChannel.shutdownNow();
     }

@@ -18,6 +18,9 @@ package network.p2p;
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.TimeUnit;
@@ -46,7 +49,7 @@ import protocol.Engine;
 public class MessageServer {
   private final Server server;
   private final HashMap<String, Engine> engineChannelTable;
-  public ConcurrentMap<Identifier, Entity> distributedStorageComponent;
+  public ConcurrentMap<String, Set<Entity>> distributedStorageComponent;
 
   /**
    * Create a MessageServer using ServerBuilder as a base.
@@ -183,7 +186,15 @@ public class MessageServer {
               System.out.println("Type: " + putMessage.getType());
 
               // puts the incoming entity onto the distributedStorageComponent
-              distributedStorageComponent.put(encoder.decode(e).id(),encoder.decode(e));
+
+              if(distributedStorageComponent.containsKey(putMessage.getChannel())){
+                distributedStorageComponent.get(putMessage.getChannel()).add(encoder.decode(e));
+              } else {
+                HashSet s = new HashSet<>();
+                s.add(encoder.decode(e));
+                distributedStorageComponent.put(putMessage.getChannel(),s);
+              }
+
             } catch (ClassNotFoundException ex) {
               // TODO: replace with fatal log
               System.err.println("could not decode incoming put message");
@@ -211,7 +222,7 @@ public class MessageServer {
     }
 
     @Override
-    public StreamObserver<GetRequest> get(StreamObserver<GetReply> responseObserver){
+    public StreamObserver<GetRequest> get(StreamObserver<GetReply> responseObserver) {
       return new StreamObserver<GetRequest>() {
         @Override
         public void onNext(GetRequest request) {
@@ -222,17 +233,29 @@ public class MessageServer {
           System.out.println("Getting Entity");
           System.out.println("ID: " + id);
 
-          if (!distributedStorageComponent.containsKey(id)) System.out.println("ENTITY NOT FOUND");
+          Entity entity = null;
 
-          EncodedEntity encodedEntity = encoder.encode(distributedStorageComponent.get(id));
+          if(distributedStorageComponent.containsKey(request.getChannel())){
 
-          GetReply reply = GetReply
-                  .newBuilder()
-                  .setPayload(ByteString.copyFrom(encodedEntity.getBytes()))
-                  .setType(encodedEntity.getType())
-                  .build();
+            for (Entity e : distributedStorageComponent.get(request.getChannel()) ) {
+              if(e.id().comparedTo(id)==0){
+                entity = e;
+                EncodedEntity encodedEntity = encoder.encode(entity);
 
-          responseObserver.onNext(reply);
+                GetReply reply = GetReply
+                        .newBuilder()
+                        .setPayload(ByteString.copyFrom(encodedEntity.getBytes()))
+                        .setType(encodedEntity.getType())
+                        .build();
+
+                responseObserver.onNext(reply);
+              }
+            }
+
+
+          } else {
+            System.out.println("CHANNEL NOT FOUND");
+          }
 
         }
 
