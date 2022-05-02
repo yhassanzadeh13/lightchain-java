@@ -70,34 +70,69 @@ public class MerkleNode {
     this.hash = hash;
   }
 
+  /**
+   * Returns the left child of the node.
+   *
+   * @return the left child of the node
+   */
   @SuppressFBWarnings(value = "EI_EXPOSE_REP", justification = "internal representation is intentionally returned")
   public MerkleNode getLeft() {
     return left;
   }
 
+  /**
+   * Returns the right child of the node.
+   *
+   * @return the right child of the node
+   */
   @SuppressFBWarnings(value = "EI_EXPOSE_REP", justification = "internal representation is intentionally returned")
   public MerkleNode getRight() {
     return right;
   }
 
+  /**
+   * Returns the parent of the node.
+   *
+   * @return the parent of the node
+   */
   @SuppressFBWarnings(value = "EI_EXPOSE_REP", justification = "internal representation is intentionally returned")
   public MerkleNode getParent() {
     return parent;
   }
 
+  /**
+   * Sets the parent of the node.
+   *
+   * @param parent the parent of the node
+   */
   @SuppressFBWarnings(value = "EI_EXPOSE_REP2", justification = "parent is intentionally mutable externally")
   public void setParent(MerkleNode parent) {
     this.parent = parent;
   }
 
+  /**
+   * Returns the hash corresponding to the node.
+   *
+   * @return the hash corresponding to the node
+   */
   public Sha3256Hash getHash() {
     return hash;
   }
 
+  /**
+   * Returns true if the node is a left child, false otherwise.
+   *
+   * @return true if the node is a left child, false otherwise
+   */
   public boolean isLeft() {
     return isLeft;
   }
 
+  /**
+   * Sets if the node is a left child.
+   *
+   * @param isLeft true if the node is a left child, false otherwise
+   */
   public void setLeft(boolean isLeft) {
     this.isLeft = isLeft;
   }

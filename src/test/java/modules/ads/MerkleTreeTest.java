@@ -8,10 +8,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import model.Entity;
 import model.crypto.Sha3256Hash;
 import model.lightchain.Identifier;
-import modules.ads.merkletree.MerkleProof;
-import modules.ads.merkletree.MerkleTree;
-import modules.ads.merkletree.MerkleTreeAuthenticatedEntity;
-import modules.ads.merkletree.MerkleTreeAuthenticatedEntityVerifier;
+import modules.ads.merkletree.*;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import unittest.fixtures.EntityFixture;
@@ -211,7 +208,7 @@ public class MerkleTreeTest {
     MembershipProof proof = authenticatedEntity.getMembershipProof();
 
     // creates a tampered proof with random root.
-    MerkleProof tamperedProof = new MerkleProof(proof.getPath(), new Sha3256Hash(new byte[32]), proof.getIsLeftNode());
+    MerkleProof tamperedProof = new MerkleProof(new Sha3256Hash(new byte[32]), proof.getMerklePath());
     AuthenticatedEntity tamperedAuthenticatedEntity = new MerkleTreeAuthenticatedEntity(
         tamperedProof,
         authenticatedEntity.type(),
@@ -255,12 +252,13 @@ public class MerkleTreeTest {
     Entity entity = new EntityFixture();
     AuthenticatedEntity authenticatedEntity = merkleTree.put(entity);
     MembershipProof proof = authenticatedEntity.getMembershipProof();
-
+    MerklePath merklePath = proof.getMerklePath();
+    ArrayList<Sha3256Hash> path = merklePath.getPath();
+    ArrayList<Boolean> isLeft = merklePath.getIsLeftNode();
+    ArrayList<Sha3256Hash> newPath = Sha3256HashFixture.newSha3256HashArrayList(path.size());
+    MerklePath manipulatedMerklePath = new MerklePath(newPath, isLeft);
     AuthenticatedEntity tamperedEntity = new MerkleTreeAuthenticatedEntity(
-        new MerkleProof(Sha3256HashFixture.newSha3256HashArrayList(
-            proof.getPath().size()),
-            proof.getRoot(),
-            proof.getIsLeftNode()),
+        new MerkleProof(proof.getRoot(), manipulatedMerklePath),
         authenticatedEntity.type(),
         authenticatedEntity.getEntity());
 
