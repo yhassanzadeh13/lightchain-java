@@ -1,6 +1,7 @@
 package protocol.engines;
 
 import java.util.ArrayList;
+import java.util.Random;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -9,7 +10,9 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import model.crypto.KeyGen;
 import model.crypto.PrivateKey;
+import model.crypto.PublicKey;
 import model.crypto.Signature;
 import model.exceptions.LightChainDistributedStorageException;
 import model.lightchain.*;
@@ -54,10 +57,11 @@ public class ValidatorEngineTest {
   //     soundness, etc). Invalid transaction should be discarded without sending back a signature to its sender.
   // 19. Unhappy path of receiving an invalid block (one test per each validation criteria, e.g., correctness,
   //     soundness, etc). Invalid block should be discarded without sending back a signature to its proposer.
-
+  Random random = new Random();
   ValidatorEngine engine;
   Identifier localId;
   PrivateKey privateKey;
+  PublicKey publicKey;
   Local local;
   Network net;
   NetworkAdapter networkAdapter;
@@ -72,7 +76,9 @@ public class ValidatorEngineTest {
   ArrayList<Account> accounts;
   public void setup(){
     localId = IdentifierFixture.newIdentifier();
-    privateKey = KeyGenFixture.newKeyGen().getPrivateKey();
+    KeyGen kg = KeyGenFixture.newKeyGen();
+    privateKey = kg.getPrivateKey();
+    publicKey = kg.getPublicKey();
     local = new Local(localId, privateKey);
 
     net = mock(Network.class);
@@ -143,21 +149,33 @@ public class ValidatorEngineTest {
     // Creates accounts for the snapshot including an account with the local id.
     accounts = new ArrayList<>(AccountFixture.newAccounts(localId, 10, 10).values());
     when(snapshot.all()).thenReturn(accounts);
+    for (int i = 0; i < accounts.size(); i++) {
+      when(snapshot.getAccount(snapshot.all().get(i).getIdentifier())).thenReturn(accounts.get(i));
+    }
+
 
     when(net.register(any(ValidatorEngine.class), eq("validator"))).thenReturn(conduit);
     engine = new ValidatorEngine(net, local, state);
 
     ArrayList<ValidatedTransaction> transactions = new ArrayList<>();
     for (int i = 0; i < 2; i++) {
+      Identifier signer = snapshot.all().get(random.nextInt(accounts.size())).getIdentifier();
+      System.out.println("sgner "+signer);
       ValidatedTransaction validatedTransaction = ValidatedTransactionFixture.newValidatedTransaction(
-          block.id(), snapshot.all().get(i).getIdentifier(), snapshot.all().get(i + 1).getIdentifier());
+          block.id(),
+          snapshot.all().get(i).getIdentifier(),
+          snapshot.all().get(i + 1).getIdentifier(),
+          snapshot.all().get(random.nextInt(accounts.size())).getIdentifier());
+
+      when(snapshot.getAccount(signer).getPublicKey()
+          .verifySignature(validatedTransaction, validatedTransaction.getSignature())).thenReturn(true);
+      System.out.println(snapshot.getAccount(signer).getPublicKey());
       snapshot.all().get(i).setBalance(validatedTransaction.getAmount() * 10 + 1);
       transactions.add(validatedTransaction);
-      when(snapshot.getAccount(snapshot.all().get(i).getIdentifier())).thenReturn(accounts.get(i));
-      when(snapshot.getAccount(snapshot.all().get(i + 1).getIdentifier())).thenReturn(accounts.get(i + 1));
-      when(snapshot.getAccount(snapshot.all().get(i).getIdentifier()).getPublicKey()
-          .verifySignature(validatedTransaction, validatedTransaction.getSignature())).thenReturn(true);
+
     }
+    System.out.println("sgner2 "+transactions.get(0).getSignature().getSignerId());
+    System.out.println("de "+ snapshot.getAccount(transactions.get(0).getSignature().getSignerId()).getPublicKey());
     when(state.atBlockId(snapshot.all().get(0).getLastBlockId())).thenReturn(senderLastSnapshot1);
     when(state.atBlockId(snapshot.all().get(1).getLastBlockId())).thenReturn(senderLastSnapshot2);
 
@@ -171,6 +189,8 @@ public class ValidatorEngineTest {
     //System.out.println(local.signEntity(transaction).id());
     //TODO: assert has sent what?
     //Assertions.assertTrue(conduit.hasSent(transaction.getSignature().id()));
+   // System.out.println("ss "+ transactions.get(0).getSignature().getSignerId());
+    System.out.println(snapshot.getAccount(transactions.get(0).getSignature().getSignerId()).getPublicKey().verifySignature(transactions.get(0), transactions.get(0).getSignature()));
 
 
   }

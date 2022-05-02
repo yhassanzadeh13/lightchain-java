@@ -7,6 +7,7 @@ import model.local.Local;
 import protocol.Engine;
 import protocol.Parameters;
 import protocol.assigner.LightChainValidatorAssigner;
+import state.State;
 import storage.Blocks;
 import storage.Transactions;
 import storage.Identifiers;
@@ -19,6 +20,7 @@ import java.util.concurrent.locks.ReentrantLock;
  * into the transactions and blocks storage pools.
  */
 public class IngestEngine implements Engine {
+  public static State state;
   public static Blocks blocks;
   public static Identifiers transactionIds;
   public static Transactions pendingTransactions;
@@ -28,7 +30,8 @@ public class IngestEngine implements Engine {
   /**
    * Constructor of a IngestEngine.
    */
-  public IngestEngine() {
+  public IngestEngine(State state) {
+    this.state = state;
   }
 
   private static final ReentrantLock lock = new ReentrantLock();
@@ -62,23 +65,27 @@ public class IngestEngine implements Engine {
     if (e.type() == EntityType.TYPE_VALIDATED_BLOCK || e.type() == EntityType.TYPE_VALIDATED_TRANSACTION) {
       lock.lock();
       LightChainValidatorAssigner assigner = new LightChainValidatorAssigner();
-      // TODO: assigner.assign(e, snapshot???, how many???);
-      // TODO: don't we need a method to check whether an id is in Assignment?
-
-
       if (e.type() == EntityType.TYPE_VALIDATED_BLOCK) {
-        if (((ValidatedBlock) e).getCertificates().length >= Parameters.SIGNATURE_THRESHOLD
-            && !blocks.has(((ValidatedBlock) e).id())) { //TODO: Ask whether this condition is true
+        Assignment assignment = assigner.assign(e.id()
+            ,state.atBlockId(((ValidatedBlock) e).getPreviousBlockId())
+            ,(short)Parameters.VALIDATOR_THRESHOLD);
+        int signatures = assignment.size();
+        if (!seenEntities.has(e.id()) && signatures >= Parameters.SIGNATURE_THRESHOLD
+            && !blocks.has(((ValidatedBlock) e).id())) {
           blocks.add((Block) e);
           for (ValidatedTransaction t : ((Block) e).getTransactions()) {
             transactionIds.add(t.id());
-            if (pendingTransactions.has(t.id())) {
+            if (pendingTransactions.has(t. id())) {
               pendingTransactions.remove(t.id());
             }
           }
         }
       } else if (e.type() == EntityType.TYPE_VALIDATED_TRANSACTION) {
-        if (((ValidatedTransaction) e).getCertificates().length >= Parameters.SIGNATURE_THRESHOLD
+        Assignment assignment = assigner.assign(e.id()
+            ,state.atBlockId(((ValidatedTransaction) e).getReferenceBlockId())
+            ,(short)Parameters.VALIDATOR_THRESHOLD);
+        int signatures = assignment.size();
+        if (!seenEntities.has(e.id()) && signatures >= Parameters.SIGNATURE_THRESHOLD
             && !pendingTransactions.has(((ValidatedTransaction) e).id())) {
           if (transactionIds.has(e.id())) {
             transactionIds.remove(e.id());

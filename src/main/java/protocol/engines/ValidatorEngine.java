@@ -56,7 +56,6 @@ public class ValidatorEngine implements Engine {
       lock.lock();
       LightChainValidatorAssigner assigner = new LightChainValidatorAssigner();
       Identifier currentNode = this.local.myId();
-      System.out.println("current node: "+e.type());
       if (!seenEntities.has(e.id()) && e.type().equals(EntityType.TYPE_VALIDATED_BLOCK)) {
         Assignment assignment = assigner.assign(e.id(), state.atBlockId(((Block) e).getPreviousBlockId()),
             (short) Parameters.VALIDATOR_THRESHOLD);
@@ -65,7 +64,6 @@ public class ValidatorEngine implements Engine {
           Signature sign = this.local.signEntity(b);
           try {
             this.con.unicast(sign, (b.getProposer()));
-            seenEntities.add(b.id());
           } catch (LightChainNetworkingException ex) {
             lock.unlock();
             ex.printStackTrace();
