@@ -98,7 +98,7 @@ public class MerkleTree implements AuthenticatedDataStructure {
    * @param id the identifier of the entity to retrieve
    *
    * @return the MerkleProof corresponding to the given identifier
-   * @throws IllegalArgumentException
+   * @throws IllegalArgumentException if the identifier is null
    */
   private MerkleProof getProof(Identifier id) throws IllegalArgumentException {
     Sha3256Hash hash = new Sha3256Hash(id.getBytes());
