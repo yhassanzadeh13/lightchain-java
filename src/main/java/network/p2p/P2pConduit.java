@@ -2,7 +2,6 @@ package network.p2p;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.List;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import model.Entity;

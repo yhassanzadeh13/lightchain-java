@@ -19,7 +19,6 @@ package network.p2p;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -35,10 +34,10 @@ import model.Entity;
 import model.codec.EncodedEntity;
 import model.lightchain.Identifier;
 import modules.codec.JsonEncoder;
-import network.p2p.proto.Message;
-import network.p2p.proto.MessengerGrpc;
 import network.p2p.proto.GetReply;
 import network.p2p.proto.GetRequest;
+import network.p2p.proto.Message;
+import network.p2p.proto.MessengerGrpc;
 import network.p2p.proto.PutMessage;
 import network.p2p.proto.StorageGrpc;
 import protocol.Engine;
@@ -187,12 +186,12 @@ public class MessageServer {
 
               // puts the incoming entity onto the distributedStorageComponent
 
-              if(distributedStorageComponent.containsKey(putMessage.getChannel())){
+              if (distributedStorageComponent.containsKey(putMessage.getChannel())) {
                 distributedStorageComponent.get(putMessage.getChannel()).add(encoder.decode(e));
               } else {
                 HashSet s = new HashSet<>();
                 s.add(encoder.decode(e));
-                distributedStorageComponent.put(putMessage.getChannel(),s);
+                distributedStorageComponent.put(putMessage.getChannel(), s);
               }
 
             } catch (ClassNotFoundException ex) {
@@ -235,10 +234,10 @@ public class MessageServer {
 
           Entity entity = null;
 
-          if(distributedStorageComponent.containsKey(request.getChannel())){
+          if (distributedStorageComponent.containsKey(request.getChannel())) {
 
-            for (Entity e : distributedStorageComponent.get(request.getChannel()) ) {
-              if(e.id().comparedTo(id)==0){
+            for (Entity e : distributedStorageComponent.get(request.getChannel())) {
+              if (e.id().comparedTo(id) == 0) {
                 entity = e;
                 EncodedEntity encodedEntity = encoder.encode(entity);
 
@@ -251,7 +250,6 @@ public class MessageServer {
                 responseObserver.onNext(reply);
               }
             }
-
 
           } else {
             System.out.println("CHANNEL NOT FOUND");

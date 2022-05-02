@@ -120,31 +120,31 @@ public class P2pNetwork implements network.Network {
 
   public void putEntity(Entity e, String channel) throws InterruptedException {
 
-    Identifier currentID = e.id();
-    Identifier smallestID = (Identifier) idToAddressMap.keySet().toArray()[0];
-    Identifier targetID;
+    Identifier currentId = e.id();
+    Identifier smallestId = (Identifier) idToAddressMap.keySet().toArray()[0];
+    Identifier targetId;
 
     for (Identifier id : idToAddressMap.keySet()) {
 
-      if (currentID.comparedTo(id) == -1 && e.id().comparedTo(id) == 1) {
-        currentID = id;
+      if (currentId.comparedTo(id) == -1 && e.id().comparedTo(id) == 1) {
+        currentId = id;
       }
 
-      if (smallestID.comparedTo(id) == 1) {
-        smallestID = id;
+      if (smallestId.comparedTo(id) == 1) {
+        smallestId = id;
       }
 
     }
 
-    if (currentID.comparedTo(e.id()) == 0) {
-      targetID = smallestID;
+    if (currentId.comparedTo(e.id()) == 0) {
+      targetId = smallestId;
     } else {
-      targetID = currentID;
+      targetId = currentId;
     }
 
-    String targetAddress = this.idToAddressMap.get(targetID);
+    String targetAddress = this.idToAddressMap.get(targetId);
     if (targetAddress == null) {
-      throw new IllegalArgumentException("target identifier does not exist: " + targetID.toString());
+      throw new IllegalArgumentException("target identifier does not exist: " + targetId.toString());
     }
     ManagedChannel managedChannel = ManagedChannelBuilder.forTarget(targetAddress).usePlaintext().build();
     try {
@@ -160,31 +160,31 @@ public class P2pNetwork implements network.Network {
 
     Entity e = null;
 
-    Identifier currentID = identifier;
-    Identifier smallestID = (Identifier) idToAddressMap.keySet().toArray()[0];
-    Identifier targetID;
+    Identifier currentId = identifier;
+    Identifier smallestId = (Identifier) idToAddressMap.keySet().toArray()[0];
+    Identifier targetId;
 
     for (Identifier id : idToAddressMap.keySet()) {
 
-      if (currentID.comparedTo(id) == -1 && identifier.comparedTo(id) == 1) {
-        currentID = id;
+      if (currentId.comparedTo(id) == -1 && identifier.comparedTo(id) == 1) {
+        currentId = id;
       }
 
-      if (smallestID.comparedTo(id) == 1) {
-        smallestID = id;
+      if (smallestId.comparedTo(id) == 1) {
+        smallestId = id;
       }
 
     }
 
-    if (currentID.comparedTo(identifier) == 0) {
-      targetID = smallestID;
+    if (currentId.comparedTo(identifier) == 0) {
+      targetId = smallestId;
     } else {
-      targetID = currentID;
+      targetId = currentId;
     }
 
-    String targetAddress = this.idToAddressMap.get(targetID);
+    String targetAddress = this.idToAddressMap.get(targetId);
     if (targetAddress == null) {
-      throw new IllegalArgumentException("target identifier does not exist: " + targetID.toString());
+      throw new IllegalArgumentException("target identifier does not exist: " + targetId.toString());
     }
     ManagedChannel managedChannel = ManagedChannelBuilder.forTarget(targetAddress).usePlaintext().build();
     try {

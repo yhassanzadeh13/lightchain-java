@@ -28,10 +28,10 @@ import model.Entity;
 import model.codec.EncodedEntity;
 import model.lightchain.Identifier;
 import modules.codec.JsonEncoder;
-import network.p2p.proto.Message;
-import network.p2p.proto.MessengerGrpc;
 import network.p2p.proto.GetReply;
 import network.p2p.proto.GetRequest;
+import network.p2p.proto.Message;
+import network.p2p.proto.MessengerGrpc;
 import network.p2p.proto.PutMessage;
 import network.p2p.proto.StorageGrpc;
 
@@ -41,7 +41,6 @@ import network.p2p.proto.StorageGrpc;
 public class MessageClient {
   private final MessengerGrpc.MessengerStub asyncStub;
   private final StorageGrpc.StorageStub storageAsyncStub;
-
 
   /**
    * Constructor.
@@ -227,6 +226,5 @@ public class MessageClient {
     return entity[0];
 
   }
-
 
 }
