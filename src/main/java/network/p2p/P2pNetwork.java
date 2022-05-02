@@ -1,6 +1,7 @@
 package network.p2p;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -194,6 +195,20 @@ public class P2pNetwork implements network.Network {
     }
 
     return e;
+
+  }
+
+  public ArrayList<Entity> getAllEntities(String channel) {
+
+    ArrayList<Entity> entities = new ArrayList<>();
+
+    if (!(server.distributedStorageComponent.get(channel) == null)) {
+      for (Entity e : server.distributedStorageComponent.get(channel)) {
+        entities.add(e);
+      }
+    }
+
+    return entities;
 
   }
 

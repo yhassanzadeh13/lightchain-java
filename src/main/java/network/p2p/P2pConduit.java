@@ -2,6 +2,7 @@ package network.p2p;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import model.Entity;
@@ -76,6 +77,7 @@ public class P2pConduit implements network.Conduit {
 
   @Override
   public ArrayList<Entity> allEntities() throws LightChainDistributedStorageException {
-    return null;
+    return network.getAllEntities(channel);
   }
+
 }

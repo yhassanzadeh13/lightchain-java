@@ -70,9 +70,6 @@ public class StorageTest {
     Entity[] entitiesForChannel1 = new Entity[1000];
     Entity[] entitiesForChannel2 = new Entity[1000];
 
-    int entityCounter1 = 0;
-    int entityCounter2 = 0;
-
     for (int i = 0; i < networks.length; i++) {
 
       networks[i] = new P2pNetwork(IdentifierFixture.newIdentifier(), PORT_ZERO);
@@ -188,6 +185,80 @@ public class StorageTest {
     for (Thread t : threads4) {
       t.start();
     }
+
+  }
+
+  @Test
+  void testThree() throws InterruptedException {
+
+    int concurrencyDegree = 10;
+
+    P2pNetwork[] networks = new P2pNetwork[10];
+    Conduit[] conduits1 = new P2pConduit[100];
+    Conduit[] conduits2 = new P2pConduit[100];
+
+    Entity[] entitiesForChannel1 = new Entity[1000];
+    Entity[] entitiesForChannel2 = new Entity[1000];
+
+    for (int i = 0; i < networks.length; i++) {
+
+      networks[i] = new P2pNetwork(IdentifierFixture.newIdentifier(), PORT_ZERO);
+
+      MockEngine engineA1 = new MockEngine();
+      conduits1[i] = networks[i].register(engineA1, channel1);
+
+      MockEngine engineA2 = new MockEngine();
+      conduits2[i] = networks[i].register(engineA2, channel2);
+
+    }
+
+    startNetworks(networks);
+
+
+    Thread[] threads2 = new Thread[concurrencyDegree];
+    for (int i = 0; i < concurrencyDegree; i++) {
+      int finalI = i;
+      threads2[i] = new Thread(() -> {
+
+        Entity entityForChannel1 = new EntityFixture();
+        Entity entityForChannel2 = new EntityFixture();
+
+        for (int j = 0; j < 100; j++) {
+          try {
+            conduits1[finalI].put(entityForChannel1);
+            conduits2[finalI].put(entityForChannel2);
+          } catch (LightChainDistributedStorageException e) {
+            Assertions.fail();
+          }
+        }
+
+      });
+    }
+
+    for (Thread t : threads2) {
+      t.start();
+      t.join();
+    }
+
+    Set<Entity> set1 = new HashSet<Entity>();
+    Set<Entity> set2 = new HashSet<Entity>();
+
+    Thread[] threads3 = new Thread[concurrencyDegree];
+    for (int i = 0; i < concurrencyDegree; i++) {
+
+      try {
+        set1.addAll(conduits1[i].allEntities());
+        set2.addAll(conduits2[i].allEntities());
+      } catch (LightChainDistributedStorageException e) {
+        Assertions.fail();
+      }
+
+    }
+
+    // Tests that when every Engine on 10 different Nodes registers a single unique Entity, the entire data across
+    // all Nodes for that Channel contains 10 unique Entities in total
+    Assertions.assertEquals(10, set1.size());
+    Assertions.assertEquals(10, set2.size());
 
   }
 
