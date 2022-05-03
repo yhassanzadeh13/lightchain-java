@@ -73,6 +73,25 @@ public class Block extends model.Entity {
   }
 
   /**
+   * Constructor of the block.
+   *
+   * @param previousBlockId identifier of a finalized block that this block is extending its snapshot.
+   * @param proposer identifier of the node that proposes this block (i.e., miner).
+   * @param height height of the block.
+   * @param transactions set of validated transactions that this block carries.
+   */
+  public Block(Identifier previousBlockId,
+               Identifier proposer,
+               int height,
+               ValidatedTransaction[] transactions) {
+    this.previousBlockId = previousBlockId;
+    this.proposer = proposer;
+    this.transactions = transactions.clone();
+    this.signature = null;
+    this.height = height;
+  }
+
+  /**
    * Type of this entity.
    *
    * @return type of this entity.

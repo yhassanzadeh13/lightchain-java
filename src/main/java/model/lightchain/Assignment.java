@@ -1,5 +1,7 @@
 package model.lightchain;
 
+import java.util.ArrayList;
+
 /**
  * Represents list of assigned validators to a given entity.
  */
@@ -50,5 +52,11 @@ public class Assignment {
   @Override
   public String toString() {
     return this.validators.toString();
+  }
+
+  public boolean has(Identifier id) {return this.validators.has(id);}
+
+  public ArrayList<Identifier> all() {
+    return this.validators.all();
   }
 }

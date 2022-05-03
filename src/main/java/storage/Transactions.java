@@ -49,4 +49,11 @@ public interface Transactions {
    * @return all transactions stored tranin database.
    */
   ArrayList<Transaction> all();
+
+  /**
+   * Returns the size of all transactions stored in database.
+   *
+   * @return the size of all transactions stored in database.
+   */
+  int size();
 }

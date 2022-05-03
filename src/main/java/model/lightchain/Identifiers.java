@@ -47,4 +47,8 @@ public class Identifiers {
         + "identifiers=" + identifiers
         + '}';
   }
+
+  public ArrayList<Identifier> all() {
+    return this.identifiers;
+  }
 }
