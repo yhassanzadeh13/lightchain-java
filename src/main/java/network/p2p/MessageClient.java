@@ -188,7 +188,6 @@ public class MessageClient {
                   // TODO: replace with fatal log
                   System.err.println("could not decode incoming GetReply response");
                   ex.printStackTrace();
-                  System.exit(1);
                 }
 
               }
@@ -224,7 +223,9 @@ public class MessageClient {
     requestObserver.onCompleted();
 
     // Receiving happens asynchronously
-    finishLatch.await(1, TimeUnit.MINUTES);
+    if (!finishLatch.await(1, TimeUnit.MINUTES)) {
+      System.err.println("get can not finish within 1 minutes");
+    }
 
     return entity[0];
 

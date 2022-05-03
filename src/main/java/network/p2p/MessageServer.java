@@ -166,6 +166,7 @@ public class MessageServer {
   /**
    * Concrete implementation of the gRPC Serverside response methods for Storage functionality.
    */
+  @SuppressFBWarnings(value = "EI_EXPOSE_REP2", justification = "meant to be externally mutable")
   public class StorageImpl extends StorageGrpc.StorageImplBase {
 
     @Override
