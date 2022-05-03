@@ -1,6 +1,7 @@
 package network.p2p;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -102,7 +103,7 @@ public class P2pNetwork implements network.Network {
    * @throws IllegalArgumentException if target identifier does not correspond to a valid address.
    */
   public void sendUnicast(Entity e, Identifier target, String channel) throws InterruptedException,
-      IOException, IllegalArgumentException {
+          IOException, IllegalArgumentException {
 
     String targetAddress = this.idToAddressMap.get(target);
     if (targetAddress == null) {
@@ -115,6 +116,116 @@ public class P2pNetwork implements network.Network {
     } finally {
       managedChannel.shutdownNow();
     }
+  }
+
+  /**
+   * Puts the provided Entity into the correct storage element.
+   *
+   * @param e       the entity to be put.
+   * @param channel the network channel on which this entity is put.
+   * @throws InterruptedException if the transmission of Entity relay is interrupted.
+   */
+  public void putEntity(Entity e, String channel) throws InterruptedException {
+
+    Identifier currentId = e.id();
+    Identifier smallestId = (Identifier) idToAddressMap.keySet().toArray()[0];
+    Identifier targetId;
+
+    for (Identifier id : idToAddressMap.keySet()) {
+
+      if (currentId.comparedTo(id) == -1 && e.id().comparedTo(id) == 1) {
+        currentId = id;
+      }
+
+      if (smallestId.comparedTo(id) == 1) {
+        smallestId = id;
+      }
+
+    }
+
+    if (currentId.comparedTo(e.id()) == 0) {
+      targetId = smallestId;
+    } else {
+      targetId = currentId;
+    }
+
+    String targetAddress = this.idToAddressMap.get(targetId);
+    if (targetAddress == null) {
+      throw new IllegalArgumentException("target identifier does not exist: " + targetId.toString());
+    }
+    ManagedChannel managedChannel = ManagedChannelBuilder.forTarget(targetAddress).usePlaintext().build();
+    try {
+      MessageClient client = new MessageClient(managedChannel);
+      client.put(e, channel);
+    } finally {
+      managedChannel.shutdownNow();
+    }
+
+  }
+
+  /**
+   * Implements logic to asynchronously put entity from the target.
+   */
+  public Entity getEntity(Identifier identifier, String channel) throws InterruptedException {
+
+    Entity e = null;
+
+    Identifier currentId = identifier;
+    Identifier smallestId = (Identifier) idToAddressMap.keySet().toArray()[0];
+    Identifier targetId;
+
+    for (Identifier id : idToAddressMap.keySet()) {
+
+      if (currentId.comparedTo(id) == -1 && identifier.comparedTo(id) == 1) {
+        currentId = id;
+      }
+
+      if (smallestId.comparedTo(id) == 1) {
+        smallestId = id;
+      }
+
+    }
+
+    if (currentId.comparedTo(identifier) == 0) {
+      targetId = smallestId;
+    } else {
+      targetId = currentId;
+    }
+
+    String targetAddress = this.idToAddressMap.get(targetId);
+    if (targetAddress == null) {
+      throw new IllegalArgumentException("target identifier does not exist: " + targetId.toString());
+    }
+    ManagedChannel managedChannel = ManagedChannelBuilder.forTarget(targetAddress).usePlaintext().build();
+    try {
+      MessageClient client = new MessageClient(managedChannel);
+      e = client.get(identifier, channel);
+    } finally {
+      managedChannel.shutdownNow();
+    }
+
+    return e;
+
+  }
+
+  /**
+   * Gathers all the Entities requested by the caller.
+   *
+   * @param channel the channel of the requesting Engine
+   * @return an ArrayList containing all the Entities
+   */
+  public ArrayList<Entity> getAllEntities(String channel) {
+
+    ArrayList<Entity> entities = new ArrayList<>();
+
+    if (!(server.distributedStorageComponent.get(channel) == null)) {
+      for (Entity e : server.distributedStorageComponent.get(channel)) {
+        entities.add(e);
+      }
+    }
+
+    return entities;
+
   }
 
 }

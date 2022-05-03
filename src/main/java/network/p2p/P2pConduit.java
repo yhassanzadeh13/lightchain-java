@@ -47,6 +47,12 @@ public class P2pConduit implements network.Conduit {
   @Override
   public void put(Entity e) throws LightChainDistributedStorageException {
 
+    try {
+      network.putEntity(e, this.channel);
+    } catch (InterruptedException | IllegalArgumentException ex) {
+      throw new LightChainDistributedStorageException();
+    }
+
   }
 
   /**
@@ -59,11 +65,18 @@ public class P2pConduit implements network.Conduit {
    */
   @Override
   public Entity get(Identifier identifier) throws LightChainDistributedStorageException {
-    return null;
+
+    try {
+      return network.getEntity(identifier, this.channel);
+    } catch (InterruptedException | IllegalArgumentException ex) {
+      throw new LightChainDistributedStorageException();
+    }
+
   }
 
   @Override
   public ArrayList<Entity> allEntities() throws LightChainDistributedStorageException {
-    return null;
+    return network.getAllEntities(channel);
   }
+
 }
