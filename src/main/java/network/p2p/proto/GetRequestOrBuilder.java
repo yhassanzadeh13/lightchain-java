@@ -17,7 +17,7 @@ public interface GetRequestOrBuilder extends
    * <code>string Channel = 2;</code>
    * @return The channel.
    */
-  String getChannel();
+  java.lang.String getChannel();
   /**
    * <code>string Channel = 2;</code>
    * @return The bytes for channel.

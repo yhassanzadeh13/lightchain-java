@@ -17,7 +17,7 @@ public interface GetReplyOrBuilder extends
    * <code>string Type = 2;</code>
    * @return The type.
    */
-  String getType();
+  java.lang.String getType();
   /**
    * <code>string Type = 2;</code>
    * @return The bytes for type.

@@ -166,6 +166,9 @@ public class MessageClient {
     }
   }
 
+  /**
+   * Implements logic to asynchronously get entity from the target.
+   */
   public Entity get(Identifier identifier, String channel) throws InterruptedException {
 
     final CountDownLatch finishLatch = new CountDownLatch(1);

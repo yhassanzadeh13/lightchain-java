@@ -37,7 +37,7 @@ public final class StorageOuterClass {
   private static  com.google.protobuf.Descriptors.FileDescriptor
       descriptor;
   static {
-    String[] descriptorData = {
+    java.lang.String[] descriptorData = {
       "\n\rstorage.proto\022\021network.p2p.proto\032\033goog" +
       "le/protobuf/empty.proto\"N\n\nPutMessage\022\020\n" +
       "\010OriginId\030\001 \001(\014\022\017\n\007Channel\030\002 \001(\t\022\017\n\007Payl" +
@@ -59,19 +59,19 @@ public final class StorageOuterClass {
     internal_static_network_p2p_proto_PutMessage_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_network_p2p_proto_PutMessage_descriptor,
-        new String[] { "OriginId", "Channel", "Payload", "Type", });
+        new java.lang.String[] { "OriginId", "Channel", "Payload", "Type", });
     internal_static_network_p2p_proto_GetRequest_descriptor =
       getDescriptor().getMessageTypes().get(1);
     internal_static_network_p2p_proto_GetRequest_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_network_p2p_proto_GetRequest_descriptor,
-        new String[] { "Identifier", "Channel", });
+        new java.lang.String[] { "Identifier", "Channel", });
     internal_static_network_p2p_proto_GetReply_descriptor =
       getDescriptor().getMessageTypes().get(2);
     internal_static_network_p2p_proto_GetReply_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_network_p2p_proto_GetReply_descriptor,
-        new String[] { "Payload", "Type", });
+        new java.lang.String[] { "Payload", "Type", });
     com.google.protobuf.EmptyProto.getDescriptor();
   }
 

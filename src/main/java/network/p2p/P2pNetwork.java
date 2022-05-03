@@ -118,6 +118,13 @@ public class P2pNetwork implements network.Network {
     }
   }
 
+  /**
+   * Puts the provided Entity into the correct storage element.
+   *
+   * @param e       the entity to be put.
+   * @param channel the network channel on which this entity is put.
+   * @throws InterruptedException if the transmission of Entity relay is interrupted.
+   */
   public void putEntity(Entity e, String channel) throws InterruptedException {
 
     Identifier currentId = e.id();
@@ -156,6 +163,9 @@ public class P2pNetwork implements network.Network {
 
   }
 
+  /**
+   * Implements logic to asynchronously put entity from the target.
+   */
   public Entity getEntity(Identifier identifier, String channel) throws InterruptedException {
 
     Entity e = null;
@@ -198,6 +208,12 @@ public class P2pNetwork implements network.Network {
 
   }
 
+  /**
+   * Gathers all the Entities requested by the caller.
+   *
+   * @param channel the channel of the requesting Engine
+   * @return an ArrayList containing all the Entities
+   */
   public ArrayList<Entity> getAllEntities(String channel) {
 
     ArrayList<Entity> entities = new ArrayList<>();

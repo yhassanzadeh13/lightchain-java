@@ -17,7 +17,7 @@ public interface MessageOrBuilder extends
    * <code>string Channel = 2;</code>
    * @return The channel.
    */
-  String getChannel();
+  java.lang.String getChannel();
   /**
    * <code>string Channel = 2;</code>
    * @return The bytes for channel.
@@ -52,7 +52,7 @@ public interface MessageOrBuilder extends
    * <code>string Type = 5;</code>
    * @return The type.
    */
-  String getType();
+  java.lang.String getType();
   /**
    * <code>string Type = 5;</code>
    * @return The bytes for type.
