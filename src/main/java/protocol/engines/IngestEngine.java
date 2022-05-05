@@ -20,18 +20,21 @@ import java.util.concurrent.locks.ReentrantLock;
  * into the transactions and blocks storage pools.
  */
 public class IngestEngine implements Engine {
-  public static State state;
-  public static Blocks blocks;
-  public static Identifiers transactionIds;
-  public static Transactions pendingTransactions;
-  public Identifiers seenEntities;//TODO: Add the seen entities
+  private static State state;
+  private static Blocks blocks;
+  private static Identifiers transactionIds;
+  private static Transactions pendingTransactions;
+  private Identifiers seenEntities;//TODO: Add the seen entities
 
 
   /**
    * Constructor of a IngestEngine.
    */
-  public IngestEngine(State state) {
+  public IngestEngine(State state, Blocks blocks, Identifiers transactionIds, Transactions pendingTransactions) {
     this.state = state;
+    this.blocks = blocks;
+    this.transactionIds = transactionIds;
+    this.pendingTransactions = pendingTransactions;
   }
 
   private static final ReentrantLock lock = new ReentrantLock();
