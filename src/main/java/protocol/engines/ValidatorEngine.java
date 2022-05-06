@@ -6,6 +6,7 @@ import model.crypto.Signature;
 import model.exceptions.LightChainNetworkingException;
 import model.lightchain.*;
 import model.local.Local;
+import network.Channels;
 import network.Conduit;
 import network.Network;
 import protocol.Engine;
@@ -22,13 +23,15 @@ import java.util.concurrent.locks.ReentrantLock;
  */
 public class ValidatorEngine implements Engine {
   private final Local local;
-  private final Conduit con;
+  private final Conduit blockCon;
+  private final Conduit transCon;
   private final State state;
   private final Identifiers seenEntities;
 
   public ValidatorEngine(Network net, Local local, State state) {
     this.local = local;
-    this.con = net.register(this, "validator");
+    this.blockCon = net.register(this, Channels.ProposedBlocks);
+    this.transCon = net.register(this, Channels.ProposedTransactions);
     this.state = state;
     this.seenEntities = new Identifiers();
   }
@@ -63,7 +66,7 @@ public class ValidatorEngine implements Engine {
           Block b = (Block) e;
           Signature sign = this.local.signEntity(b);
           try {
-            this.con.unicast(sign, (b.getProposer()));
+            this.blockCon.unicast(sign, (b.getProposer()));
           } catch (LightChainNetworkingException ex) {
             lock.unlock();
             ex.printStackTrace();
@@ -76,9 +79,7 @@ public class ValidatorEngine implements Engine {
           Transaction tx = (Transaction) e;
           Signature sign = this.local.signEntity(tx);
           try {
-            this.con.unicast(sign, (tx.getSender()));
-            System.out.println("sign is " + sign);
-            System.out.println("sender is " + tx.getSignature());
+            this.transCon.unicast(sign, (tx.getSender()));
             seenEntities.add(tx.id());
           } catch (LightChainNetworkingException ex) {
             lock.unlock();
