@@ -38,7 +38,7 @@ public class ValidatedBlock extends Block {
 
   @Override
   public String type() {
-    return EntityType.TYPE_VALIDATED_TRANSACTION;
+    return EntityType.TYPE_VALIDATED_BLOCK;
   }
 
   @Override
