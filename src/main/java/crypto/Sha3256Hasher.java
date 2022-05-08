@@ -76,4 +76,12 @@ public class Sha3256Hasher implements Hasher {
   public Sha3256Hash computeHash(Sha3256Hash h1, Sha3256Hash h2) {
     return computeHash(h1.getBytes(), h2.getBytes());
   }
+
+  public Sha3256Hash computeHash(Sha3256Hash[] hashes) {
+    Sha3256Hash hash = computeHash(hashes[0].getBytes(), hashes[1].getBytes());
+    for (int i = 2; i < hashes.length; i++) {
+      hash = computeHash(hash.getBytes(), hashes[i].getBytes());
+    }
+    return hash;
+  }
 }
