@@ -6,6 +6,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import model.Entity;
+import model.exceptions.LightChainNetworkingException;
 import model.lightchain.Account;
 import model.lightchain.Block;
 import model.lightchain.Transaction;
@@ -119,12 +120,83 @@ public class IngestEngineTest {
     Assertions.assertTrue(blocks.has(block2.id()));
   }
 
+  @Test // 3.
+  public void testValidatedTwoBlocksConcurrently() {
+    AtomicInteger threadError = new AtomicInteger();
+    ArrayList<ValidatedBlock> concBlockList = new ArrayList<>();
+    concBlockList.add(block1);
+    concBlockList.add(block2);
+    int concurrencyDegree = 2;
+    CountDownLatch threadsDone = new CountDownLatch(concurrencyDegree);
+    Thread[] threads = new Thread[concurrencyDegree];
+    for (int i = 0; i < concurrencyDegree; i++) {
+      int finalI = i;
+      threads[i] = new Thread(() -> {
+        try {
+          ingestEngine.process(concBlockList.get(finalI));
+          threadsDone.countDown();
+        } catch (IllegalStateException e) {
+          threadError.getAndIncrement();
+        }
+      });
+    }
+    for (Thread t : threads) {
+      t.start();
+    }
+    try {
+      boolean doneOneTime = threadsDone.await(60, TimeUnit.SECONDS);
+      Assertions.assertTrue(doneOneTime);
+    } catch (InterruptedException e) {
+      Assertions.fail();
+    }
+    Assertions.assertEquals(0, threadError.get());
+    Assertions.assertTrue(blocks.has(block1.id()));
+    Assertions.assertTrue(blocks.has(block2.id()));
+  }
+
   @Test // 4.
   public void testValidatedSameTwoBlocks() {
     ingestEngine.process(block1);
     Blocks blocks2 = blocks; // might need an improvement depending on the implementation
     ingestEngine.process(block1);
     Assertions.assertEquals(blocks, blocks2); // checks if block are changed, if not it means second block is not added
+  }
+
+  @Test // 5.
+  public void testValidatedSameTwoBlocksConcurrently() {
+    AtomicInteger threadError = new AtomicInteger();
+    ArrayList<ValidatedBlock> concBlockList = new ArrayList<>();
+    concBlockList.add(block1);
+    concBlockList.add(block1);
+    int concurrencyDegree = 2;
+    CountDownLatch threadsDone = new CountDownLatch(concurrencyDegree);
+    Thread[] threads = new Thread[concurrencyDegree];
+    Blocks[] blocks2 = new Blocks[1];
+    for (int i = 0; i < concurrencyDegree; i++) {
+      int finalI = i;
+      threads[i] = new Thread(() -> {
+        try {
+          ingestEngine.process(concBlockList.get(finalI));
+          if (finalI == 0) {
+            blocks2[0] = blocks; // might need an improvement depending on the implementation
+          }
+          threadsDone.countDown();
+        } catch (IllegalStateException e) {
+          threadError.getAndIncrement();
+        }
+      });
+    }
+    for (Thread t : threads) {
+      t.start();
+    }
+    try {
+      boolean doneOneTime = threadsDone.await(60, TimeUnit.SECONDS);
+      Assertions.assertTrue(doneOneTime);
+    } catch (InterruptedException e) {
+      Assertions.fail();
+    }
+    Assertions.assertEquals(0, threadError.get());
+    Assertions.assertEquals(blocks, blocks2[0]); // checks if block are changed, if not it means second block is not added
   }
 
   @Test // 9.
