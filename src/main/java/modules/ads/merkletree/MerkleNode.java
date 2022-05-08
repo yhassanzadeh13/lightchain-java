@@ -24,7 +24,7 @@ public class MerkleNode {
     this.right = null;
     this.parent = null;
     this.isLeft = false;
-    this.hash = null;
+    this.hash = new Sha3256Hash(new byte[32]);
   }
 
   /**
@@ -52,7 +52,7 @@ public class MerkleNode {
     this.right = null;
     this.parent = parent;
     this.isLeft = isLeft;
-    this.hash = null;
+    this.hash = new Sha3256Hash(new byte[32]);
   }
 
   /**

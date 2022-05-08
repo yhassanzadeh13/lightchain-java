@@ -3,7 +3,6 @@ package modules.ads.mtrie;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import crypto.Sha3256Hasher;
 import model.Entity;
@@ -36,8 +35,6 @@ public class MerklePatriciaTrie extends MerkleTree {
    */
   @Override
   public AuthenticatedEntity put(Entity e) throws IllegalArgumentException {
-    ArrayList<Sha3256Hash> pathList = new ArrayList<>();
-    ArrayList<Boolean> isLeftNode = new ArrayList<>();;
     MerkleNode currNode = root;
     Identifier id = e.id();
     byte[] bytes = id.getBytes();
@@ -51,15 +48,12 @@ public class MerklePatriciaTrie extends MerkleTree {
           currNode.setLeftNode(new MerkleNode(currNode, true));
         }
         currNode = currNode.getLeft();
-        isLeftNode.add(true);
       } else {
         if (currNode.getRight() == null) {
           currNode.setRightNode(new MerkleNode(currNode, false));
         }
         currNode = currNode.getRight();
-        isLeftNode.add(false);
       }
-      pathList.add(currNode.getSibling().getHash());
     }
     if (path.charAt(path.length() - 1) == '1') {
       if (currNode.getLeft() == null) {
@@ -70,9 +64,11 @@ public class MerklePatriciaTrie extends MerkleTree {
         currNode.setRightNode(new MerkleNode(currNode, false, new Sha3256Hash(id)));
       }
     }
-    MerklePath merklePath = new MerklePath(pathList, isLeftNode);
-    MerkleProof proof = new MerkleProof(root.getHash(), merklePath);
-    return new MerkleTreeAuthenticatedEntity(proof, e.type(), e);
+    for (int i = 0; i < path.length() - 1; i++) {
+      currNode.updateHash();
+      currNode = currNode.getParent();
+    }
+    return get(id);
   }
 
   /**
@@ -85,7 +81,7 @@ public class MerklePatriciaTrie extends MerkleTree {
   @Override
   public AuthenticatedEntity get(Identifier id) throws IllegalArgumentException {
     ArrayList<Sha3256Hash> pathList = new ArrayList<>();
-    ArrayList<Boolean> isLeftNode = new ArrayList<>();;
+    ArrayList<Boolean> isLeftNode = new ArrayList<>();
     MerkleNode currNode = root;
     byte[] bytes = id.getBytes();
     String path = "";
