@@ -12,7 +12,7 @@ import model.lightchain.Identifier;
 import modules.ads.AuthenticatedDataStructure;
 
 /**
- * Implementation of an in-memory Authenticated Skip List
+ * Implementation of an in-memory Merkle Tree
  * that is capable of storing and retrieval of LightChain entities.
  */
 public class MerkleTree implements AuthenticatedDataStructure {

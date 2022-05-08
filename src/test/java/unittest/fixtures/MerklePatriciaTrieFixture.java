@@ -1,8 +1,10 @@
 package unittest.fixtures;
 
-import modules.ads.merkletree.MerkleTree;
 import modules.ads.mtrie.MerklePatriciaTrie;
 
+/**
+ * Creates a new randomly looking MerklePatriciaTrie.
+ */
 public class MerklePatriciaTrieFixture {
   /**
    * Creates a new merkle patricia trie with n random elements.

@@ -1,7 +1,5 @@
 package modules.ads.merkletree;
 
-import java.util.Arrays;
-
 import crypto.Sha3256Hasher;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import model.Entity;
@@ -49,6 +47,7 @@ public class MerkleNode {
    * @param parent the parent of the node
    * @param isLeft boolean that specifies if the node is left child or not
    */
+  @SuppressFBWarnings(value = "EI_EXPOSE_REP2", justification = "parent is intentionally mutable externally")
   public MerkleNode(MerkleNode parent, boolean isLeft) {
     this.left = null;
     this.right = null;
@@ -64,6 +63,7 @@ public class MerkleNode {
    * @param isLeft boolean that specifies if the node is left child or not
    * @param hash   input hash of the entity corresponding to that node
    */
+  @SuppressFBWarnings(value = "EI_EXPOSE_REP2", justification = "parent is intentionally mutable externally")
   public MerkleNode(MerkleNode parent, boolean isLeft, Sha3256Hash hash) {
     this.left = null;
     this.right = null;
@@ -186,6 +186,7 @@ public class MerkleNode {
    *
    * @param left the left child of the node
    */
+  @SuppressFBWarnings(value = "EI_EXPOSE_REP2", justification = "left is intentionally mutable externally")
   public void setLeftNode(MerkleNode left) {
     this.left = left;
   }
@@ -195,6 +196,7 @@ public class MerkleNode {
    *
    * @param right the right child of the node
    */
+  @SuppressFBWarnings(value = "EI_EXPOSE_REP2", justification = "right is intentionally mutable externally")
   public void setRightNode(MerkleNode right) {
     this.right = right;
   }
