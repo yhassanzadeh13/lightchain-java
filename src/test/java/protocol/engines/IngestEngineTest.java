@@ -7,10 +7,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import model.Entity;
 import model.exceptions.LightChainNetworkingException;
-import model.lightchain.Account;
-import model.lightchain.Block;
-import model.lightchain.Transaction;
-import model.lightchain.ValidatedBlock;
+import model.lightchain.*;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -34,10 +31,12 @@ public class IngestEngineTest {
   private IngestEngine ingestEngine;
   private ValidatedBlock block1;
   private ValidatedBlock block2;
-  private Transaction transaction1;
-  private Transaction transaction2;
+  private ValidatedTransaction transaction1;
+  private ValidatedTransaction transaction2;
   private Blocks blocks;
   private Transactions transactions;
+
+  private Identifiers pendingTransactions;
   private Snapshot snapshot;
   private State state;
   private ArrayList<Block> blockList;
@@ -79,9 +78,11 @@ public class IngestEngineTest {
     block2 = ValidatedBlockFixture.newValidatedBlock();
     blocks = mock(Blocks.class);
     state = mock(State.class);
-    Identifiers pendingTransactions = mock(Identifiers.class);
+    pendingTransactions = mock(Identifiers.class);
     Identifiers seenEntities = mock(Identifiers.class);
     snapshot = mock(Snapshot.class);
+    when(state.atBlockId(block1.getTransactions()[0].getReferenceBlockId())).thenReturn(snapshot);
+    when(state.atBlockId(block2.getTransactions()[0].getReferenceBlockId())).thenReturn(snapshot);
     when(state.atBlockId(transaction1.getReferenceBlockId())).thenReturn(snapshot);
     when(state.atBlockId(transaction2.getReferenceBlockId())).thenReturn(snapshot);
     when(transactions.has(transaction1.id())).thenReturn(true);
@@ -199,6 +200,91 @@ public class IngestEngineTest {
     Assertions.assertEquals(blocks, blocks2[0]); // checks if block are changed, if not it means second block is not added
   }
 
+  @Test // 6.
+  public void testValidatedBlockContainingSeenTransaction() {
+    ingestEngine.process(block1.getTransactions()[0]);
+    ingestEngine.process(block1);
+    Assertions.assertTrue(!pendingTransactions.has(block1.getTransactions()[0].id()));
+  }
+
+  @Test // 7.
+  public void testConcurrentBlockIngestionContainingSeenTransactionDisjointSet() {
+
+    ingestEngine.process(block1.getTransactions()[0]);
+    ingestEngine.process(block2.getTransactions()[0]);
+
+    AtomicInteger threadError = new AtomicInteger();
+    ArrayList<ValidatedBlock> concBlockList = new ArrayList<>();
+    concBlockList.add(block1);
+    concBlockList.add(block2);
+    int concurrencyDegree = 2;
+    CountDownLatch threadsDone = new CountDownLatch(concurrencyDegree);
+    Thread[] threads = new Thread[concurrencyDegree];
+    for (int i = 0; i < concurrencyDegree; i++) {
+      int finalI = i;
+      threads[i] = new Thread(() -> {
+        try {
+          ingestEngine.process(concBlockList.get(finalI));
+          threadsDone.countDown();
+        } catch (IllegalStateException e) {
+          threadError.getAndIncrement();
+        }
+      });
+    }
+    for (Thread t : threads) {
+      t.start();
+    }
+    try {
+      boolean doneOneTime = threadsDone.await(60, TimeUnit.SECONDS);
+      Assertions.assertTrue(doneOneTime);
+    } catch (InterruptedException e) {
+      Assertions.fail();
+    }
+
+    Assertions.assertEquals(0, threadError.get());
+    Assertions.assertTrue(!pendingTransactions.has(block1.getTransactions()[0].id()));
+    Assertions.assertTrue(!pendingTransactions.has(block2.getTransactions()[0].id()));
+
+  }
+
+  @Test // 8.
+  public void testConcurrentBlockIngestionContainingSeenTransactionOverlappingSet() {
+
+    ingestEngine.process(block1.getTransactions()[0]);
+
+    AtomicInteger threadError = new AtomicInteger();
+    ArrayList<ValidatedBlock> concBlockList = new ArrayList<>();
+    concBlockList.add(block1);
+    concBlockList.add(block1);
+    int concurrencyDegree = 2;
+    CountDownLatch threadsDone = new CountDownLatch(concurrencyDegree);
+    Thread[] threads = new Thread[concurrencyDegree];
+    for (int i = 0; i < concurrencyDegree; i++) {
+      int finalI = i;
+      threads[i] = new Thread(() -> {
+        try {
+          ingestEngine.process(concBlockList.get(finalI));
+          threadsDone.countDown();
+        } catch (IllegalStateException e) {
+          threadError.getAndIncrement();
+        }
+      });
+    }
+    for (Thread t : threads) {
+      t.start();
+    }
+    try {
+      boolean doneOneTime = threadsDone.await(60, TimeUnit.SECONDS);
+      Assertions.assertTrue(doneOneTime);
+    } catch (InterruptedException e) {
+      Assertions.fail();
+    }
+
+    Assertions.assertEquals(0, threadError.get());
+    Assertions.assertTrue(!pendingTransactions.has(block1.getTransactions()[0].id()));
+
+  }
+
   @Test // 9.
   public void testValidatedAlreadyIngestedBlock() {
     ArrayList<Block> blocksInDatabase = this.blocks.all();
@@ -219,6 +305,43 @@ public class IngestEngineTest {
     ingestEngine.process(transaction2);
     Assertions.assertTrue(transactions.has(transaction1.id()));
     Assertions.assertTrue(transactions.has(transaction2.id()));
+  }
+
+  @Test // 12.
+  public void testConcurrentValidatedTwoTransactions() {
+
+    AtomicInteger threadError = new AtomicInteger();
+    ArrayList<ValidatedTransaction> concTrxList = new ArrayList<>();
+    concTrxList.add(transaction1);
+    concTrxList.add(transaction2);
+    int concurrencyDegree = 2;
+    CountDownLatch threadsDone = new CountDownLatch(concurrencyDegree);
+    Thread[] threads = new Thread[concurrencyDegree];
+    for (int i = 0; i < concurrencyDegree; i++) {
+      int finalI = i;
+      threads[i] = new Thread(() -> {
+        try {
+          ingestEngine.process(concTrxList.get(finalI));
+          threadsDone.countDown();
+        } catch (IllegalStateException e) {
+          threadError.getAndIncrement();
+        }
+      });
+    }
+    for (Thread t : threads) {
+      t.start();
+    }
+    try {
+      boolean doneOneTime = threadsDone.await(60, TimeUnit.SECONDS);
+      Assertions.assertTrue(doneOneTime);
+    } catch (InterruptedException e) {
+      Assertions.fail();
+    }
+    Assertions.assertEquals(0, threadError.get());
+
+    Assertions.assertTrue(transactions.has(transaction1.id()));
+    Assertions.assertTrue(transactions.has(transaction2.id()));
+
   }
 
   @Test // 13.
