@@ -201,6 +201,8 @@ public class MerkleNode {
    * Updates the hash of the node.
    */
   public void updateHash() {
-    this.hash = hasher.computeHash(left.getHash(), right.getHash());
+    Sha3256Hash leftHash = left == null ? new Sha3256Hash(new byte[32]) : left.getHash();
+    Sha3256Hash rightHash = right == null ? new Sha3256Hash(new byte[32]) : right.getHash();
+    this.hash = hasher.computeHash(leftHash, rightHash);
   }
 }

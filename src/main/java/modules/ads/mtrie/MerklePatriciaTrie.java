@@ -58,10 +58,14 @@ public class MerklePatriciaTrie extends MerkleTree {
     if (path.charAt(path.length() - 1) == '1') {
       if (currNode.getLeft() == null) {
         currNode.setLeftNode(new MerkleNode(currNode, true, new Sha3256Hash(id)));
+        entityHashTable.put(id, e);
+        size++;
       }
     } else {
       if (currNode.getRight() == null) {
         currNode.setRightNode(new MerkleNode(currNode, false, new Sha3256Hash(id)));
+        entityHashTable.put(id, e);
+        size++;
       }
     }
     for (int i = 0; i < path.length() - 1; i++) {
@@ -99,7 +103,7 @@ public class MerklePatriciaTrie extends MerkleTree {
       if (currNode == null) {
         throw new IllegalArgumentException("identifier not found");
       }
-      pathList.add(currNode.getSibling().getHash());
+      pathList.add(currNode.getSibling() == null ? new Sha3256Hash(new byte[32]) : currNode.getSibling().getHash());
     }
     Entity e = entityHashTable.get(id);
     MerklePath merklePath = new MerklePath(pathList, isLeftNode);
@@ -114,6 +118,6 @@ public class MerklePatriciaTrie extends MerkleTree {
    */
   @Override
   public int size() {
-    return super.size();
+    return size;
   }
 }
