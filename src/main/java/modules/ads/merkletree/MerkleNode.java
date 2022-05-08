@@ -42,6 +42,35 @@ public class MerkleNode {
   }
 
   /**
+   * Constructor with parent and isLeft.
+   *
+   * @param parent the parent of the node
+   * @param isLeft boolean that specifies if the node is left child or not
+   */
+  public MerkleNode(MerkleNode parent, boolean isLeft) {
+    this.left = null;
+    this.right = null;
+    this.parent = parent;
+    this.isLeft = isLeft;
+    this.hash = null;
+  }
+
+  /**
+   * Constructor with parent, isLeft and hash.
+   *
+   * @param parent the parent of the node
+   * @param isLeft boolean that specifies if the node is left child or not
+   * @param hash   input hash of the entity corresponding to that node
+   */
+  public MerkleNode(MerkleNode parent, boolean isLeft, Sha3256Hash hash) {
+    this.left = null;
+    this.right = null;
+    this.parent = parent;
+    this.isLeft = isLeft;
+    this.hash = hash;
+  }
+
+  /**
    * Constructor with hash of the entity.
    *
    * @param hash input hash of the entity corresponding to that node
@@ -148,5 +177,30 @@ public class MerkleNode {
     } else {
       return parent.getLeft();
     }
+  }
+
+  /**
+   * Sets the left child of the node.
+   *
+   * @param left the left child of the node
+   */
+  public void setLeftNode(MerkleNode left) {
+    this.left = left;
+  }
+
+  /**
+   * Sets the left child of the node.
+   *
+   * @param right the right child of the node
+   */
+  public void setRightNode(MerkleNode right) {
+    this.right = right;
+  }
+
+  /**
+   * Updates the hash of the node.
+   */
+  public void updateHash() {
+    this.hash = hasher.computeHash(left.getHash(), right.getHash());
   }
 }
