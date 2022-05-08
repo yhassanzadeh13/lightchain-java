@@ -70,14 +70,21 @@ public class IngestEngine implements Engine {
       lock.lock();
       LightChainValidatorAssigner assigner = new LightChainValidatorAssigner();
       if (e.type() == EntityType.TYPE_VALIDATED_BLOCK) {
-        Assignment assignment = assigner.assign(e.id()
-            , state.atBlockId(((ValidatedBlock) e).getPreviousBlockId())
+        ValidatedBlock b = ((ValidatedBlock) e);
+        Assignment assignment = assigner.assign(b.id()
+            , state.atBlockId(b.getPreviousBlockId())
             , (short) Parameters.VALIDATOR_THRESHOLD);
-        int signatures = assignment.size();
+
+        int signatures = 0;
+        for (Identifier id : assignment.getValidators()) {
+          if (this.state.atBlockId(b.getPreviousBlockId()).getAccount(id).getPublicKey().verifySignature(b, b.getSignature()) ){
+            signatures++;
+          }
+        }
         if (!seenEntities.has(e.id()) && signatures >= Parameters.SIGNATURE_THRESHOLD
-            && !blocks.has(((ValidatedBlock) e).id())) {
+            && !blocks.has(b.id())) {
           blocks.add((Block) e);
-          for (ValidatedTransaction t : ((Block) e).getTransactions()) {
+          for (ValidatedTransaction t : b.getTransactions()) {
             transactionIds.add(t.id());
             if (pendingTransactions.has(t.id())) {
               pendingTransactions.remove(t.id());
@@ -91,9 +98,7 @@ public class IngestEngine implements Engine {
         int signatures = assignment.size();
         if (!seenEntities.has(e.id()) && signatures >= Parameters.SIGNATURE_THRESHOLD
             && !pendingTransactions.has(((ValidatedTransaction) e).id())) {
-          if (transactionIds.has(e.id())) {
-            transactionIds.remove(e.id());
-          } else {
+          if (!transactionIds.has(e.id())) {
             pendingTransactions.add((Transaction) e);
           }
         }
