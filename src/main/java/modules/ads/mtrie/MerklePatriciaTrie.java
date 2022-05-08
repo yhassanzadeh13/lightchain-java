@@ -1,8 +1,6 @@
 package modules.ads.mtrie;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 import crypto.Sha3256Hasher;
 import model.Entity;
@@ -43,7 +41,7 @@ public class MerklePatriciaTrie extends MerkleTree {
       path += String.format("%8s", Integer.toBinaryString(b & 0xFF)).replace(' ', '0');
     }
     for (int i = 0; i < path.length() - 1; i++) {
-      if (path.charAt(i) == '1') {
+      if (path.charAt(i) == '0') {
         if (currNode.getLeft() == null) {
           currNode.setLeftNode(new MerkleNode(currNode, true));
         }
@@ -55,15 +53,18 @@ public class MerklePatriciaTrie extends MerkleTree {
         currNode = currNode.getRight();
       }
     }
-    if (path.charAt(path.length() - 1) == '1') {
+    MerkleNode newNode = null;
+    if (path.charAt(path.length() - 1) == '0') {
       if (currNode.getLeft() == null) {
-        currNode.setLeftNode(new MerkleNode(currNode, true, new Sha3256Hash(id)));
+        newNode = new MerkleNode(currNode, true, hasher.computeHash(id));
+        currNode.setLeftNode(newNode);
         entityHashTable.put(id, e);
         size++;
       }
     } else {
       if (currNode.getRight() == null) {
-        currNode.setRightNode(new MerkleNode(currNode, false, new Sha3256Hash(id)));
+        newNode = new MerkleNode(currNode, false, hasher.computeHash(id));
+        currNode.setRightNode(newNode);
         entityHashTable.put(id, e);
         size++;
       }
@@ -72,6 +73,7 @@ public class MerklePatriciaTrie extends MerkleTree {
       currNode.updateHash();
       currNode = currNode.getParent();
     }
+    currNode.updateHash();
     return get(id);
   }
 
@@ -93,7 +95,7 @@ public class MerklePatriciaTrie extends MerkleTree {
       path += String.format("%8s", Integer.toBinaryString(b & 0xFF)).replace(' ', '0');
     }
     for (int i = 0; i < path.length(); i++) {
-      if (path.charAt(i) == '1') {
+      if (path.charAt(i) == '0') {
         currNode = currNode.getLeft();
         isLeftNode.add(true);
       } else {
@@ -105,6 +107,8 @@ public class MerklePatriciaTrie extends MerkleTree {
       }
       pathList.add(currNode.getSibling() == null ? new Sha3256Hash(new byte[32]) : currNode.getSibling().getHash());
     }
+    Collections.reverse(pathList);
+    Collections.reverse(isLeftNode);
     Entity e = entityHashTable.get(id);
     MerklePath merklePath = new MerklePath(pathList, isLeftNode);
     MerkleProof proof = new MerkleProof(root.getHash(), merklePath);

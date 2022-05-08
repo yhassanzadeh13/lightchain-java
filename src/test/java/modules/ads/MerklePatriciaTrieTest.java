@@ -16,12 +16,12 @@ public class MerklePatriciaTrieTest {
    */
   @Test
   public void testVerification() {
-    MerklePatriciaTrie merklePatriciaTrie = MerklePatriciaTrieFixture.createMerklePatriciaTree(5);
-    Assertions.assertEquals(merklePatriciaTrie.size(), 5); // fixture sanity check.
+    MerklePatriciaTrie merklePatriciaTrie = MerklePatriciaTrieFixture.createMerklePatriciaTree(0);
+    Assertions.assertEquals(merklePatriciaTrie.size(), 0); // fixture sanity check.
 
     Entity entity = new EntityFixture();
     merklePatriciaTrie.put(entity);
-    Assertions.assertEquals(merklePatriciaTrie.size(), 6);
+    Assertions.assertEquals(merklePatriciaTrie.size(), 1);
 
     AuthenticatedEntity authenticatedEntity = merklePatriciaTrie.get(entity.id());
     MerkleTreeAuthenticatedEntityVerifier verifier = new MerkleTreeAuthenticatedEntityVerifier();

@@ -1,5 +1,7 @@
 package modules.ads.merkletree;
 
+import java.util.Arrays;
+
 import crypto.Sha3256Hasher;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import model.Entity;
