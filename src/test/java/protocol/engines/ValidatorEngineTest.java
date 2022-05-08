@@ -83,6 +83,7 @@ public class ValidatorEngineTest {
 
     net = mock(Network.class);
     networkAdapter = mock(NetworkAdapter.class);
+    // TODO: Add channels and create two separate mockConduits.
     conduit = new MockConduit("validator", networkAdapter);
 
     prevBlock = BlockFixture.newBlock();
@@ -210,6 +211,7 @@ public class ValidatorEngineTest {
     for (int i = 0; i < 2; i++) {
       ValidatedTransaction validatedTransaction = ValidatedTransactionFixture.newValidatedTransaction(
           block.id(), snapshot.all().get(i).getIdentifier(), snapshot.all().get(i + 1).getIdentifier());
+
       snapshot.all().get(i).setBalance(validatedTransaction.getAmount() * 10 + 1);
       transactions.add(validatedTransaction);
       when(snapshot.getAccount(snapshot.all().get(i).getIdentifier())).thenReturn(accounts.get(i));

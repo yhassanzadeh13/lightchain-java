@@ -24,17 +24,18 @@ public class IngestEngine implements Engine {
   private static Blocks blocks;
   private static Identifiers transactionIds;
   private static Transactions pendingTransactions;
-  private Identifiers seenEntities;//TODO: Add the seen entities
+  private static Identifiers seenEntities;//TODO: Add the seen entities
 
 
   /**
    * Constructor of a IngestEngine.
    */
-  public IngestEngine(State state, Blocks blocks, Identifiers transactionIds, Transactions pendingTransactions) {
+  public IngestEngine(State state, Blocks blocks, Identifiers transactionIds, Transactions pendingTransactions, Identifiers seenEntities) {
     this.state = state;
     this.blocks = blocks;
     this.transactionIds = transactionIds;
     this.pendingTransactions = pendingTransactions;
+    this.seenEntities = seenEntities;
   }
 
   private static final ReentrantLock lock = new ReentrantLock();
@@ -70,23 +71,23 @@ public class IngestEngine implements Engine {
       LightChainValidatorAssigner assigner = new LightChainValidatorAssigner();
       if (e.type() == EntityType.TYPE_VALIDATED_BLOCK) {
         Assignment assignment = assigner.assign(e.id()
-            ,state.atBlockId(((ValidatedBlock) e).getPreviousBlockId())
-            ,(short)Parameters.VALIDATOR_THRESHOLD);
+            , state.atBlockId(((ValidatedBlock) e).getPreviousBlockId())
+            , (short) Parameters.VALIDATOR_THRESHOLD);
         int signatures = assignment.size();
         if (!seenEntities.has(e.id()) && signatures >= Parameters.SIGNATURE_THRESHOLD
             && !blocks.has(((ValidatedBlock) e).id())) {
           blocks.add((Block) e);
           for (ValidatedTransaction t : ((Block) e).getTransactions()) {
             transactionIds.add(t.id());
-            if (pendingTransactions.has(t. id())) {
+            if (pendingTransactions.has(t.id())) {
               pendingTransactions.remove(t.id());
             }
           }
         }
       } else if (e.type() == EntityType.TYPE_VALIDATED_TRANSACTION) {
         Assignment assignment = assigner.assign(e.id()
-            ,state.atBlockId(((ValidatedTransaction) e).getReferenceBlockId())
-            ,(short)Parameters.VALIDATOR_THRESHOLD);
+            , state.atBlockId(((ValidatedTransaction) e).getReferenceBlockId())
+            , (short) Parameters.VALIDATOR_THRESHOLD);
         int signatures = assignment.size();
         if (!seenEntities.has(e.id()) && signatures >= Parameters.SIGNATURE_THRESHOLD
             && !pendingTransactions.has(((ValidatedTransaction) e).id())) {
@@ -96,11 +97,10 @@ public class IngestEngine implements Engine {
             pendingTransactions.add((Transaction) e);
           }
         }
-      } else {
-        lock.unlock();
-        throw new IllegalArgumentException("entity is neither a validated transaction nor a validated block");
       }
       lock.unlock();
+    } else {
+      throw new IllegalArgumentException("entity is neither a validated transaction nor a validated block");
     }
   }
 

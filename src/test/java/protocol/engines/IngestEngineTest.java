@@ -1,11 +1,24 @@
 package protocol.engines;
 
+import java.util.ArrayList;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import model.lightchain.Account;
+import model.lightchain.Transaction;
+import state.Snapshot;
+import storage.Identifiers;
+import model.lightchain.ValidatedBlock;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import state.State;
+import storage.Blocks;
+import storage.Transactions;
+import unittest.fixtures.AccountFixture;
+import unittest.fixtures.ValidatedBlockFixture;
+
+import static org.mockito.Mockito.*;
 
 /**
  * Encapsulates tests for ingest engine implementation.
@@ -38,6 +51,41 @@ public class IngestEngineTest {
   //     (block does not contain that transaction).
   // 19. Happy path of receiving a validated transaction and a validated block concurrently
   //     (block does contain the transaction).
+
+  @Test
+  public void testValidatedSingleBlock() {
+    ValidatedBlock block = ValidatedBlockFixture.newValidatedBlock();
+    State state = mock(State.class);
+    Snapshot snapshot = mock(Snapshot.class);
+    when(state.atBlockId(block.getPreviousBlockId())).thenReturn(snapshot);
+
+    ArrayList<Account>  accounts = new ArrayList<>(AccountFixture.newAccounts(10, 10).values());
+    when(snapshot.all()).thenReturn(accounts);
+
+    Blocks blocks = mock(Blocks.class);
+    Identifiers pendingTx = mock(Identifiers.class);
+    Transactions txHash = mock(Transactions.class);
+
+    Identifiers seenEntities = mock(Identifiers.class);
+    IngestEngine ingestEngine = new IngestEngine(state,blocks,pendingTx,txHash,seenEntities);
+
+    try{
+      ingestEngine.process(block);
+    } catch (IllegalArgumentException e) {
+      e.printStackTrace();
+      Assertions.fail("Should not throw an exception");
+    }
+    for (Transaction tx : block.getTransactions()) {
+      txHash.add(tx);
+      verify(txHash).add(tx);
+      System.out.println(txHash.has(tx.id()));
+    }
+
+
+
+
+
+  }
 
   @Test
   public void testConcurrentSample() {
