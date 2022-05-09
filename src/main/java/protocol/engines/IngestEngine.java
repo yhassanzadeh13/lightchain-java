@@ -64,10 +64,10 @@ public class IngestEngine implements Engine {
   @Override
   public void process(Entity e) throws IllegalArgumentException {
 
-    if (e.type() == EntityType.TYPE_VALIDATED_BLOCK || e.type() == EntityType.TYPE_VALIDATED_TRANSACTION) {
+    if (e.type().equals(EntityType.TYPE_VALIDATED_BLOCK) || e.type().equals(EntityType.TYPE_VALIDATED_TRANSACTION)) {
       lock.lock();
       LightChainValidatorAssigner assigner = new LightChainValidatorAssigner();
-      if (e.type() == EntityType.TYPE_VALIDATED_BLOCK) {
+      if (e.type().equals(EntityType.TYPE_VALIDATED_BLOCK)) {
         ValidatedBlock b = ((ValidatedBlock) e);
         Assignment assignment = assigner.assign(b.id()
             , state.atBlockId(b.getPreviousBlockId())
@@ -89,7 +89,7 @@ public class IngestEngine implements Engine {
             }
           }
         }
-      } else if (e.type() == EntityType.TYPE_VALIDATED_TRANSACTION) {
+      } else if (e.type().equals(EntityType.TYPE_VALIDATED_TRANSACTION)) {
         Assignment assignment = assigner.assign(e.id()
             , state.atBlockId(((ValidatedTransaction) e).getReferenceBlockId())
             , (short) Parameters.VALIDATOR_THRESHOLD);
