@@ -20,10 +20,11 @@ import java.util.concurrent.locks.ReentrantLock;
  */
 public class IngestEngine implements Engine {
   private final State state;
-  private static Blocks blocks;
-  private static Identifiers transactionIds;
-  private static Transactions pendingTransactions;
-  private static Identifiers seenEntities;//TODO: Add the seen entities
+  private final Blocks blocks;
+  private final Identifiers transactionIds;
+  private final Transactions pendingTransactions;
+  private final Identifiers seenEntities;//TODO: Add the seen entities
+  private final ReentrantLock lock = new ReentrantLock();
 
 
   /**
@@ -36,8 +37,6 @@ public class IngestEngine implements Engine {
     this.pendingTransactions = pendingTransactions;
     this.seenEntities = seenEntities;
   }
-
-  private static final ReentrantLock lock = new ReentrantLock();
 
   /**
    * Received entity to this engine can be either a ValidatedBlock or a ValidatedTransaction,
