@@ -5,6 +5,7 @@ import model.codec.EntityType;
 import model.crypto.Signature;
 import model.exceptions.LightChainNetworkingException;
 import model.lightchain.*;
+import storage.Identifiers;
 import model.local.Local;
 import network.Channels;
 import network.Conduit;
@@ -26,14 +27,14 @@ public class ValidatorEngine implements Engine {
   private final Conduit blockCon;
   private final Conduit transCon;
   private final State state;
-  private final Identifiers seenEntities;
+  private static Identifiers seenEntities;
 
-  public ValidatorEngine(Network net, Local local, State state) {
+  public ValidatorEngine(Network net, Local local, State state, Identifiers seenEntities) {
     this.local = local;
     this.blockCon = net.register(this, Channels.ProposedBlocks);
     this.transCon = net.register(this, Channels.ProposedTransactions);
     this.state = state;
-    this.seenEntities = new Identifiers();
+    this.seenEntities = seenEntities;
   }
 
   private static final ReentrantLock lock = new ReentrantLock();

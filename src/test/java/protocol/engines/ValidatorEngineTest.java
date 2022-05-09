@@ -17,13 +17,16 @@ import model.crypto.Signature;
 import model.exceptions.LightChainDistributedStorageException;
 import model.lightchain.*;
 import model.local.Local;
+import network.Channels;
 import network.Network;
 import network.NetworkAdapter;
 import networking.MockConduit;
 import org.junit.Test;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
 import state.Snapshot;
 import state.State;
+import storage.Identifiers;
 import unittest.fixtures.*;
 import unittest.fixtures.ValidatedTransactionFixture;
 
@@ -57,38 +60,41 @@ public class ValidatorEngineTest {
   //     soundness, etc). Invalid transaction should be discarded without sending back a signature to its sender.
   // 19. Unhappy path of receiving an invalid block (one test per each validation criteria, e.g., correctness,
   //     soundness, etc). Invalid block should be discarded without sending back a signature to its proposer.
-  Random random = new Random();
-  ValidatorEngine engine;
-  Identifier localId;
-  PrivateKey privateKey;
-  PublicKey publicKey;
-  Local local;
-  Network net;
-  NetworkAdapter networkAdapter;
-  MockConduit conduit;
-  Block prevBlock;
-  Block block;
-  State state;
-  Snapshot snapshot;
-  Snapshot prevSnapshot;
-  Snapshot senderLastSnapshot1;
-  Snapshot senderLastSnapshot2;
-  ArrayList<Account> accounts;
+  private static final Random random = new Random();
+  private ValidatorEngine engine;
+  private Identifier localId;
+  private PrivateKey localPrivateKey;
+  private Local local;
+  private Network network;
+  private MockConduit blockConduit;
+  private MockConduit txConduit;
+  private Identifiers seenEntities;
+  private Block prevBlock;
+  private Block block;
+  private State state;
+  private Snapshot snapshot;
+  private Snapshot prevSnapshot;
+  private Snapshot senderLastSnapshot1;
+  private Snapshot senderLastSnapshot2;
+  private ArrayList<Account> accounts;
+
+  @BeforeEach
   public void setup(){
+    // Arrange
+    /// Local node
     localId = IdentifierFixture.newIdentifier();
-    KeyGen kg = KeyGenFixture.newKeyGen();
-    privateKey = kg.getPrivateKey();
-    publicKey = kg.getPublicKey();
-    local = new Local(localId, privateKey);
+    localPrivateKey = KeyGenFixture.newKeyGen().getPrivateKey();
+    local = new Local(localId, localPrivateKey);
 
-    net = mock(Network.class);
-    networkAdapter = mock(NetworkAdapter.class);
-    // TODO: Add channels and create two separate mockConduits.
-    conduit = new MockConduit("validator", networkAdapter);
+    /// Network
+    network = mock(Network.class);
+    NetworkAdapter networkAdapter = mock(NetworkAdapter.class);
 
+    blockConduit = new MockConduit(Channels.ProposedBlocks, networkAdapter);
+    txConduit = new MockConduit(Channels.ProposedTransactions, networkAdapter);
     prevBlock = BlockFixture.newBlock();
     block = BlockFixture.newBlock(prevBlock.id(), prevBlock.getHeight() + 1);
-
+    seenEntities = mock(Identifiers.class);
     state = mock(State.class);
     snapshot = mock(Snapshot.class);
     prevSnapshot = mock(Snapshot.class);
@@ -102,16 +108,15 @@ public class ValidatorEngineTest {
     when(prevSnapshot.getReferenceBlockHeight()).thenReturn((long) prevBlock.getHeight());
   }
 
-
   @Test
   public void testReceiveOneValidBlock() {
     // Arrange
     setup();
-    // Creates accounts for the snapshot including an account with the local id.
+    // Create accounts for the snapshot including an account with the local id.
     accounts = new ArrayList<>(AccountFixture.newAccounts(localId, 10, 10).values());
     ArrayList<Identifier> accountIds = new ArrayList<>(accounts.size());
-    for (int i = 0; i < accounts.size(); i++) {
-      accountIds.add(accounts.get(i).getIdentifier());
+    for (Account account : accounts) {
+      accountIds.add(account.getIdentifier());
     }
 
     ValidatedBlock validatedBlock = ValidatedBlockFixture.newValidatedBlock(accounts, prevBlock.getHeight() + 1, prevBlock.id());
@@ -124,8 +129,8 @@ public class ValidatorEngineTest {
       when(state.atBlockId(senderAccount.getLastBlockId())).thenReturn(prevSnapshot);
       when(state.atBlockId(tx.getReferenceBlockId())).thenReturn(snapshot);
     }
-    when(net.register(any(ValidatorEngine.class), eq("validator"))).thenReturn(conduit);
-    engine = new ValidatorEngine(net, local, state);
+    when(network.register(any(ValidatorEngine.class), eq("validator"))).thenReturn(blockConduit);
+    engine = new ValidatorEngine(network, local, state, seenEntities);
 
 
 
@@ -144,24 +149,21 @@ public class ValidatorEngineTest {
 
   @Test
   public void testReceiveOneValidTransaction() {
-    // Arrange
-    setup();
-
-    // Creates accounts for the snapshot including an account with the local id.
+    // Create accounts for the snapshot including an account with the local id.
     accounts = new ArrayList<>(AccountFixture.newAccounts(localId, 10, 10).values());
     when(snapshot.all()).thenReturn(accounts);
+
     for (int i = 0; i < accounts.size(); i++) {
       when(snapshot.getAccount(snapshot.all().get(i).getIdentifier())).thenReturn(accounts.get(i));
     }
 
-
-    when(net.register(any(ValidatorEngine.class), eq("validator"))).thenReturn(conduit);
-    engine = new ValidatorEngine(net, local, state);
+    when(network.register(any(ValidatorEngine.class), eq("validator"))).thenReturn(txConduit);
+    engine = new ValidatorEngine(network, local, state,seenEntities);
 
     ArrayList<ValidatedTransaction> transactions = new ArrayList<>();
     for (int i = 0; i < 2; i++) {
       Identifier signer = snapshot.all().get(random.nextInt(accounts.size())).getIdentifier();
-      System.out.println("sgner "+signer);
+      System.out.println("signer "+signer);
       ValidatedTransaction validatedTransaction = ValidatedTransactionFixture.newValidatedTransaction(
           block.id(),
           snapshot.all().get(i).getIdentifier(),
@@ -175,7 +177,7 @@ public class ValidatorEngineTest {
       transactions.add(validatedTransaction);
 
     }
-    System.out.println("sgner2 "+transactions.get(0).getSignature().getSignerId());
+    System.out.println("signer2 "+transactions.get(0).getSignature().getSignerId());
     System.out.println("de "+ snapshot.getAccount(transactions.get(0).getSignature().getSignerId()).getPublicKey());
     when(state.atBlockId(snapshot.all().get(0).getLastBlockId())).thenReturn(senderLastSnapshot1);
     when(state.atBlockId(snapshot.all().get(1).getLastBlockId())).thenReturn(senderLastSnapshot2);
@@ -201,11 +203,11 @@ public class ValidatorEngineTest {
     // Arrange
     setup();
 
-    // Creates accounts for the snapshot including an account with the local id.
+    // Create accounts for the snapshot including an account with the local id.
     accounts = new ArrayList<>(AccountFixture.newAccounts(localId, 10, 10).values());
     when(snapshot.all()).thenReturn(accounts);
-    when(net.register(any(ValidatorEngine.class), eq("validator"))).thenReturn(conduit);
-    engine = new ValidatorEngine(net, local, state);
+    when(network.register(any(ValidatorEngine.class), eq("validator"))).thenReturn(txConduit);
+    engine = new ValidatorEngine(network, local, state, seenEntities);
 
     ArrayList<ValidatedTransaction> transactions = new ArrayList<>();
     for (int i = 0; i < 2; i++) {
@@ -264,11 +266,11 @@ public class ValidatorEngineTest {
     // Arrange
     setup();
 
-    // Creates accounts for the snapshot including an account with the local id.
+    // Create accounts for the snapshot including an account with the local id.
     accounts = new ArrayList<>(AccountFixture.newAccounts(localId, 10, 10).values());
     when(snapshot.all()).thenReturn(accounts);
-    when(net.register(any(ValidatorEngine.class), eq("validator"))).thenReturn(conduit);
-    engine = new ValidatorEngine(net, local, state);
+    when(network.register(any(ValidatorEngine.class), eq("validator"))).thenReturn(txConduit);
+    engine = new ValidatorEngine(network, local, state, seenEntities);
 
     ArrayList<ValidatedTransaction> transactions = new ArrayList<>();
     for (int i = 0; i < 2; i++) {
@@ -293,7 +295,7 @@ public class ValidatorEngineTest {
     }
     for (ValidatedTransaction transaction : transactions) {
       Assertions.assertNotNull(transaction.getSignature());
-      Assertions.assertTrue(conduit.hasSent(transaction.id()));
+      Assertions.assertTrue(txConduit.hasSent(transaction.id()));
     }
   }
 
@@ -301,11 +303,11 @@ public class ValidatorEngineTest {
   public void testReceiveTwoDuplicateTransactionSequentially() {
     // Arrange
     setup();
-    // Creates accounts for the snapshot including an account with the local id.
+    // Create accounts for the snapshot including an account with the local id.
     accounts = new ArrayList<>(AccountFixture.newAccounts(localId, 10, 10).values());
     when(snapshot.all()).thenReturn(accounts);
-    when(net.register(any(ValidatorEngine.class), eq("validator"))).thenReturn(conduit);
-    engine = new ValidatorEngine(net, local, state);
+    when(network.register(any(ValidatorEngine.class), eq("validator"))).thenReturn(txConduit);
+    engine = new ValidatorEngine(network, local, state, seenEntities);
 
     ValidatedTransaction validatedTransaction = ValidatedTransactionFixture.newValidatedTransaction(
         block.id(), snapshot.all().get(0).getIdentifier(), snapshot.all().get(1).getIdentifier());
@@ -324,7 +326,7 @@ public class ValidatorEngineTest {
       Assertions.fail(ex);
     }
     Assertions.assertNotNull(validatedTransaction.getSignature());
-    Assertions.assertTrue(conduit.hasSent(validatedTransaction.id()));
+    Assertions.assertTrue(txConduit.hasSent(validatedTransaction.id()));
     // Second, where we check that the process doesn't follow through
     try {
       engine.process(validatedTransaction);
@@ -333,7 +335,7 @@ public class ValidatorEngineTest {
     }
 
     try {
-      Assertions.assertEquals(conduit.allEntities().size(), 1);
+      Assertions.assertEquals(txConduit.allEntities().size(), 1);
     } catch (LightChainDistributedStorageException e) {
       e.printStackTrace();
     }
@@ -344,11 +346,11 @@ public class ValidatorEngineTest {
   public void testReceiveTwoDuplicateTransactionConcurrently() {
     // Arrange
     setup();
-    // Creates accounts for the snapshot including an account with the local id.
+    // Create accounts for the snapshot including an account with the local id.
     accounts = new ArrayList<>(AccountFixture.newAccounts(localId, 10, 10).values());
     when(snapshot.all()).thenReturn(accounts);
-    when(net.register(any(ValidatorEngine.class), eq("validator"))).thenReturn(conduit);
-    engine = new ValidatorEngine(net, local, state);
+    when(network.register(any(ValidatorEngine.class), eq("validator"))).thenReturn(txConduit);
+    engine = new ValidatorEngine(network, local, state, seenEntities);
 
     ValidatedTransaction validatedTransaction = ValidatedTransactionFixture.newValidatedTransaction(
         block.id(), snapshot.all().get(0).getIdentifier(), snapshot.all().get(1).getIdentifier());
@@ -386,9 +388,9 @@ public class ValidatorEngineTest {
     }
 
     Assertions.assertNotNull(validatedTransaction.getSignature());
-    Assertions.assertTrue(conduit.hasSent(validatedTransaction.id()));
+    Assertions.assertTrue(txConduit.hasSent(validatedTransaction.id()));
     try {
-      Assertions.assertEquals(conduit.allEntities().size(), 1);
+      Assertions.assertEquals(txConduit.allEntities().size(), 1);
     } catch (LightChainDistributedStorageException e) {
       e.printStackTrace();
     }
@@ -399,11 +401,11 @@ public class ValidatorEngineTest {
   public void testReceiveNoTransactionNorBlock() {
     // Arrange
     setup();
-    // Creates accounts for the snapshot including an account with the local id.
+    // Create accounts for the snapshot including an account with the local id.
     accounts = new ArrayList<>(AccountFixture.newAccounts(localId, 10, 10).values());
     when(snapshot.all()).thenReturn(accounts);
-    when(net.register(any(ValidatorEngine.class), eq("validator"))).thenReturn(conduit);
-    engine = new ValidatorEngine(net, local, state);
+    when(network.register(any(ValidatorEngine.class), eq("validator"))).thenReturn(txConduit);
+    engine = new ValidatorEngine(network, local, state, seenEntities);
 
     // An entity which is neither block nor transaction.
     Signature signature = SignatureFixture.newSignatureFixture();
@@ -413,7 +415,7 @@ public class ValidatorEngineTest {
     } catch (IllegalArgumentException ex) {
       Assertions.assertEquals(ex.getMessage(), "entity is neither a block nor a transaction");
     }
-    Assertions.assertFalse(conduit.hasSent(signature.id()));
+    Assertions.assertFalse(txConduit.hasSent(signature.id()));
   }
 
 }

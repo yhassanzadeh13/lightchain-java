@@ -3,7 +3,6 @@ package protocol.engines;
 import model.Entity;
 import model.lightchain.*;
 import model.codec.EntityType;
-import model.local.Local;
 import protocol.Engine;
 import protocol.Parameters;
 import protocol.assigner.LightChainValidatorAssigner;
@@ -20,7 +19,7 @@ import java.util.concurrent.locks.ReentrantLock;
  * into the transactions and blocks storage pools.
  */
 public class IngestEngine implements Engine {
-  private static State state;
+  private final State state;
   private static Blocks blocks;
   private static Identifiers transactionIds;
   private static Transactions pendingTransactions;
