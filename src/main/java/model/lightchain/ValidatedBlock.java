@@ -12,7 +12,7 @@ public class ValidatedBlock extends Block {
    * Represents the signatures of assigned validators to this block.
    */
   private final Signature[] certificates;
-  
+
   /**
    * Constructor of the validated block.
    *

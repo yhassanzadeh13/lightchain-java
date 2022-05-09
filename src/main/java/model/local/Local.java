@@ -11,7 +11,8 @@ import model.lightchain.Identifier;
  */
 public class Local {
   private final Identifier id;
-  private PrivateKey pk;
+  private final PrivateKey pk;
+
   public Local(Identifier id, PrivateKey pk) {
     this.id = id;
     this.pk =pk;
@@ -24,8 +25,7 @@ public class Local {
    * @return a signature over entity e using private key.
    */
   public Signature signEntity(Entity e) throws IllegalStateException {
-    Signature sign = new EcdsaSignature(pk.signEntity(e).getBytes(), e.id());
-    return sign;
+    return new EcdsaSignature(pk.signEntity(e).getBytes(), e.id());
   }
 
   /**
