@@ -56,7 +56,7 @@ public class ValidatorEngine implements Engine {
    */
   @Override
   public void process(Entity e) throws IllegalArgumentException {
-    if (!e.type().equals(EntityType.TYPE_VALIDATED_BLOCK) && !e.type().equals(EntityType.TYPE_VALIDATED_TRANSACTION)) {
+    if (!e.type().equals(EntityType.TYPE_BLOCK) && !e.type().equals(EntityType.TYPE_TRANSACTION)) {
       throw new IllegalArgumentException("entity is neither a block nor a transaction:" + e.type());
     }
 
@@ -69,7 +69,7 @@ public class ValidatorEngine implements Engine {
       LightChainValidatorAssigner assigner = new LightChainValidatorAssigner();
       Identifier currentNode = this.local.myId();
 
-      if (e.type().equals(EntityType.TYPE_VALIDATED_BLOCK)) {
+      if (e.type().equals(EntityType.TYPE_BLOCK)) {
         Block block = ((Block) e);
         Assignment assignment = assigner.assign(block.id(),
             state.atBlockId((block).getPreviousBlockId()),
@@ -90,7 +90,7 @@ public class ValidatorEngine implements Engine {
           }
         }
 
-      } else if (e.type().equals(EntityType.TYPE_VALIDATED_TRANSACTION)) {
+      } else if (e.type().equals(EntityType.TYPE_TRANSACTION)) {
 
         Transaction tx = ((Transaction) e);
         Assignment assignment = assigner.assign(
