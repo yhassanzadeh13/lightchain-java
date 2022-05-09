@@ -83,6 +83,7 @@ public class ValidatorEngine implements Engine {
           Signature certificate = this.local.signEntity(block);
           try {
             this.blockCon.unicast(certificate, (block.getProposer()));
+            this.seenEntities.add(block.id());
           } catch (LightChainNetworkingException ex) {
             ex.printStackTrace();
           }
@@ -104,7 +105,7 @@ public class ValidatorEngine implements Engine {
           Signature certificate = this.local.signEntity(tx);
           try {
             this.transCon.unicast(certificate, (tx.getSender()));
-            seenEntities.add(tx.id());
+            this.seenEntities.add(tx.id());
           } catch (LightChainNetworkingException ex) {
             ex.printStackTrace();
           }
