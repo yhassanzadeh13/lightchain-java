@@ -75,7 +75,7 @@ public class IngestEngine implements Engine {
             , (short) Parameters.VALIDATOR_THRESHOLD);
 
         int signatures = 0;
-        for (Identifier id : assignment.getValidators()) {
+        for (Identifier id : assignment.getAll()) {
           if (this.state.atBlockId(b.getPreviousBlockId()).getAccount(id).getPublicKey().verifySignature(b, b.getSignature()) ){
             signatures++;
           }

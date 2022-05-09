@@ -41,7 +41,7 @@ public class Identifiers {
     return this.identifiers.size();
   }
 
-  public ArrayList<Identifier> getIdentifiers() {
+  public ArrayList<Identifier> getAll() {
     return this.identifiers;
   }
   @Override

@@ -28,13 +28,13 @@ public class Assignment {
   }
 
   /**
-   * Checks whether an identifier is assigned to this assignment.
+   * Checks whether an identifier is included in this assignment.
    *
-   * @param validator
-   * @return true if validator is in assignment
+   * @param id identifier to check.
+   * @return true if identifier is in assignment
    */
-  public boolean has(Identifier validator) {
-    return this.validators.has(validator);
+  public boolean has(Identifier id) {
+    return this.validators.has(id);
   }
 
   @Override
@@ -59,8 +59,8 @@ public class Assignment {
     return this.validators.size();
   }
 
-  public ArrayList<Identifier> getValidators() {
-    return this.validators.getIdentifiers();
+  public ArrayList<Identifier> getAll() {
+    return this.validators.getAll();
   }
   @Override
   public String toString() {
