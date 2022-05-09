@@ -27,7 +27,8 @@ public class ValidatorEngine implements Engine {
   private final Conduit blockCon;
   private final Conduit transCon;
   private final State state;
-  private static Identifiers seenEntities;
+  private final Identifiers seenEntities;
+  private final ReentrantLock lock;
 
   public ValidatorEngine(Network net, Local local, State state, Identifiers seenEntities) {
     this.local = local;
@@ -35,9 +36,9 @@ public class ValidatorEngine implements Engine {
     this.transCon = net.register(this, Channels.ProposedTransactions);
     this.state = state;
     this.seenEntities = seenEntities;
+    this.lock = new ReentrantLock();
   }
 
-  private static final ReentrantLock lock = new ReentrantLock();
 
   /**
    * Received entity to this engine can be either a block or a transaction, anything else should throw an exception.
@@ -55,60 +56,88 @@ public class ValidatorEngine implements Engine {
    */
   @Override
   public void process(Entity e) throws IllegalArgumentException {
+    if (!e.type().equals(EntityType.TYPE_VALIDATED_BLOCK) && !e.type().equals(EntityType.TYPE_VALIDATED_TRANSACTION)) {
+      throw new IllegalArgumentException("entity is neither a block nor a transaction:" + e.type());
+    }
 
-    if (e.type().equals(EntityType.TYPE_VALIDATED_BLOCK) || e.type().equals(EntityType.TYPE_VALIDATED_TRANSACTION)) {
+    if (seenEntities.has(e.id())) {
+      return; // entity already processed.
+    }
+
+    try {
       lock.lock();
       LightChainValidatorAssigner assigner = new LightChainValidatorAssigner();
       Identifier currentNode = this.local.myId();
-      if (!seenEntities.has(e.id()) && e.type().equals(EntityType.TYPE_VALIDATED_BLOCK)) {
-        Assignment assignment = assigner.assign(e.id(), state.atBlockId(((Block) e).getPreviousBlockId()),
-            (short) Parameters.VALIDATOR_THRESHOLD);
-        if (isBlockValidated((Block) e) && assignment.has(currentNode)) {
-          Block b = (Block) e;
-          Signature sign = this.local.signEntity(b);
+
+      if (e.type().equals(EntityType.TYPE_VALIDATED_BLOCK)) {
+        Block block = ((Block) e);
+        Assignment assignment = assigner.assign(block.id(),
+            state.atBlockId((block).getPreviousBlockId()),
+            Parameters.VALIDATOR_THRESHOLD);
+
+        if (!assignment.has(currentNode)){
+          return; // current node is not an assigned validator.
+        }
+
+        if (isBlockValidated(block)) {
+          Signature certificate = this.local.signEntity(block);
           try {
-            this.blockCon.unicast(sign, (b.getProposer()));
+            this.blockCon.unicast(certificate, (block.getProposer()));
           } catch (LightChainNetworkingException ex) {
-            lock.unlock();
             ex.printStackTrace();
           }
         }
-      } else if (!seenEntities.has(e.id()) && e.type().equals(EntityType.TYPE_VALIDATED_TRANSACTION)) {
-        Assignment assignment = assigner.assign(e.id(), state.atBlockId(((Transaction) e).getReferenceBlockId()),
-            (short) Parameters.VALIDATOR_THRESHOLD);
-        if (isTransactionValidated((Transaction) e) && assignment.has(currentNode)) {
-          Transaction tx = (Transaction) e;
-          Signature sign = this.local.signEntity(tx);
+
+      } else if (e.type().equals(EntityType.TYPE_VALIDATED_TRANSACTION)) {
+
+        Transaction tx = ((Transaction) e);
+        Assignment assignment = assigner.assign(
+            tx.id(),
+            state.atBlockId(tx.getReferenceBlockId()),
+            Parameters.VALIDATOR_THRESHOLD);
+
+        if (!assignment.has(currentNode)){
+          return; // current node is not an assigned validator.
+        }
+
+        if (isTransactionValidated((Transaction) e)) {
+          Signature certificate = this.local.signEntity(tx);
           try {
-            this.transCon.unicast(sign, (tx.getSender()));
+            this.transCon.unicast(certificate, (tx.getSender()));
             seenEntities.add(tx.id());
           } catch (LightChainNetworkingException ex) {
-            lock.unlock();
             ex.printStackTrace();
           }
         }
       }
+    } finally {
       lock.unlock();
-    } else {
-      throw new IllegalArgumentException("entity is neither a block nor a transaction");
     }
   }
 
   private boolean isBlockValidated(Block b) {
     BlockValidator verifier = new BlockValidator(state);
-    System.out.println("sound"+verifier.allTransactionsSound(b));
-    System.out.println("valid"+verifier.allTransactionsValidated(b));
-    System.out.println("auth"+verifier.isAuthenticated(b));
-    System.out.println("cons"+verifier.isConsistent(b));
-    System.out.println("correct"+verifier.isCorrect(b));
-    System.out.println("dup"+verifier.noDuplicateSender(b));
-    System.out.println("stake"+verifier.proposerHasEnoughStake(b));
-    return verifier.allTransactionsSound(b) && verifier.allTransactionsValidated(b) && verifier.isAuthenticated(b)
-        && verifier.isConsistent(b) && verifier.isCorrect(b) && verifier.noDuplicateSender(b) && verifier.proposerHasEnoughStake(b);
+    System.out.println("sound" + verifier.allTransactionsSound(b));
+    System.out.println("valid" + verifier.allTransactionsValidated(b));
+    System.out.println("auth" + verifier.isAuthenticated(b));
+    System.out.println("cons" + verifier.isConsistent(b));
+    System.out.println("correct" + verifier.isCorrect(b));
+    System.out.println("dup" + verifier.noDuplicateSender(b));
+    System.out.println("stake" + verifier.proposerHasEnoughStake(b));
+    return verifier.allTransactionsSound(b)
+        && verifier.allTransactionsValidated(b)
+        && verifier.isAuthenticated(b)
+        && verifier.isConsistent(b)
+        && verifier.isCorrect(b)
+        && verifier.noDuplicateSender(b)
+        && verifier.proposerHasEnoughStake(b);
   }
 
   private boolean isTransactionValidated(Transaction t) {
     TransactionValidator verifier = new TransactionValidator(state);
-    return verifier.isSound(t) && verifier.senderHasEnoughBalance(t) && verifier.isAuthenticated(t) && verifier.isCorrect(t);
+    return verifier.isSound(t)
+        && verifier.senderHasEnoughBalance(t)
+        && verifier.isAuthenticated(t)
+        && verifier.isCorrect(t);
   }
 }
