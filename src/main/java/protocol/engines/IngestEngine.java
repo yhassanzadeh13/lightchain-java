@@ -1,6 +1,7 @@
 package protocol.engines;
 
 import model.Entity;
+import model.crypto.Signature;
 import model.lightchain.*;
 import model.codec.EntityType;
 import protocol.Engine;
@@ -30,7 +31,11 @@ public class IngestEngine implements Engine {
   /**
    * Constructor of a IngestEngine.
    */
-  public IngestEngine(State state, Blocks blocks, Identifiers transactionIds, Transactions pendingTransactions, Identifiers seenEntities) {
+  public IngestEngine(State state,
+                      Blocks blocks,
+                      Identifiers transactionIds,
+                      Transactions pendingTransactions,
+                      Identifiers seenEntities) {
     this.state = state;
     this.blocks = blocks;
     this.transactionIds = transactionIds;
@@ -63,50 +68,83 @@ public class IngestEngine implements Engine {
    */
   @Override
   public void process(Entity e) throws IllegalArgumentException {
+    if (seenEntities.has(e.id())) {
+      return; // entity already ingested.
+    }
 
-    if (e.type().equals(EntityType.TYPE_VALIDATED_BLOCK) || e.type().equals(EntityType.TYPE_VALIDATED_TRANSACTION)) {
+    if (!e.type().equals(EntityType.TYPE_VALIDATED_BLOCK) && !e.type().equals(EntityType.TYPE_VALIDATED_TRANSACTION)) {
+      throw new IllegalArgumentException("entity is neither a validated transaction nor a validated block");
+    }
+
+    try {
       lock.lock();
+
       LightChainValidatorAssigner assigner = new LightChainValidatorAssigner();
       if (e.type().equals(EntityType.TYPE_VALIDATED_BLOCK)) {
-        ValidatedBlock b = ((ValidatedBlock) e);
-        Assignment assignment = assigner.assign(b.id()
-            , state.atBlockId(b.getPreviousBlockId())
-            , (short) Parameters.VALIDATOR_THRESHOLD);
+        Block block = ((Block) e); // skims off the non-block attributes (e.g., certificates).
+        Signature[] certificates = ((ValidatedBlock) e).getCertificates();
+
+        Assignment assignment = assigner.assign(block.id(),
+            state.atBlockId(block.getPreviousBlockId()),
+            Parameters.VALIDATOR_THRESHOLD);
 
         int signatures = 0;
-        for (Identifier id : assignment.getAll()) {
-          if (this.state.atBlockId(b.getPreviousBlockId()).getAccount(id).getPublicKey().verifySignature(b, b.getSignature()) ){
+        for (Signature certificate : certificates) {
+          if (!assignment.has(certificate.getSignerId())) {
+            // certificate issued by a non-assigned validator
+            return;
+          }
+          if (this.state.atBlockId(block.getPreviousBlockId()).
+              getAccount(certificate.getSignerId())
+              .getPublicKey()
+              .verifySignature(block, certificate)) {
             signatures++;
           }
         }
-        if (!seenEntities.has(e.id()) && signatures >= Parameters.SIGNATURE_THRESHOLD
-            && !blocks.has(b.id())) {
-          blocks.add((Block) e);
-          for (ValidatedTransaction t : b.getTransactions()) {
+
+        if (signatures >= Parameters.SIGNATURE_THRESHOLD && !blocks.has(block.id())) {
+          blocks.add(block);
+          for (ValidatedTransaction t : block.getTransactions()) {
             transactionIds.add(t.id());
             if (pendingTransactions.has(t.id())) {
               pendingTransactions.remove(t.id());
             }
           }
         }
+
       } else if (e.type().equals(EntityType.TYPE_VALIDATED_TRANSACTION)) {
-        Assignment assignment = assigner.assign(e.id()
-            , state.atBlockId(((ValidatedTransaction) e).getReferenceBlockId())
-            , (short) Parameters.VALIDATOR_THRESHOLD);
-        int signatures = assignment.size();
-        if (!seenEntities.has(e.id()) && signatures >= Parameters.SIGNATURE_THRESHOLD
-            && !pendingTransactions.has(((ValidatedTransaction) e).id())) {
-          if (!transactionIds.has(e.id())) {
-            pendingTransactions.add((Transaction) e);
+        Transaction tx = ((Transaction) e); // skims off the non-transaction attributes (e.g., certificates).
+        Signature[] certificates = ((ValidatedTransaction) e).getCertificates();
+
+        Assignment assignment = assigner.assign(tx.id(),
+            state.atBlockId(tx.getReferenceBlockId()),
+            Parameters.VALIDATOR_THRESHOLD);
+
+        int signatures = 0;
+        for (Signature certificate : certificates) {
+          if (!assignment.has(certificate.getSignerId())) {
+            // certificate issued by a non-assigned validator
+            return;
+          }
+          if (this.state.atBlockId(tx.getReferenceBlockId()).
+              getAccount(certificate.getSignerId())
+              .getPublicKey()
+              .verifySignature(tx, certificate)) {
+            signatures++;
+          }
+        }
+
+        if (signatures >= Parameters.SIGNATURE_THRESHOLD && !pendingTransactions.has(tx.id())) {
+          if (!transactionIds.has(tx.id())) {
+            pendingTransactions.add(tx);
           }
         }
       }
+    } finally {
       lock.unlock();
-    } else {
-      throw new IllegalArgumentException("entity is neither a validated transaction nor a validated block");
     }
   }
-
-
 }
+
+
 
