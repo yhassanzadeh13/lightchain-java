@@ -75,7 +75,7 @@ public class ValidatorEngine implements Engine {
             state.atBlockId((block).getPreviousBlockId()),
             Parameters.VALIDATOR_THRESHOLD);
 
-        if (!assignment.has(currentNode)){
+        if (!assignment.has(currentNode)) {
           return; // current node is not an assigned validator.
         }
 
@@ -85,7 +85,8 @@ public class ValidatorEngine implements Engine {
             this.blockCon.unicast(certificate, (block.getProposer()));
             this.seenEntities.add(block.id());
           } catch (LightChainNetworkingException ex) {
-            ex.printStackTrace();
+            System.err.println("could not unicast the block certificate");
+            System.exit(1);
           }
         }
 
@@ -97,7 +98,7 @@ public class ValidatorEngine implements Engine {
             state.atBlockId(tx.getReferenceBlockId()),
             Parameters.VALIDATOR_THRESHOLD);
 
-        if (!assignment.has(currentNode)){
+        if (!assignment.has(currentNode)) {
           return; // current node is not an assigned validator.
         }
 
@@ -107,7 +108,8 @@ public class ValidatorEngine implements Engine {
             this.transCon.unicast(certificate, (tx.getSender()));
             this.seenEntities.add(tx.id());
           } catch (LightChainNetworkingException ex) {
-            ex.printStackTrace();
+            System.err.println("could not unicast the transaction certificate");
+            System.exit(1);
           }
         }
       }
