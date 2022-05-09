@@ -12,26 +12,7 @@ public class ValidatedBlock extends Block {
    * Represents the signatures of assigned validators to this block.
    */
   private final Signature[] certificates;
-
-  /**
-   * Constructor of the validated block.
-   *
-   * @param previousBlockId   identifier of a finalized block that this block is extending its snapshot.
-   * @param proposer          identifier of the node that proposes this block (i.e., miner).
-   * @param transactions      set of validated transactions that this block carries.
-   * @param proposerSignature signature of the proposer over the hash of this block.
-   * @param certificates      signature of assigned validators to this transaction.
-   */
-  public ValidatedBlock(Identifier previousBlockId,
-                        Identifier proposer,
-                        ValidatedTransaction[] transactions,
-                        Signature proposerSignature,
-                        Signature[] certificates) {
-
-    super(previousBlockId, proposer, transactions, proposerSignature);
-    this.certificates = certificates.clone();
-  }
-
+  
   /**
    * Constructor of the validated block.
    *
