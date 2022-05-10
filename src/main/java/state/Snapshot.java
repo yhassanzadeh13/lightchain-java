@@ -5,8 +5,6 @@ import java.util.ArrayList;
 import model.lightchain.Account;
 import model.lightchain.Identifier;
 
-import java.util.ArrayList;
-
 /**
  * Snapshot represents the status of the protocol state at a given finalized reference block.
  */
