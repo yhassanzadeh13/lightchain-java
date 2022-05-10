@@ -2,7 +2,9 @@ package unittest.fixtures;
 
 import java.util.Random;
 
+import model.crypto.Signature;
 import model.lightchain.Identifier;
+import model.lightchain.Transaction;
 
 /**
  * Encapsulates test utilities for transactions of LightChain.
@@ -24,7 +26,10 @@ public class TransactionFixture {
     Identifier sender = IdentifierFixture.newIdentifier();
     Identifier receiver = IdentifierFixture.newIdentifier();
     Identifier referenceBlockId = IdentifierFixture.newIdentifier();
-    return new model.lightchain.Transaction(sender, receiver, referenceBlockId, amount);
+    Signature signature = SignatureFixture.newSignatureFixture();
+    Transaction tx = new model.lightchain.Transaction(referenceBlockId, sender, receiver, amount);
+    tx.setSignature(signature);
+    return tx;
   }
 
   /**
@@ -38,7 +43,17 @@ public class TransactionFixture {
     Identifier receiver = IdentifierFixture.newIdentifier();
     Identifier referenceBlockId = IdentifierFixture.newIdentifier();
     double amount = Math.abs(RANDOM.nextInt()) + 1;
-    return new model.lightchain.Transaction(sender, receiver, referenceBlockId, amount);
+    Signature signature = SignatureFixture.newSignatureFixture();
+    Transaction tx = new model.lightchain.Transaction(referenceBlockId, sender, receiver, amount);
+    tx.setSignature(signature);
+    return tx;
   }
 
+  public static Transaction newTransaction(Identifier referenceBlockId, Identifier sender, Identifier receiver, Identifier signerId) {
+    double amount = Math.abs(RANDOM.nextInt()) + 1;
+    Signature signature = SignatureFixture.newSignatureFixture(signerId);
+    Transaction tx = new model.lightchain.Transaction(referenceBlockId, sender, receiver, amount);
+    tx.setSignature(signature);
+    return tx;
+  }
 }

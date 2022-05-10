@@ -10,9 +10,7 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import model.crypto.KeyGen;
 import model.crypto.PrivateKey;
-import model.crypto.PublicKey;
 import model.crypto.Signature;
 import model.exceptions.LightChainDistributedStorageException;
 import model.lightchain.*;
@@ -69,14 +67,16 @@ public class ValidatorEngineTest {
   private MockConduit blockConduit;
   private MockConduit txConduit;
   private Identifiers seenEntities;
-  private Block prevBlock;
-  private Block block;
+  private Block block1;
+  private Block block2;
+  private Block block3;
   private State state;
-  private Snapshot snapshot;
-  private Snapshot prevSnapshot;
-  private Snapshot senderLastSnapshot1;
-  private Snapshot senderLastSnapshot2;
-  private ArrayList<Account> accounts;
+  private Snapshot snapshot1;
+  private Snapshot snapshot2;
+  private Snapshot snapshot3;
+
+  private ArrayList<Account> accounts1;
+  private ArrayList<Account> accounts2;
 
   @BeforeEach
   public void setup(){
@@ -89,29 +89,148 @@ public class ValidatorEngineTest {
     /// Network
     network = mock(Network.class);
     NetworkAdapter networkAdapter = mock(NetworkAdapter.class);
-
     blockConduit = new MockConduit(Channels.ProposedBlocks, networkAdapter);
     txConduit = new MockConduit(Channels.ProposedTransactions, networkAdapter);
-    prevBlock = BlockFixture.newBlock();
-    block = BlockFixture.newBlock(prevBlock.id(), prevBlock.getHeight() + 1);
-    seenEntities = mock(Identifiers.class);
+
+    block1 = BlockFixture.newBlock();
+    block2 = BlockFixture.newBlock(block1.id(), block1.getHeight() + 1);
+    block3 = BlockFixture.newBlock(block2.id(), block2.getHeight() + 1);
+
+    /// State and Snapshots
     state = mock(State.class);
-    snapshot = mock(Snapshot.class);
-    prevSnapshot = mock(Snapshot.class);
-    senderLastSnapshot1 = mock(Snapshot.class);
-    senderLastSnapshot2 = mock(Snapshot.class);
-    when(state.atBlockId(block.id())).thenReturn(snapshot);
-    when(state.atBlockId(prevBlock.id())).thenReturn(prevSnapshot);
-    when(snapshot.getReferenceBlockHeight()).thenReturn((long) block.getHeight());
-    when(snapshot.getReferenceBlockId()).thenReturn(block.id());
-    when(prevSnapshot.getReferenceBlockId()).thenReturn(prevBlock.id());
-    when(prevSnapshot.getReferenceBlockHeight()).thenReturn((long) prevBlock.getHeight());
+    snapshot1 = mock(Snapshot.class);
+    snapshot2 = mock(Snapshot.class);
+    snapshot3 = mock(Snapshot.class);
+
+    when(snapshot1.getReferenceBlockId()).thenReturn(block1.id());
+    when(snapshot2.getReferenceBlockId()).thenReturn(block2.id());
+    when(snapshot3.getReferenceBlockId()).thenReturn(block3.id());
+
+    when(snapshot1.getReferenceBlockHeight()).thenReturn((long) block1.getHeight());
+    when(snapshot2.getReferenceBlockHeight()).thenReturn((long) block2.getHeight());
+    when(snapshot3.getReferenceBlockHeight()).thenReturn((long) block3.getHeight());
+
+    when(state.atBlockId(block1.id())).thenReturn(snapshot1);
+    when(state.atBlockId(block2.id())).thenReturn(snapshot2);
+    when(state.atBlockId(block3.id())).thenReturn(snapshot3);
+
+    /// Accounts
+    /// Create accounts for the snapshot including an account with the local id.
+    ArrayList<Account>[] a = AccountFixture.newAccounts(localId, block1.id(), block2.id(), 10, 10);
+    accounts1 = a[0]; accounts2 = a[1];
+    when(snapshot1.all()).thenReturn(accounts1);
+    when(snapshot2.all()).thenReturn(accounts1);
+    when(snapshot3.all()).thenReturn(accounts2);
+
+    for (int i = 0; i < accounts1.size(); i++) {
+      when(snapshot1.getAccount(snapshot1.all().get(i).getIdentifier())).thenReturn(accounts1.get(i));
+      when(snapshot2.getAccount(snapshot2.all().get(i).getIdentifier())).thenReturn(accounts1.get(i));
+      when(snapshot3.getAccount(snapshot3.all().get(i).getIdentifier())).thenReturn(accounts2.get(i));
+    }
+    /*
+    for (Account account: snapshot1.all()) {
+      when(state.atBlockId(account.getLastBlockId())).thenReturn(snapshot1);
+    }*/
+    for (Account account: snapshot2.all()) {
+      when(state.atBlockId(account.getLastBlockId())).thenReturn(snapshot1);
+    }
+    for (Account account: snapshot3.all()) {
+      when(state.atBlockId(account.getLastBlockId())).thenReturn(snapshot2);
+    }
+    seenEntities = mock(Identifiers.class);
   }
 
   @Test
-  public void testReceiveOneValidBlock() {
+  public void testReceiveOneValidTransaction() {
+    setup();
+    // Register the network adapter with the network and create engine.
+    when(network.register(any(ValidatorEngine.class), eq(Channels.ProposedTransactions))).thenReturn(txConduit);
+    engine = new ValidatorEngine(network, local, state,seenEntities);
+
+    Identifier signerId = snapshot2.all().get(random.nextInt(accounts1.size())).getIdentifier();
+    Transaction transaction = TransactionFixture.newTransaction(
+        block2.id(),
+        snapshot2.all().get(0).getIdentifier(),
+        snapshot2.all().get(1).getIdentifier(),
+        signerId);
+
+    when(state.atBlockId(transaction.getReferenceBlockId()).getAccount(transaction.getSender()).getPublicKey()
+        .verifySignature(transaction, transaction.getSignature())).thenReturn(true);
+    snapshot2.all().get(0).setBalance(transaction.getAmount() * 10 + 1);
+
+    try {
+      engine.process(transaction);
+    } catch (IllegalArgumentException ex) {
+      Assertions.fail(ex);
+    }
+    //TODO: assert has sent what?
+    Assertions.assertTrue(txConduit.hasSent(transaction.getSignature().id()));
+  }
+
+  @Test
+  public void testReceiveTwoValidTransactionConcurrently() {
     // Arrange
     setup();
+
+    // Register the network adapter with the network and create engine.
+    when(network.register(any(ValidatorEngine.class), eq(Channels.ProposedTransactions))).thenReturn(txConduit);
+    engine = new ValidatorEngine(network, local, state, seenEntities);
+
+    Identifier signerId = snapshot2.all().get(random.nextInt(accounts1.size())).getIdentifier();
+    ArrayList<Transaction> transactions = new ArrayList<>();
+    for (int i = 0; i < 2; i++) {
+      Transaction transaction = TransactionFixture.newTransaction(
+          block2.id(),
+          snapshot2.all().get(i).getIdentifier(),
+          snapshot2.all().get(i+1).getIdentifier(),
+          signerId);
+      transactions.add(transaction);
+      when(state.atBlockId(transaction.getReferenceBlockId()).getAccount(transaction.getSender()).getPublicKey()
+          .verifySignature(transaction, transaction.getSignature())).thenReturn(true);
+      snapshot2.all().get(i).setBalance(transaction.getAmount() * 10 + 1);
+    }
+
+    // Act
+    /// Create two threads that will process the transactions concurrently.
+    int concurrencyDegree = 2;
+    AtomicInteger threadErrorCount = new AtomicInteger();
+    CountDownLatch done = new CountDownLatch(1);
+    Thread[] validationThreads = new Thread[2];
+    for (int i = 0; i < concurrencyDegree; i++) {
+      int finalI = i;
+      validationThreads[i] = new Thread(() -> {
+        try {
+          engine.process(transactions.get(finalI));
+        } catch (IllegalArgumentException ex) {
+          threadErrorCount.incrementAndGet();
+        }
+        done.countDown();
+      });
+    }
+
+    ///  Run Threads
+    for (Thread t : validationThreads) {
+      t.start();
+    }
+
+    /// Assert done on time and got no errors
+    try {
+      boolean doneOnTime = done.await(10, TimeUnit.SECONDS);
+      Assertions.assertTrue(doneOnTime);
+    } catch (InterruptedException e) {
+      Assertions.fail(e);
+    }
+    Assertions.assertEquals(0, threadErrorCount.get());
+
+
+    for (Transaction transaction : transactions) {
+      //Assertions.assertNotNull(transaction.getSignature());
+      //TODO: assert has sent what?
+    }
+  }
+/*
+  @Test
+  public void testReceiveOneValidBlock() {
     // Create accounts for the snapshot including an account with the local id.
     accounts = new ArrayList<>(AccountFixture.newAccounts(localId, 10, 10).values());
     ArrayList<Identifier> accountIds = new ArrayList<>(accounts.size());
@@ -147,119 +266,7 @@ public class ValidatorEngineTest {
 
   }
 
-  @Test
-  public void testReceiveOneValidTransaction() {
-    // Create accounts for the snapshot including an account with the local id.
-    accounts = new ArrayList<>(AccountFixture.newAccounts(localId, 10, 10).values());
-    when(snapshot.all()).thenReturn(accounts);
 
-    for (int i = 0; i < accounts.size(); i++) {
-      when(snapshot.getAccount(snapshot.all().get(i).getIdentifier())).thenReturn(accounts.get(i));
-    }
-
-    when(network.register(any(ValidatorEngine.class), eq("validator"))).thenReturn(txConduit);
-    engine = new ValidatorEngine(network, local, state,seenEntities);
-
-    ArrayList<ValidatedTransaction> transactions = new ArrayList<>();
-    for (int i = 0; i < 2; i++) {
-      Identifier signer = snapshot.all().get(random.nextInt(accounts.size())).getIdentifier();
-      System.out.println("signer "+signer);
-      ValidatedTransaction validatedTransaction = ValidatedTransactionFixture.newValidatedTransaction(
-          block.id(),
-          snapshot.all().get(i).getIdentifier(),
-          snapshot.all().get(i + 1).getIdentifier(),
-          snapshot.all().get(random.nextInt(accounts.size())).getIdentifier());
-
-      when(snapshot.getAccount(signer).getPublicKey()
-          .verifySignature(validatedTransaction, validatedTransaction.getSignature())).thenReturn(true);
-      System.out.println(snapshot.getAccount(signer).getPublicKey());
-      snapshot.all().get(i).setBalance(validatedTransaction.getAmount() * 10 + 1);
-      transactions.add(validatedTransaction);
-
-    }
-    System.out.println("signer2 "+transactions.get(0).getSignature().getSignerId());
-    System.out.println("de "+ snapshot.getAccount(transactions.get(0).getSignature().getSignerId()).getPublicKey());
-    when(state.atBlockId(snapshot.all().get(0).getLastBlockId())).thenReturn(senderLastSnapshot1);
-    when(state.atBlockId(snapshot.all().get(1).getLastBlockId())).thenReturn(senderLastSnapshot2);
-
-
-    try {
-      engine.process(transactions.get(0));
-    } catch (IllegalArgumentException ex) {
-      Assertions.fail(ex);
-    }
-    Assertions.assertNotNull(transactions.get(0).getSignature());
-    //System.out.println(local.signEntity(transaction).id());
-    //TODO: assert has sent what?
-    //Assertions.assertTrue(conduit.hasSent(transaction.getSignature().id()));
-   // System.out.println("ss "+ transactions.get(0).getSignature().getSignerId());
-    System.out.println(snapshot.getAccount(transactions.get(0).getSignature().getSignerId()).getPublicKey().verifySignature(transactions.get(0), transactions.get(0).getSignature()));
-
-
-  }
-
-  @Test
-  public void testReceiveTwoValidTransactionConcurrently() {
-    // Arrange
-    setup();
-
-    // Create accounts for the snapshot including an account with the local id.
-    accounts = new ArrayList<>(AccountFixture.newAccounts(localId, 10, 10).values());
-    when(snapshot.all()).thenReturn(accounts);
-    when(network.register(any(ValidatorEngine.class), eq("validator"))).thenReturn(txConduit);
-    engine = new ValidatorEngine(network, local, state, seenEntities);
-
-    ArrayList<ValidatedTransaction> transactions = new ArrayList<>();
-    for (int i = 0; i < 2; i++) {
-      ValidatedTransaction validatedTransaction = ValidatedTransactionFixture.newValidatedTransaction(
-          block.id(), snapshot.all().get(i).getIdentifier(), snapshot.all().get(i + 1).getIdentifier());
-
-      snapshot.all().get(i).setBalance(validatedTransaction.getAmount() * 10 + 1);
-      transactions.add(validatedTransaction);
-      when(snapshot.getAccount(snapshot.all().get(i).getIdentifier())).thenReturn(accounts.get(i));
-      when(snapshot.getAccount(snapshot.all().get(i + 1).getIdentifier())).thenReturn(accounts.get(i + 1));
-      when(snapshot.getAccount(snapshot.all().get(i).getIdentifier()).getPublicKey()
-          .verifySignature(validatedTransaction, validatedTransaction.getSignature())).thenReturn(true);
-    }
-    when(state.atBlockId(snapshot.all().get(0).getLastBlockId())).thenReturn(senderLastSnapshot1);
-    when(state.atBlockId(snapshot.all().get(1).getLastBlockId())).thenReturn(senderLastSnapshot2);
-
-
-    AtomicInteger threadErrorCount = new AtomicInteger();
-    CountDownLatch done = new CountDownLatch(1);
-    Thread[] validationThreads = new Thread[2];
-    for (int i = 0; i < 2; i++) {
-      int finalI = i;
-      validationThreads[i] = new Thread(() -> {
-        try {
-          engine.process(transactions.get(finalI));
-        } catch (IllegalArgumentException ex) {
-          threadErrorCount.incrementAndGet();
-        }
-        done.countDown();
-      });
-    }
-
-    // run threads
-    for (Thread t : validationThreads) {
-      t.start();
-    }
-
-    try {
-      boolean doneOnTime = done.await(10, TimeUnit.SECONDS);
-      Assertions.assertTrue(doneOnTime);
-    } catch (InterruptedException e) {
-      Assertions.fail(e);
-    }
-
-    Assertions.assertEquals(0, threadErrorCount.get());
-    for (ValidatedTransaction transaction : transactions) {
-      Assertions.assertNotNull(transaction.getSignature());
-      //System.out.println(local.signEntity(transaction).id());
-      //TODO: assert has sent what?
-      //Assertions.assertTrue(conduit.hasSent(transaction.getSignature().id()));
-    }
-  }
 
   @Test
   public void testReceiveTwoValidTransactionSequentially() {
@@ -417,5 +424,5 @@ public class ValidatorEngineTest {
     }
     Assertions.assertFalse(txConduit.hasSent(signature.id()));
   }
-
+*/
 }
