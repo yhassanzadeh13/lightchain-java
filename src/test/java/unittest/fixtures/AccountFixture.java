@@ -1,5 +1,6 @@
 package unittest.fixtures;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 
 import model.crypto.PublicKey;
@@ -69,4 +70,13 @@ public class AccountFixture {
 
     return accounts;
   }
+public static ArrayList<Account> newAccounts(int stakedCount){
+    ArrayList<Account> accountArrayList = new ArrayList<>();
+  for (int i = 0; i < stakedCount; i++) {
+    Identifier accountId = IdentifierFixture.newIdentifier();
+    Account account = AccountFixture.newAccount(accountId, Parameters.MINIMUM_STAKE + i);
+    accountArrayList.add(account);
+  }
+    return accountArrayList;
+}
 }

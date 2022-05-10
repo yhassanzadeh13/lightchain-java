@@ -24,6 +24,7 @@ import unittest.fixtures.KeyGenFixture;
 import java.util.ArrayList;
 
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * Encapsulates tests for the proposer engine.
@@ -32,6 +33,7 @@ public class ProposerEngineTest {
   private ProposerEngine proposerEngine;
   private Snapshot snapshot;
   private Block block1;
+  private Block block2;
   private State state;
   private Network network;
   private Local local;
@@ -66,14 +68,17 @@ public class ProposerEngineTest {
     pendingTransactions = mock(Transactions.class);
     blocks = mock(Blocks.class);
     block1 = BlockFixture.newBlock();
+    block2 = BlockFixture.newBlock();
     state = mock(State.class);
     snapshot = mock(Snapshot.class);
     network = mock(Network.class);
     NetworkAdapter networkAdapter = mock(NetworkAdapter.class);
     proposedCon = new MockConduit(Channels.ProposedBlocks, networkAdapter);
     validatedCon = new MockConduit(Channels.ValidatedBlocks, networkAdapter);
-    ArrayList<Account>[] a = AccountFixture.newAccounts(11,0).values();
-
+    ArrayList<Account> a = AccountFixture.newAccounts(11);
+    when(snapshot.all()).thenReturn(a);
+    when(state.atBlockId(block1.getPreviousBlockId())).thenReturn(snapshot);
+    when(state.atBlockId(block2.getPreviousBlockId())).thenReturn(snapshot);
     state = mock(State.class);
     proposerEngine = new ProposerEngine(blocks,pendingTransactions,state,local,network);
 
