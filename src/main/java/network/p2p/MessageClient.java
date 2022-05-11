@@ -26,6 +26,7 @@ import io.grpc.Status;
 import io.grpc.stub.StreamObserver;
 import model.Entity;
 import model.codec.EncodedEntity;
+import model.exceptions.CodecException;
 import model.lightchain.Identifier;
 import modules.codec.JsonEncoder;
 import network.p2p.proto.Message;
@@ -90,6 +91,10 @@ public class MessageClient {
       // Cancel RPC
       requestObserver.onError(e);
       throw e;
+    } catch (CodecException e) {
+      // TODO: replace with fatal level log.
+      System.err.println("attempt on delivering an un-encode-ble entity" + e.getMessage());
+      System.exit(1);
     }
 
     // Mark the end of requests

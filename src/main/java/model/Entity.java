@@ -5,6 +5,7 @@ import java.io.Serializable;
 import crypto.Sha3256Hasher;
 import model.codec.EncodedEntity;
 import model.crypto.Hash;
+import model.exceptions.CodecException;
 import model.lightchain.Identifier;
 import modules.codec.JsonEncoder;
 
@@ -20,7 +21,13 @@ public abstract class Entity implements Serializable {
    */
   public Identifier id() {
     JsonEncoder c = new JsonEncoder();
-    EncodedEntity e = c.encode(this);
+    EncodedEntity e = null;
+    try {
+      e = c.encode(this);
+    } catch (CodecException ex) {
+      System.err.println(ex.getMessage());
+      System.exit(1);
+    }
     Sha3256Hasher h = new Sha3256Hasher();
     Hash hash = h.computeHash(e);
     return hash.toIdentifier();
