@@ -3,6 +3,7 @@ package model;
 import java.io.Serializable;
 
 import crypto.Sha3256Hasher;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import model.codec.EncodedEntity;
 import model.crypto.Hash;
 import model.exceptions.CodecException;
@@ -19,6 +20,7 @@ public abstract class Entity implements Serializable {
    *
    * @return identifier representation of hash value for entity.
    */
+  @SuppressFBWarnings(value = "DM_EXIT", justification = "crash node upon failure on encoding")
   public Identifier id() {
     JsonEncoder c = new JsonEncoder();
     EncodedEntity e = null;
