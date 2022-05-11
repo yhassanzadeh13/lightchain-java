@@ -104,8 +104,8 @@ public class MessageServer {
      * @param responseObserver takes in the stream object to receive messages.
      * @return StreamObserver for the Client to facilitate response relaying.
      */
-    @SuppressFBWarnings(value = "DM_EXIT", justification = "crash node upon failure on encoding")
     @Override
+    @SuppressFBWarnings(value = "DM_EXIT", justification = "crash node upon failure on encoding")
     public StreamObserver<Message> deliver(StreamObserver<Empty> responseObserver) {
       return new StreamObserver<Message>() {
         @Override
