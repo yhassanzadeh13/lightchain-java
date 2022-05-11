@@ -21,6 +21,7 @@ import java.util.concurrent.TimeUnit;
 
 import com.google.protobuf.ByteString;
 import com.google.protobuf.Empty;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.grpc.Channel;
 import io.grpc.Status;
 import io.grpc.stub.StreamObserver;
@@ -48,6 +49,7 @@ public class MessageClient {
   /**
    * Implements logic to asynchronously deliver message to the target.
    */
+  @SuppressFBWarnings(value = "DM_EXIT", justification = "meant to fail VM safely upon error")
   public void deliver(Entity entity, Identifier target, String channel) throws InterruptedException {
     final CountDownLatch finishLatch = new CountDownLatch(1);
     StreamObserver<Empty> responseObserver = new StreamObserver<Empty>() {
