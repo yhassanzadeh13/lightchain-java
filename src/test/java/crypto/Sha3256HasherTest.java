@@ -2,6 +2,7 @@ package crypto;
 
 import model.codec.EncodedEntity;
 import model.crypto.Hash;
+import model.exceptions.CodecException;
 import model.lightchain.Identifier;
 import modules.codec.JsonEncoder;
 import org.junit.jupiter.api.Assertions;
@@ -17,7 +18,7 @@ public class Sha3256HasherTest {
    * Test if the hash is 32 bytes long.
    */
   @Test
-  public void testHashLength() {
+  public void testHashLength() throws CodecException {
     EntityFixture testEntity = new EntityFixture();
     JsonEncoder encoder = new JsonEncoder();
     EncodedEntity encodedEntity = encoder.encode(testEntity);
@@ -32,7 +33,7 @@ public class Sha3256HasherTest {
    * Test if the hash is the same for the same entity.
    */
   @Test
-  public void testHashingSameEntity() {
+  public void testHashingSameEntity() throws CodecException {
     EntityFixture testEntity = new EntityFixture();
     JsonEncoder encoder = new JsonEncoder();
     EncodedEntity encodedEntity = encoder.encode(testEntity);
@@ -48,7 +49,7 @@ public class Sha3256HasherTest {
    * Test if the hash is different for different entities.
    */
   @Test
-  public void testHashingDifferentEntities() {
+  public void testHashingDifferentEntities() throws CodecException {
     JsonEncoder encoder = new JsonEncoder();
     Sha3256Hasher hasher = new Sha3256Hasher();
     EntityFixture testEntity1 = new EntityFixture();
