@@ -53,7 +53,6 @@ public class ValidatedTransactionFixture {
     return valTrans;
   }
 
-
   /**
    * Constructor of the validated transactions with randomly generated parameters and given sender and receiver identifier.
    *

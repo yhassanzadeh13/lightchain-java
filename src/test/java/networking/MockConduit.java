@@ -19,6 +19,7 @@ public class MockConduit implements Conduit {
   private final String channel;
   private final NetworkAdapter networkAdapter;
   private final Set<Identifier> sentEntities;
+  private final ArrayList<Entity> entityList;
 
   /**
    * Constructor.
@@ -30,6 +31,7 @@ public class MockConduit implements Conduit {
     this.channel = channel;
     this.networkAdapter = adapter;
     this.sentEntities = new HashSet<>();
+    this.entityList = new ArrayList<>();
   }
 
   /**
@@ -42,6 +44,7 @@ public class MockConduit implements Conduit {
   @Override
   public void unicast(Entity e, Identifier target) throws LightChainNetworkingException {
     this.sentEntities.add(e.id());
+    this.entityList.add(e);
     this.networkAdapter.unicast(e, target, channel);
   }
 
@@ -71,7 +74,7 @@ public class MockConduit implements Conduit {
 
   @Override
   public ArrayList<Entity> allEntities() throws LightChainDistributedStorageException {
-    return null;
+    return entityList;
   }
 
   public boolean hasSent(Identifier entityId) {

@@ -27,7 +27,7 @@ public class ValidatorEngine implements Engine {
   private final Conduit blockCon;
   private final Conduit transCon;
   private final State state;
-  private final Identifiers seenEntities;
+  public final Identifiers seenEntities;
   private final ReentrantLock lock;
 
   public ValidatorEngine(Network net, Local local, State state, Identifiers seenEntities) {
@@ -120,13 +120,13 @@ public class ValidatorEngine implements Engine {
 
   private boolean isBlockValidated(Block b) {
     BlockValidator verifier = new BlockValidator(state);
-    System.out.println("sound" + verifier.allTransactionsSound(b));
-    System.out.println("valid" + verifier.allTransactionsValidated(b));
-    System.out.println("auth" + verifier.isAuthenticated(b));
-    System.out.println("cons" + verifier.isConsistent(b));
-    System.out.println("correct" + verifier.isCorrect(b));
-    System.out.println("dup" + verifier.noDuplicateSender(b));
-    System.out.println("stake" + verifier.proposerHasEnoughStake(b));
+    System.out.println("sound " + verifier.allTransactionsSound(b));
+    System.out.println("valid " + verifier.allTransactionsValidated(b));
+    System.out.println("auth " + verifier.isAuthenticated(b));
+    System.out.println("cons " + verifier.isConsistent(b));
+    System.out.println("correct " + verifier.isCorrect(b));
+    System.out.println("dup " + verifier.noDuplicateSender(b));
+    System.out.println("stake " + verifier.proposerHasEnoughStake(b));
     return verifier.allTransactionsSound(b)
         && verifier.allTransactionsValidated(b)
         && verifier.isAuthenticated(b)
@@ -138,9 +138,9 @@ public class ValidatorEngine implements Engine {
 
   private boolean isTransactionValidated(Transaction t) {
     TransactionValidator verifier = new TransactionValidator(state);
-    return verifier.isSound(t)
-        && verifier.senderHasEnoughBalance(t)
+    return verifier.isCorrect(t)
+        && verifier.isSound(t)
         && verifier.isAuthenticated(t)
-        && verifier.isCorrect(t);
+        && verifier.senderHasEnoughBalance(t);
   }
 }
