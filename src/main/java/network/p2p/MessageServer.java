@@ -26,6 +26,7 @@ import io.grpc.Server;
 import io.grpc.ServerBuilder;
 import io.grpc.stub.StreamObserver;
 import model.codec.EncodedEntity;
+import model.exceptions.CodecException;
 import modules.codec.JsonEncoder;
 import network.p2p.proto.Message;
 import network.p2p.proto.MessengerGrpc;
@@ -122,7 +123,7 @@ public class MessageServer {
             EncodedEntity e = new EncodedEntity(message.getPayload().toByteArray(), message.getType());
             try {
               engineChannelTable.get(message.getChannel()).process(encoder.decode(e));
-            } catch (ClassNotFoundException ex) {
+            } catch (CodecException ex) {
               // TODO: replace with fatal log
               System.err.println("could not decode incoming message");
               ex.printStackTrace();

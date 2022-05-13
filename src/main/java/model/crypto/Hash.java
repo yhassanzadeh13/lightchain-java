@@ -1,11 +1,13 @@
 package model.crypto;
 
+import java.io.Serializable;
+
 import model.lightchain.Identifier;
 
 /**
  * Represents abstract data type for the cryptographic hash function used in LightChain.
  */
-public abstract class Hash {
+public abstract class Hash implements Serializable {
   /**
    * Actual value of hash in bytes.
    */

@@ -1,5 +1,6 @@
 package unittest.fixtures;
 
+import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Objects;
 import java.util.Random;
@@ -11,7 +12,7 @@ import model.lightchain.Identifier;
 /**
  * Encapsulates test utilities for a LightChain entity.
  */
-public class EntityFixture extends Entity {
+public class EntityFixture extends Entity implements Serializable {
   private static final String TYPE_FIXTURE_ENTITY = "fixture-entity-type";
   private static final Random rand = new Random();
   private final Identifier id;
