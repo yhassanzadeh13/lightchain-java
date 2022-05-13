@@ -507,10 +507,50 @@ public class ValidatorEngineTest {
   @Test
   public void testReceiveBlockNotCorrect_InvalidPreviousBlockSnapshot(){
 
+    Identifier newPreviousBlockId = IdentifierFixture.newIdentifier();
+    Block block = BlockFixture.newBlock(newPreviousBlockId, block2.getHeight() + 1, snapshot2.all());
+    when(state.atBlockId(block.getPreviousBlockId())).thenReturn(null);
+    when(network.register(any(ValidatorEngine.class), eq(Channels.ProposedBlocks))).thenReturn(blockConduit);
+    engine = new ValidatorEngine(network, local, state, seenEntities);
+
+    when(state.atBlockId(block.getPreviousBlockId())
+        .getAccount(block.getProposer())
+        .getPublicKey()
+        .verifySignature(block, block.getSignature())).thenReturn(true);
+
+    try {
+      engine.process(block);
+    } catch (IllegalArgumentException ex) {
+      ex.printStackTrace();
+      Assertions.fail("Failed because of another reason that this test was not aiming for.");
+    }
+
+    Assertions.assertFalse(blockConduit.hasSent(block.id()));
+    verify(seenEntities, never()).add(any());
   }
   @Test
   public void testReceiveBlockNotCorrect_InvalidProposer(){
 
+    Identifier newPreviousBlockId = IdentifierFixture.newIdentifier();
+    Block block = BlockFixture.newBlock(block2.id(), block2.getHeight() + 1, snapshot2.all());
+
+    when(network.register(any(ValidatorEngine.class), eq(Channels.ProposedBlocks))).thenReturn(blockConduit);
+    engine = new ValidatorEngine(network, local, state, seenEntities);
+
+    when(state.atBlockId(block.getPreviousBlockId())
+        .getAccount(block.getProposer())
+        .getPublicKey()
+        .verifySignature(block, block.getSignature())).thenReturn(true);
+
+    try {
+      engine.process(block);
+    } catch (IllegalArgumentException ex) {
+      ex.printStackTrace();
+      Assertions.fail("Failed because of another reason that this test was not aiming for.");
+    }
+
+    Assertions.assertFalse(blockConduit.hasSent(block.id()));
+    verify(seenEntities, never()).add(any());
   }
 
   @Test
@@ -548,7 +588,7 @@ public class ValidatorEngineTest {
   public void testReceiveBlockDuplicateSender(){
 
   }
-  
+
   @Test
   public void testReceiveOneValidTransaction() {
     setup();
@@ -934,7 +974,6 @@ public class ValidatorEngineTest {
         invalidSender,
         snapshot2.all().get(1).getIdentifier(),
         signerId);
-
     try {
       engine.process(transaction);
     } catch (IllegalArgumentException ex) {
@@ -942,13 +981,8 @@ public class ValidatorEngineTest {
       Assertions.fail("Failed because of another reason that this test was not aiming for.");
     }
 
-    try {
-      for (Entity e : txConduit.allEntities()) {
-        Assertions.assertFalse(txConduit.hasSent(e.id()));
-      }
-    } catch (LightChainDistributedStorageException e) {
-      e.printStackTrace();
-    }
+    Assertions.assertFalse(txConduit.hasSent(transaction.id()));
+    verify(seenEntities, never()).add(any());
   }
 
   @Test
@@ -978,13 +1012,8 @@ public class ValidatorEngineTest {
       Assertions.fail("Failed because of another reason that this test was not aiming for.");
     }
 
-    try {
-      for (Entity e : txConduit.allEntities()) {
-        Assertions.assertFalse(txConduit.hasSent(e.id()));
-      }
-    } catch (LightChainDistributedStorageException e) {
-      e.printStackTrace();
-    }
+    Assertions.assertFalse(txConduit.hasSent(transaction.id()));
+    verify(seenEntities, never()).add(any());
   }
 
 
@@ -1016,13 +1045,8 @@ public class ValidatorEngineTest {
       Assertions.fail("Failed because of another reason that this test was not aiming for.");
     }
 
-    try {
-      for (Entity e : txConduit.allEntities()) {
-        Assertions.assertFalse(txConduit.hasSent(e.id()));
-      }
-    } catch (LightChainDistributedStorageException e) {
-      e.printStackTrace();
-    }
+    Assertions.assertFalse(txConduit.hasSent(transaction.id()));
+    verify(seenEntities, never()).add(any());
   }
 
   @Test
@@ -1056,13 +1080,8 @@ public class ValidatorEngineTest {
       Assertions.fail("Failed because of another reason that this test was not aiming for.");
     }
 
-    try {
-      for (Entity e : txConduit.allEntities()) {
-        Assertions.assertFalse(txConduit.hasSent(e.id()));
-      }
-    } catch (LightChainDistributedStorageException e) {
-      e.printStackTrace();
-    }
+    Assertions.assertFalse(txConduit.hasSent(transaction.id()));
+    verify(seenEntities, never()).add(any());
   }
 
   @Test
@@ -1093,13 +1112,8 @@ public class ValidatorEngineTest {
       Assertions.fail("Failed because of another reason that this test was not aiming for.");
     }
 
-    try {
-      for (Entity e : txConduit.allEntities()) {
-        Assertions.assertFalse(txConduit.hasSent(e.id()));
-      }
-    } catch (LightChainDistributedStorageException e) {
-      e.printStackTrace();
-    }
+    Assertions.assertFalse(txConduit.hasSent(transaction.id()));
+    verify(seenEntities, never()).add(any());
   }
 
   @Test
@@ -1130,13 +1144,8 @@ public class ValidatorEngineTest {
       Assertions.fail("Failed because of another reason that this test was not aiming for.");
     }
 
-    try {
-      for (Entity e : txConduit.allEntities()) {
-        Assertions.assertFalse(txConduit.hasSent(e.id()));
-      }
-    } catch (LightChainDistributedStorageException e) {
-      e.printStackTrace();
-    }
+    Assertions.assertFalse(txConduit.hasSent(transaction.id()));
+    verify(seenEntities, never()).add(any());
   }
 
 }
