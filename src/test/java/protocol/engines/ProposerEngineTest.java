@@ -9,6 +9,7 @@ import network.Channels;
 import network.Network;
 import network.NetworkAdapter;
 import networking.MockConduit;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import protocol.block.BlockValidator;
@@ -16,10 +17,7 @@ import state.Snapshot;
 import state.State;
 import storage.Blocks;
 import storage.Transactions;
-import unittest.fixtures.AccountFixture;
-import unittest.fixtures.BlockFixture;
-import unittest.fixtures.IdentifierFixture;
-import unittest.fixtures.KeyGenFixture;
+import unittest.fixtures.*;
 
 import java.util.ArrayList;
 
@@ -30,20 +28,9 @@ import static org.mockito.Mockito.when;
  * Encapsulates tests for the proposer engine.
  */
 public class ProposerEngineTest {
-  private ProposerEngine proposerEngine;
-  private Snapshot snapshot;
-  private Block block1;
-  private Block block2;
-  private State state;
-  private Network network;
-  private Local local;
-  private Blocks blocks;
-  private Transactions pendingTransactions;
 
-  private MockConduit proposedCon;
-  private MockConduit validatedCon;
-  private Identifier localId;
-  private PrivateKey localPrivateKey;
+
+
   // TODO: implement following test cases.
   // Mock assigner, state, snapshot, network, and storage components.
   // Create snapshot of 11 staked accounts.
@@ -59,36 +46,29 @@ public class ProposerEngineTest {
   // 5. Proposer engine creates a validated block whenever it receives enough block approvals for its proposed block,
   // it also sends the validated block to all nodes including itself on the expected channel.
   // 6. Extend test case 5 for when proposer engine receives all block approvals concurrently. 
-  @BeforeEach
-  public void setUpMock() {
 
-    localId = IdentifierFixture.newIdentifier();
-    localPrivateKey = KeyGenFixture.newKeyGen().getPrivateKey();
-    local = new Local(localId, localPrivateKey);
-    pendingTransactions = mock(Transactions.class);
-    blocks = mock(Blocks.class);
-    block1 = BlockFixture.newBlock();
-    block2 = BlockFixture.newBlock();
-    state = mock(State.class);
-    snapshot = mock(Snapshot.class);
-    network = mock(Network.class);
-    NetworkAdapter networkAdapter = mock(NetworkAdapter.class);
-    proposedCon = new MockConduit(Channels.ProposedBlocks, networkAdapter);
-    validatedCon = new MockConduit(Channels.ValidatedBlocks, networkAdapter);
-    ArrayList<Account> a = AccountFixture.newAccounts(11);
-    when(snapshot.all()).thenReturn(a);
-    when(state.atBlockId(block1.getPreviousBlockId())).thenReturn(snapshot);
-    when(state.atBlockId(block2.getPreviousBlockId())).thenReturn(snapshot);
-    state = mock(State.class);
-    proposerEngine = new ProposerEngine(blocks,pendingTransactions,state,local,network);
-
-  }
   @Test
   public void blockValidationTest(){
-
+    Identifier localId = IdentifierFixture.newIdentifier();
+    PrivateKey localPrivateKey = KeyGenFixture.newKeyGen().getPrivateKey();
+    Local local = new Local(localId, localPrivateKey);
+    Transactions pendingTransactions = mock(Transactions.class);
+    Blocks blocks = mock(Blocks.class);
+    State state = mock(State.class);
+    Snapshot snapshot = mock(Snapshot.class);
+    Network network = mock(Network.class);
+    NetworkAdapter networkAdapter = mock(NetworkAdapter.class);
+    MockConduit proposedCon = new MockConduit(Channels.ProposedBlocks, networkAdapter);
+    MockConduit validatedCon = new MockConduit(Channels.ValidatedBlocks, networkAdapter);
+    Block block = ValidatedBlockFixture.newValidatedBlock();
     BlockValidator blockValidator = new BlockValidator(state);
-
-
+    ArrayList<Account> a = AccountFixture.newAccounts(11);
+    when(snapshot.all()).thenReturn(a);
+    when(state.atBlockId(block.id())).thenReturn(snapshot);
+    when(pendingTransactions.size()).thenReturn(1);
+    ProposerEngine proposerEngine = new ProposerEngine(blocks,pendingTransactions,state,local,network);
+    proposerEngine.onNewValidatedBlock(block.getHeight(),block.id());
+    Assertions.assertTrue(blockValidator.isCorrect(proposerEngine.newB));
   }
 
 

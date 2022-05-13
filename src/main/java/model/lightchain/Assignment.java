@@ -67,7 +67,6 @@ public class Assignment {
     return this.validators.toString();
   }
 
-  public boolean has(Identifier id) {return this.validators.has(id);}
 
   public ArrayList<Identifier> all() {
     return this.validators.all();

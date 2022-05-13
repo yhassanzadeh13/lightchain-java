@@ -157,4 +157,13 @@ public class AccountFixture {
     accounts[0] = accounts1; accounts[1] = accounts2; accounts[2] = accounts3;
     return accounts;
   }
+  public static ArrayList<Account> newAccounts(int stakedCount){
+    ArrayList<Account> accountArrayList = new ArrayList<>();
+    for (int i = 0; i < stakedCount; i++) {
+      Identifier accountId = IdentifierFixture.newIdentifier();
+      Account account = AccountFixture.newAccount(accountId, Parameters.MINIMUM_STAKE + i);
+      accountArrayList.add(account);
+    }
+    return accountArrayList;
+  }
 }

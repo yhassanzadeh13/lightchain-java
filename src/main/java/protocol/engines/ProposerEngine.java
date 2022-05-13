@@ -39,7 +39,7 @@ public class ProposerEngine implements NewBlockSubscriber, Engine {
   private static Conduit validatedCon;
   private static Network net;
   private ArrayList<BlockApproval> approvals;
-  private Block newB;
+  public Block newB;
 
   private static final ReentrantLock lock = new ReentrantLock();
 
@@ -160,7 +160,7 @@ public class ProposerEngine implements NewBlockSubscriber, Engine {
           , newB.getProposer()
           , newB.getTransactions()
           , this.local.signEntity(newB)
-          , signs);
+          , signs,newB.getHeight());
       for (Map.Entry<Identifier, String> pair : ((P2pNetwork) net).getIdToAddressMap().entrySet()) {
         if (pair.getValue().equals(Channels.ValidatedBlocks)) {
           try {
