@@ -24,6 +24,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
+import protocol.Parameters;
 import state.Snapshot;
 import state.State;
 import storage.Identifiers;
@@ -110,7 +111,7 @@ public class ValidatorEngineTest {
 
     /// Accounts
     /// Create accounts for the snapshot including an account with the local id.
-    ArrayList<Account>[] a = AccountFixture.newAccounts(localId, block1.id(), block2.id(), 20, 0);
+    ArrayList<Account>[] a = AccountFixture.newAccounts(localId, block1.id(), block2.id(), 10, 10);
     accounts1 = a[0];
     accounts2 = a[1];
     accountsNoCurrent =  a[2];
@@ -137,11 +138,21 @@ public class ValidatorEngineTest {
   @Test
   public void testReceiveOneValidBlock() throws LightChainDistributedStorageException {
     setup();
-
-    Block block = BlockFixture.newBlock(block2.id(), block2.getHeight() + 1, snapshot2.all());
+    int propInd = random.nextInt(accounts2.size());
+    while (accounts2.get(propInd).getStake()<Parameters.MINIMUM_STAKE){
+      propInd = random.nextInt(accounts2.size());
+    }
+    Identifier proposer = accounts2.get(propInd).getIdentifier();
+    Block block = BlockFixture.newBlock(proposer, block2.id(), block2.getHeight() + 1, snapshot2.all());
     when(network.register(any(ValidatorEngine.class), eq(Channels.ProposedBlocks))).thenReturn(blockConduit);
     engine = new ValidatorEngine(network, local, state, seenEntities);
 
+    for (Transaction transaction : block.getTransactions()) {
+      when(state.atBlockId(transaction.getReferenceBlockId())
+          .getAccount(transaction.getSender())
+          .getPublicKey().verifySignature(transaction,transaction.getSignature()))
+          .thenReturn(true);
+    }
     when(state.atBlockId(block.getPreviousBlockId())
         .getAccount(block.getProposer())
         .getPublicKey()
@@ -167,9 +178,14 @@ public class ValidatorEngineTest {
   public void testReceiveTwoValidBlocksSequentially() {
     setup();
 
+    int propInd = random.nextInt(accounts2.size());
+    while (accounts2.get(propInd).getStake()<Parameters.MINIMUM_STAKE){
+      propInd = random.nextInt(accounts2.size());
+    }
+    Identifier proposer = accounts2.get(propInd).getIdentifier();
     Block[] blocks = new Block[2];
-    blocks[0] = BlockFixture.newBlock(block2.id(), block2.getHeight() + 1, snapshot2.all());
-    blocks[1] = BlockFixture.newBlock(block2.id(), block2.getHeight() + 1, snapshot2.all());
+    blocks[0] = BlockFixture.newBlock(proposer, block2.id(), block2.getHeight() + 1, snapshot2.all());
+    blocks[1] = BlockFixture.newBlock(proposer, block2.id(), block2.getHeight() + 1, snapshot2.all());
 
     when(network.register(any(ValidatorEngine.class), eq(Channels.ProposedBlocks))).thenReturn(blockConduit);
     engine = new ValidatorEngine(network, local, state, seenEntities);
@@ -197,10 +213,14 @@ public class ValidatorEngineTest {
   @Test
   public void testReceiveTwoValidBlocksConcurrently() {
     setup();
-
+    int propInd = random.nextInt(accounts2.size());
+    while (accounts2.get(propInd).getStake()<Parameters.MINIMUM_STAKE){
+      propInd = random.nextInt(accounts2.size());
+    }
+    Identifier proposer = accounts2.get(propInd).getIdentifier();
     Block[] blocks = new Block[2];
-    blocks[0] = BlockFixture.newBlock(block2.id(), block2.getHeight() + 1, snapshot2.all());
-    blocks[1] = BlockFixture.newBlock(block2.id(), block2.getHeight() + 1, snapshot2.all());
+    blocks[0] = BlockFixture.newBlock(proposer, block2.id(), block2.getHeight() + 1, snapshot2.all());
+    blocks[1] = BlockFixture.newBlock(proposer, block2.id(), block2.getHeight() + 1, snapshot2.all());
 
     when(network.register(any(ValidatorEngine.class), eq(Channels.ProposedBlocks))).thenReturn(blockConduit);
     engine = new ValidatorEngine(network, local, state, seenEntities);
@@ -260,14 +280,18 @@ public class ValidatorEngineTest {
   public void testReceiveDuplicateBlocksSequentially() {
     // Arrange
     setup();
-
+    int propInd = random.nextInt(accounts2.size());
+    while (accounts2.get(propInd).getStake()<Parameters.MINIMUM_STAKE){
+      propInd = random.nextInt(accounts2.size());
+    }
+    Identifier proposer = accounts2.get(propInd).getIdentifier();
 
     when(network.register(any(ValidatorEngine.class), eq(Channels.ProposedBlocks))).thenReturn(blockConduit);
     engine = new ValidatorEngine(network, local, state, seenEntities);
 
 
     Block[] blocks = new Block[2];
-    Block b = BlockFixture.newBlock(block2.id(), block2.getHeight() + 1, snapshot2.all());
+    Block b = BlockFixture.newBlock(proposer, block2.id(), block2.getHeight() + 1, snapshot2.all());
     blocks[0] = b;
     blocks[1] = b;
     when(state.atBlockId(blocks[0].getPreviousBlockId())
@@ -309,13 +333,17 @@ public class ValidatorEngineTest {
   public void testReceiveDuplicateBlocksConcurrently() {
     // Arrange
     setup();
-
+    int propInd = random.nextInt(accounts2.size());
+    while (accounts2.get(propInd).getStake()<Parameters.MINIMUM_STAKE){
+      propInd = random.nextInt(accounts2.size());
+    }
+    Identifier proposer = accounts2.get(propInd).getIdentifier();
     when(network.register(any(ValidatorEngine.class), eq(Channels.ProposedBlocks))).thenReturn(blockConduit);
     engine = new ValidatorEngine(network, local, state, seenEntities);
 
 
     Block[] blocks = new Block[2];
-    Block b = BlockFixture.newBlock(block2.id(), block2.getHeight() + 1, snapshot2.all());
+    Block b = BlockFixture.newBlock(proposer, block2.id(), block2.getHeight() + 1, snapshot2.all());
     blocks[0] = b;
     blocks[1] = b;
     when(state.atBlockId(blocks[0].getPreviousBlockId())
@@ -387,13 +415,18 @@ public class ValidatorEngineTest {
   public void testReceiveEntityNotAssignedToThisNodeConcurrently(){
     // Arrange
     setup();
+    int propInd = random.nextInt(accounts2.size());
+    while (accounts2.get(propInd).getStake()<Parameters.MINIMUM_STAKE){
+      propInd = random.nextInt(accounts2.size());
+    }
+    Identifier proposer = accounts2.get(propInd).getIdentifier();
 
     when(snapshot2.all()).thenReturn(accountsNoCurrent);
     when(network.register(any(ValidatorEngine.class), eq(Channels.ProposedTransactions))).thenReturn(txConduit);
     when(network.register(any(ValidatorEngine.class), eq(Channels.ProposedBlocks))).thenReturn(blockConduit);
     engine = new ValidatorEngine(network, local, state, seenEntities);
 
-    Block b = BlockFixture.newBlock(block2.id(), block2.getHeight() + 1, snapshot2.all());
+    Block b = BlockFixture.newBlock(proposer, block2.id(), block2.getHeight() + 1, snapshot2.all());
 
     when(state.atBlockId(b.getPreviousBlockId())
         .getAccount(b.getProposer())
@@ -464,13 +497,18 @@ public class ValidatorEngineTest {
   public void testReceiveEntityNotAssignedToThisNodeSequentially(){
     // Arrange
     setup();
+    int propInd = random.nextInt(accounts2.size());
+    while (accounts2.get(propInd).getStake()<Parameters.MINIMUM_STAKE){
+      propInd = random.nextInt(accounts2.size());
+    }
+    Identifier proposer = accounts2.get(propInd).getIdentifier();
 
     when(snapshot2.all()).thenReturn(accountsNoCurrent);
     when(network.register(any(ValidatorEngine.class), eq(Channels.ProposedTransactions))).thenReturn(txConduit);
     when(network.register(any(ValidatorEngine.class), eq(Channels.ProposedBlocks))).thenReturn(blockConduit);
     engine = new ValidatorEngine(network, local, state, seenEntities);
 
-    Block b = BlockFixture.newBlock(block2.id(), block2.getHeight() + 1, snapshot2.all());
+    Block b = BlockFixture.newBlock(proposer, block2.id(), block2.getHeight() + 1, snapshot2.all());
 
     when(state.atBlockId(b.getPreviousBlockId())
         .getAccount(b.getProposer())
@@ -506,17 +544,20 @@ public class ValidatorEngineTest {
 
   @Test
   public void testReceiveBlockNotCorrect_InvalidPreviousBlockSnapshot(){
+    setup();
 
+    int propInd = random.nextInt(accounts2.size());
+    while (accounts2.get(propInd).getStake()<Parameters.MINIMUM_STAKE){
+      propInd = random.nextInt(accounts2.size());
+    }
+    Identifier proposer = accounts2.get(propInd).getIdentifier();
     Identifier newPreviousBlockId = IdentifierFixture.newIdentifier();
-    Block block = BlockFixture.newBlock(newPreviousBlockId, block2.getHeight() + 1, snapshot2.all());
-    when(state.atBlockId(block.getPreviousBlockId())).thenReturn(null);
+    while (accounts2.contains(newPreviousBlockId)){
+      newPreviousBlockId = IdentifierFixture.newIdentifier();
+    }
+    Block block = BlockFixture.newBlock(proposer, newPreviousBlockId, block2.getHeight() + 1, snapshot2.all());
     when(network.register(any(ValidatorEngine.class), eq(Channels.ProposedBlocks))).thenReturn(blockConduit);
     engine = new ValidatorEngine(network, local, state, seenEntities);
-
-    when(state.atBlockId(block.getPreviousBlockId())
-        .getAccount(block.getProposer())
-        .getPublicKey()
-        .verifySignature(block, block.getSignature())).thenReturn(true);
 
     try {
       engine.process(block);
@@ -530,17 +571,13 @@ public class ValidatorEngineTest {
   }
   @Test
   public void testReceiveBlockNotCorrect_InvalidProposer(){
+    setup();
 
-    Identifier newPreviousBlockId = IdentifierFixture.newIdentifier();
-    Block block = BlockFixture.newBlock(block2.id(), block2.getHeight() + 1, snapshot2.all());
+    Identifier invalidProposer = IdentifierFixture.newIdentifier();
+    Block block = BlockFixture.newBlock(invalidProposer, block2.id(), block2.getHeight() + 1, snapshot2.all());
 
     when(network.register(any(ValidatorEngine.class), eq(Channels.ProposedBlocks))).thenReturn(blockConduit);
     engine = new ValidatorEngine(network, local, state, seenEntities);
-
-    when(state.atBlockId(block.getPreviousBlockId())
-        .getAccount(block.getProposer())
-        .getPublicKey()
-        .verifySignature(block, block.getSignature())).thenReturn(true);
 
     try {
       engine.process(block);
@@ -555,29 +592,158 @@ public class ValidatorEngineTest {
 
   @Test
   public void testReceiveBlockNotCorrect_ValidatedTransactionBelowMinimum(){
+    setup();
+    //TODO add a new fixture?
+    Block block = BlockFixture.newBlock(Parameters.MIN_TRANSACTIONS_NUM-1);
 
+    when(network.register(any(ValidatorEngine.class), eq(Channels.ProposedBlocks))).thenReturn(blockConduit);
+    engine = new ValidatorEngine(network, local, state, seenEntities);
+    when(state.atBlockId(block.getPreviousBlockId())
+        .getAccount(block.getProposer())
+        .getPublicKey()
+        .verifySignature(block, block.getSignature())).thenReturn(true);
+    try {
+      engine.process(block);
+    } catch (IllegalArgumentException ex) {
+      ex.printStackTrace();
+      Assertions.fail("Failed because of another reason that this test was not aiming for.");
+    }
+
+    Assertions.assertFalse(blockConduit.hasSent(block.id()));
+    verify(seenEntities, never()).add(any());
   }
   @Test
   public void testReceiveBlockNotCorrect_ValidatedTransactionAboveMaximum(){
+    setup();
 
+    Block block = BlockFixture.newBlock(Parameters.MAX_TRANSACTIONS_NUM+1);
+
+    when(network.register(any(ValidatorEngine.class), eq(Channels.ProposedBlocks))).thenReturn(blockConduit);
+    engine = new ValidatorEngine(network, local, state, seenEntities);
+    when(state.atBlockId(block.getPreviousBlockId())
+        .getAccount(block.getProposer())
+        .getPublicKey()
+        .verifySignature(block, block.getSignature())).thenReturn(true);
+    try {
+      engine.process(block);
+    } catch (IllegalArgumentException ex) {
+      ex.printStackTrace();
+      Assertions.fail("Failed because of another reason that this test was not aiming for.");
+    }
+
+    Assertions.assertFalse(blockConduit.hasSent(block.id()));
+    verify(seenEntities, never()).add(any());
   }
 
   @Test
   public void testReceiveBlockNotConsistent_InvalidPreviousBlockId(){
+    setup();
+    int propInd = random.nextInt(accounts2.size());
+    while (accounts2.get(propInd).getStake()<Parameters.MINIMUM_STAKE){
+      propInd = random.nextInt(accounts2.size());
+    }
+    Identifier proposer = accounts2.get(propInd).getIdentifier();
+    Block block = BlockFixture.newBlock(proposer, block1.id(), block2.getHeight() + 1, snapshot2.all());
+    when(network.register(any(ValidatorEngine.class), eq(Channels.ProposedBlocks))).thenReturn(blockConduit);
+    engine = new ValidatorEngine(network, local, state, seenEntities);
 
+    when(state.atBlockId(block.getPreviousBlockId())
+        .getAccount(block.getProposer())
+        .getPublicKey()
+        .verifySignature(block, block.getSignature())).thenReturn(true);
+
+    try {
+      engine.process(block);
+    } catch (IllegalArgumentException ex) {
+      Assertions.fail(ex);
+    }
+    Assertions.assertFalse(blockConduit.hasSent(block.id()));
+    verify(seenEntities, never()).add(any());
   }
   @Test
   public void testReceiveBlockNotAuthenticated(){
+    setup();
+    int propInd = random.nextInt(accounts2.size());
+    while (accounts2.get(propInd).getStake()<Parameters.MINIMUM_STAKE){
+      propInd = random.nextInt(accounts2.size());
+    }
+    Identifier proposer = accounts2.get(propInd).getIdentifier();
+    Block block = BlockFixture.newBlock(proposer, block2.id(), block2.getHeight() + 1, snapshot2.all());
+    when(network.register(any(ValidatorEngine.class), eq(Channels.ProposedBlocks))).thenReturn(blockConduit);
+    engine = new ValidatorEngine(network, local, state, seenEntities);
+
+    when(state.atBlockId(block.getPreviousBlockId())
+        .getAccount(block.getProposer())
+        .getPublicKey()
+        .verifySignature(block, block.getSignature())).thenReturn(false);
+
+    try {
+      engine.process(block);
+    } catch (IllegalArgumentException ex) {
+      Assertions.fail(ex);
+    }
+    Assertions.assertFalse(blockConduit.hasSent(block.id()));
+    verify(seenEntities, never()).add(any());
 
   }
   @Test
   public void testReceiveBlockProposerHasNotEnoughStake(){
+    setup();
+    int propInd = random.nextInt(accounts2.size());
+    while (accounts2.get(propInd).getStake()>=Parameters.MINIMUM_STAKE){
+      propInd = random.nextInt(accounts2.size());
+    }
+    Identifier proposer = accounts2.get(propInd).getIdentifier();
+    Block block = BlockFixture.newBlock(proposer, block2.id(), block2.getHeight() + 1, snapshot2.all());
+    when(network.register(any(ValidatorEngine.class), eq(Channels.ProposedBlocks))).thenReturn(blockConduit);
+    engine = new ValidatorEngine(network, local, state, seenEntities);
 
+    when(state.atBlockId(block.getPreviousBlockId())
+        .getAccount(block.getProposer())
+        .getPublicKey()
+        .verifySignature(block, block.getSignature())).thenReturn(true);
+
+    try {
+      engine.process(block);
+    } catch (IllegalArgumentException ex) {
+      Assertions.fail(ex);
+    }
+    Assertions.assertFalse(blockConduit.hasSent(block.id()));
+    verify(seenEntities, never()).add(any());
   }
 
   @Test
   public void testReceiveBlockAllTransactionsNotValidated(){
+    setup();
+    int propInd = random.nextInt(accounts2.size());
+    while (accounts2.get(propInd).getStake()<Parameters.MINIMUM_STAKE){
+      propInd = random.nextInt(accounts2.size());
+    }
+    //TODO add fixt
+    Identifier proposer = accounts2.get(propInd).getIdentifier();
+    Block block = BlockFixture.newBlock(proposer, block2.id(), block2.getHeight() + 1, snapshot2.all());
+    when(network.register(any(ValidatorEngine.class), eq(Channels.ProposedBlocks))).thenReturn(blockConduit);
+    engine = new ValidatorEngine(network, local, state, seenEntities);
 
+
+    for (Transaction transaction : block.getTransactions()) {
+      when(state.atBlockId(transaction.getReferenceBlockId())
+          .getAccount(transaction.getSender())
+          .getPublicKey().verifySignature(transaction,transaction.getSignature()))
+          .thenReturn(true);
+    }
+    when(state.atBlockId(block.getPreviousBlockId())
+        .getAccount(block.getProposer())
+        .getPublicKey()
+        .verifySignature(block, block.getSignature())).thenReturn(true);
+
+    try {
+      engine.process(block);
+    } catch (IllegalArgumentException ex) {
+      Assertions.fail(ex);
+    }
+    Assertions.assertFalse(blockConduit.hasSent(block.id()));
+    verify(seenEntities, never()).add(any());
   }
   @Test
   public void testReceiveBlockAllTransactionsNotSound(){

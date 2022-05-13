@@ -163,7 +163,12 @@ public class ValidatedTransactionFixture {
     Signature[] certificates = new Signature[certificatesSize];
     int accountsSize = accounts.size();
     for (int i = 0; i < certificatesSize; i++) {
-      certificates[i] = SignatureFixture.newSignatureFixture(accounts.get(random.nextInt(accountsSize)).getIdentifier());
+      int signerInd = random.nextInt(accountsSize);
+      while (accounts.get(signerInd).getStake()<Parameters.MINIMUM_STAKE){
+        signerInd = random.nextInt(accountsSize);
+      }
+      Identifier signer = accounts.get(signerInd).getIdentifier();
+      certificates[i] = SignatureFixture.newSignatureFixture(signer);
     }
     ValidatedTransaction valTrans = new ValidatedTransaction(referenceBlockId, sender, receiver, amount, certificates);
     Signature sign = SignatureFixture.newSignatureFixture(signerId);

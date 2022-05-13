@@ -172,7 +172,7 @@ public class ValidatorTest {
   }
 
   /**
-   * Evaluates the block validation fails hen previous block id
+   * Evaluates the block validation fails when previous block id
    * does not refer to the latest snapshot of the validating node.
    */
   @Test

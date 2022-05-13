@@ -71,9 +71,14 @@ public class ValidatorEngine implements Engine {
 
       if (e.type().equals(EntityType.TYPE_BLOCK)) {
         Block block = ((Block) e);
-        Assignment assignment = assigner.assign(block.id(),
-            state.atBlockId((block).getPreviousBlockId()),
-            Parameters.VALIDATOR_THRESHOLD);
+        Assignment assignment;
+        try {
+          assignment = assigner.assign(block.id(),
+              state.atBlockId((block).getPreviousBlockId()),
+              Parameters.VALIDATOR_THRESHOLD);
+        } catch (IllegalArgumentException ex) {
+          return;
+        }
 
         if (!assignment.has(currentNode)) {
           return; // current node is not an assigned validator.
@@ -93,10 +98,15 @@ public class ValidatorEngine implements Engine {
       } else if (e.type().equals(EntityType.TYPE_TRANSACTION)) {
 
         Transaction tx = ((Transaction) e);
-        Assignment assignment = assigner.assign(
-            tx.id(),
-            state.atBlockId(tx.getReferenceBlockId()),
-            Parameters.VALIDATOR_THRESHOLD);
+        Assignment assignment;
+        try {
+          assignment = assigner.assign(
+              tx.id(),
+              state.atBlockId(tx.getReferenceBlockId()),
+              Parameters.VALIDATOR_THRESHOLD);
+        } catch (IllegalArgumentException ex) {
+          return;
+        }
 
         if (!assignment.has(currentNode)) {
           return; // current node is not an assigned validator.
@@ -120,6 +130,17 @@ public class ValidatorEngine implements Engine {
 
   private boolean isBlockValidated(Block b) {
     BlockValidator verifier = new BlockValidator(state);
+    try {
+      verifier.allTransactionsSound(b);
+      verifier.allTransactionsValidated(b);
+      verifier.isAuthenticated(b);
+      verifier.isConsistent(b);
+      verifier.isCorrect(b);
+      verifier.noDuplicateSender(b);
+      verifier.proposerHasEnoughStake(b);
+    } catch (Exception ex) {
+      return false;
+    }
     System.out.println("sound " + verifier.allTransactionsSound(b));
     System.out.println("valid " + verifier.allTransactionsValidated(b));
     System.out.println("auth " + verifier.isAuthenticated(b));
@@ -138,12 +159,13 @@ public class ValidatorEngine implements Engine {
 
   private boolean isTransactionValidated(Transaction t) {
     TransactionValidator verifier = new TransactionValidator(state);
-    try{
+    try {
       verifier.isCorrect(t);
       verifier.isSound(t);
       verifier.isAuthenticated(t);
       verifier.senderHasEnoughBalance(t);
     } catch (Exception ex) {
+      ex.printStackTrace();
       return false;
     }
     System.out.println("corrrecttrans " + verifier.isCorrect(t));
