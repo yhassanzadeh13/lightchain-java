@@ -35,15 +35,13 @@ public class DemoServer {
       demoServerQueryGauge = collector.gauge().register("demo_server_query_gauge",
           "localnet", "demo", "Demo server query gauge");
     } catch (IllegalArgumentException ex) {
-      System.err.println("Could not initialize the metrics with the provided arguments" + ex);
-      System.exit(1);
+      throw new IllegalArgumentException("could not initialize the metrics with the provided arguments", ex);
     }
 
     try {
       server.start();
     } catch (IllegalStateException e) {
-      System.err.println("Could not start the Metric Server:\t" + e);
-      System.exit(1);
+      throw new IllegalStateException("could not start the Metric Server", e);
     }
 
     while (true) {
@@ -59,11 +57,8 @@ public class DemoServer {
 
     try {
       server.terminate();
-    } catch (Exception e) {
-      System.err.println("Could not stop the Metric Server:\t" + e);
-      System.exit(1);
+    } catch (IllegalStateException e) {
+      throw new IllegalStateException("could not terminate the Metric Server", e);
     }
-
   }
-
 }

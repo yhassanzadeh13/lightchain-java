@@ -1,7 +1,6 @@
 package bootstrap;
 
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -17,7 +16,6 @@ import protocol.Engine;
 public class BroadcastEngine implements Engine {
   private final ReentrantReadWriteLock lock;
   private final Set<Identifier> receivedEntityIds;
-
   ConcurrentMap<Identifier, String> idTable;
   Identifier myId;
 
@@ -27,7 +25,6 @@ public class BroadcastEngine implements Engine {
   public BroadcastEngine() {
     this.receivedEntityIds = new HashSet<>();
     this.lock = new ReentrantReadWriteLock();
-
   }
 
   /**
@@ -40,13 +37,7 @@ public class BroadcastEngine implements Engine {
     this();
     this.idTable = new ConcurrentHashMap<>();
     this.myId = myId;
-
-    for (Map.Entry<Identifier, String> id : idTable.entrySet()) {
-
-      this.idTable.put(id.getKey(), id.getValue());
-
-    }
-
+    this.idTable.putAll(idTable);
   }
 
   /**
@@ -55,19 +46,18 @@ public class BroadcastEngine implements Engine {
    * @param e the arrived Entity from the network.
    * @throws IllegalArgumentException any unhappy path taken on processing the Entity.
    */
-
   @Override
   public void process(Entity e) throws IllegalArgumentException {
     lock.writeLock().lock();
-
-    receivedEntityIds.add(e.id());
-
-    System.out.println("Node " + idTable.get(myId) + ": content of the last message is: ");
-    System.out.println(((HelloMessageEntity) e).content);
-    System.out.println("Total Unique Entries Received " + totalReceived());
-    System.out.println("");
-
-    lock.writeLock().unlock();
+    try {
+      receivedEntityIds.add(e.id());
+      System.out.println("Node " + idTable.get(myId) + ": content of the last message is: ");
+      System.out.println(((HelloMessageEntity) e).content);
+      System.out.println("Total Unique Entries Received " + totalReceived());
+      System.out.println();
+    } finally {
+      lock.writeLock().unlock();
+    }
   }
 
   /**
@@ -77,17 +67,14 @@ public class BroadcastEngine implements Engine {
    * @return true if the entity received, otherwise false.
    */
   public boolean hasReceived(Entity e) {
-
     lock.readLock().lock();
-
-    boolean ok = false;
+    boolean ok;
 
     try {
       ok = this.receivedEntityIds.contains(e.id());
     } finally {
       lock.readLock().unlock();
     }
-
     return ok;
   }
 
@@ -97,17 +84,14 @@ public class BroadcastEngine implements Engine {
    * @return total messages it received.
    */
   public int totalReceived() {
-
     lock.readLock().lock();
-
-    int size = 0;
+    int size;
 
     try {
       size = receivedEntityIds.size();
     } finally {
       lock.readLock().unlock();
     }
-
     return size;
   }
 }

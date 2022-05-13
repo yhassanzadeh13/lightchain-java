@@ -2,7 +2,10 @@ package integration.localnet;
 
 import java.io.File;
 import java.nio.charset.StandardCharsets;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.TimeUnit;
@@ -25,7 +28,6 @@ public class LocalTestNet extends MetricsTestNet {
   private static final String SERVER = "server";
   private static final String SERVER_VOLUME_BINDING = "server_volume:/app";
   private static final String DOCKER_FILE = "./Dockerfile";
-
   private static final String NODE_VOLUME = "server_volume";
   private static final String NODE = "server";
   private static final String NODE_VOLUME_BINDING = "server_volume:/app";
@@ -43,10 +45,8 @@ public class LocalTestNet extends MetricsTestNet {
 
   /**
    * Creates and returns HTTP Server container that serves as the local testnet.
-   *
-   * @throws IllegalStateException when container creation faces an illegal state.
    */
-  private CreateContainerResponse createServerContainer() throws IllegalStateException {
+  private CreateContainerResponse createServerContainer() {
     // Volume Creation
     this.createVolumesIfNotExist(SERVER_VOLUME);
 
@@ -57,7 +57,7 @@ public class LocalTestNet extends MetricsTestNet {
             .exec(new BuildImageResultCallback())
             .awaitImageId();
 
-    List<Bind> serverBinds = new ArrayList<Bind>();
+    List<Bind> serverBinds = new ArrayList<>();
     serverBinds.add(Bind.parse(SERVER_VOLUME_BINDING));
 
     HostConfig hostConfig = new HostConfig()
@@ -74,10 +74,8 @@ public class LocalTestNet extends MetricsTestNet {
 
   /**
    * Creates and runs a metrics collection network accompanied by a metrics generator server.
-   *
-   * @throws IllegalStateException when container creation faces an illegal state.
    */
-  public void runLocalTestNet() throws IllegalStateException {
+  public void runLocalTestNet() {
     super.runMetricsTestNet();
 
     System.out.println("building local testnet, please wait ....");
@@ -92,20 +90,18 @@ public class LocalTestNet extends MetricsTestNet {
 
   /**
    * Creates and runs a node network accompanied by a metrics generator server.
-   *
-   * @throws IllegalStateException when container creation faces an illegal state.
    */
-  public void createNodeContainers() throws IllegalStateException {
+  public void createNodeContainers() {
 
     // Node Container
     String imageId = dockerClient.buildImageCmd()
-            .withTags(new HashSet<String>(Arrays.asList("image")))
+            .withTags(new HashSet<>(Arrays.asList("image")))
             .withDockerfile(new File(NODE_DOCKER_FILE))
             .withPull(true)
             .exec(new BuildImageResultCallback())
             .awaitImageId();
 
-    List<Bind> serverBinds = new ArrayList<Bind>();
+    List<Bind> serverBinds = new ArrayList<>();
     serverBinds.add(Bind.parse(NODE_VOLUME_BINDING));
 
     HostConfig hostConfig = new HostConfig()
@@ -127,9 +123,7 @@ public class LocalTestNet extends MetricsTestNet {
               .withHostConfig(hostConfig)
               .withCmd("NODE" + i, "bootstrap.txt")
               .exec();
-
       containers.add(nodeServer);
-
     }
 
     super.runMetricsTestNet();
@@ -153,25 +147,20 @@ public class LocalTestNet extends MetricsTestNet {
       }
       t.start();
     }
-
   }
 
   /**
    * Builds and returns a ConcurrentMap of nodes to be bootstrapped.
    */
   public ConcurrentMap createBootstrapFile() {
-
-    ConcurrentMap<Identifier, String> idTable = new ConcurrentHashMap<Identifier, String>();
+    ConcurrentMap<Identifier, String> idTable = new ConcurrentHashMap<>();
 
     for (int i = 0; i < nodeCount; i++) {
       Identifier id = new Identifier(("NODE" + i).getBytes(StandardCharsets.UTF_8));
       idTable.put(id, "NODE" + i + ":8081");
     }
-
     return idTable;
-
   }
-
 }
 
 
