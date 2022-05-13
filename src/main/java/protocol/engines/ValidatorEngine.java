@@ -138,6 +138,10 @@ public class ValidatorEngine implements Engine {
 
   private boolean isTransactionValidated(Transaction t) {
     TransactionValidator verifier = new TransactionValidator(state);
+    System.out.println("corrrecttrans " + verifier.isCorrect(t));
+    System.out.println("sound trans " + verifier.isSound(t));
+    System.out.println("auth trans " + verifier.isAuthenticated(t));
+    System.out.println("bal trans " + verifier.senderHasEnoughBalance(t));
     return verifier.isCorrect(t)
         && verifier.isSound(t)
         && verifier.isAuthenticated(t)

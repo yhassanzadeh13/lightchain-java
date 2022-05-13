@@ -95,16 +95,18 @@ public class BlockFixture {
   public static Block newBlock(Identifier previousBlockId, int height, ArrayList<Account> accounts) {
     int accountsSize = accounts.size();
     Identifier proposer = accounts.get(random.nextInt(accountsSize)).getIdentifier();
+    Identifier signer = accounts.get(random.nextInt(accountsSize)).getIdentifier();
     int validatedTransactionsSize = Parameters.MIN_TRANSACTIONS_NUM + 2;
     ValidatedTransaction[] transactions = new ValidatedTransaction[validatedTransactionsSize];
     for (int i = 0; i < validatedTransactionsSize; i++) {
       transactions[i] = ValidatedTransactionFixture.newValidatedTransaction(
           previousBlockId, //TODO: should this be this new blocks id?
           accounts.get(i).getIdentifier(),
-          accounts.get(i+1).getIdentifier());
+          accounts.get(i+1).getIdentifier(),
+          signer,
+          accounts);
     }
     Signature signature = SignatureFixture.newSignatureFixture(proposer);
-
     return new Block(previousBlockId, proposer, height, transactions, signature);
   }
 

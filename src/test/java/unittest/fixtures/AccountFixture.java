@@ -126,10 +126,10 @@ public class AccountFixture {
    * @return map of staked and unstaked accounts.
    */
   public static ArrayList<Account>[] newAccounts(Identifier id, Identifier lastBlockId1, Identifier lastBlockId2, int stakedCount, int unstakedCount) {
-    ArrayList<Account>[] accounts = new ArrayList[2];
+    ArrayList<Account>[] accounts = new ArrayList[3];
     ArrayList<Account> accounts1 = new ArrayList<>();
     ArrayList<Account> accounts2 = new ArrayList<>();
-
+    ArrayList<Account> accounts3 = new ArrayList<>();
     // staked accounts
     for (int i = 0; i < stakedCount; i++) {
       Identifier accountId = IdentifierFixture.newIdentifier();
@@ -138,6 +138,7 @@ public class AccountFixture {
 
       accounts1.add(account);
       accounts2.add(account2);
+      accounts3.add(account2);
     }
 
     // unstaked accounts
@@ -148,11 +149,12 @@ public class AccountFixture {
 
       accounts1.add(account);
       accounts2.add(account2);
+      accounts3.add(account2);
     }
 
     accounts1.add(AccountFixture.newAccount(id, lastBlockId1, Parameters.MINIMUM_STAKE + 1));
     accounts2.add(AccountFixture.newAccount(id, lastBlockId2, Parameters.MINIMUM_STAKE + 1));
-    accounts[0] = accounts1; accounts[1] = accounts2;
+    accounts[0] = accounts1; accounts[1] = accounts2; accounts[2] = accounts3;
     return accounts;
   }
 }
