@@ -1,11 +1,10 @@
 package unittest.fixtures;
 
+import java.util.ArrayList;
 import java.util.Random;
 
 import model.crypto.Signature;
-import model.lightchain.Block;
-import model.lightchain.Identifier;
-import model.lightchain.ValidatedTransaction;
+import model.lightchain.*;
 import protocol.Parameters;
 
 /**
@@ -64,6 +63,50 @@ public class BlockFixture {
     Signature signature = SignatureFixture.newSignatureFixture(proposer);
 
     int height = Math.abs(random.nextInt(1_000_000));
+    return new Block(previousBlockId, proposer, height, transactions, signature);
+  }
+
+  /**
+   * Returns a block with randomly generated values and given previous block id.
+   *
+   * @param previousBlockId previous block id.
+   * @param height          height of the block.
+   * @return a block with randomly generated values.
+   */
+  public static Block newBlock(Identifier previousBlockId, int height) {
+    Identifier proposer = IdentifierFixture.newIdentifier();
+    int validatedTransactionsSize = Parameters.MIN_TRANSACTIONS_NUM + 2;
+    ValidatedTransaction[] transactions = new ValidatedTransaction[validatedTransactionsSize];
+    for (int i = 0; i < validatedTransactionsSize; i++) {
+      transactions[i] = ValidatedTransactionFixture.newValidatedTransaction();
+    }
+    Signature signature = SignatureFixture.newSignatureFixture(proposer);
+
+    return new Block(previousBlockId, proposer, height, transactions, signature);
+  }
+
+  /**
+   * Returns a block with randomly generated values and given previous block id.
+   *
+   * @param previousBlockId previous block id.
+   * @param height          height of the block.
+   * @return a block with randomly generated values.
+   */
+  public static Block newBlock(Identifier previousBlockId, int height, ArrayList<Account> accounts) {
+    int accountsSize = accounts.size();
+    Identifier proposer = accounts.get(random.nextInt(accountsSize)).getIdentifier();
+    Identifier signer = accounts.get(random.nextInt(accountsSize)).getIdentifier();
+    int validatedTransactionsSize = Parameters.MIN_TRANSACTIONS_NUM + 2;
+    ValidatedTransaction[] transactions = new ValidatedTransaction[validatedTransactionsSize];
+    for (int i = 0; i < validatedTransactionsSize; i++) {
+      transactions[i] = ValidatedTransactionFixture.newValidatedTransaction(
+          previousBlockId, //TODO: should this be this new blocks id?
+          accounts.get(i).getIdentifier(),
+          accounts.get(i+1).getIdentifier(),
+          signer,
+          accounts);
+    }
+    Signature signature = SignatureFixture.newSignatureFixture(proposer);
     return new Block(previousBlockId, proposer, height, transactions, signature);
   }
 

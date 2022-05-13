@@ -119,6 +119,7 @@ public class BlockValidator implements InfBlockValidator {
         return false;
       }
 
+
       Snapshot snapshot = state.atBlockId(block.getPreviousBlockId());
       for (Signature signature : transaction.getCertificates()) {
         Account account = snapshot.getAccount(signature.getSignerId());

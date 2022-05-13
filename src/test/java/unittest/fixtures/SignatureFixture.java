@@ -17,6 +17,7 @@ public class SignatureFixture {
     return new EcdsaSignature(Bytes.byteArrayFixture(32), IdentifierFixture.newIdentifier());
   }
 
+
   /**
    * Generates a random signature for testing.
    *
