@@ -57,7 +57,7 @@ public class DemoServer {
 
     try {
       server.terminate();
-    } catch (IllegalStateException e) {
+    } catch (Exception e) {
       throw new IllegalStateException("could not terminate the Metric Server", e);
     }
   }
