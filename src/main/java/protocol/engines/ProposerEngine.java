@@ -38,6 +38,7 @@ public class ProposerEngine implements NewBlockSubscriber, Engine {
   private static Conduit validatedCon;
   private static Network net;
   private static LightChainValidatorAssigner assigner;
+  private Assignment assignment;
   private ArrayList<BlockApproval> approvals;
   public Block newB;
 
@@ -50,7 +51,8 @@ public class ProposerEngine implements NewBlockSubscriber, Engine {
    * @param local               Local storage.
    * @param net                 Network.
    */
-  public ProposerEngine(Blocks blocks, Transactions pendingTransactions, State state, Local local, Network net) {
+  public ProposerEngine(Blocks blocks, Transactions pendingTransactions, State state,
+                        Local local, Network net, Assignment assignment) {
     ProposerEngine.local = local;
     ProposerEngine.blocks = blocks;
     ProposerEngine.pendingTransactions = pendingTransactions;
@@ -59,6 +61,7 @@ public class ProposerEngine implements NewBlockSubscriber, Engine {
     proposerCon = net.register(this, Channels.ProposedBlocks);
     validatedCon = net.register(this, Channels.ValidatedBlocks);
     ProposerEngine.net = net;
+    this.assignment = assignment;
   }
 
   /**
@@ -173,7 +176,7 @@ public class ProposerEngine implements NewBlockSubscriber, Engine {
       for (int i = 0; i < approvals.size(); i++) {
         signs[i] = approvals.get(i).getSignature();
       }
-      ValidatedBlock vBlock = new ValidatedBlock(newB.getPreviousBlockId()
+      ValidatedBlock validatedBlock = new ValidatedBlock(newB.getPreviousBlockId()
           , newB.getProposer()
           , newB.getTransactions()
           , this.local.signEntity(newB)

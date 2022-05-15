@@ -7,6 +7,7 @@ import static org.mockito.Mockito.when;
 
 import model.crypto.PrivateKey;
 import model.lightchain.Account;
+import model.lightchain.Assignment;
 import model.lightchain.Block;
 import model.lightchain.Identifier;
 import model.local.Local;
@@ -16,6 +17,7 @@ import network.NetworkAdapter;
 import networking.MockConduit;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import protocol.assigner.LightChainValidatorAssigner;
 import protocol.block.BlockValidator;
 import state.Snapshot;
 import state.State;
@@ -66,7 +68,8 @@ public class ProposerEngineTest {
     when(snapshot.all()).thenReturn(a);
     when(state.atBlockId(block.id())).thenReturn(snapshot);
     when(pendingTransactions.size()).thenReturn(1);
-    ProposerEngine proposerEngine = new ProposerEngine(blocks, pendingTransactions, state, local, network);
+    Assignment assignment = mock(Assignment.class);
+    ProposerEngine proposerEngine = new ProposerEngine(blocks, pendingTransactions, state, local, network, assignment);
     proposerEngine.onNewValidatedBlock(block.getHeight(), block.id());
     BlockValidator blockValidator = new BlockValidator(state);
     Assertions.assertTrue(blockValidator.isCorrect(proposerEngine.newB));
