@@ -5,8 +5,10 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 import model.Entity;
-import model.exceptions.LightChainNetworkingException;
 import model.lightchain.*;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -20,9 +22,6 @@ import unittest.fixtures.AccountFixture;
 import unittest.fixtures.EntityFixture;
 import unittest.fixtures.ValidatedBlockFixture;
 import unittest.fixtures.ValidatedTransactionFixture;
-
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 /**
  * Encapsulates tests for ingest engine implementation.
@@ -69,6 +68,9 @@ public class IngestEngineTest {
   // 19. Happy path of receiving a validated transaction and a validated block concurrently
   //     (block does contain the transaction).
 
+  /**
+   * Sets up the test environment. // TODO: fix this
+   */
   @BeforeEach
   public void setUpMock() {
     transaction1 = ValidatedTransactionFixture.newValidatedTransaction();
@@ -79,7 +81,6 @@ public class IngestEngineTest {
     blocks = mock(Blocks.class);
     state = mock(State.class);
     pendingTransactions = mock(Identifiers.class);
-    Identifiers seenEntities = mock(Identifiers.class);
     snapshot = mock(Snapshot.class);
     when(state.atBlockId(block1.getTransactions()[0].getReferenceBlockId())).thenReturn(snapshot);
     when(state.atBlockId(block2.getTransactions()[0].getReferenceBlockId())).thenReturn(snapshot);
@@ -111,6 +112,7 @@ public class IngestEngineTest {
     when(blocks.all()).thenReturn(blockList);
     ArrayList<Account> accounts = new ArrayList<>(AccountFixture.newAccounts(10, 10).values());
     when(snapshot.all()).thenReturn(accounts);
+    Identifiers seenEntities = mock(Identifiers.class);
     ingestEngine = new IngestEngine(state, blocks, pendingTransactions, transactions, seenEntities);
     for (Account account : accounts) {
       when(snapshot.getAccount(account.getIdentifier())).thenReturn(account);
@@ -207,7 +209,8 @@ public class IngestEngineTest {
       Assertions.fail();
     }
     Assertions.assertEquals(0, threadError.get());
-    Assertions.assertEquals(blocks, blocks2[0]); // checks if block are changed, if not it means second block is not added
+    // checks if block are changed, if not it means second block is not added
+    Assertions.assertEquals(blocks, blocks2[0]);
   }
 
   @Test // 6.

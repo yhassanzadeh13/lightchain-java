@@ -6,7 +6,6 @@ import java.util.HashMap;
 import model.crypto.PublicKey;
 import model.lightchain.Account;
 import model.lightchain.Identifier;
-import org.eclipse.collections.api.tuple.Pair;
 import org.mockito.Mockito;
 import protocol.Parameters;
 
@@ -22,12 +21,12 @@ public class AccountFixture {
    */
   public static Account newAccount(Identifier identifier) {
     return new Account(
-        identifier,
-        Mockito.mock(
-            PublicKey.class,
-            Mockito.withSettings().useConstructor(Bytes.byteArrayFixture(32))),
-        IdentifierFixture.newIdentifier(),
-        Parameters.MINIMUM_STAKE);
+            identifier,
+            Mockito.mock(
+                    PublicKey.class,
+                    Mockito.withSettings().useConstructor(Bytes.byteArrayFixture(32))),
+            IdentifierFixture.newIdentifier(),
+            Parameters.MINIMUM_STAKE);
   }
 
   /**
@@ -38,11 +37,11 @@ public class AccountFixture {
    */
   public static Account newAccount(Identifier identifier, int stake) {
     return new Account(identifier,
-        Mockito.mock(
-            PublicKey.class,
-            Mockito.withSettings().useConstructor(Bytes.byteArrayFixture(32))),
-        IdentifierFixture.newIdentifier(),
-        stake);
+            Mockito.mock(
+                    PublicKey.class,
+                    Mockito.withSettings().useConstructor(Bytes.byteArrayFixture(32))),
+            IdentifierFixture.newIdentifier(),
+            stake);
   }
 
   /**
@@ -54,11 +53,11 @@ public class AccountFixture {
    */
   public static Account newAccount(Identifier publicKey, Identifier lastBlockId, int stake) {
     return new Account(publicKey,
-        Mockito.mock(
-            PublicKey.class,
-            Mockito.withSettings().useConstructor(Bytes.byteArrayFixture(32))),
-        lastBlockId,
-        stake);
+            Mockito.mock(
+                    PublicKey.class,
+                    Mockito.withSettings().useConstructor(Bytes.byteArrayFixture(32))),
+            lastBlockId,
+            stake);
   }
 
   /**
@@ -125,8 +124,8 @@ public class AccountFixture {
    * @param unstakedCount number of unstaked accounts.
    * @return map of staked and unstaked accounts.
    */
-  public static ArrayList<Account>[] newAccounts(Identifier id, Identifier lastBlockId1, Identifier lastBlockId2, int stakedCount, int unstakedCount) {
-    ArrayList<Account>[] accounts = new ArrayList[3];
+  public static ArrayList<Account>[] newAccounts(Identifier id, Identifier lastBlockId1,
+                                                 Identifier lastBlockId2, int stakedCount, int unstakedCount) {
     ArrayList<Account> accounts1 = new ArrayList<>();
     ArrayList<Account> accounts2 = new ArrayList<>();
     ArrayList<Account> accounts3 = new ArrayList<>();
@@ -134,7 +133,7 @@ public class AccountFixture {
     for (int i = 0; i < stakedCount; i++) {
       Identifier accountId = IdentifierFixture.newIdentifier();
       Account account = AccountFixture.newAccount(accountId, lastBlockId1, Parameters.MINIMUM_STAKE + i);
-      Account account2= AccountFixture.newAccount(accountId, lastBlockId2, Parameters.MINIMUM_STAKE + i);
+      Account account2 = AccountFixture.newAccount(accountId, lastBlockId2, Parameters.MINIMUM_STAKE + i);
 
       accounts1.add(account);
       accounts2.add(account2);
@@ -145,7 +144,7 @@ public class AccountFixture {
     for (int i = 0; i < unstakedCount; i++) {
       Identifier accountId = IdentifierFixture.newIdentifier();
       Account account = AccountFixture.newAccount(accountId, lastBlockId1, Parameters.MINIMUM_STAKE - 2);
-      Account account2= AccountFixture.newAccount(accountId, lastBlockId2, Parameters.MINIMUM_STAKE - 2);
+      Account account2 = AccountFixture.newAccount(accountId, lastBlockId2, Parameters.MINIMUM_STAKE - 2);
 
       accounts1.add(account);
       accounts2.add(account2);
@@ -154,10 +153,20 @@ public class AccountFixture {
 
     accounts1.add(AccountFixture.newAccount(id, lastBlockId1, Parameters.MINIMUM_STAKE + 1));
     accounts2.add(AccountFixture.newAccount(id, lastBlockId2, Parameters.MINIMUM_STAKE + 1));
-    accounts[0] = accounts1; accounts[1] = accounts2; accounts[2] = accounts3;
+    ArrayList<Account>[] accounts = new ArrayList[3];
+    accounts[0] = accounts1;
+    accounts[1] = accounts2;
+    accounts[2] = accounts3;
     return accounts;
   }
-  public static ArrayList<Account> newAccounts(int stakedCount){
+
+  /**
+   * Creates staked accounts.
+   *
+   * @param stakedCount number of staked accounts.
+   * @return An array list consist of staked accounts.
+   */
+  public static ArrayList<Account> newAccounts(int stakedCount) {
     ArrayList<Account> accountArrayList = new ArrayList<>();
     for (int i = 0; i < stakedCount; i++) {
       Identifier accountId = IdentifierFixture.newIdentifier();

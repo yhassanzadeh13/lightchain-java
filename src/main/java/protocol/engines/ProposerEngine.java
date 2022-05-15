@@ -1,11 +1,13 @@
 package protocol.engines;
 
+import java.io.ByteArrayOutputStream;
+import java.util.ArrayList;
+import java.util.Map;
+import java.util.concurrent.locks.ReentrantLock;
+
 import model.Entity;
 import model.codec.EntityType;
-import model.crypto.KeyGen;
-import model.crypto.PrivateKey;
 import model.crypto.Signature;
-import model.crypto.ecdsa.EcdsaKeyGen;
 import model.exceptions.LightChainNetworkingException;
 import model.lightchain.*;
 import model.local.Local;
@@ -22,15 +24,11 @@ import state.State;
 import storage.Blocks;
 import storage.Transactions;
 
-import java.io.ByteArrayOutputStream;
-import java.util.ArrayList;
-import java.util.Map;
-import java.util.concurrent.locks.ReentrantLock;
-
 /**
  * Proposer engine encapsulates the logic of creating new blocks.
  */
 public class ProposerEngine implements NewBlockSubscriber, Engine {
+  private static final ReentrantLock lock = new ReentrantLock();
   private static Local local;
   private static Blocks blocks;
   private static Transactions pendingTransactions;
@@ -38,20 +36,27 @@ public class ProposerEngine implements NewBlockSubscriber, Engine {
   private static Conduit proposerCon;
   private static Conduit validatedCon;
   private static Network net;
-  private ArrayList<BlockApproval> approvals;
+  private final ArrayList<BlockApproval> approvals;
   public Block newB;
 
-  private static final ReentrantLock lock = new ReentrantLock();
-
+  /**
+   * Constructor.
+   *
+   * @param blocks              Blocks storage.
+   * @param pendingTransactions Pending transactions storage.
+   * @param state               State storage.
+   * @param local               Local storage.
+   * @param net                 Network.
+   */
   public ProposerEngine(Blocks blocks, Transactions pendingTransactions, State state, Local local, Network net) {
-    this.local = local;
-    this.blocks = blocks;
-    this.pendingTransactions = pendingTransactions;
-    this.state = state;
+    ProposerEngine.local = local;
+    ProposerEngine.blocks = blocks;
+    ProposerEngine.pendingTransactions = pendingTransactions;
+    ProposerEngine.state = state;
     this.approvals = new ArrayList<>();
-    this.proposerCon = net.register(this, Channels.ProposedBlocks);
-    this.validatedCon = net.register(this, Channels.ValidatedBlocks);
-    this.net = net;
+    proposerCon = net.register(this, Channels.ProposedBlocks);
+    validatedCon = net.register(this, Channels.ValidatedBlocks);
+    ProposerEngine.net = net;
   }
 
   /**
@@ -73,7 +78,7 @@ public class ProposerEngine implements NewBlockSubscriber, Engine {
    */
   @Override
   public void onNewValidatedBlock(int blockHeight, Identifier blockId) throws IllegalStateException,
-      IllegalArgumentException {
+          IllegalArgumentException {
 
     if (lock.isLocked()) {
       throw new IllegalStateException("proposer engine is already running.");
@@ -108,7 +113,6 @@ public class ProposerEngine implements NewBlockSubscriber, Engine {
 
       Block newBlock = new Block(blockId, local.myId(), blockHeight + 1, transactions);
       newB = newBlock;
-      ;
       Signature sign = local.signEntity(newBlock);
       newBlock.setSignature(sign);
 
@@ -120,10 +124,11 @@ public class ProposerEngine implements NewBlockSubscriber, Engine {
       output.write(tag);
       taggedId = new Identifier(output.toByteArray());
 
-      assignment = assigner.assign(taggedId, state.atBlockId(newBlock.getPreviousBlockId()), (short) Parameters.VALIDATOR_THRESHOLD);
+      assignment = assigner.assign(taggedId, state.atBlockId(newBlock.getPreviousBlockId()),
+              Parameters.VALIDATOR_THRESHOLD);
       for (Identifier id : assignment.all()) {
         try {
-          this.proposerCon.unicast(newBlock, id);
+          proposerCon.unicast(newBlock, id);
         } catch (LightChainNetworkingException e) {
           e.printStackTrace();
         }
@@ -156,15 +161,12 @@ public class ProposerEngine implements NewBlockSubscriber, Engine {
       for (int i = 0; i < approvals.size(); i++) {
         signs[i] = approvals.get(i).getSignature();
       }
-      ValidatedBlock vBlock = new ValidatedBlock(newB.getPreviousBlockId()
-          , newB.getProposer()
-          , newB.getTransactions()
-          , this.local.signEntity(newB)
-          , signs,newB.getHeight());
+      ValidatedBlock validatedBlock = new ValidatedBlock(newB.getPreviousBlockId(),
+              newB.getProposer(), newB.getTransactions(), local.signEntity(newB), signs, newB.getHeight());
       for (Map.Entry<Identifier, String> pair : ((P2pNetwork) net).getIdToAddressMap().entrySet()) {
         if (pair.getValue().equals(Channels.ValidatedBlocks)) {
           try {
-            this.validatedCon.unicast(vBlock, pair.getKey());
+            validatedCon.unicast(validatedBlock, pair.getKey());
           } catch (LightChainNetworkingException e1) {
             e1.printStackTrace();
           }

@@ -1,19 +1,18 @@
 package protocol.engines;
 
+import java.util.concurrent.locks.ReentrantLock;
+
 import model.Entity;
+import model.codec.EntityType;
 import model.crypto.Signature;
 import model.lightchain.*;
-import model.codec.EntityType;
 import protocol.Engine;
 import protocol.Parameters;
 import protocol.assigner.LightChainValidatorAssigner;
 import state.State;
 import storage.Blocks;
-import storage.Transactions;
 import storage.Identifiers;
-
-import java.util.concurrent.locks.ReentrantLock;
-
+import storage.Transactions;
 
 /**
  * The ingest engine is responsible for receiving new transactions and blocks from the network, and organizing them
@@ -24,18 +23,14 @@ public class IngestEngine implements Engine {
   private final Blocks blocks;
   private final Identifiers transactionIds;
   private final Transactions pendingTransactions;
-  private final Identifiers seenEntities;//TODO: Add the seen entities
+  private final Identifiers seenEntities; //TODO: Add the seen entities
   private final ReentrantLock lock = new ReentrantLock();
-
 
   /**
    * Constructor of a IngestEngine.
    */
-  public IngestEngine(State state,
-                      Blocks blocks,
-                      Identifiers transactionIds,
-                      Transactions pendingTransactions,
-                      Identifiers seenEntities) {
+  public IngestEngine(State state, Blocks blocks, Identifiers transactionIds,
+                      Transactions pendingTransactions, Identifiers seenEntities) {
     this.state = state;
     this.blocks = blocks;
     this.transactionIds = transactionIds;
@@ -85,8 +80,7 @@ public class IngestEngine implements Engine {
         Signature[] certificates = ((ValidatedBlock) e).getCertificates();
 
         Assignment assignment = assigner.assign(block.id(),
-            state.atBlockId(block.getPreviousBlockId()),
-            Parameters.VALIDATOR_THRESHOLD);
+                state.atBlockId(block.getPreviousBlockId()), Parameters.VALIDATOR_THRESHOLD);
 
         int signatures = 0;
         for (Signature certificate : certificates) {
@@ -94,10 +88,8 @@ public class IngestEngine implements Engine {
             // certificate issued by a non-assigned validator
             return;
           }
-          if (this.state.atBlockId(block.getPreviousBlockId()).
-              getAccount(certificate.getSignerId())
-              .getPublicKey()
-              .verifySignature(block, certificate)) {
+          if (this.state.atBlockId(block.getPreviousBlockId())
+                  .getAccount(certificate.getSignerId()).getPublicKey().verifySignature(block, certificate)) {
             signatures++;
           }
         }
@@ -117,8 +109,7 @@ public class IngestEngine implements Engine {
         Signature[] certificates = ((ValidatedTransaction) e).getCertificates();
 
         Assignment assignment = assigner.assign(tx.id(),
-            state.atBlockId(tx.getReferenceBlockId()),
-            Parameters.VALIDATOR_THRESHOLD);
+                state.atBlockId(tx.getReferenceBlockId()), Parameters.VALIDATOR_THRESHOLD);
 
         int signatures = 0;
         for (Signature certificate : certificates) {
@@ -126,10 +117,8 @@ public class IngestEngine implements Engine {
             // certificate issued by a non-assigned validator
             return;
           }
-          if (this.state.atBlockId(tx.getReferenceBlockId()).
-              getAccount(certificate.getSignerId())
-              .getPublicKey()
-              .verifySignature(tx, certificate)) {
+          if (this.state.atBlockId(tx.getReferenceBlockId()).getAccount(certificate.getSignerId())
+                  .getPublicKey().verifySignature(tx, certificate)) {
             signatures++;
           }
         }
