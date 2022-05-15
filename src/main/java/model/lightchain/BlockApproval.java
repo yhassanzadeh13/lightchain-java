@@ -6,7 +6,7 @@ import model.crypto.Signature;
 /**
  * BlockApproval is the data structure containing a signature of a validator over a block.
  */
-public class BlockApproval  extends model.Entity{
+public class BlockApproval extends model.Entity {
   public final Signature signature;
   public final Identifier blockId;
 
@@ -26,6 +26,7 @@ public class BlockApproval  extends model.Entity{
 
   /**
    * BlockId of the block this approval is for.
+   *
    * @return BlockId of the block this approval is for.
    */
   public Identifier getBlockId() {
@@ -34,6 +35,7 @@ public class BlockApproval  extends model.Entity{
 
   /**
    * Signature of this blockApproval.
+   *
    * @return signature of this approval
    */
   public Signature getSignature() {

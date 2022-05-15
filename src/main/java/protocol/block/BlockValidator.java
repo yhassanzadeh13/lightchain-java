@@ -21,7 +21,7 @@ public class BlockValidator implements InfBlockValidator {
   /**
    * Unique State that the block refers to.
    */
-  private State state;
+  private final State state;
 
   /**
    * Constructor.
@@ -67,9 +67,7 @@ public class BlockValidator implements InfBlockValidator {
    */
   @Override
   public boolean isConsistent(Block block) {
-    return state.last()
-        .getReferenceBlockId()
-        .equals(block.getPreviousBlockId());
+    return state.last().getReferenceBlockId().equals(block.getPreviousBlockId());
   }
 
   /**
@@ -81,10 +79,8 @@ public class BlockValidator implements InfBlockValidator {
    */
   @Override
   public boolean isAuthenticated(Block block) {
-    return state.atBlockId(block.getPreviousBlockId())
-        .getAccount(block.getProposer())
-        .getPublicKey()
-        .verifySignature(block, block.getSignature());
+    return state.atBlockId(block.getPreviousBlockId()).getAccount(block.getProposer()).getPublicKey()
+            .verifySignature(block, block.getSignature());
   }
 
   /**
@@ -97,9 +93,8 @@ public class BlockValidator implements InfBlockValidator {
    */
   @Override
   public boolean proposerHasEnoughStake(Block block) {
-    return state.atBlockId(block.getPreviousBlockId())
-        .getAccount(block.getProposer())
-        .getStake() >= Parameters.MINIMUM_STAKE;
+    return state.atBlockId(block.getPreviousBlockId()).getAccount(block.getProposer())
+            .getStake() >= Parameters.MINIMUM_STAKE;
   }
 
   /**
@@ -118,7 +113,6 @@ public class BlockValidator implements InfBlockValidator {
         // transaction has less that required number of validators.
         return false;
       }
-
 
       Snapshot snapshot = state.atBlockId(block.getPreviousBlockId());
       for (Signature signature : transaction.getCertificates()) {

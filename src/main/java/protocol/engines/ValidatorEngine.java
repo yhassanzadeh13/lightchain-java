@@ -1,11 +1,15 @@
 package protocol.engines;
 
+import java.util.concurrent.locks.ReentrantLock;
+
 import model.Entity;
 import model.codec.EntityType;
 import model.crypto.Signature;
 import model.exceptions.LightChainNetworkingException;
-import model.lightchain.*;
-import storage.Identifiers;
+import model.lightchain.Assignment;
+import model.lightchain.Block;
+import model.lightchain.Identifier;
+import model.lightchain.Transaction;
 import model.local.Local;
 import network.Channels;
 import network.Conduit;
@@ -16,20 +20,27 @@ import protocol.assigner.LightChainValidatorAssigner;
 import protocol.block.BlockValidator;
 import protocol.transaction.TransactionValidator;
 import state.State;
-
-import java.util.concurrent.locks.ReentrantLock;
+import storage.Identifiers;
 
 /**
  * ValidatorEngine is a standalone engine of LightChain that runs transaction and block validation.
  */
 public class ValidatorEngine implements Engine {
+  public final Identifiers seenEntities;
   private final Local local;
   private final Conduit blockCon;
   private final Conduit transCon;
   private final State state;
-  public final Identifiers seenEntities;
   private final ReentrantLock lock;
 
+  /**
+   * Constructor for ValidatorEngine.
+   *
+   * @param net          the network
+   * @param local        the local
+   * @param state        the state
+   * @param seenEntities the seen entities
+   */
   public ValidatorEngine(Network net, Local local, State state, Identifiers seenEntities) {
     this.local = local;
     this.blockCon = net.register(this, Channels.ProposedBlocks);
@@ -72,8 +83,8 @@ public class ValidatorEngine implements Engine {
       if (e.type().equals(EntityType.TYPE_BLOCK)) {
         Block block = ((Block) e);
         Assignment assignment = assigner.assign(block.id(),
-            state.atBlockId((block).getPreviousBlockId()),
-            Parameters.VALIDATOR_THRESHOLD);
+                state.atBlockId((block).getPreviousBlockId()),
+                Parameters.VALIDATOR_THRESHOLD);
 
         if (!assignment.has(currentNode)) {
           return; // current node is not an assigned validator.
@@ -94,9 +105,9 @@ public class ValidatorEngine implements Engine {
 
         Transaction tx = ((Transaction) e);
         Assignment assignment = assigner.assign(
-            tx.id(),
-            state.atBlockId(tx.getReferenceBlockId()),
-            Parameters.VALIDATOR_THRESHOLD);
+                tx.id(),
+                state.atBlockId(tx.getReferenceBlockId()),
+                Parameters.VALIDATOR_THRESHOLD);
 
         if (!assignment.has(currentNode)) {
           return; // current node is not an assigned validator.
@@ -128,12 +139,12 @@ public class ValidatorEngine implements Engine {
     System.out.println("dup " + verifier.noDuplicateSender(b));
     System.out.println("stake " + verifier.proposerHasEnoughStake(b));
     return verifier.allTransactionsSound(b)
-        && verifier.allTransactionsValidated(b)
-        && verifier.isAuthenticated(b)
-        && verifier.isConsistent(b)
-        && verifier.isCorrect(b)
-        && verifier.noDuplicateSender(b)
-        && verifier.proposerHasEnoughStake(b);
+            && verifier.allTransactionsValidated(b)
+            && verifier.isAuthenticated(b)
+            && verifier.isConsistent(b)
+            && verifier.isCorrect(b)
+            && verifier.noDuplicateSender(b)
+            && verifier.proposerHasEnoughStake(b);
   }
 
   private boolean isTransactionValidated(Transaction t) {
@@ -143,8 +154,8 @@ public class ValidatorEngine implements Engine {
     System.out.println("auth trans " + verifier.isAuthenticated(t));
     System.out.println("bal trans " + verifier.senderHasEnoughBalance(t));
     return verifier.isCorrect(t)
-        && verifier.isSound(t)
-        && verifier.isAuthenticated(t)
-        && verifier.senderHasEnoughBalance(t);
+            && verifier.isSound(t)
+            && verifier.isAuthenticated(t)
+            && verifier.senderHasEnoughBalance(t);
   }
 }

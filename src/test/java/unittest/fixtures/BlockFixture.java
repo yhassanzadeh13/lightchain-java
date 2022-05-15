@@ -4,7 +4,10 @@ import java.util.ArrayList;
 import java.util.Random;
 
 import model.crypto.Signature;
-import model.lightchain.*;
+import model.lightchain.Account;
+import model.lightchain.Block;
+import model.lightchain.Identifier;
+import model.lightchain.ValidatedTransaction;
 import protocol.Parameters;
 
 /**
@@ -100,11 +103,11 @@ public class BlockFixture {
     ValidatedTransaction[] transactions = new ValidatedTransaction[validatedTransactionsSize];
     for (int i = 0; i < validatedTransactionsSize; i++) {
       transactions[i] = ValidatedTransactionFixture.newValidatedTransaction(
-          previousBlockId, //TODO: should this be this new blocks id?
-          accounts.get(i).getIdentifier(),
-          accounts.get(i+1).getIdentifier(),
-          signer,
-          accounts);
+              previousBlockId, //TODO: should this be this new blocks id?
+              accounts.get(i).getIdentifier(),
+              accounts.get(i + 1).getIdentifier(),
+              signer,
+              accounts);
     }
     Signature signature = SignatureFixture.newSignatureFixture(proposer);
     return new Block(previousBlockId, proposer, height, transactions, signature);

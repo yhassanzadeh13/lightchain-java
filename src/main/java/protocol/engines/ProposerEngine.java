@@ -29,6 +29,7 @@ import storage.Transactions;
  * Proposer engine encapsulates the logic of creating new blocks.
  */
 public class ProposerEngine implements NewBlockSubscriber, Engine {
+  private static final ReentrantLock lock = new ReentrantLock();
   private static Local local;
   private static Blocks blocks;
   private static Transactions pendingTransactions;
@@ -40,17 +41,24 @@ public class ProposerEngine implements NewBlockSubscriber, Engine {
   private ArrayList<BlockApproval> approvals;
   public Block newB;
 
-  private static final ReentrantLock lock = new ReentrantLock();
-
+  /**
+   * Constructor.
+   *
+   * @param blocks              Blocks storage.
+   * @param pendingTransactions Pending transactions storage.
+   * @param state               State storage.
+   * @param local               Local storage.
+   * @param net                 Network.
+   */
   public ProposerEngine(Blocks blocks, Transactions pendingTransactions, State state, Local local, Network net) {
-    this.local = local;
-    this.blocks = blocks;
-    this.pendingTransactions = pendingTransactions;
-    this.state = state;
+    ProposerEngine.local = local;
+    ProposerEngine.blocks = blocks;
+    ProposerEngine.pendingTransactions = pendingTransactions;
+    ProposerEngine.state = state;
     this.approvals = new ArrayList<>();
-    this.proposerCon = net.register(this, Channels.ProposedBlocks);
-    this.validatedCon = net.register(this, Channels.ValidatedBlocks);
-    this.net = net;
+    proposerCon = net.register(this, Channels.ProposedBlocks);
+    validatedCon = net.register(this, Channels.ValidatedBlocks);
+    ProposerEngine.net = net;
   }
 
   /**
@@ -73,7 +81,7 @@ public class ProposerEngine implements NewBlockSubscriber, Engine {
    */
   @Override
   public void onNewValidatedBlock(int blockHeight, Identifier blockId) throws IllegalStateException,
-      IllegalArgumentException {
+          IllegalArgumentException {
 
     if (lock.isLocked()) {
       throw new IllegalStateException("proposer engine is already running.");
@@ -173,7 +181,7 @@ public class ProposerEngine implements NewBlockSubscriber, Engine {
       for (Map.Entry<Identifier, String> pair : ((P2pNetwork) net).getIdToAddressMap().entrySet()) {
         if (pair.getValue().equals(Channels.ValidatedBlocks)) {
           try {
-            this.validatedCon.unicast(vBlock, pair.getKey());
+            validatedCon.unicast(validatedBlock, pair.getKey());
           } catch (LightChainNetworkingException e1) {
             e1.printStackTrace();
           }

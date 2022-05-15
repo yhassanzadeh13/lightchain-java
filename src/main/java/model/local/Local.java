@@ -15,7 +15,7 @@ public class Local {
 
   public Local(Identifier id, PrivateKey pk) {
     this.id = id;
-    this.pk =pk;
+    this.pk = pk;
   }
 
   /**

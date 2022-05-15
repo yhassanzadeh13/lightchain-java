@@ -44,11 +44,10 @@ public class Identifiers {
   public ArrayList<Identifier> getAll() {
     return this.identifiers;
   }
+
   @Override
   public String toString() {
-    return "Identifiers{"
-        + "identifiers=" + identifiers
-        + '}';
+    return "Identifiers{" + "identifiers=" + identifiers + '}';
   }
 
   public ArrayList<Identifier> all() {
