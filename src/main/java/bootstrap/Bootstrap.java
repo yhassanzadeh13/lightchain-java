@@ -40,6 +40,7 @@ public class Bootstrap {
       }
 
     } catch (IllegalStateException e) {
+      System.exit(1);
       throw new IllegalStateException("could not initialize and run the Node network", e);
     }
   }
@@ -72,6 +73,7 @@ public class Bootstrap {
       writer.flush();
       writer.close();
     } catch (IOException e) {
+      System.exit(1);
       throw new IllegalStateException("could not read/write from/to file", e);
     }
   }
