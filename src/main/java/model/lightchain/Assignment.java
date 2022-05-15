@@ -62,6 +62,7 @@ public class Assignment {
   public ArrayList<Identifier> getAll() {
     return this.validators.getAll();
   }
+
   @Override
   public String toString() {
     return this.validators.toString();
