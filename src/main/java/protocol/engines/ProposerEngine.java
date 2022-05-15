@@ -1,11 +1,14 @@
 package protocol.engines;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Map;
+import java.util.concurrent.locks.ReentrantLock;
+
 import model.Entity;
 import model.codec.EntityType;
-import model.crypto.KeyGen;
-import model.crypto.PrivateKey;
 import model.crypto.Signature;
-import model.crypto.ecdsa.EcdsaKeyGen;
 import model.exceptions.LightChainNetworkingException;
 import model.lightchain.*;
 import model.local.Local;
@@ -22,11 +25,6 @@ import state.State;
 import storage.Blocks;
 import storage.Transactions;
 
-import java.io.ByteArrayOutputStream;
-import java.util.ArrayList;
-import java.util.Map;
-import java.util.concurrent.locks.ReentrantLock;
-
 /**
  * Proposer engine encapsulates the logic of creating new blocks.
  */
@@ -38,6 +36,7 @@ public class ProposerEngine implements NewBlockSubscriber, Engine {
   private static Conduit proposerCon;
   private static Conduit validatedCon;
   private static Network net;
+  private static LightChainValidatorAssigner assigner;
   private ArrayList<BlockApproval> approvals;
   public Block newB;
 
@@ -67,6 +66,7 @@ public class ProposerEngine implements NewBlockSubscriber, Engine {
    *
    * @param blockHeight block height.
    * @param blockId     identifier of block.
+   *
    * @throws IllegalStateException    when it receives a new validated block while it is pending for its previously
    *                                  proposed block to get validated.
    * @throws IllegalArgumentException when its parameters do not match a validated block from database.
@@ -79,57 +79,65 @@ public class ProposerEngine implements NewBlockSubscriber, Engine {
       throw new IllegalStateException("proposer engine is already running.");
     }
     lock.lock();
-
-    // Adds the Block Proposer tag to the assigner.
-    byte[] bytesId = blockId.getBytes();
-    byte tag = Integer.valueOf(Tags.BlockProposerTag).byteValue();
-    ByteArrayOutputStream output = new ByteArrayOutputStream();
-    output.write(bytesId, 0, 32);
-    output.write(tag);
-    Identifier taggedId = new Identifier(output.toByteArray());
-
-    // Calls the assigner with tagged id.
-    LightChainValidatorAssigner assigner = new LightChainValidatorAssigner();
-    Assignment assignment = assigner.assign(taggedId, state.atBlockId(blockId), (short) 1);
-
-    // Checks whether the assigner has assigned this node.
-    if (assignment.has(local.myId())) {
-
-      // Waits until there are enough pending transactions.
-      while (pendingTransactions.size() < Parameters.MIN_VALIDATED_TRANSACTIONS_NUM) {
-      }
-
-      ValidatedTransaction[] transactions = new ValidatedTransaction[Parameters.MIN_VALIDATED_TRANSACTIONS_NUM];
-      for (int i = 0; i < Parameters.MIN_VALIDATED_TRANSACTIONS_NUM; i++) {
-        Transaction tx = pendingTransactions.all().get(i);
-        transactions[i] = ((ValidatedTransaction) tx);
-        pendingTransactions.remove(tx.id());
-      }
-
-      Block newBlock = new Block(blockId, local.myId(), blockHeight + 1, transactions);
-      newB = newBlock;
-      ;
-      Signature sign = local.signEntity(newBlock);
-      newBlock.setSignature(sign);
-
+    try {
       // Adds the Block Proposer tag to the assigner.
-      bytesId = newBlock.id().getBytes();
-      tag = Integer.valueOf(Tags.ValidatorTag).byteValue();
-      output = new ByteArrayOutputStream();
-      output.write(bytesId, 0, 32);
-      output.write(tag);
-      taggedId = new Identifier(output.toByteArray());
+      byte[] bytesId = blockId.getBytes();
+      byte[] bytesTag = Tags.BlockProposerTag.getBytes();
+      ByteArrayOutputStream output = new ByteArrayOutputStream();
+      try {
+        output.write(bytesId, 0, 32);
+        output.write(bytesTag);
+      } catch (IOException e) {
+        throw new IllegalStateException("could not write to bytes to ByteArrayOutputStream", e);
+      }
+      Identifier taggedId = new Identifier(output.toByteArray());
 
-      assignment = assigner.assign(taggedId, state.atBlockId(newBlock.getPreviousBlockId()), (short) Parameters.VALIDATOR_THRESHOLD);
-      for (Identifier id : assignment.all()) {
+      // Calls the assigner with tagged id.
+      LightChainValidatorAssigner assigner = new LightChainValidatorAssigner();
+      Assignment assignment = assigner.assign(taggedId, state.atBlockId(blockId), (short) 1);
+
+      // Checks whether the assigner has assigned this node.
+      if (assignment.has(local.myId())) {
+
+        // Waits until there are enough pending transactions.
+        while (pendingTransactions.size() < Parameters.MIN_VALIDATED_TRANSACTIONS_NUM) {
+        }
+
+        ValidatedTransaction[] transactions = new ValidatedTransaction[Parameters.MIN_VALIDATED_TRANSACTIONS_NUM];
+        for (int i = 0; i < Parameters.MIN_VALIDATED_TRANSACTIONS_NUM; i++) {
+          Transaction tx = pendingTransactions.all().get(i);
+          transactions[i] = ((ValidatedTransaction) tx);
+          pendingTransactions.remove(tx.id());
+        }
+
+        Block newBlock = new Block(blockId, local.myId(), blockHeight + 1, transactions);
+        newB = newBlock;
+        Signature sign = local.signEntity(newBlock);
+        newBlock.setSignature(sign);
+
+        // Adds the Block Proposer tag to the assigner.
+        bytesId = newBlock.id().getBytes();
+        bytesTag = Tags.ValidatorTag.getBytes();
+        output = new ByteArrayOutputStream();
         try {
-          this.proposerCon.unicast(newBlock, id);
-        } catch (LightChainNetworkingException e) {
-          e.printStackTrace();
+          output.write(bytesId, 0, 32);
+          output.write(bytesTag);
+        } catch (IOException e) {
+          throw new IllegalStateException("could not write to bytes to ByteArrayOutputStream", e);
+        }
+        taggedId = new Identifier(output.toByteArray());
+        assignment = assigner.assign(taggedId, state.atBlockId(newBlock.getPreviousBlockId()), (short) Parameters.VALIDATOR_THRESHOLD);
+        for (Identifier id : assignment.all()) {
+          try {
+            this.proposerCon.unicast(newBlock, id);
+          } catch (LightChainNetworkingException e) {
+            e.printStackTrace();
+          }
         }
       }
+    } finally {
+      lock.unlock();
     }
-    lock.unlock();
   }
 
   /**
@@ -140,6 +148,7 @@ public class ProposerEngine implements NewBlockSubscriber, Engine {
    * network using the validated blocks channel.
    *
    * @param e the arrived Entity from the network.
+   *
    * @throws IllegalArgumentException any entity other than BlockApproval.
    */
   @Override
@@ -160,7 +169,7 @@ public class ProposerEngine implements NewBlockSubscriber, Engine {
           , newB.getProposer()
           , newB.getTransactions()
           , this.local.signEntity(newB)
-          , signs,newB.getHeight());
+          , signs, newB.getHeight());
       for (Map.Entry<Identifier, String> pair : ((P2pNetwork) net).getIdToAddressMap().entrySet()) {
         if (pair.getValue().equals(Channels.ValidatedBlocks)) {
           try {
@@ -175,6 +184,5 @@ public class ProposerEngine implements NewBlockSubscriber, Engine {
     } else {
       throw new IllegalArgumentException("entity is not of type BlockApproval");
     }
-
   }
 }
