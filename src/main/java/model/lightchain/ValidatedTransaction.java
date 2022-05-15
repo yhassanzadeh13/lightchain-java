@@ -1,6 +1,7 @@
 package model.lightchain;
 
 import java.io.Serializable;
+import java.util.Arrays;
 
 import model.codec.EntityType;
 import model.crypto.Signature;
@@ -39,13 +40,19 @@ public class ValidatedTransaction extends Transaction implements Serializable {
   }
 
   @Override
-  public int hashCode() {
-    return super.hashCode();
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (!(o instanceof ValidatedTransaction)) return false;
+    if (!super.equals(o)) return false;
+    ValidatedTransaction that = (ValidatedTransaction) o;
+    return Arrays.equals(getCertificates(), that.getCertificates());
   }
 
   @Override
-  public boolean equals(Object o) {
-    return super.equals(o);
+  public int hashCode() {
+    int result = super.hashCode();
+    result = 31 * result + Arrays.hashCode(getCertificates());
+    return result;
   }
 
   @Override

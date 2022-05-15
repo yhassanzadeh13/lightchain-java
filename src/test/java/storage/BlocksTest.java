@@ -34,18 +34,7 @@ public class BlocksTest {
   // temporary directory.
   // In following tests by a "new" block, we mean a block that already does not exist in the database,
   // and by a "duplicate" block, we mean one that already exists in the database.
-  // 1. When adding 10 new blocks sequentially, the Add method must return true for all of them. Moreover, after
-  //    adding blocks is done, querying the Has method for each of the block should return true. After adding all blocks
-  //    are done, each block must be retrievable using both its id (byId) as well as its height (byHeight). Also, when
-  //    querying All method, list of all 10 block must be returned.
-  // 2. Repeat test case 1 for concurrently adding blocks as well as concurrently querying the database for has, byId,
-  //    and byHeight.
-  // 3. Add 10 new blocks sequentially, check that they are added correctly, i.e., while adding each block
-  //    Add must return
-  //    true, Has returns true for each of them, each block is retrievable by both its height and its identifier,
-  //    and All returns list of all of them. Then Remove the first 5 blocks sequentially.
-  //    While Removing each of them, the Remove should return true. Then query all 10 blocks using has, byId,
-  //    and byHeight.
+  // 3.
   //    Has should return false for the first 5 blocks have been removed,
   //    and byId and byHeight should return null. But for the last 5 blocks, has should return true, and byId
   //    and byHeight should successfully retrieve the exact block. Also, All should return only the last 5 blocks.
@@ -75,7 +64,10 @@ public class BlocksTest {
   }
 
   /**
-   * Adding blocks sequentially.
+   * When adding 10 new blocks sequentially, the Add method must return true for all of them. Moreover, after
+   * adding blocks is done, querying the Has method for each of the block should return true. After adding all blocks
+   * are done, each block must be retrievable using both its id (byId) as well as its height (byHeight). Also, when
+   * querying All method, list of all 10 block must be returned.
    *
    * @throws IOException throw IOException.
    */
@@ -88,22 +80,29 @@ public class BlocksTest {
       Assertions.assertTrue(db.has(block.id()));
     }
     for (Block block : allBlocks) {
-      Assertions.assertTrue(allBlocks.contains(db.atHeight(block.getHeight())));
+      Assertions.assertEquals(block, db.atHeight(block.getHeight()));
+      Assertions.assertEquals(block.id(), db.atHeight(block.getHeight()).id());
     }
     for (Block block : allBlocks) {
-      Assertions.assertTrue(allBlocks.contains(db.byId(block.id())));
+      Assertions.assertEquals(block, db.byId(block.id()));
+      Assertions.assertEquals(block.id(), db.byId(block.id()).id());
     }
     ArrayList<Block> all = db.all();
     Assertions.assertEquals(all.size(), 10);
     for (Block block : all) {
       Assertions.assertTrue(allBlocks.contains(block));
     }
+
+    // TODO: move these to @AfterEach.
     db.closeDb();
     FileUtils.deleteDirectory(new File(tempdir.toString()));
   }
 
   /**
-   * Adding blocks concurrently.
+   * When adding 10 new blocks concurrently, the Add method must return true for all of them. Moreover, after
+   * adding blocks is done, querying the Has method for each of the block should return true. After adding all blocks
+   * are done, each block must be retrievable using both its id (byId) as well as its height (byHeight). Also, when
+   * querying All method, list of all 10 block must be returned.
    */
   @Test
   void concurrentAddTest() throws IOException {
@@ -133,6 +132,7 @@ public class BlocksTest {
     } catch (InterruptedException e) {
       Assertions.fail();
     }
+
     /*
     Checking correctness of insertion by Has.
     */
@@ -231,13 +231,19 @@ public class BlocksTest {
       Assertions.fail();
     }
 
+    // TODO: decouple thread error assertions per operation, i.e., add, query.
     Assertions.assertEquals(0, threadError.get());
     db.closeDb();
     FileUtils.deleteDirectory(new File(tempdir.toString()));
   }
 
   /**
-   * Add 10 new blocks, remove first 5 and test methods.
+   * Add 10 new blocks sequentially, check that they are added correctly, i.e., while adding each block
+   * Add must return
+   * true, Has returns true for each of them, each block is retrievable by both its height and its identifier,
+   * and All returns list of all of them. Then Remove the first 5 blocks sequentially.
+   * While Removing each of them, the Remove should return true. Then query all 10 blocks using has, byId,
+   * and byHeight.
    */
   @Test
   void removeFirstFiveTest() throws IOException {
@@ -248,10 +254,10 @@ public class BlocksTest {
       Assertions.assertTrue(db.has(block.id()));
     }
     for (Block block : allBlocks) {
-      Assertions.assertTrue(allBlocks.contains(db.atHeight(block.getHeight())));
+      Assertions.assertEquals(block, db.atHeight(block.getHeight()));
     }
     for (Block block : allBlocks) {
-      Assertions.assertTrue(allBlocks.contains(db.byId(block.id())));
+      Assertions.assertEquals(block, db.byId(block.id()));
     }
     ArrayList<Block> all = db.all();
     Assertions.assertEquals(all.size(), 10);
@@ -262,14 +268,19 @@ public class BlocksTest {
       Assertions.assertTrue(db.remove(allBlocks.get(i).id()));
     }
     for (int i = 0; i < 10; i++) {
+      Block block = allBlocks.get(i);
       if (i < 5) {
-        Assertions.assertFalse(db.has(allBlocks.get(i).id()) || db.all().contains(allBlocks.get(i)));
+        Assertions.assertFalse(db.has(block.id()));
+        Assertions.assertFalse(db.all().contains(block));
+        Assertions.assertNull(db.byId(block.id()));
       } else {
-        Assertions.assertTrue(db.has(allBlocks.get(i).id()) && db.all().contains(allBlocks.get(i))
-            && db.all().contains(db.atHeight(allBlocks.get(i).getHeight()))
-            && db.all().contains(db.byId(allBlocks.get(i).id())));
+        Assertions.assertTrue(db.has(block.id()));
+        Assertions.assertTrue(db.all().contains(allBlocks.get(i)));
+        Assertions.assertEquals(block, db.atHeight(block.getHeight()));
+        Assertions.assertEquals(block, db.byId(allBlocks.get(i).id()));
       }
     }
+    // TODO: move these to @AfterEach.
     db.closeDb();
     FileUtils.deleteDirectory(new File(tempdir.toString()));
   }
@@ -304,6 +315,8 @@ public class BlocksTest {
     } catch (InterruptedException e) {
       Assertions.fail();
     }
+    Assertions.assertEquals(0, threadError.get());
+
     /*
     Checking correctness of insertion by Has.
     */
@@ -327,6 +340,8 @@ public class BlocksTest {
     } catch (InterruptedException e) {
       Assertions.fail();
     }
+    Assertions.assertEquals(0, threadError.get());
+
     /*
     Checking correctness of insertion byID.
     */
@@ -335,7 +350,8 @@ public class BlocksTest {
     for (int i = 0; i < allBlocks.size(); i++) {
       int finalI = i;
       getThreads[i] = new Thread(() -> {
-        if (!allBlocks.contains(db.byId(allBlocks.get(finalI).id()))) {
+        Block block = allBlocks.get(finalI);
+        if (!block.equals(db.byId(block.id()))) {
           threadError.getAndIncrement();
         }
         getDone.countDown();
@@ -351,6 +367,8 @@ public class BlocksTest {
     } catch (InterruptedException e) {
       Assertions.fail();
     }
+    Assertions.assertEquals(0, threadError.get());
+
     /*
     Checking correctness of insertion by atHeight.
     */
@@ -359,7 +377,8 @@ public class BlocksTest {
     for (int i = 0; i < allBlocks.size(); i++) {
       int finalI = i;
       heightThreats[i] = new Thread(() -> {
-        if (!allBlocks.contains(db.atHeight(allBlocks.get(finalI).getHeight()))) {
+        Block block = allBlocks.get(finalI);
+        if (!block.equals(db.atHeight(block.getHeight()))) {
           threadError.getAndIncrement();
         }
         heightDone.countDown();
@@ -375,6 +394,8 @@ public class BlocksTest {
     } catch (InterruptedException e) {
       Assertions.fail();
     }
+    Assertions.assertEquals(0, threadError.get());
+
     /*
     Retrieving all concurrently.
     */
@@ -399,10 +420,12 @@ public class BlocksTest {
     } catch (InterruptedException e) {
       Assertions.fail();
     }
+    Assertions.assertEquals(0, threadError.get());
+
     /*
     Removing first 5 concurrently
      */
-    int removeTill = concurrencyDegree / 2;
+    int removeTill = 5;
     CountDownLatch doneRemove = new CountDownLatch(removeTill);
     Thread[] removeThreads = new Thread[removeTill];
     for (int i = 0; i < removeTill; i++) {
@@ -424,27 +447,30 @@ public class BlocksTest {
     } catch (InterruptedException e) {
       Assertions.fail();
     }
+    Assertions.assertEquals(0, threadError.get());
+
     /*
     Check Has after removing first five blocks
      */
-    CountDownLatch doneHas = new CountDownLatch(concurrencyDegree / 2);
-    Thread[] hasThreads2 = new Thread[concurrencyDegree / 2];
-    for (int i = 0; i < concurrencyDegree / 2; i++) {
+    CountDownLatch doneHas = new CountDownLatch(concurrencyDegree);
+    Thread[] hasThreadsAfterRemoval = new Thread[concurrencyDegree];
+    for (int i = 0; i < concurrencyDegree; i++) {
       int finalI = i;
-      hasThreads2[i] = new Thread(() -> {
-        if (allBlocks.indexOf(allBlocks.get(finalI)) < 5) {
-          if (db.has(allBlocks.get(finalI).id())) {
+      hasThreadsAfterRemoval[i] = new Thread(() -> {
+        Block block = allBlocks.get(finalI);
+        if (finalI < 5) {
+          if (db.has(block.id())) {
             threadError.getAndIncrement();
           }
         } else {
-          if (!db.has(allBlocks.get(finalI).id())) {
+          if (!db.has(block.id())) {
             threadError.getAndIncrement();
           }
         }
         doneHas.countDown();
       });
     }
-    for (Thread t : hasThreads2) {
+    for (Thread t : hasThreadsAfterRemoval) {
       t.start();
     }
     try {
@@ -453,19 +479,29 @@ public class BlocksTest {
     } catch (InterruptedException e) {
       Assertions.fail();
     }
+    Assertions.assertEquals(0, threadError.get());
+
     /*
     Check byID after removing first five blocks
      */
-    CountDownLatch getById = new CountDownLatch(concurrencyDegree / 2);
-    Thread[] getThreadsById = new Thread[concurrencyDegree / 2];
-    for (int i = 0; i < concurrencyDegree / 2; i++) {
+    CountDownLatch getById = new CountDownLatch(concurrencyDegree);
+    Thread[] getThreadsById = new Thread[concurrencyDegree];
+    for (int i = 0; i < concurrencyDegree; i++) {
       int finalI = i;
-      int finalI1 = i + 5;
       getThreadsById[i] = new Thread(() -> {
-        if (allBlocks.contains(db.byId(allBlocks.get(finalI).id()))
-            || !allBlocks.contains(db.byId(allBlocks.get(finalI1).id()))) {
-          System.out.println("here");
-          threadError.getAndIncrement();
+        Block block = allBlocks.get(finalI);
+        if (finalI < 5) {
+          if (db.byId(block.id()) != null) {
+            threadError.getAndIncrement();
+          }
+        } else {
+          Block got = db.byId(block.id());
+          if (!got.equals(block)) {
+            threadError.getAndIncrement();
+          }
+          if (!got.id().equals(block.id())) {
+            threadError.getAndIncrement();
+          }
         }
         getById.countDown();
       });
@@ -480,16 +516,24 @@ public class BlocksTest {
     } catch (InterruptedException e) {
       Assertions.fail();
     }
+    Assertions.assertEquals(0, threadError.get());
+
     /*
     Check atHeight after removing first five blocks
      */
-    CountDownLatch getByHeight = new CountDownLatch(concurrencyDegree / 2);
-    Thread[] getThreadsByHeight = new Thread[concurrencyDegree / 2];
+    CountDownLatch getByHeight = new CountDownLatch(concurrencyDegree);
+    Thread[] getThreadsByHeight = new Thread[concurrencyDegree];
     for (int i = 0; i < concurrencyDegree / 2; i++) {
       int finalI = i;
-      int finalI1 = i + 5;
       getThreadsByHeight[i] = new Thread(() -> {
-        if (allBlocks.contains(db.atHeight(allBlocks.get(finalI).getHeight()))
+        Block block = allBlocks.get(finalI);
+        if(finalI < 5){
+        if (db.atHeight(block.getHeight() != null) {
+
+          }
+        } else {
+          
+        }
             || !allBlocks.contains(db.atHeight(allBlocks.get(finalI1).getHeight()))) {
 
           threadError.getAndIncrement();

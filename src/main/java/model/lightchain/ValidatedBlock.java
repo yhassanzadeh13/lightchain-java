@@ -1,5 +1,7 @@
 package model.lightchain;
 
+import java.util.Arrays;
+
 import model.codec.EntityType;
 import model.crypto.Signature;
 
@@ -37,13 +39,19 @@ public class ValidatedBlock extends Block {
   }
 
   @Override
-  public int hashCode() {
-    return super.hashCode();
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (!(o instanceof ValidatedBlock)) return false;
+    if (!super.equals(o)) return false;
+    ValidatedBlock that = (ValidatedBlock) o;
+    return Arrays.equals(getCertificates(), that.getCertificates());
   }
 
   @Override
-  public boolean equals(Object o) {
-    return super.equals(o);
+  public int hashCode() {
+    int result = super.hashCode();
+    result = 31 * result + Arrays.hashCode(getCertificates());
+    return result;
   }
 
   @Override
