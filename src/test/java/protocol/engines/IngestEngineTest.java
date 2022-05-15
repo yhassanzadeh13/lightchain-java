@@ -129,6 +129,7 @@ public class IngestEngineTest {
     state = mock(State.class);
     pendingTransactions = mock(Identifiers.class);
     snapshot = mock(Snapshot.class);
+    Identifiers seenEntities = mock(Identifiers.class);
 
     ArrayList<Account> accounts = new ArrayList<>(AccountFixture.newAccounts(10, 10).values());
 
