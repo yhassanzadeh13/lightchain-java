@@ -25,6 +25,7 @@ public class IngestEngine implements Engine {
   private final Transactions pendingTransactions;
   private final Identifiers seenEntities; //TODO: Add the seen entities
   private final ReentrantLock lock = new ReentrantLock();
+  private final Assignment assignment;
 
   /**
    * Constructor of a IngestEngine.
@@ -33,12 +34,14 @@ public class IngestEngine implements Engine {
                       Blocks blocks,
                       Identifiers transactionIds,
                       Transactions pendingTransactions,
-                      Identifiers seenEntities) {
+                      Identifiers seenEntities,
+                      Assignment assignment) {
     this.state = state;
     this.blocks = blocks;
     this.transactionIds = transactionIds;
     this.pendingTransactions = pendingTransactions;
     this.seenEntities = seenEntities;
+    this.assignment = assignment;
   }
 
   /**
@@ -81,11 +84,11 @@ public class IngestEngine implements Engine {
       if (e.type().equals(EntityType.TYPE_VALIDATED_BLOCK)) {
         Block block = ((Block) e); // skims off the non-block attributes (e.g., certificates).
         Signature[] certificates = ((ValidatedBlock) e).getCertificates();
-
+        /* Commented out for testing (to be able to give it mock)
         Assignment assignment = assigner.assign(block.id(),
                 state.atBlockId(block.getPreviousBlockId()),
                 Parameters.VALIDATOR_THRESHOLD);
-
+          */
         int signatures = 0;
         for (Signature certificate : certificates) {
           if (!assignment.has(certificate.getSignerId())) {
