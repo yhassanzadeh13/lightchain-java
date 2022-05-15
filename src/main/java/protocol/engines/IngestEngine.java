@@ -116,11 +116,11 @@ public class IngestEngine implements Engine {
       } else if (e.type().equals(EntityType.TYPE_VALIDATED_TRANSACTION)) {
         Transaction tx = ((Transaction) e); // skims off the non-transaction attributes (e.g., certificates).
         Signature[] certificates = ((ValidatedTransaction) e).getCertificates();
-
+        /* Commented out for testing (to be able to give it mock)
         Assignment assignment = assigner.assign(tx.id(),
                 state.atBlockId(tx.getReferenceBlockId()),
                 Parameters.VALIDATOR_THRESHOLD);
-
+        */
         int signatures = 0;
         for (Signature certificate : certificates) {
           if (!assignment.has(certificate.getSignerId())) {
