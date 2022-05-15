@@ -43,6 +43,7 @@ public class Node {
     try {
       network.start();
     } catch (IOException e) {
+      System.exit(1);
       throw new IllegalStateException("could start the network: " + e);
     }
 
@@ -74,6 +75,7 @@ public class Node {
           try {
             conduit.unicast(e, id.getKey());
           } catch (LightChainNetworkingException ex) {
+            System.exit(1);
             throw new IllegalStateException("could not send the entity", ex);
           }
         }
@@ -104,8 +106,10 @@ public class Node {
       }
       reader.close();
     } catch (FileNotFoundException e) {
+      System.exit(1);
       throw new IllegalStateException("could not found the file", e);
     } catch (IOException e) {
+      System.exit(1);
       throw new IllegalStateException("could not read/write from/to file", e);
     }
     return map;
