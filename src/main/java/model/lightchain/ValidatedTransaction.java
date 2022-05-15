@@ -41,9 +41,15 @@ public class ValidatedTransaction extends Transaction implements Serializable {
 
   @Override
   public boolean equals(Object o) {
-    if (this == o) return true;
-    if (!(o instanceof ValidatedTransaction)) return false;
-    if (!super.equals(o)) return false;
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof ValidatedTransaction)) {
+      return false;
+    }
+    if (!super.equals(o)) {
+      return false;
+    }
     ValidatedTransaction that = (ValidatedTransaction) o;
     return Arrays.equals(getCertificates(), that.getCertificates());
   }

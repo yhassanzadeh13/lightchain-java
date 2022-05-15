@@ -11,6 +11,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import model.lightchain.Block;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -29,30 +30,14 @@ public class BlocksTest {
   private Path tempdir;
   private ArrayList<Block> allBlocks;
   private BlocksMapDb db;
-  // TODO: implement a unit test for each of the following scenarios:
-  // IMPORTANT NOTE: each test must have a separate instance of database, and the database MUST only created on a
-  // temporary directory.
-  // In following tests by a "new" block, we mean a block that already does not exist in the database,
-  // and by a "duplicate" block, we mean one that already exists in the database.
-  // 3.
-  //    Has should return false for the first 5 blocks have been removed,
-  //    and byId and byHeight should return null. But for the last 5 blocks, has should return true, and byId
-  //    and byHeight should successfully retrieve the exact block. Also, All should return only the last 5 blocks.
-  // 4. Repeat test case 3 for concurrently adding and removing blocks as well as concurrently querying the
-  //    database for has, byId, and byHeight.
-  // 5. Add 10 new blocks and check that all of them are added correctly, i.e., while adding each block
-  //    Add must return true, has returns true for each of them, and All returns list of all of them. Moreover, each
-  //    block is retrievable using its identifier (byId) and height (byHeight). Then try Adding all of them again, and
-  //    Add should return false for each of them, while has should still return true, and byId and byHeight should be
-  //    able to retrieve the block.
-  // 6. Repeat test case 5 for concurrently adding blocks as well as concurrently querying the
-  //    database for has, byId, and byHeight.
 
   /**
-   * Set the tests up.
+   * Initializes database.
+   *
+   * @throws IOException if creating temporary directory faces unhappy path.
    */
   @BeforeEach
-  void setUp() throws IOException {
+  void setup() throws IOException {
     Path currentRelativePath = Paths.get("");
     tempdir = Files.createTempDirectory(currentRelativePath, TEMP_DIR);
     db = new BlocksMapDb(tempdir.toAbsolutePath() + "/" + TEMP_FILE_ID,
@@ -64,15 +49,24 @@ public class BlocksTest {
   }
 
   /**
-   * When adding 10 new blocks sequentially, the Add method must return true for all of them. Moreover, after
+   * Closes database.
+   *
+   * @throws IOException if deleting temporary directory faces unhappy path.
+   */
+  @AfterEach
+  void cleanup() throws IOException {
+    db.closeDb();
+    FileUtils.deleteDirectory(new File(tempdir.toString()));
+  }
+
+  /**
+   * When adding 10 new blocks SEQUENTIALLY, the Add method must return true for all of them. Moreover, after
    * adding blocks is done, querying the Has method for each of the block should return true. After adding all blocks
    * are done, each block must be retrievable using both its id (byId) as well as its height (byHeight). Also, when
    * querying All method, list of all 10 block must be returned.
-   *
-   * @throws IOException throw IOException.
    */
   @Test
-  void sequentialAddTest() throws IOException {
+  void sequentialAddTest() {
     for (Block block : allBlocks) {
       Assertions.assertTrue(db.add(block));
     }
@@ -92,153 +86,32 @@ public class BlocksTest {
     for (Block block : all) {
       Assertions.assertTrue(allBlocks.contains(block));
     }
-
-    // TODO: move these to @AfterEach.
-    db.closeDb();
-    FileUtils.deleteDirectory(new File(tempdir.toString()));
   }
 
   /**
-   * When adding 10 new blocks concurrently, the Add method must return true for all of them. Moreover, after
+   * When adding 10 new blocks CONCURRENTLY, the Add method must return true for all of them. Moreover, after
    * adding blocks is done, querying the Has method for each of the block should return true. After adding all blocks
    * are done, each block must be retrievable using both its id (byId) as well as its height (byHeight). Also, when
    * querying All method, list of all 10 block must be returned.
    */
   @Test
-  void concurrentAddTest() throws IOException {
-    int concurrencyDegree = 10;
-
-    AtomicInteger threadError = new AtomicInteger();
-    CountDownLatch addDone = new CountDownLatch(concurrencyDegree);
-    Thread[] addThreads = new Thread[concurrencyDegree];
+  void concurrentAddTest() {
     /*
     Adding all blocks concurrently.
     */
-    for (int i = 0; i < allBlocks.size(); i++) {
-      int finalI = i;
-      addThreads[i] = new Thread(() -> {
-        if (!db.add(allBlocks.get(finalI))) {
-          threadError.getAndIncrement();
-        }
-        addDone.countDown();
-      });
-    }
-    for (Thread t : addThreads) {
-      t.start();
-    }
-    try {
-      boolean doneOneTime = addDone.await(60, TimeUnit.SECONDS);
-      Assertions.assertTrue(doneOneTime);
-    } catch (InterruptedException e) {
-      Assertions.fail();
-    }
+    this.addAllBlocksConcurrently(true);
 
     /*
-    Checking correctness of insertion by Has.
+    All blocks should be retrievable
     */
-    CountDownLatch hasDone = new CountDownLatch(concurrencyDegree);
-    Thread[] hasThreads = new Thread[concurrencyDegree];
-    for (int i = 0; i < allBlocks.size(); i++) {
-      int finalI = i;
-      hasThreads[i] = new Thread(() -> {
-        if (!db.has((allBlocks.get(finalI)).id())) {
-          threadError.getAndIncrement();
-        }
-        hasDone.countDown();
-      });
-    }
-
-    for (Thread t : hasThreads) {
-      t.start();
-    }
-    try {
-      boolean doneOneTime = hasDone.await(60, TimeUnit.SECONDS);
-      Assertions.assertTrue(doneOneTime);
-    } catch (InterruptedException e) {
-      Assertions.fail();
-    }
-    /*
-    Checking correctness of insertion byID.
-    */
-    CountDownLatch getDone = new CountDownLatch(concurrencyDegree);
-    Thread[] getThreads = new Thread[concurrencyDegree];
-    for (int i = 0; i < allBlocks.size(); i++) {
-      int finalI = i;
-      getThreads[i] = new Thread(() -> {
-        if (!allBlocks.contains(db.byId(allBlocks.get(finalI).id()))) {
-          threadError.getAndIncrement();
-        }
-        getDone.countDown();
-      });
-    }
-
-    for (Thread t : getThreads) {
-      t.start();
-    }
-    try {
-      boolean doneOneTime = getDone.await(60, TimeUnit.SECONDS);
-      Assertions.assertTrue(doneOneTime);
-    } catch (InterruptedException e) {
-      Assertions.fail();
-    }
-    /*
-    Checking correctness of insertion by atHeight.
-    */
-    CountDownLatch heightDone = new CountDownLatch(concurrencyDegree);
-    Thread[] heightThreats = new Thread[concurrencyDegree];
-    for (int i = 0; i < allBlocks.size(); i++) {
-      int finalI = i;
-      heightThreats[i] = new Thread(() -> {
-        if (!allBlocks.contains(db.atHeight(allBlocks.get(finalI).getHeight()))) {
-          threadError.getAndIncrement();
-        }
-        heightDone.countDown();
-      });
-    }
-
-    for (Thread t : heightThreats) {
-      t.start();
-    }
-    try {
-      boolean doneOneTime = heightDone.await(60, TimeUnit.SECONDS);
-      Assertions.assertTrue(doneOneTime);
-    } catch (InterruptedException e) {
-      Assertions.fail();
-    }
-    /*
-    Retrieving all concurrently.
-    */
-    CountDownLatch doneAll = new CountDownLatch(concurrencyDegree);
-    Thread[] allThreads = new Thread[concurrencyDegree];
-    ArrayList<Block> all = db.all();
-    for (int i = 0; i < all.size(); i++) {
-      int finalI = i;
-      allThreads[i] = new Thread(() -> {
-        if (!all.contains(allBlocks.get(finalI))) {
-          threadError.getAndIncrement();
-        }
-        doneAll.countDown();
-      });
-    }
-
-    for (Thread t : allThreads) {
-      t.start();
-    }
-    try {
-      boolean doneOneTime = doneAll.await(60, TimeUnit.SECONDS);
-      Assertions.assertTrue(doneOneTime);
-    } catch (InterruptedException e) {
-      Assertions.fail();
-    }
-
-    // TODO: decouple thread error assertions per operation, i.e., add, query.
-    Assertions.assertEquals(0, threadError.get());
-    db.closeDb();
-    FileUtils.deleteDirectory(new File(tempdir.toString()));
+    this.checkForHasConcurrently(0);
+    this.checkForByIdConcurrently(0);
+    this.checkForByHeightConcurrently(0);
+    this.checkForAllConcurrently(0);
   }
 
   /**
-   * Add 10 new blocks sequentially, check that they are added correctly, i.e., while adding each block
+   * Add 10 new blocks SEQUENTIALLY, check that they are added correctly, i.e., while adding each block
    * Add must return
    * true, Has returns true for each of them, each block is retrievable by both its height and its identifier,
    * and All returns list of all of them. Then Remove the first 5 blocks sequentially.
@@ -246,7 +119,7 @@ public class BlocksTest {
    * and byHeight.
    */
   @Test
-  void removeFirstFiveTest() throws IOException {
+  void removeFirstFiveTest() {
     for (Block block : allBlocks) {
       Assertions.assertTrue(db.add(block));
     }
@@ -280,286 +153,57 @@ public class BlocksTest {
         Assertions.assertEquals(block, db.byId(allBlocks.get(i).id()));
       }
     }
-    // TODO: move these to @AfterEach.
-    db.closeDb();
-    FileUtils.deleteDirectory(new File(tempdir.toString()));
   }
 
   /**
-   * Concurrent version of removeFirstFiveTest.
+   * Add 10 new blocks SEQUENTIALLY, check that they are added correctly, i.e., while adding each block
+   * Add must return
+   * true, Has returns true for each of them, each block is retrievable by both its height and its identifier,
+   * and All returns list of all of them. Then Remove the first 5 blocks sequentially.
+   * While Removing each of them, the Remove should return true. Then query all 10 blocks using has, byId,
+   * and byHeight.
    */
   @Test
-  void concurrentRemoveFirstFiveTest() throws IOException {
-    int concurrencyDegree = 10;
-    AtomicInteger threadError = new AtomicInteger();
-    CountDownLatch addDone = new CountDownLatch(concurrencyDegree);
-    Thread[] addThreads = new Thread[concurrencyDegree];
+  void concurrentRemoveFirstFiveTest() {
+
     /*
     Adding all blocks concurrently.
     */
-    for (int i = 0; i < allBlocks.size(); i++) {
-      int finalI = i;
-      addThreads[i] = new Thread(() -> {
-        if (!db.add(allBlocks.get(finalI))) {
-          threadError.getAndIncrement();
-        }
-        addDone.countDown();
-      });
-    }
-    for (Thread t : addThreads) {
-      t.start();
-    }
-    try {
-      boolean doneOneTime = addDone.await(60, TimeUnit.SECONDS);
-      Assertions.assertTrue(doneOneTime);
-    } catch (InterruptedException e) {
-      Assertions.fail();
-    }
-    Assertions.assertEquals(0, threadError.get());
+    this.addAllBlocksConcurrently(true);
 
     /*
-    Checking correctness of insertion by Has.
+    All blocks should be retrievable using their id or height.
     */
-    CountDownLatch hasDone = new CountDownLatch(concurrencyDegree);
-    Thread[] hasThreads = new Thread[concurrencyDegree];
-    for (int i = 0; i < allBlocks.size(); i++) {
-      int finalI = i;
-      hasThreads[i] = new Thread(() -> {
-        if (!db.has((allBlocks.get(finalI)).id())) {
-          threadError.getAndIncrement();
-        }
-        hasDone.countDown();
-      });
-    }
-    for (Thread t : hasThreads) {
-      t.start();
-    }
-    try {
-      boolean doneOneTime = hasDone.await(60, TimeUnit.SECONDS);
-      Assertions.assertTrue(doneOneTime);
-    } catch (InterruptedException e) {
-      Assertions.fail();
-    }
-    Assertions.assertEquals(0, threadError.get());
-
-    /*
-    Checking correctness of insertion byID.
-    */
-    CountDownLatch getDone = new CountDownLatch(concurrencyDegree);
-    Thread[] getThreads = new Thread[concurrencyDegree];
-    for (int i = 0; i < allBlocks.size(); i++) {
-      int finalI = i;
-      getThreads[i] = new Thread(() -> {
-        Block block = allBlocks.get(finalI);
-        if (!block.equals(db.byId(block.id()))) {
-          threadError.getAndIncrement();
-        }
-        getDone.countDown();
-      });
-    }
-
-    for (Thread t : getThreads) {
-      t.start();
-    }
-    try {
-      boolean doneOneTime = getDone.await(60, TimeUnit.SECONDS);
-      Assertions.assertTrue(doneOneTime);
-    } catch (InterruptedException e) {
-      Assertions.fail();
-    }
-    Assertions.assertEquals(0, threadError.get());
-
-    /*
-    Checking correctness of insertion by atHeight.
-    */
-    CountDownLatch heightDone = new CountDownLatch(concurrencyDegree);
-    Thread[] heightThreats = new Thread[concurrencyDegree];
-    for (int i = 0; i < allBlocks.size(); i++) {
-      int finalI = i;
-      heightThreats[i] = new Thread(() -> {
-        Block block = allBlocks.get(finalI);
-        if (!block.equals(db.atHeight(block.getHeight()))) {
-          threadError.getAndIncrement();
-        }
-        heightDone.countDown();
-      });
-    }
-
-    for (Thread t : heightThreats) {
-      t.start();
-    }
-    try {
-      boolean doneOneTime = heightDone.await(60, TimeUnit.SECONDS);
-      Assertions.assertTrue(doneOneTime);
-    } catch (InterruptedException e) {
-      Assertions.fail();
-    }
-    Assertions.assertEquals(0, threadError.get());
-
-    /*
-    Retrieving all concurrently.
-    */
-    CountDownLatch doneAll = new CountDownLatch(concurrencyDegree);
-    Thread[] allThreads = new Thread[concurrencyDegree];
-    ArrayList<Block> all = db.all();
-    for (int i = 0; i < all.size(); i++) {
-      int finalI = i;
-      allThreads[i] = new Thread(() -> {
-        if (!all.contains(allBlocks.get(finalI))) {
-          threadError.getAndIncrement();
-        }
-        doneAll.countDown();
-      });
-    }
-    for (Thread t : allThreads) {
-      t.start();
-    }
-    try {
-      boolean doneOneTime = doneAll.await(60, TimeUnit.SECONDS);
-      Assertions.assertTrue(doneOneTime);
-    } catch (InterruptedException e) {
-      Assertions.fail();
-    }
-    Assertions.assertEquals(0, threadError.get());
+    this.checkForByIdConcurrently(0);
+    this.checkForByHeightConcurrently(0);
+    this.checkForHasConcurrently(0);
+    this.checkForAllConcurrently(0);
 
     /*
     Removing first 5 concurrently
      */
-    int removeTill = 5;
-    CountDownLatch doneRemove = new CountDownLatch(removeTill);
-    Thread[] removeThreads = new Thread[removeTill];
-    for (int i = 0; i < removeTill; i++) {
-      int finalI = i;
-      removeThreads[i] = new Thread(() -> {
-        if (!db.remove(allBlocks.get(finalI).id())) {
-          threadError.getAndIncrement();
-        }
-        doneRemove.countDown();
-      });
-    }
-
-    for (Thread t : removeThreads) {
-      t.start();
-    }
-    try {
-      boolean doneOneTime = doneRemove.await(60, TimeUnit.SECONDS);
-      Assertions.assertTrue(doneOneTime);
-    } catch (InterruptedException e) {
-      Assertions.fail();
-    }
-    Assertions.assertEquals(0, threadError.get());
+    this.removeBlocksTill(5);
 
     /*
-    Check Has after removing first five blocks
+    first five blocks must not be retrievable,
+    the rest must be.
      */
-    CountDownLatch doneHas = new CountDownLatch(concurrencyDegree);
-    Thread[] hasThreadsAfterRemoval = new Thread[concurrencyDegree];
-    for (int i = 0; i < concurrencyDegree; i++) {
-      int finalI = i;
-      hasThreadsAfterRemoval[i] = new Thread(() -> {
-        Block block = allBlocks.get(finalI);
-        if (finalI < 5) {
-          if (db.has(block.id())) {
-            threadError.getAndIncrement();
-          }
-        } else {
-          if (!db.has(block.id())) {
-            threadError.getAndIncrement();
-          }
-        }
-        doneHas.countDown();
-      });
-    }
-    for (Thread t : hasThreadsAfterRemoval) {
-      t.start();
-    }
-    try {
-      boolean doneOneTime = doneHas.await(60, TimeUnit.SECONDS);
-      Assertions.assertTrue(doneOneTime);
-    } catch (InterruptedException e) {
-      Assertions.fail();
-    }
-    Assertions.assertEquals(0, threadError.get());
-
-    /*
-    Check byID after removing first five blocks
-     */
-    CountDownLatch getById = new CountDownLatch(concurrencyDegree);
-    Thread[] getThreadsById = new Thread[concurrencyDegree];
-    for (int i = 0; i < concurrencyDegree; i++) {
-      int finalI = i;
-      getThreadsById[i] = new Thread(() -> {
-        Block block = allBlocks.get(finalI);
-        if (finalI < 5) {
-          if (db.byId(block.id()) != null) {
-            threadError.getAndIncrement();
-          }
-        } else {
-          Block got = db.byId(block.id());
-          if (!got.equals(block)) {
-            threadError.getAndIncrement();
-          }
-          if (!got.id().equals(block.id())) {
-            threadError.getAndIncrement();
-          }
-        }
-        getById.countDown();
-      });
-    }
-
-    for (Thread t : getThreadsById) {
-      t.start();
-    }
-    try {
-      boolean doneOneTime = getById.await(60, TimeUnit.SECONDS);
-      Assertions.assertTrue(doneOneTime);
-    } catch (InterruptedException e) {
-      Assertions.fail();
-    }
-    Assertions.assertEquals(0, threadError.get());
-
-    /*
-    Check atHeight after removing first five blocks
-     */
-    CountDownLatch getByHeight = new CountDownLatch(concurrencyDegree);
-    Thread[] getThreadsByHeight = new Thread[concurrencyDegree];
-    for (int i = 0; i < concurrencyDegree / 2; i++) {
-      int finalI = i;
-      getThreadsByHeight[i] = new Thread(() -> {
-        Block block = allBlocks.get(finalI);
-        if(finalI < 5){
-        if (db.atHeight(block.getHeight() != null) {
-
-          }
-        } else {
-          
-        }
-            || !allBlocks.contains(db.atHeight(allBlocks.get(finalI1).getHeight()))) {
-
-          threadError.getAndIncrement();
-        }
-        getByHeight.countDown();
-      });
-    }
-    for (Thread t : getThreadsByHeight) {
-      t.start();
-    }
-    try {
-      boolean doneOneTime = getByHeight.await(60, TimeUnit.SECONDS);
-      Assertions.assertTrue(doneOneTime);
-    } catch (InterruptedException e) {
-      Assertions.fail();
-    }
-    Assertions.assertEquals(0, threadError.get());
-    db.closeDb();
-    FileUtils.deleteDirectory(new File(tempdir.toString()));
+    this.checkForByHeightConcurrently(5);
+    this.checkForByIdConcurrently(5);
+    this.checkForHasConcurrently(5);
+    this.checkForAllConcurrently(5);
   }
 
   /**
-   * Add 10 blocks already exist and return false expected.
+   * Add 10 new blocks SEQUENTIALLY and check that all of them are added correctly, i.e., while adding each block
+   * Add must return true, has returns true for each of them, and All returns list of all of them. Moreover, each
+   * block is retrievable using its identifier (byId) and height (byHeight).
+   * Then try Adding all of them again, and Add should return false for each of them,
+   * while has should still return true, and byId and byHeight should be
+   * able to retrieve the block.
    */
   @Test
-  void duplicationTest() throws IOException {
+  void duplicationTest() {
     for (Block block : allBlocks) {
       Assertions.assertTrue(db.add(block));
     }
@@ -594,27 +238,93 @@ public class BlocksTest {
     for (Block block : allBlocks) {
       Assertions.assertTrue(allBlocks.contains(db.byId(block.id())));
     }
-    db.closeDb();
-    FileUtils.deleteDirectory(new File(tempdir.toString()));
   }
 
   /**
-   * Concurrent version of duplicationTest.
+   * Add 10 new blocks CONCURRENTLY and check that all of them are added correctly, i.e., while adding each block
+   * Add must return true, has returns true for each of them, and All returns list of all of them. Moreover, each
+   * block is retrievable using its identifier (byId) and height (byHeight).
+   * Then try Adding all of them again, and Add should return false for each of them,
+   * while has should still return true, and byId and byHeight should be
+   * able to retrieve the block.
    */
   @Test
-  void concurrentDuplicationTest() throws IOException {
-    int concurrencyDegree = 10;
+  void concurrentDuplicationTest() {
+    /*
+    Adding all blocks concurrently.
+     */
+    this.addAllBlocksConcurrently(true);
 
+    /*
+    All blocks should be retrievable using their id or height.
+    */
+    this.checkForByIdConcurrently(0);
+    this.checkForByHeightConcurrently(0);
+    this.checkForHasConcurrently(0);
+    this.checkForAllConcurrently(0);
+
+    /*
+    Adding all blocks again concurrently, all should fail due to duplication.
+     */
+    this.addAllBlocksConcurrently(false);
+
+    /*
+    Again, all blocks should be retrievable using their id or height.
+    */
+    this.checkForByIdConcurrently(0);
+    this.checkForByHeightConcurrently(0);
+    this.checkForHasConcurrently(0);
+    this.checkForAllConcurrently(0);
+  }
+
+  /**
+   * Removes blocks from blocks storage database till the given index concurrently.
+   *
+   * @param till exclusive index of the last block being removed.
+   */
+  private void removeBlocksTill(int till) {
     AtomicInteger threadError = new AtomicInteger();
-    CountDownLatch addDone = new CountDownLatch(concurrencyDegree);
-    Thread[] addThreads = new Thread[concurrencyDegree];
+    CountDownLatch doneRemove = new CountDownLatch(till);
+    Thread[] removeThreads = new Thread[till];
+    for (int i = 0; i < till; i++) {
+      int finalI = i;
+      removeThreads[i] = new Thread(() -> {
+        if (!db.remove(allBlocks.get(finalI).id())) {
+          threadError.getAndIncrement();
+        }
+        doneRemove.countDown();
+      });
+    }
+
+    for (Thread t : removeThreads) {
+      t.start();
+    }
+    try {
+      boolean doneOneTime = doneRemove.await(60, TimeUnit.SECONDS);
+      Assertions.assertTrue(doneOneTime);
+    } catch (InterruptedException e) {
+      Assertions.fail();
+    }
+    Assertions.assertEquals(0, threadError.get());
+  }
+
+  /**
+   * Adds all blocks to the block storage database till the given index concurrently.
+   *
+   * @param expectedResult expected boolean result after each insertion; true means block added successfully,
+   *                       false means block was not added successfully.
+   */
+  private void addAllBlocksConcurrently(boolean expectedResult) {
+    AtomicInteger threadError = new AtomicInteger();
+    CountDownLatch addDone = new CountDownLatch(allBlocks.size());
+    Thread[] addThreads = new Thread[allBlocks.size()];
     /*
     Adding all blocks concurrently.
      */
     for (int i = 0; i < allBlocks.size(); i++) {
       int finalI = i;
       addThreads[i] = new Thread(() -> {
-        if (!db.add(allBlocks.get(finalI))) {
+        if (db.add(allBlocks.get(finalI)) != expectedResult) {
           threadError.getAndIncrement();
         }
         addDone.countDown();
@@ -629,17 +339,36 @@ public class BlocksTest {
     } catch (InterruptedException e) {
       Assertions.fail();
     }
-    /*
-    Checking correctness of insertion by Has.
-     */
-    CountDownLatch hasDone = new CountDownLatch(concurrencyDegree);
-    Thread[] hasThreads = new Thread[concurrencyDegree];
+
+    Assertions.assertEquals(0, threadError.get());
+  }
+
+  /**
+   * Checks existence of blocks in the block storage database starting from the given index.
+   *
+   * @param from inclusive index of the first block to check.
+   */
+  private void checkForHasConcurrently(int from) {
+    AtomicInteger threadError = new AtomicInteger();
+    CountDownLatch hasDone = new CountDownLatch(allBlocks.size());
+    Thread[] hasThreads = new Thread[allBlocks.size()];
     for (int i = 0; i < allBlocks.size(); i++) {
       int finalI = i;
+      Block block = allBlocks.get(i);
+
       hasThreads[i] = new Thread(() -> {
-        if (!db.has((allBlocks.get(finalI)).id())) {
-          threadError.getAndIncrement();
+        if (finalI < from) {
+          // blocks should not exist
+          if (this.db.has(block.id())) {
+            threadError.incrementAndGet();
+          }
+        } else {
+          // block should exist
+          if (!this.db.has(block.id())) {
+            threadError.getAndIncrement();
+          }
         }
+
         hasDone.countDown();
       });
     }
@@ -653,16 +382,38 @@ public class BlocksTest {
     } catch (InterruptedException e) {
       Assertions.fail();
     }
-    /*
-    Checking correctness of insertion byID.
-     */
-    CountDownLatch getDone = new CountDownLatch(concurrencyDegree);
-    Thread[] getThreads = new Thread[concurrencyDegree];
+
+    Assertions.assertEquals(0, threadError.get());
+  }
+
+  /**
+   * Checks retrievability of blocks from the block storage database by identifier starting from the given index.
+   *
+   * @param from inclusive index of the first block to check.
+   */
+  private void checkForByIdConcurrently(int from) {
+    AtomicInteger threadError = new AtomicInteger();
+    CountDownLatch getDone = new CountDownLatch(allBlocks.size());
+    Thread[] getThreads = new Thread[allBlocks.size()];
     for (int i = 0; i < allBlocks.size(); i++) {
       int finalI = i;
+      Block block = allBlocks.get(i);
+
       getThreads[i] = new Thread(() -> {
-        if (!allBlocks.contains(db.byId(allBlocks.get(finalI).id()))) {
-          threadError.getAndIncrement();
+        Block got = db.byId(block.id());
+        if (finalI < from) {
+          // blocks should not exist
+          if (got != null) {
+            threadError.incrementAndGet();
+          }
+        } else {
+          // block should be retrievable
+          if (!block.equals(got)) {
+            threadError.getAndIncrement();
+          }
+          if (!block.id().equals(got.id())) {
+            threadError.getAndIncrement();
+          }
         }
         getDone.countDown();
       });
@@ -677,17 +428,40 @@ public class BlocksTest {
     } catch (InterruptedException e) {
       Assertions.fail();
     }
-    /*
-    Checking correctness of insertion by atHeight.
-     */
-    CountDownLatch heightDone = new CountDownLatch(concurrencyDegree);
-    Thread[] heightThreats = new Thread[concurrencyDegree];
+
+    Assertions.assertEquals(0, threadError.get());
+  }
+
+  /**
+   * Checks retrievability of blocks from the block storage database by height starting from the given index.
+   *
+   * @param from inclusive index of the first block to check.
+   */
+  private void checkForByHeightConcurrently(int from) {
+    AtomicInteger threadError = new AtomicInteger();
+    CountDownLatch heightDone = new CountDownLatch(allBlocks.size());
+    Thread[] heightThreats = new Thread[allBlocks.size()];
     for (int i = 0; i < allBlocks.size(); i++) {
-      int finalI = i;
+      final int finalI = i;
+      Block block = allBlocks.get(i);
+
       heightThreats[i] = new Thread(() -> {
-        if (!allBlocks.contains(db.atHeight(allBlocks.get(finalI).getHeight()))) {
-          threadError.getAndIncrement();
+        Block got = db.atHeight(block.getHeight());
+        if (finalI < from) {
+          // blocks should not exist
+          if (got != null) {
+            threadError.incrementAndGet();
+          }
+        } else {
+          // block should be retrievable
+          if (!block.equals(got)) {
+            threadError.getAndIncrement();
+          }
+          if (!block.id().equals(got.id())) {
+            threadError.getAndIncrement();
+          }
         }
+
         heightDone.countDown();
       });
     }
@@ -701,17 +475,36 @@ public class BlocksTest {
     } catch (InterruptedException e) {
       Assertions.fail();
     }
-    /*
-    Retrieving all concurrently.
-    */
-    CountDownLatch doneAll = new CountDownLatch(concurrencyDegree);
-    Thread[] allThreads = new Thread[concurrencyDegree];
+
+    Assertions.assertEquals(0, threadError.get());
+  }
+
+  /**
+   * Checks retrievability of blocks from the block storage database starting from the given index.
+   *
+   * @param from inclusive index of the first block to check.
+   */
+  private void checkForAllConcurrently(int from) {
+    AtomicInteger threadError = new AtomicInteger();
+    CountDownLatch doneAll = new CountDownLatch(allBlocks.size());
+    Thread[] allThreads = new Thread[allBlocks.size()];
     ArrayList<Block> all = db.all();
-    for (int i = 0; i < all.size(); i++) {
+
+    for (int i = 0; i < allBlocks.size(); i++) {
       int finalI = i;
+      final Block block = allBlocks.get(i);
+
       allThreads[i] = new Thread(() -> {
-        if (!all.contains(allBlocks.get(finalI))) {
-          threadError.getAndIncrement();
+        if (finalI < from) {
+          // blocks should not exist
+          if (all.contains(block)) {
+            threadError.incrementAndGet();
+          }
+        } else {
+          // block should exist
+          if (!all.contains(block)) {
+            threadError.getAndIncrement();
+          }
         }
         doneAll.countDown();
       });
@@ -726,131 +519,7 @@ public class BlocksTest {
     } catch (InterruptedException e) {
       Assertions.fail();
     }
-    /*
-    Adding existing blocks
-     */
-    CountDownLatch addDuplicateDone = new CountDownLatch(concurrencyDegree);
-    Thread[] addDuplicateThreads = new Thread[concurrencyDegree];
-    /*
-    Adding all blocks concurrently.
-     */
-    for (int i = 0; i < allBlocks.size(); i++) {
-      int finalI = i;
-      addDuplicateThreads[i] = new Thread(() -> {
-        if (db.add(allBlocks.get(finalI))) {
-          threadError.getAndIncrement();
-        }
-        addDuplicateDone.countDown();
-      });
-    }
-    for (Thread t : addDuplicateThreads) {
-      t.start();
-    }
-    try {
-      boolean doneOneTime = addDuplicateDone.await(60, TimeUnit.SECONDS);
-      Assertions.assertTrue(doneOneTime);
-    } catch (InterruptedException e) {
-      Assertions.fail();
-    }
-    /*
-    Checking correctness of insertion by Has after duplication.
-     */
-    CountDownLatch hasDone2 = new CountDownLatch(concurrencyDegree);
-    Thread[] hasThreads2 = new Thread[concurrencyDegree];
-    for (int i = 0; i < allBlocks.size(); i++) {
-      int finalI = i;
-      hasThreads2[i] = new Thread(() -> {
-        if (!db.has((allBlocks.get(finalI)).id())) {
-          threadError.getAndIncrement();
-        }
-        hasDone2.countDown();
-      });
-    }
 
-    for (Thread t : hasThreads2) {
-      t.start();
-    }
-    try {
-      boolean doneOneTime = hasDone2.await(60, TimeUnit.SECONDS);
-      Assertions.assertTrue(doneOneTime);
-    } catch (InterruptedException e) {
-      Assertions.fail();
-    }
-    /*
-    Checking correctness of insertion byID after duplication.
-     */
-    CountDownLatch getDone2 = new CountDownLatch(concurrencyDegree);
-    Thread[] getThreads2 = new Thread[concurrencyDegree];
-    for (int i = 0; i < allBlocks.size(); i++) {
-      int finalI = i;
-      getThreads2[i] = new Thread(() -> {
-        if (!allBlocks.contains(db.byId(allBlocks.get(finalI).id()))) {
-          threadError.getAndIncrement();
-        }
-        getDone2.countDown();
-      });
-    }
-
-    for (Thread t : getThreads2) {
-      t.start();
-    }
-    try {
-      boolean doneOneTime = getDone2.await(60, TimeUnit.SECONDS);
-      Assertions.assertTrue(doneOneTime);
-    } catch (InterruptedException e) {
-      Assertions.fail();
-    }
-    /*
-    Checking correctness of insertion by atHeight after duplication.
-     */
-    CountDownLatch heightDone2 = new CountDownLatch(concurrencyDegree);
-    Thread[] heightThreats2 = new Thread[concurrencyDegree];
-    for (int i = 0; i < allBlocks.size(); i++) {
-      int finalI = i;
-      heightThreats2[i] = new Thread(() -> {
-        if (!allBlocks.contains(db.atHeight(allBlocks.get(finalI).getHeight()))) {
-          threadError.getAndIncrement();
-        }
-        heightDone2.countDown();
-      });
-    }
-
-    for (Thread t : heightThreats2) {
-      t.start();
-    }
-    try {
-      boolean doneOneTime = heightDone2.await(60, TimeUnit.SECONDS);
-      Assertions.assertTrue(doneOneTime);
-    } catch (InterruptedException e) {
-      Assertions.fail();
-    }
-    /*
-    Retrieving all concurrently after duplication.
-     */
-    CountDownLatch doneAll2 = new CountDownLatch(concurrencyDegree);
-    Thread[] allThreads2 = new Thread[concurrencyDegree];
-    ArrayList<Block> all2 = db.all();
-    for (int i = 0; i < all2.size(); i++) {
-      int finalI = i;
-      allThreads2[i] = new Thread(() -> {
-        if (!all2.contains(allBlocks.get(finalI))) {
-          threadError.getAndIncrement();
-        }
-        doneAll2.countDown();
-      });
-    }
-
-    for (Thread t : allThreads2) {
-      t.start();
-    }
-    try {
-      boolean doneOneTime = doneAll2.await(60, TimeUnit.SECONDS);
-      Assertions.assertTrue(doneOneTime);
-    } catch (InterruptedException e) {
-      Assertions.fail();
-    }
     Assertions.assertEquals(0, threadError.get());
-    db.closeDb();
-    FileUtils.deleteDirectory(new File(tempdir.toString()));
   }
 }

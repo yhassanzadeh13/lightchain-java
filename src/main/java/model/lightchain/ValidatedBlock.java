@@ -40,9 +40,15 @@ public class ValidatedBlock extends Block {
 
   @Override
   public boolean equals(Object o) {
-    if (this == o) return true;
-    if (!(o instanceof ValidatedBlock)) return false;
-    if (!super.equals(o)) return false;
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof ValidatedBlock)) {
+      return false;
+    }
+    if (!super.equals(o)) {
+      return false;
+    }
     ValidatedBlock that = (ValidatedBlock) o;
     return Arrays.equals(getCertificates(), that.getCertificates());
   }
