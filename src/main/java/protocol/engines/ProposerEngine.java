@@ -20,16 +20,15 @@ public class ProposerEngine implements NewBlockSubscriber, Engine {
    * sends it to the validators. If it does not have minimum number of validated transactions, it waits till it
    * the minimum number is satisfied.
    *
-   *
    * @param blockHeight block height.
    * @param blockId     identifier of block.
-   * @throws IllegalStateException when it receives a new validated block while it is pending for its previously
-   *                               proposed block to get validated.
+   * @throws IllegalStateException    when it receives a new validated block while it is pending for its previously
+   *                                  proposed block to get validated.
    * @throws IllegalArgumentException when its parameters do not match a validated block from database.
    */
   @Override
   public void onNewValidatedBlock(int blockHeight, Identifier blockId) throws IllegalStateException,
-      IllegalArgumentException {
+          IllegalArgumentException {
 
   }
 

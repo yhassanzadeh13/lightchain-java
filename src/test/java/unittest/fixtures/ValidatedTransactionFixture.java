@@ -1,15 +1,13 @@
 package unittest.fixtures;
 
-import model.crypto.PublicKey;
+import java.util.ArrayList;
+import java.util.Random;
+
 import model.crypto.Signature;
 import model.lightchain.Account;
 import model.lightchain.Identifier;
 import model.lightchain.ValidatedTransaction;
 import protocol.Parameters;
-
-import java.lang.reflect.Array;
-import java.util.ArrayList;
-import java.util.Random;
 
 /**
  * Encapsulates creating validated transactions with random content for fixture.
@@ -61,7 +59,8 @@ public class ValidatedTransactionFixture {
   }
 
   /**
-   * Constructor of the validated transactions with randomly generated parameters and given sender and receiver identifier.
+   * Constructor of the validated transactions with randomly generated parameters
+   * and given sender and receiver identifier.
    *
    * @param sender   identifier of the sender of this transaction.
    * @param receiver identifier of the receiver of this transaction.
@@ -111,7 +110,8 @@ public class ValidatedTransactionFixture {
    * @param receiver         identifier of the receiver of this transaction.
    * @return random ValidatedTransaction object.
    */
-  public static ValidatedTransaction newValidatedTransaction(Identifier referenceBlockId, Identifier sender, Identifier receiver) {
+  public static ValidatedTransaction newValidatedTransaction(Identifier referenceBlockId,
+                                                             Identifier sender, Identifier receiver) {
     double amount = 100;
     int certificatesSize = Parameters.SIGNATURE_THRESHOLD;
     Signature[] certificates = new Signature[certificatesSize];
@@ -133,7 +133,9 @@ public class ValidatedTransactionFixture {
    * @param receiver         identifier of the receiver of this transaction.
    * @return random ValidatedTransaction object.
    */
-  public static ValidatedTransaction newValidatedTransaction(Identifier referenceBlockId, Identifier sender, Identifier receiver, Identifier signerId) {
+  public static ValidatedTransaction newValidatedTransaction(Identifier referenceBlockId,
+                                                             Identifier sender, Identifier receiver,
+                                                             Identifier signerId) {
     double amount = 100;
     int certificatesSize = Parameters.SIGNATURE_THRESHOLD;
     Signature[] certificates = new Signature[certificatesSize];
@@ -164,7 +166,7 @@ public class ValidatedTransactionFixture {
     int accountsSize = accounts.size();
     for (int i = 0; i < certificatesSize; i++) {
       int signerInd = random.nextInt(accountsSize);
-      while (accounts.get(signerInd).getStake()<Parameters.MINIMUM_STAKE){
+      while (accounts.get(signerInd).getStake() < Parameters.MINIMUM_STAKE) {
         signerInd = random.nextInt(accountsSize);
       }
       Identifier signer = accounts.get(signerInd).getIdentifier();

@@ -117,7 +117,8 @@ public class BlockFixture {
    * @param height          height of the block.
    * @return a block with randomly generated values.
    */
-  public static Block newBlock(Identifier proposer, Identifier previousBlockId, int height, ArrayList<Account> accounts) {
+  public static Block newBlock(Identifier proposer, Identifier previousBlockId,
+                               int height, ArrayList<Account> accounts) {
     int accountsSize = accounts.size();
     Identifier signer = accounts.get(random.nextInt(accountsSize)).getIdentifier();
     int validatedTransactionsSize = Parameters.MIN_TRANSACTIONS_NUM + 2;

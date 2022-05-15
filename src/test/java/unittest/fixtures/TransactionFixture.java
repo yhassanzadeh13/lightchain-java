@@ -59,7 +59,8 @@ public class TransactionFixture {
    * @param signerId         signer identifier for the random Transaction object
    * @return random Transaction object
    */
-  public static Transaction newTransaction(Identifier referenceBlockId, Identifier sender, Identifier receiver, Identifier signerId) {
+  public static Transaction newTransaction(Identifier referenceBlockId,
+                                           Identifier sender, Identifier receiver, Identifier signerId) {
     double amount = Math.abs(RANDOM.nextInt()) + 1;
     Signature signature = SignatureFixture.newSignatureFixture(signerId);
     Transaction tx = new model.lightchain.Transaction(referenceBlockId, sender, receiver, amount);
@@ -78,7 +79,8 @@ public class TransactionFixture {
    * @param amount           amount sent for the random Transaction object
    * @return random Transaction object
    */
-  public static Transaction newTransaction(Identifier referenceBlockId, Identifier sender, Identifier receiver, Identifier signerId, double amount) {
+  public static Transaction newTransaction(Identifier referenceBlockId,
+                                           Identifier sender, Identifier receiver, Identifier signerId, double amount) {
     Signature signature = SignatureFixture.newSignatureFixture(signerId);
     Transaction tx = new model.lightchain.Transaction(referenceBlockId, sender, receiver, amount);
     tx.setSignature(signature);
