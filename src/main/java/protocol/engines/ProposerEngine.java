@@ -38,9 +38,9 @@ public class ProposerEngine implements NewBlockSubscriber, Engine {
   private static Conduit validatedCon;
   private static Network net;
   private static LightChainValidatorAssigner assigner;
-  private Assignment assignment;
-  private ArrayList<BlockApproval> approvals;
+  private final ArrayList<BlockApproval> approvals;
   public Block newB;
+  private Assignment assignment;
 
   /**
    * Constructor.
@@ -77,7 +77,6 @@ public class ProposerEngine implements NewBlockSubscriber, Engine {
    *
    * @param blockHeight block height.
    * @param blockId     identifier of block.
-   *
    * @throws IllegalStateException    when it receives a new validated block while it is pending for its previously
    *                                  proposed block to get validated.
    * @throws IllegalArgumentException when its parameters do not match a validated block from database.
@@ -140,10 +139,11 @@ public class ProposerEngine implements NewBlockSubscriber, Engine {
           throw new IllegalStateException("could not write to bytes to ByteArrayOutputStream", e);
         }
         taggedId = new Identifier(output.toByteArray());
-        assignment = assigner.assign(taggedId, state.atBlockId(newBlock.getPreviousBlockId()), (short) Parameters.VALIDATOR_THRESHOLD);
+        assignment = assigner.assign(taggedId, state.atBlockId(newBlock.getPreviousBlockId()),
+                Parameters.VALIDATOR_THRESHOLD);
         for (Identifier id : assignment.all()) {
           try {
-            this.proposerCon.unicast(newBlock, id);
+            proposerCon.unicast(newBlock, id);
           } catch (LightChainNetworkingException e) {
             e.printStackTrace();
           }
@@ -162,39 +162,36 @@ public class ProposerEngine implements NewBlockSubscriber, Engine {
    * network using the validated blocks channel.
    *
    * @param e the arrived Entity from the network.
-   *
    * @throws IllegalArgumentException any entity other than BlockApproval.
    */
   @Override
   public void process(Entity e) throws IllegalArgumentException {
-    if (e.type() == EntityType.TYPE_BLOCK_APPROVAL) {
-      if (((BlockApproval) e).getBlockId() == null) {
-        approvals.add((BlockApproval) e);
-
-      }
-      while (approvals.size() < Parameters.VALIDATOR_THRESHOLD) {
-      }
-
-      Signature[] signs = new Signature[Parameters.VALIDATOR_THRESHOLD];
-      for (int i = 0; i < approvals.size(); i++) {
-        signs[i] = approvals.get(i).getSignature();
-      }
-      ValidatedBlock validatedBlock = new ValidatedBlock(newB.getPreviousBlockId()
-          , newB.getProposer()
-          , newB.getTransactions()
-          , this.local.signEntity(newB)
-          , signs, newB.getHeight());
-      for (Map.Entry<Identifier, String> pair : ((P2pNetwork) net).getIdToAddressMap().entrySet()) {
-        if (pair.getValue().equals(Channels.ValidatedBlocks)) {
-          try {
-            validatedCon.unicast(validatedBlock, pair.getKey());
-          } catch (LightChainNetworkingException e1) {
-            e1.printStackTrace();
+    if (e.type() == EntityType.TYPE_BLOCK_APPROVAL || ((BlockApproval) e).getBlockId() == null) {
+      approvals.add((BlockApproval) e);
+      if (approvals.size() >= Parameters.VALIDATOR_THRESHOLD) {
+        Signature[] signs = new Signature[Parameters.VALIDATOR_THRESHOLD];
+        for (int i = 0; i < approvals.size(); i++) {
+          signs[i] = approvals.get(i).getSignature();
+        }
+        ValidatedBlock validatedBlock = new ValidatedBlock(newB.getPreviousBlockId(),
+                newB.getProposer(),
+                newB.getTransactions(),
+                local.signEntity(newB),
+                signs,
+                newB.getHeight());
+        for (Map.Entry<Identifier, String> pair : ((P2pNetwork) net).getIdToAddressMap().entrySet()) {
+          if (pair.getValue().equals(Channels.ValidatedBlocks)) {
+            try {
+              validatedCon.unicast(validatedBlock, pair.getKey());
+            } catch (LightChainNetworkingException e1) {
+              e1.printStackTrace();
+            }
           }
         }
+        approvals.clear();
+        newB = null;
       }
-      approvals.clear();
-      newB = null;
+
     } else {
       throw new IllegalArgumentException("entity is not of type BlockApproval");
     }

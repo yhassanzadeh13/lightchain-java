@@ -149,7 +149,6 @@ public class IngestEngineTest {
     verify(blocks, times(1)).add(block1);
   }
 
-
   @Test // 2.
   public void testValidatedTwoBlocks() {
     // ingest engine set up
