@@ -85,7 +85,9 @@ public class ProposerEngine implements NewBlockSubscriber, Engine {
   @Override
   public void onNewValidatedBlock(int blockHeight, Identifier blockId) throws IllegalStateException,
           IllegalArgumentException {
-
+    if (!blocks.has(blockId) && !blocks.atHeight(blockHeight).id().equals(blockId)) {
+      throw new IllegalArgumentException("block is not in database");
+    }
     if (lock.isLocked()) {
       throw new IllegalStateException("proposer engine is already running.");
     }

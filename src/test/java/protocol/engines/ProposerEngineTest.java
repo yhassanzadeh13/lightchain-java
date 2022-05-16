@@ -1,7 +1,7 @@
 package protocol.engines;
 
-import java.util.Arrays;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -148,5 +148,77 @@ public class ProposerEngineTest {
     ingestThread.join(); // wait for ingest to finish
     BlockValidator blockValidator = new BlockValidator(state);
     Assertions.assertTrue(blockValidator.isCorrect(proposerEngine.newB));
+  }
+
+  @Test
+  public void newValidatedBlockWhilePendingValidation() {
+    // Initialize non-mocked components.
+    Random random = new Random();
+    Identifier localId = IdentifierFixture.newIdentifier();
+    PrivateKey localPrivateKey = KeyGenFixture.newKeyGen().getPrivateKey();
+    Local local = new Local(localId, localPrivateKey);
+    ArrayList<Account> accounts = AccountFixture.newAccounts(11);
+    Block block = BlockFixture.newBlock(Parameters.MIN_TRANSACTIONS_NUM + 1);
+
+    // Initialize mocked components.
+    Assignment assignment = mock(Assignment.class);
+    Transactions pendingTransactions = mock(Transactions.class);
+    Blocks blocks = mock(Blocks.class);
+    State state = mock(State.class);
+    Snapshot snapshot = mock(Snapshot.class);
+    Network network = mock(Network.class);
+    NetworkAdapter networkAdapter = mock(NetworkAdapter.class);
+    MockConduit proposedCon = new MockConduit(Channels.ProposedBlocks, networkAdapter);
+    MockConduit validatedCon = new MockConduit(Channels.ValidatedBlocks, networkAdapter);
+
+    // Initialize mocked returns.
+    when(snapshot.all()).thenReturn(accounts);
+    when(snapshot.getAccount(localId)).thenReturn(accounts.get(0));
+    when(assignment.has(local.myId())).thenReturn(true);
+    when(state.atBlockId(block.id())).thenReturn(snapshot);
+    when(pendingTransactions.size()).thenReturn(Parameters.MIN_TRANSACTIONS_NUM - 1);
+    when(pendingTransactions.all()).thenReturn(new ArrayList<>(Arrays.asList(block.getTransactions())));
+    when(network.register(any(Engine.class), eq(Channels.ProposedBlocks))).thenReturn(proposedCon);
+    when(network.register(any(Engine.class), eq(Channels.ValidatedBlocks))).thenReturn(validatedCon);
+
+    // Verification.
+    ProposerEngine proposerEngine = new ProposerEngine(blocks, pendingTransactions, state, local, network, assignment);
+    Thread proposerThread = new Thread(() -> {
+      try {
+        Assertions.assertThrows(IllegalStateException.class, () -> {
+          proposerEngine.onNewValidatedBlock(block.getHeight(), block.id());
+        });
+      } finally {
+        // increments the transactions counter for main thread to be finished
+        when(pendingTransactions.size()).thenReturn(Parameters.MIN_TRANSACTIONS_NUM + 1);
+      }
+    });
+    proposerThread.start(); // start proposer thread
+    proposerEngine.onNewValidatedBlock(block.getHeight(), block.id()); // new validated block while pending validation
+  }
+
+  @Test
+  public void blockNotInDatabase() {
+    // Initialize non-mocked components.
+    Identifier localId = IdentifierFixture.newIdentifier();
+    PrivateKey localPrivateKey = KeyGenFixture.newKeyGen().getPrivateKey();
+    Local local = new Local(localId, localPrivateKey);
+    Block block = BlockFixture.newBlock(Parameters.MIN_TRANSACTIONS_NUM + 1);
+
+    // Initialize mocked components.
+    Assignment assignment = mock(Assignment.class);
+    Transactions pendingTransactions = mock(Transactions.class);
+    Blocks blocks = mock(Blocks.class);
+    State state = mock(State.class);
+    Network network = mock(Network.class);
+
+    // Initialize mocked returns.
+    when(blocks.atHeight(block.getHeight())).thenReturn(BlockFixture.newBlock()); // another block
+
+    // Verification.
+    ProposerEngine proposerEngine = new ProposerEngine(blocks, pendingTransactions, state, local, network, assignment);
+    Assertions.assertThrows(IllegalArgumentException.class, () -> {
+      proposerEngine.onNewValidatedBlock(block.getHeight(), block.id());
+    });
   }
 }
