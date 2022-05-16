@@ -4,6 +4,7 @@ import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
@@ -114,11 +115,16 @@ public class ProposerEngineTest {
     when(snapshot.getAccount(localId)).thenReturn(accounts.get(0));
     when(assignment.has(local.myId())).thenReturn(true);
     when(state.atBlockId(block.id())).thenReturn(snapshot);
-    when(pendingTransactions.size()).thenReturn(Parameters.MIN_TRANSACTIONS_NUM - 1);
-    // commented out because of mockito capabilities, cannot change thenReturn value of a method during multi threading
-    // when(pendingTransactions.all()).thenReturn(new ArrayList<>(Arrays.asList(block.getTransactions())));
+    AtomicInteger transactionsCounter = new AtomicInteger(Parameters.MIN_TRANSACTIONS_NUM - 1);
+    when(pendingTransactions.size()).thenReturn(transactionsCounter.get());
     when(network.register(any(Engine.class), eq(Channels.ProposedBlocks))).thenReturn(proposedCon);
     when(network.register(any(Engine.class), eq(Channels.ValidatedBlocks))).thenReturn(validatedCon);
+
+    // Transaction(s) to be added
+    ArrayList<Transaction> transactionsList = new ArrayList<>();
+    ValidatedTransaction validatedTransaction = ValidatedTransactionFixture.newValidatedTransaction();
+    transactionsList.add(validatedTransaction);
+    doReturn(transactionsList).when(pendingTransactions).all();
 
     // Verification.
     ProposerEngine proposerEngine = new ProposerEngine(blocks, pendingTransactions, state, local, network, assignment);
@@ -127,23 +133,19 @@ public class ProposerEngineTest {
     AtomicBoolean proposerWaiting = new AtomicBoolean(true);
     Thread proposerThread = new Thread(() -> {
       proposerEngine.onNewValidatedBlock(block.getHeight(), block.id());
-      proposerWaiting.set(false); // Notify the other thread that we're done.
+      proposerWaiting.set(false);
     });
     Thread ingestThread = new Thread(() -> {
-      ArrayList<Transaction> transactionsList = new ArrayList<>();
-      ValidatedTransaction validatedTransaction = ValidatedTransactionFixture.newValidatedTransaction();
-      transactionsList.add(validatedTransaction);
+      // simulating adding a transaction to pendingTransactions
       ingestEngine.process(validatedTransaction);
-      // Simulates the transactions being added to the pending transactions.
-      doReturn(transactionsList).when(pendingTransactions).all();
-      when(pendingTransactions.size()).thenReturn(Parameters.MIN_TRANSACTIONS_NUM);
+      when(pendingTransactions.size()).thenReturn(transactionsCounter.incrementAndGet());
     });
     proposerThread.start(); // start proposer thread
-    Thread.sleep(1000); // main thread sleeps for 1 second to let proposer thread start
-    Assertions.assertTrue(proposerWaiting.get()); // checks if proposer thread is waiting
-    ingestThread.start(); // starts ingest thread to process transactions
-    ingestThread.join(); // waits for ingest thread to finish
-    proposerThread.join(); // waits for proposer thread to finish
+    Thread.sleep(1000); // wait for proposer to start
+    Assertions.assertTrue(proposerWaiting.get()); // proposer should be waiting
+    ingestThread.start(); // start ingest thread
+    proposerThread.join(); // wait for proposer to finish
+    ingestThread.join(); // wait for ingest to finish
     BlockValidator blockValidator = new BlockValidator(state);
     Assertions.assertTrue(blockValidator.isCorrect(proposerEngine.newB));
   }
