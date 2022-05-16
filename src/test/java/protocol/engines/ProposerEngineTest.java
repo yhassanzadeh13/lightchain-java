@@ -1,6 +1,7 @@
 package protocol.engines;
 
 import java.util.ArrayList;
+import java.util.Random;
 
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -52,9 +53,12 @@ public class ProposerEngineTest {
 
   @Test
   public void blockValidationTest() {
+    Random random = new Random();
     Identifier localId = IdentifierFixture.newIdentifier();
     PrivateKey localPrivateKey = KeyGenFixture.newKeyGen().getPrivateKey();
     Local local = new Local(localId, localPrivateKey);
+    Assignment assignment = mock(Assignment.class);
+
     Transactions pendingTransactions = mock(Transactions.class);
     Blocks blocks = mock(Blocks.class);
     State state = mock(State.class);
@@ -63,12 +67,14 @@ public class ProposerEngineTest {
     NetworkAdapter networkAdapter = mock(NetworkAdapter.class);
     MockConduit proposedCon = new MockConduit(Channels.ProposedBlocks, networkAdapter);
     MockConduit validatedCon = new MockConduit(Channels.ValidatedBlocks, networkAdapter);
-    Block block = ValidatedBlockFixture.newValidatedBlock();
+
     ArrayList<Account> a = AccountFixture.newAccounts(11);
+    Block block = ValidatedBlockFixture.newValidatedBlock(a,Math.abs(random.nextInt(1_000_000)),IdentifierFixture.newIdentifier());
     when(snapshot.all()).thenReturn(a);
+    when(assignment.has(local.myId())).thenReturn(true);
     when(state.atBlockId(block.id())).thenReturn(snapshot);
     when(pendingTransactions.size()).thenReturn(1);
-    Assignment assignment = mock(Assignment.class);
+
     ProposerEngine proposerEngine = new ProposerEngine(blocks, pendingTransactions, state, local, network, assignment);
     proposerEngine.onNewValidatedBlock(block.getHeight(), block.id());
     BlockValidator blockValidator = new BlockValidator(state);
