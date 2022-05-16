@@ -134,8 +134,8 @@ public class ValidatedTransactionFixture {
    * @return random ValidatedTransaction object.
    */
   public static ValidatedTransaction newValidatedTransaction(Identifier referenceBlockId,
-                                                             Identifier sender,
-                                                             Identifier receiver, Identifier signerId) {
+                                                             Identifier sender, Identifier receiver,
+                                                             Identifier signerId) {
     double amount = 100;
     int certificatesSize = Parameters.SIGNATURE_THRESHOLD;
     Signature[] certificates = new Signature[certificatesSize];
@@ -157,16 +157,20 @@ public class ValidatedTransactionFixture {
    * @param receiver         identifier of the receiver of this transaction.
    * @return random ValidatedTransaction object.
    */
-  public static ValidatedTransaction newValidatedTransaction(Identifier referenceBlockId,
-                                                             Identifier sender, Identifier receiver,
-                                                             Identifier signerId, ArrayList<Account> accounts) {
+  public static ValidatedTransaction newValidatedTransaction(Identifier referenceBlockId, Identifier sender,
+                                                             Identifier receiver, Identifier signerId,
+                                                             ArrayList<Account> accounts) {
     double amount = 100;
     int certificatesSize = Parameters.SIGNATURE_THRESHOLD;
     Signature[] certificates = new Signature[certificatesSize];
     int accountsSize = accounts.size();
     for (int i = 0; i < certificatesSize; i++) {
-      certificates[i] = SignatureFixture.newSignatureFixture(accounts
-              .get(random.nextInt(accountsSize)).getIdentifier());
+      int signerInd = random.nextInt(accountsSize);
+      while (accounts.get(signerInd).getStake() < Parameters.MINIMUM_STAKE) {
+        signerInd = random.nextInt(accountsSize);
+      }
+      Identifier signer = accounts.get(signerInd).getIdentifier();
+      certificates[i] = SignatureFixture.newSignatureFixture(signer);
     }
     ValidatedTransaction valTrans = new ValidatedTransaction(referenceBlockId, sender, receiver, amount, certificates);
     Signature sign = SignatureFixture.newSignatureFixture(signerId);

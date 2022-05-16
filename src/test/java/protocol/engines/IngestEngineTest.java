@@ -1,17 +1,13 @@
 package protocol.engines;
 
 import java.util.ArrayList;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.Random;
 
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
-import model.Entity;
+import model.crypto.PublicKey;
+import model.crypto.Signature;
 import model.lightchain.*;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import state.Snapshot;
 import state.State;
@@ -19,14 +15,13 @@ import storage.Blocks;
 import storage.Identifiers;
 import storage.Transactions;
 import unittest.fixtures.AccountFixture;
-import unittest.fixtures.EntityFixture;
 import unittest.fixtures.ValidatedBlockFixture;
-import unittest.fixtures.ValidatedTransactionFixture;
 
 /**
  * Encapsulates tests for ingest engine implementation.
  */
 public class IngestEngineTest {
+  private static final Random random = new Random();
   private IngestEngine ingestEngine;
   private ValidatedBlock block1;
   private ValidatedBlock block2;
@@ -39,6 +34,7 @@ public class IngestEngineTest {
   private Snapshot snapshot;
   private State state;
   private ArrayList<Block> blockList;
+  private Assignment assignment;
   private ArrayList<Transaction> transactionList;
   // TODO: a single individual test function for each of these scenarios:
   // 1. Happy path of receiving a validated single block.
@@ -68,77 +64,173 @@ public class IngestEngineTest {
   // 19. Happy path of receiving a validated transaction and a validated block concurrently
   //     (block does contain the transaction).
 
-  /**
-   * Sets up the test environment. // TODO: fix this
-   */
-  @BeforeEach
-  public void setUpMock() {
-    transaction1 = ValidatedTransactionFixture.newValidatedTransaction();
-    transaction2 = ValidatedTransactionFixture.newValidatedTransaction();
-    transactions = mock(Transactions.class);
-    block1 = ValidatedBlockFixture.newValidatedBlock();
-    block2 = ValidatedBlockFixture.newValidatedBlock();
+  //  @BeforeEach
+  //  public void setUpMock() {
+  //    transaction1 = ValidatedTransactionFixture.newValidatedTransaction();
+  //    transaction2 = ValidatedTransactionFixture.newValidatedTransaction();
+  //    transactions = mock(Transactions.class);
+  //    block1 = ValidatedBlockFixture.newValidatedBlock();
+  //    block2 = ValidatedBlockFixture.newValidatedBlock();
+  //    blocks = mock(Blocks.class);
+  //    state = mock(State.class);
+  //    pendingTransactions = mock(Identifiers.class);
+  //    Identifiers seenEntities = mock(Identifiers.class);
+  //    snapshot = mock(Snapshot.class);
+  //    when(state.atBlockId(block1.getTransactions()[0].getReferenceBlockId())).thenReturn(snapshot);
+  //    when(state.atBlockId(block2.getTransactions()[0].getReferenceBlockId())).thenReturn(snapshot);
+  //    when(state.atBlockId(block1.getTransactions()[1].getReferenceBlockId())).thenReturn(snapshot);
+  //
+  //    when(state.atBlockId(block1.getTransactions()[2].getReferenceBlockId())).thenReturn(snapshot);
+  //    when(state.atBlockId(transaction1.getReferenceBlockId())).thenReturn(snapshot);
+  //    when(state.atBlockId(transaction2.getReferenceBlockId())).thenReturn(snapshot);
+  //    when(transactions.has(transaction1.id())).thenReturn(true);
+  //    when(transactions.has(transaction2.id())).thenReturn(true);
+  //
+  //    when(pendingTransactions.has(block1.getTransactions()[0].id())).thenReturn(true);
+  //    when(pendingTransactions.has(block1.getTransactions()[1].id())).thenReturn(false);
+  //    when(pendingTransactions.has(block2.getTransactions()[0].id())).thenReturn(true);
+  //
+  //    when(pendingTransactions.has(block1.getTransactions()[2].id())).thenReturn(false);
+  //
+  //    when(state.atBlockId(block1.getPreviousBlockId())).thenReturn(snapshot);
+  //    when(state.atBlockId(block2.getPreviousBlockId())).thenReturn(snapshot);
+  //    when(blocks.has(block1.id())).thenReturn(true);
+  //    when(blocks.has(block2.id())).thenReturn(true);
+  //    blockList = new ArrayList<>();
+  //    for (int i = 0; i < 10; i++) {
+  //      ValidatedBlock block = ValidatedBlockFixture.newValidatedBlock();
+  //      blockList.add(block);
+  //      when(state.atBlockId(block.getPreviousBlockId())).thenReturn(snapshot);
+  //      when(blocks.has(block.id())).thenReturn(true);
+  //    }
+  //    when(blocks.all()).thenReturn(blockList);
+  //    ArrayList<Account> accounts = new ArrayList<>(AccountFixture.newAccounts(10, 10).values());
+  //    when(snapshot.all()).thenReturn(accounts);
+  //    ingestEngine = new IngestEngine(state, blocks, pendingTransactions, transactions, seenEntities);
+  //    for (Account account : accounts) {
+  //      when(snapshot.getAccount(account.getIdentifier())).thenReturn(account);
+  //    }
+  //  }
+
+  @Test // 1.
+  public void testValidatedSingleBlock() {
+
+    // ingest engine set up
     blocks = mock(Blocks.class);
     state = mock(State.class);
     pendingTransactions = mock(Identifiers.class);
     snapshot = mock(Snapshot.class);
-    when(state.atBlockId(block1.getTransactions()[0].getReferenceBlockId())).thenReturn(snapshot);
-    when(state.atBlockId(block2.getTransactions()[0].getReferenceBlockId())).thenReturn(snapshot);
-    when(state.atBlockId(block1.getTransactions()[1].getReferenceBlockId())).thenReturn(snapshot);
-
-    when(state.atBlockId(block1.getTransactions()[2].getReferenceBlockId())).thenReturn(snapshot);
-    when(state.atBlockId(transaction1.getReferenceBlockId())).thenReturn(snapshot);
-    when(state.atBlockId(transaction2.getReferenceBlockId())).thenReturn(snapshot);
-    when(transactions.has(transaction1.id())).thenReturn(true);
-    when(transactions.has(transaction2.id())).thenReturn(true);
-
-    when(pendingTransactions.has(block1.getTransactions()[0].id())).thenReturn(true);
-    when(pendingTransactions.has(block1.getTransactions()[1].id())).thenReturn(false);
-    when(pendingTransactions.has(block2.getTransactions()[0].id())).thenReturn(true);
-
-    when(pendingTransactions.has(block1.getTransactions()[2].id())).thenReturn(false);
-
-    when(state.atBlockId(block1.getPreviousBlockId())).thenReturn(snapshot);
-    when(state.atBlockId(block2.getPreviousBlockId())).thenReturn(snapshot);
-    when(blocks.has(block1.id())).thenReturn(true);
-    when(blocks.has(block2.id())).thenReturn(true);
-    blockList = new ArrayList<>();
-    for (int i = 0; i < 10; i++) {
-      ValidatedBlock block = ValidatedBlockFixture.newValidatedBlock();
-      blockList.add(block);
-      when(state.atBlockId(block.getPreviousBlockId())).thenReturn(snapshot);
-      when(blocks.has(block.id())).thenReturn(true);
-    }
-    when(blocks.all()).thenReturn(blockList);
-    ArrayList<Account> accounts = new ArrayList<>(AccountFixture.newAccounts(10, 10).values());
-    when(snapshot.all()).thenReturn(accounts);
+    assignment = mock(Assignment.class);
+    transactions = mock(Transactions.class);
     Identifiers seenEntities = mock(Identifiers.class);
-    ingestEngine = new IngestEngine(state, blocks, pendingTransactions, transactions, seenEntities);
+    ArrayList<Account> accounts = new ArrayList<>(AccountFixture.newAccounts(10, 10).values());
     for (Account account : accounts) {
       when(snapshot.getAccount(account.getIdentifier())).thenReturn(account);
     }
+    when(snapshot.all()).thenReturn(accounts);
+    ingestEngine = new IngestEngine(state, blocks, pendingTransactions, transactions, seenEntities, assignment);
+
+    // block 1 set up
+    block1 = ValidatedBlockFixture.newValidatedBlock(accounts);
+    when(state.atBlockId(block1.getPreviousBlockId())).thenReturn(snapshot);
+
+    when(assignment.has(any(Identifier.class))).thenReturn(true); // returns true for all identifiers
+    PublicKey pubKey = mock(PublicKey.class); // mock public key
+    Account account = mock(Account.class); // mock account
+    when(account.getPublicKey()).thenReturn(pubKey); // returns the mocked public key for all accounts
+    // returns true for all signatures
+    when(pubKey.verifySignature(any(Block.class), any(Signature.class))).thenReturn(true);
+    // returns the mock account for all identifiers
+    when(snapshot.getAccount(any(Identifier.class))).thenReturn(account);
+
+    ingestEngine.process(block1);
+
+    // verification
+    verify(blocks, times(1)).add(block1);
   }
 
-  @Test // 1.
-  public void testValidatedSingleBlock() {
-    ingestEngine.process(block1);
-    Assertions.assertTrue(blocks.has(block1.id()));
-  }
 
   @Test // 2.
   public void testValidatedTwoBlocks() {
+    // ingest engine set up
+    blocks = mock(Blocks.class);
+    state = mock(State.class);
+    pendingTransactions = mock(Identifiers.class);
+    snapshot = mock(Snapshot.class);
+    assignment = mock(Assignment.class);
+    transactions = mock(Transactions.class);
+    Identifiers seenEntities = mock(Identifiers.class);
+    ArrayList<Account> accounts = new ArrayList<>(AccountFixture.newAccounts(10, 10).values());
+    for (Account account : accounts) {
+      when(snapshot.getAccount(account.getIdentifier())).thenReturn(account);
+    }
+    when(snapshot.all()).thenReturn(accounts);
+    ingestEngine = new IngestEngine(state, blocks, pendingTransactions, transactions, seenEntities, assignment);
+
+    // block 1 set up
+    block1 = ValidatedBlockFixture.newValidatedBlock(accounts);
+    when(state.atBlockId(block1.getPreviousBlockId())).thenReturn(snapshot);
+
+    // block 2 set up
+    block2 = ValidatedBlockFixture.newValidatedBlock(accounts);
+    when(state.atBlockId(block2.getPreviousBlockId())).thenReturn(snapshot);
+
+    // action
+    when(assignment.has(any(Identifier.class))).thenReturn(true); // returns true for all identifiers
+    PublicKey pubKey = mock(PublicKey.class); // mock public key
+    Account account = mock(Account.class); // mock account
+    when(account.getPublicKey()).thenReturn(pubKey); // returns the mocked public key for all accounts
+    // returns true for all signatures
+    when(pubKey.verifySignature(any(Block.class), any(Signature.class))).thenReturn(true);
+    // returns the mock account for all identifiers
+    when(snapshot.getAccount(any(Identifier.class))).thenReturn(account);
+
     ingestEngine.process(block1);
     ingestEngine.process(block2);
-    Assertions.assertTrue(blocks.has(block1.id()));
-    Assertions.assertTrue(blocks.has(block2.id()));
-  }
 
+    // verification
+    verify(blocks, times(1)).add(block1);
+    verify(blocks, times(1)).add(block2);
+  }
+  /*
   @Test // 3.
   public void testValidatedTwoBlocksConcurrently() {
+
+    // ingest engine set up
+
+    blocks = mock(Blocks.class);
+    state = mock(State.class);
+    pendingTransactions = mock(Identifiers.class);
+    Identifiers seenEntities = mock(Identifiers.class);
+    snapshot = mock(Snapshot.class);
+
+    ArrayList<Account> accounts = new ArrayList<>(AccountFixture.newAccounts(10, 10).values());
+
+    for (Account account : accounts) {
+      when(snapshot.getAccount(account.getIdentifier())).thenReturn(account);
+    }
+
+    when(snapshot.all()).thenReturn(accounts);
+
+    ingestEngine = new IngestEngine(state, blocks, pendingTransactions, transactions, seenEntities);
+
+    // block 1 set up
+
+    block1 = ValidatedBlockFixture.newValidatedBlock(accounts);
+    when(state.atBlockId(block1.getPreviousBlockId())).thenReturn(snapshot);
+
+    // block 2 set up
+
+    block2 = ValidatedBlockFixture.newValidatedBlock(accounts);
+    when(state.atBlockId(block2.getPreviousBlockId())).thenReturn(snapshot);
+
+    // concurrent block addition
+
     AtomicInteger threadError = new AtomicInteger();
     ArrayList<ValidatedBlock> concBlockList = new ArrayList<>();
     concBlockList.add(block1);
     concBlockList.add(block2);
+
     int concurrencyDegree = 2;
     CountDownLatch threadsDone = new CountDownLatch(concurrencyDegree);
     Thread[] threads = new Thread[concurrencyDegree];
@@ -162,21 +254,84 @@ public class IngestEngineTest {
     } catch (InterruptedException e) {
       Assertions.fail();
     }
+
+    // verification
+
+    verify(blocks, times(1)).add(block1);
+    verify(blocks, times(1)).add(block2);
+
     Assertions.assertEquals(0, threadError.get());
     Assertions.assertTrue(blocks.has(block1.id()));
     Assertions.assertTrue(blocks.has(block2.id()));
   }
-
+*/
   @Test // 4.
   public void testValidatedSameTwoBlocks() {
-    ingestEngine.process(block1);
-    Blocks blocks2 = blocks; // might need an improvement depending on the implementation
-    ingestEngine.process(block1);
-    Assertions.assertEquals(blocks, blocks2); // checks if block are changed, if not it means second block is not added
-  }
+    // ingest engine set up
+    blocks = mock(Blocks.class);
+    state = mock(State.class);
+    pendingTransactions = mock(Identifiers.class);
+    snapshot = mock(Snapshot.class);
+    assignment = mock(Assignment.class);
+    transactions = mock(Transactions.class);
+    Identifiers seenEntities = mock(Identifiers.class);
+    ArrayList<Account> accounts = new ArrayList<>(AccountFixture.newAccounts(10, 10).values());
+    for (Account account : accounts) {
+      when(snapshot.getAccount(account.getIdentifier())).thenReturn(account);
+    }
+    when(snapshot.all()).thenReturn(accounts);
+    ingestEngine = new IngestEngine(state, blocks, pendingTransactions, transactions, seenEntities, assignment);
 
+    // block 1 set up
+    block1 = ValidatedBlockFixture.newValidatedBlock(accounts);
+    when(state.atBlockId(block1.getPreviousBlockId())).thenReturn(snapshot);
+
+    when(assignment.has(any(Identifier.class))).thenReturn(true); // returns true for all identifiers
+    PublicKey pubKey = mock(PublicKey.class); // mock public key
+    Account account = mock(Account.class); // mock account
+    when(account.getPublicKey()).thenReturn(pubKey); // returns the mocked public key for all accounts
+    // returns true for all signatures
+    when(pubKey.verifySignature(any(Block.class), any(Signature.class))).thenReturn(true);
+    // returns the mock account for all identifiers
+    when(snapshot.getAccount(any(Identifier.class))).thenReturn(account);
+
+    // action
+    ingestEngine.process(block1);
+    when(blocks.has(block1.id())).thenReturn(true);
+    ingestEngine.process(block1);
+
+    // verification
+    verify(blocks, times(1)).add(block1);
+  }
+  /*
   @Test // 5.
   public void testValidatedSameTwoBlocksConcurrently() {
+
+    // ingest engine set up
+
+    blocks = mock(Blocks.class);
+    state = mock(State.class);
+    pendingTransactions = mock(Identifiers.class);
+    Identifiers seenEntities = mock(Identifiers.class);
+    snapshot = mock(Snapshot.class);
+
+    ArrayList<Account> accounts = new ArrayList<>(AccountFixture.newAccounts(10, 10).values());
+
+    for (Account account : accounts) {
+      when(snapshot.getAccount(account.getIdentifier())).thenReturn(account);
+    }
+
+    when(snapshot.all()).thenReturn(accounts);
+
+    ingestEngine = new IngestEngine(state, blocks, pendingTransactions, transactions, seenEntities);
+
+    // block 1 set up
+
+    block1 = ValidatedBlockFixture.newValidatedBlock(accounts);
+    when(state.atBlockId(block1.getPreviousBlockId())).thenReturn(snapshot);
+
+    // action
+
     AtomicInteger threadError = new AtomicInteger();
     ArrayList<ValidatedBlock> concBlockList = new ArrayList<>();
     concBlockList.add(block1);
@@ -208,20 +363,93 @@ public class IngestEngineTest {
     } catch (InterruptedException e) {
       Assertions.fail();
     }
-    Assertions.assertEquals(0, threadError.get());
-    // checks if block are changed, if not it means second block is not added
-    Assertions.assertEquals(blocks, blocks2[0]);
-  }
 
+    // verification
+
+    verify(blocks, times(2)).add(block1);
+    Assertions.assertTrue(blocks.has(block1.id()));
+    Assertions.assertEquals(blocks, blocks2); // checks if block are changed, if not it means second block is not added
+    Assertions.assertEquals(0, threadError.get());
+
+  }
+*/
   @Test // 6.
   public void testValidatedBlockContainingSeenTransaction() {
+    // ingest engine set up
+    blocks = mock(Blocks.class);
+    state = mock(State.class);
+    pendingTransactions = mock(Identifiers.class);
+    snapshot = mock(Snapshot.class);
+    assignment = mock(Assignment.class);
+    transactions = mock(Transactions.class);
+    Identifiers seenEntities = mock(Identifiers.class);
+    ArrayList<Account> accounts = new ArrayList<>(AccountFixture.newAccounts(10, 10).values());
+    for (Account account : accounts) {
+      when(snapshot.getAccount(account.getIdentifier())).thenReturn(account);
+    }
+    when(snapshot.all()).thenReturn(accounts);
+    ingestEngine = new IngestEngine(state, blocks, pendingTransactions, transactions, seenEntities, assignment);
+
+    // block 1 set up
+
+    block1 = ValidatedBlockFixture.newValidatedBlock(accounts);
+    when(state.atBlockId(block1.getPreviousBlockId())).thenReturn(snapshot);
+    when(state.atBlockId(block1.getTransactions()[2].getReferenceBlockId())).thenReturn(snapshot);
+    when(transactions.has(block1.getTransactions()[2].id())).thenReturn(true);
+    when(assignment.has(any(Identifier.class))).thenReturn(true); // returns true for all identifiers
+    PublicKey pubKey = mock(PublicKey.class); // mock public key
+    Account account = mock(Account.class); // mock account
+    when(account.getPublicKey()).thenReturn(pubKey); // returns the mocked public key for all accounts
+    // returns true for all signatures
+    when(pubKey.verifySignature(any(Block.class), any(Signature.class))).thenReturn(true);
+    // returns the mock account for all identifiers
+    when(snapshot.getAccount(any(Identifier.class))).thenReturn(account);
+
+    // action
+
     ingestEngine.process(block1.getTransactions()[2]);
     ingestEngine.process(block1);
-    Assertions.assertTrue(!pendingTransactions.has(block1.getTransactions()[2].id()));
-  }
 
+    // verification
+
+    verify(blocks, times(1)).add(block1);
+    verify(pendingTransactions, times(1)).add(block1.getTransactions()[2].id());
+    verify(transactions, times(1)).remove(block1.getTransactions()[2].id());
+
+  }
+  /*
   @Test // 7.
   public void testConcurrentBlockIngestionContainingSeenTransactionDisjointSet() {
+
+    // ingest engine set up
+
+    blocks = mock(Blocks.class);
+    state = mock(State.class);
+    pendingTransactions = mock(Identifiers.class);
+    Identifiers seenEntities = mock(Identifiers.class);
+    snapshot = mock(Snapshot.class);
+
+    ArrayList<Account> accounts = new ArrayList<>(AccountFixture.newAccounts(10, 10).values());
+
+    for (Account account : accounts) {
+      when(snapshot.getAccount(account.getIdentifier())).thenReturn(account);
+    }
+
+    when(snapshot.all()).thenReturn(accounts);
+
+    ingestEngine = new IngestEngine(state, blocks, pendingTransactions, transactions, seenEntities);
+
+    // block 1 set up
+
+    block1 = ValidatedBlockFixture.newValidatedBlock(accounts);
+    when(state.atBlockId(block1.getPreviousBlockId())).thenReturn(snapshot);
+
+    // block 2 set up
+
+    block2 = ValidatedBlockFixture.newValidatedBlock(accounts);
+    when(state.atBlockId(block2.getPreviousBlockId())).thenReturn(snapshot);
+
+    // action
 
     ingestEngine.process(block1.getTransactions()[0]);
     ingestEngine.process(block2.getTransactions()[0]);
@@ -230,6 +458,7 @@ public class IngestEngineTest {
     ArrayList<ValidatedBlock> concBlockList = new ArrayList<>();
     concBlockList.add(block1);
     concBlockList.add(block2);
+
     int concurrencyDegree = 2;
     CountDownLatch threadsDone = new CountDownLatch(concurrencyDegree);
     Thread[] threads = new Thread[concurrencyDegree];
@@ -254,21 +483,81 @@ public class IngestEngineTest {
       Assertions.fail();
     }
 
+    // verification
+
+    verify(blocks, times(1)).add(block1);
+    verify(blocks, times(1)).add(block2);
+
+    verify(pendingTransactions, times(1)).add(block1.getTransactions()[0].id());
+    verify(pendingTransactions, times(1)).remove(block1.getTransactions()[0].id());
+
+
+    verify(pendingTransactions, times(1)).add(block2.getTransactions()[0].id());
+    verify(pendingTransactions, times(1)).remove(block2.getTransactions()[0].id());
+
     Assertions.assertEquals(0, threadError.get());
-    Assertions.assertTrue(pendingTransactions.has(block1.getTransactions()[0].id()));
-    Assertions.assertTrue(pendingTransactions.has(block2.getTransactions()[0].id()));
 
   }
 
   @Test // 8.
   public void testConcurrentBlockIngestionContainingSeenTransactionOverlappingSet() {
 
-    ingestEngine.process(block1.getTransactions()[2]);
+    // ingest engine set up
+
+    blocks = mock(Blocks.class);
+    state = mock(State.class);
+    pendingTransactions = mock(Identifiers.class);
+    Identifiers seenEntities = mock(Identifiers.class);
+    snapshot = mock(Snapshot.class);
+
+    ArrayList<Account> accounts = new ArrayList<>(AccountFixture.newAccounts(10, 10).values());
+
+    for (Account account : accounts) {
+      when(snapshot.getAccount(account.getIdentifier())).thenReturn(account);
+    }
+
+    when(snapshot.all()).thenReturn(accounts);
+
+    ingestEngine = new IngestEngine(state, blocks, pendingTransactions, transactions, seenEntities);
+
+    // block 1 set up
+
+    block1 = ValidatedBlockFixture.newValidatedBlock(accounts);
+    when(state.atBlockId(block1.getPreviousBlockId())).thenReturn(snapshot);
+
+    // temp block set up
+
+    ValidatedTransaction[] tempTransactions = new ValidatedTransaction[block1.getTransactions().length];
+
+    for (int i = 0; i < block1.getTransactions().length; i++) {
+      if (i == 0) {
+        int senderIndex = random.nextInt(accounts.size());
+        int receiverIndex = random.nextInt(accounts.size());
+        while (receiverIndex == senderIndex) {
+          receiverIndex = random.nextInt(accounts.size());
+        }
+        tempTransactions[i] = ValidatedTransactionFixture.newValidatedTransaction(
+                accounts.get(senderIndex).getIdentifier(),
+                accounts.get(receiverIndex).getIdentifier());
+      } else {
+        tempTransactions[i] = block1.getTransactions()[i];
+      }
+    }
+
+    ValidatedBlock tempBlock = new ValidatedBlock(block1.getPreviousBlockId(), block1.getProposer(),
+            tempTransactions, block1.getSignature(), block1.getCertificates(), block1.getHeight());
+
+    when(state.atBlockId(tempBlock.getPreviousBlockId())).thenReturn(snapshot);
+
+    // action
+
+    ingestEngine.process(block1.getTransactions()[0]);
 
     AtomicInteger threadError = new AtomicInteger();
     ArrayList<ValidatedBlock> concBlockList = new ArrayList<>();
     concBlockList.add(block1);
-    concBlockList.add(block1);
+    concBlockList.add(tempBlock);
+
     int concurrencyDegree = 2;
     CountDownLatch threadsDone = new CountDownLatch(concurrencyDegree);
     Thread[] threads = new Thread[concurrencyDegree];
@@ -293,31 +582,137 @@ public class IngestEngineTest {
       Assertions.fail();
     }
 
+    // verification
+
+    verify(blocks, times(1)).add(block1);
+    verify(blocks, times(1)).add(tempBlock);
+
+    verify(transactionList, times(2)).add(block1.getTransactions()[0]);
+
+    verify(pendingTransactions, times(1)).add(block1.getTransactions()[0].id());
+    verify(pendingTransactions, times(1)).remove(block1.getTransactions()[0].id());
+
     Assertions.assertEquals(0, threadError.get());
-    Assertions.assertTrue(!pendingTransactions.has(block1.getTransactions()[2].id()));
 
   }
 
   @Test // 9.
   public void testValidatedAlreadyIngestedBlock() {
-    ArrayList<Block> blocksInDatabase = this.blocks.all();
-    Blocks blocks2 = blocks; // might need an improvement depending on the implementation
-    ingestEngine.process(blocksInDatabase.get(0)); // gets an already ingested block
-    Assertions.assertEquals(blocks, blocks2); // checks if block are changed, if not it means second block is not added
+
+    // ingest engine set up
+
+    blocks = mock(Blocks.class);
+    state = mock(State.class);
+    pendingTransactions = mock(Identifiers.class);
+    Identifiers seenEntities = mock(Identifiers.class);
+    snapshot = mock(Snapshot.class);
+
+    ArrayList<Account> accounts = new ArrayList<>(AccountFixture.newAccounts(10, 10).values());
+
+    for (Account account : accounts) {
+      when(snapshot.getAccount(account.getIdentifier())).thenReturn(account);
+    }
+
+    when(snapshot.all()).thenReturn(accounts);
+
+
+    ingestEngine = new IngestEngine(state, blocks, pendingTransactions, transactions, seenEntities);
+
+    // block 1 set up
+
+    block1 = ValidatedBlockFixture.newValidatedBlock(accounts);
+    when(state.atBlockId(block1.getPreviousBlockId())).thenReturn(snapshot);
+
+    // action
+
+    ingestEngine.process(block1);
+    ingestEngine.process(block1);
+
+    // verification
+
+    verify(blocks, times(1)).add(block1);
+
   }
 
   @Test // 10.
   public void testValidatedTransaction() {
+
+    // ingest engine set up
+
+    transactions = mock(Transactions.class);
+    blocks = mock(Blocks.class);
+    state = mock(State.class);
+    pendingTransactions = mock(Identifiers.class);
+    Identifiers seenEntities = mock(Identifiers.class);
+    snapshot = mock(Snapshot.class);
+
+    ArrayList<Account> accounts = new ArrayList<>(AccountFixture.newAccounts(10, 10).values());
+
+    for (Account account : accounts) {
+      when(snapshot.getAccount(account.getIdentifier())).thenReturn(account);
+    }
+
+    when(snapshot.all()).thenReturn(accounts);
+
+    ingestEngine = new IngestEngine(state, blocks, pendingTransactions, transactions, seenEntities);
+
+    // transaction 1 set up
+
+    transaction1 = ValidatedTransactionFixture.newValidatedTransaction();
+
+    // action
+
     ingestEngine.process(transaction1);
-    Assertions.assertTrue(transactions.has(transaction1.id()));
+
+    // validation
+
+    verify(pendingTransactions, times(1)).add(transaction1.id());
+    Assertions.assertTrue(pendingTransactions.has(transaction1.id()));
+
   }
 
   @Test // 11.
   public void testValidatedTwoTransactions() {
+
+    // ingest engine set up
+
+    transactions = mock(Transactions.class);
+    blocks = mock(Blocks.class);
+    state = mock(State.class);
+    pendingTransactions = mock(Identifiers.class);
+    Identifiers seenEntities = mock(Identifiers.class);
+    snapshot = mock(Snapshot.class);
+
+    ArrayList<Account> accounts = new ArrayList<>(AccountFixture.newAccounts(10, 10).values());
+
+    for (Account account : accounts) {
+      when(snapshot.getAccount(account.getIdentifier())).thenReturn(account);
+    }
+
+    when(snapshot.all()).thenReturn(accounts);
+
+    ingestEngine = new IngestEngine(state, blocks, pendingTransactions, transactions, seenEntities);
+
+    // transaction 1 set up
+
+    transaction1 = ValidatedTransactionFixture.newValidatedTransaction();
+
+    // transaction 2 set up
+
+    transaction2 = ValidatedTransactionFixture.newValidatedTransaction();
+
+    // action
+
     ingestEngine.process(transaction1);
     ingestEngine.process(transaction2);
-    Assertions.assertTrue(transactions.has(transaction1.id()));
-    Assertions.assertTrue(transactions.has(transaction2.id()));
+
+    // validation
+
+    verify(pendingTransactions, times(1)).add(transaction1.id());
+    verify(pendingTransactions, times(1)).add(transaction2.id());
+    Assertions.assertTrue(pendingTransactions.has(transaction1.id()));
+    Assertions.assertTrue(pendingTransactions.has(transaction2.id()));
+
   }
 
   @Test // 12.
@@ -527,4 +922,6 @@ public class IngestEngineTest {
 
     Assertions.assertEquals(0, threadErrorCount.get());
   }
+
+ */
 }

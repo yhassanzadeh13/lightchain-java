@@ -11,7 +11,7 @@ import model.lightchain.ValidatedTransaction;
 import protocol.Parameters;
 
 /**
- * A fixture for testing the ValidatedBlock class.
+ * A fixture for BlockFixture class.
  */
 public class ValidatedBlockFixture {
   private static final Random random = new Random();
@@ -70,14 +70,14 @@ public class ValidatedBlockFixture {
   }
 
   /**
-   * Returns a validated block with randomly generated values,
-   * given height, previous block id and accounts of the block.
+   * Returns a validated block with randomly generated values, given height,
+   * previous block id and accounts of the block.
    *
    * @param accounts        the accounts of the block.
    * @param height          the height of the block.
    * @param previousBlockId the previous block id of the block.
-   * @return a validated block with randomly generated values,
-   * given height, previous block id and accounts of the block.
+   * @return a validated block with randomly generated values, given height,
+   * previous block id and accounts of the block.
    */
   public static ValidatedBlock newValidatedBlock(ArrayList<Account> accounts, int height, Identifier previousBlockId) {
     Identifier proposer = IdentifierFixture.newIdentifier();

@@ -25,17 +25,23 @@ public class IngestEngine implements Engine {
   private final Transactions pendingTransactions;
   private final Identifiers seenEntities; //TODO: Add the seen entities
   private final ReentrantLock lock = new ReentrantLock();
+  private final Assignment assignment;
 
   /**
    * Constructor of a IngestEngine.
    */
-  public IngestEngine(State state, Blocks blocks, Identifiers transactionIds,
-                      Transactions pendingTransactions, Identifiers seenEntities) {
+  public IngestEngine(State state,
+                      Blocks blocks,
+                      Identifiers transactionIds,
+                      Transactions pendingTransactions,
+                      Identifiers seenEntities,
+                      Assignment assignment) {
     this.state = state;
     this.blocks = blocks;
     this.transactionIds = transactionIds;
     this.pendingTransactions = pendingTransactions;
     this.seenEntities = seenEntities;
+    this.assignment = assignment;
   }
 
   /**
@@ -78,10 +84,11 @@ public class IngestEngine implements Engine {
       if (e.type().equals(EntityType.TYPE_VALIDATED_BLOCK)) {
         Block block = ((Block) e); // skims off the non-block attributes (e.g., certificates).
         Signature[] certificates = ((ValidatedBlock) e).getCertificates();
-
+        /* Commented out for testing (to be able to give it mock)
         Assignment assignment = assigner.assign(block.id(),
-                state.atBlockId(block.getPreviousBlockId()), Parameters.VALIDATOR_THRESHOLD);
-
+                state.atBlockId(block.getPreviousBlockId()),
+                Parameters.VALIDATOR_THRESHOLD);
+          */
         int signatures = 0;
         for (Signature certificate : certificates) {
           if (!assignment.has(certificate.getSignerId())) {
@@ -89,7 +96,9 @@ public class IngestEngine implements Engine {
             return;
           }
           if (this.state.atBlockId(block.getPreviousBlockId())
-                  .getAccount(certificate.getSignerId()).getPublicKey().verifySignature(block, certificate)) {
+                  .getAccount(certificate.getSignerId())
+                  .getPublicKey()
+                  .verifySignature(block, certificate)) {
             signatures++;
           }
         }
@@ -107,18 +116,21 @@ public class IngestEngine implements Engine {
       } else if (e.type().equals(EntityType.TYPE_VALIDATED_TRANSACTION)) {
         Transaction tx = ((Transaction) e); // skims off the non-transaction attributes (e.g., certificates).
         Signature[] certificates = ((ValidatedTransaction) e).getCertificates();
-
+        /* Commented out for testing (to be able to give it mock)
         Assignment assignment = assigner.assign(tx.id(),
-                state.atBlockId(tx.getReferenceBlockId()), Parameters.VALIDATOR_THRESHOLD);
-
+                state.atBlockId(tx.getReferenceBlockId()),
+                Parameters.VALIDATOR_THRESHOLD);
+        */
         int signatures = 0;
         for (Signature certificate : certificates) {
           if (!assignment.has(certificate.getSignerId())) {
             // certificate issued by a non-assigned validator
             return;
           }
-          if (this.state.atBlockId(tx.getReferenceBlockId()).getAccount(certificate.getSignerId())
-                  .getPublicKey().verifySignature(tx, certificate)) {
+          if (this.state.atBlockId(tx.getReferenceBlockId())
+                  .getAccount(certificate.getSignerId())
+                  .getPublicKey()
+                  .verifySignature(tx, certificate)) {
             signatures++;
           }
         }

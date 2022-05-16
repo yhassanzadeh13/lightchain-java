@@ -14,8 +14,8 @@ public interface ValidatorAssigner {
    * is less than or equal to hash(id || i). Once the ith validator is chosen, it is omitted from the procedure
    * of picking the i+1(th) validator.
    *
-   * @param id identifier of the entity.
-   * @param s snapshot to pick validators from.
+   * @param id  identifier of the entity.
+   * @param s   snapshot to pick validators from.
    * @param num number of validators to choose.
    * @return list of validators.
    */

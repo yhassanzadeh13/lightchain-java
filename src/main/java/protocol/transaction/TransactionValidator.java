@@ -14,7 +14,7 @@ public class TransactionValidator implements InfTransactionValidator {
   /**
    * Unique State that the transaction is in.
    */
-  private State state;
+  private final State state;
 
   /**
    * Constructor.
@@ -88,9 +88,9 @@ public class TransactionValidator implements InfTransactionValidator {
   @Override
   public boolean isAuthenticated(Transaction transaction) {
     return state.atBlockId(transaction.getReferenceBlockId())
-        .getAccount(transaction.getSender())
-        .getPublicKey()
-        .verifySignature(transaction, transaction.getSignature());
+            .getAccount(transaction.getSender())
+            .getPublicKey()
+            .verifySignature(transaction, transaction.getSignature());
   }
 
   /**
