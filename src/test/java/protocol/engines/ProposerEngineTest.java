@@ -51,12 +51,16 @@ public class ProposerEngineTest {
 
   @Test
   public void blockValidationTest() {
+    // Initialize non-mocked components.
     Random random = new Random();
     Identifier localId = IdentifierFixture.newIdentifier();
     PrivateKey localPrivateKey = KeyGenFixture.newKeyGen().getPrivateKey();
     Local local = new Local(localId, localPrivateKey);
-    Assignment assignment = mock(Assignment.class);
+    ArrayList<Account> accounts = AccountFixture.newAccounts(11);
+    Block block = ValidatedBlockFixture.newValidatedBlock(accounts,Math.abs(random.nextInt(1_000_000)),IdentifierFixture.newIdentifier());
 
+    // Initialize mocked components.
+    Assignment assignment = mock(Assignment.class);
     Transactions pendingTransactions = mock(Transactions.class);
     Blocks blocks = mock(Blocks.class);
     State state = mock(State.class);
@@ -66,9 +70,7 @@ public class ProposerEngineTest {
     MockConduit proposedCon = new MockConduit(Channels.ProposedBlocks, networkAdapter);
     MockConduit validatedCon = new MockConduit(Channels.ValidatedBlocks, networkAdapter);
 
-
-    ArrayList<Account> accounts = AccountFixture.newAccounts(11);
-    Block block = ValidatedBlockFixture.newValidatedBlock(accounts,Math.abs(random.nextInt(1_000_000)),IdentifierFixture.newIdentifier());
+    // Initialize mocked returns.
     when(snapshot.all()).thenReturn(accounts);
     when(snapshot.getAccount(localId)).thenReturn(accounts.get(0));
     when(assignment.has(local.myId())).thenReturn(true);
@@ -76,8 +78,10 @@ public class ProposerEngineTest {
     when(pendingTransactions.size()).thenReturn(1);
     when(pendingTransactions.all()).thenReturn(new ArrayList<>(Arrays.asList(block.getTransactions())));
     when(network.register(any(Engine.class), eq(Channels.ProposedBlocks))).thenReturn(proposedCon);
-    ProposerEngine proposerEngine = new ProposerEngine(blocks, pendingTransactions, state, local, network, assignment);
+    when(network.register(any(Engine.class), eq(Channels.ValidatedBlocks))).thenReturn(validatedCon);
 
+    // Verification.
+    ProposerEngine proposerEngine = new ProposerEngine(blocks, pendingTransactions, state, local, network, assignment);
     proposerEngine.onNewValidatedBlock(block.getHeight(), block.id());
     BlockValidator blockValidator = new BlockValidator(state);
     Assertions.assertTrue(blockValidator.isCorrect(proposerEngine.newB));
