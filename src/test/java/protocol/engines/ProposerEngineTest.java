@@ -1,5 +1,6 @@
 package protocol.engines;
 
+import java.lang.reflect.Parameter;
 import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.Random;
@@ -20,6 +21,7 @@ import networking.MockConduit;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import protocol.Engine;
+import protocol.Parameters;
 import protocol.assigner.LightChainValidatorAssigner;
 import protocol.block.BlockValidator;
 import state.Snapshot;
@@ -57,8 +59,7 @@ public class ProposerEngineTest {
     PrivateKey localPrivateKey = KeyGenFixture.newKeyGen().getPrivateKey();
     Local local = new Local(localId, localPrivateKey);
     ArrayList<Account> accounts = AccountFixture.newAccounts(11);
-    Block block = ValidatedBlockFixture.newValidatedBlock(accounts,Math.abs(random.nextInt(1_000_000)),IdentifierFixture.newIdentifier());
-
+    Block block = BlockFixture.newBlock(Parameters.MIN_TRANSACTIONS_NUM + 1);
     // Initialize mocked components.
     Assignment assignment = mock(Assignment.class);
     Transactions pendingTransactions = mock(Transactions.class);
