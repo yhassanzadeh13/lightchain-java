@@ -1,10 +1,11 @@
 package protocol.engines;
 
+import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.Random;
 
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
 
 import model.crypto.PrivateKey;
 import model.lightchain.Account;
@@ -18,22 +19,19 @@ import network.NetworkAdapter;
 import networking.MockConduit;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import protocol.Engine;
 import protocol.assigner.LightChainValidatorAssigner;
 import protocol.block.BlockValidator;
 import state.Snapshot;
 import state.State;
 import storage.Blocks;
 import storage.Transactions;
-import unittest.fixtures.AccountFixture;
-import unittest.fixtures.IdentifierFixture;
-import unittest.fixtures.KeyGenFixture;
-import unittest.fixtures.ValidatedBlockFixture;
+import unittest.fixtures.*;
 
 /**
  * Encapsulates tests for the proposer engine.
  */
 public class ProposerEngineTest {
-
 
   // TODO: implement following test cases.
   // Mock assigner, state, snapshot, network, and storage components.
@@ -68,14 +66,18 @@ public class ProposerEngineTest {
     MockConduit proposedCon = new MockConduit(Channels.ProposedBlocks, networkAdapter);
     MockConduit validatedCon = new MockConduit(Channels.ValidatedBlocks, networkAdapter);
 
-    ArrayList<Account> a = AccountFixture.newAccounts(11);
-    Block block = ValidatedBlockFixture.newValidatedBlock(a,Math.abs(random.nextInt(1_000_000)),IdentifierFixture.newIdentifier());
-    when(snapshot.all()).thenReturn(a);
+
+    ArrayList<Account> accounts = AccountFixture.newAccounts(11);
+    Block block = ValidatedBlockFixture.newValidatedBlock(accounts,Math.abs(random.nextInt(1_000_000)),IdentifierFixture.newIdentifier());
+    when(snapshot.all()).thenReturn(accounts);
+    when(snapshot.getAccount(localId)).thenReturn(accounts.get(0));
     when(assignment.has(local.myId())).thenReturn(true);
     when(state.atBlockId(block.id())).thenReturn(snapshot);
     when(pendingTransactions.size()).thenReturn(1);
-
+    when(pendingTransactions.all()).thenReturn(new ArrayList<>(Arrays.asList(block.getTransactions())));
+    when(network.register(any(Engine.class), eq(Channels.ProposedBlocks))).thenReturn(proposedCon);
     ProposerEngine proposerEngine = new ProposerEngine(blocks, pendingTransactions, state, local, network, assignment);
+
     proposerEngine.onNewValidatedBlock(block.getHeight(), block.id());
     BlockValidator blockValidator = new BlockValidator(state);
     Assertions.assertTrue(blockValidator.isCorrect(proposerEngine.newB));

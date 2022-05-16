@@ -105,8 +105,9 @@ public class ProposerEngine implements NewBlockSubscriber, Engine {
 
       // Calls the assigner with tagged id.
       LightChainValidatorAssigner assigner = new LightChainValidatorAssigner();
+      /* Commented out for testing.
       Assignment assignment = assigner.assign(taggedId, state.atBlockId(blockId), (short) 1);
-
+        */
       // Checks whether the assigner has assigned this node.
       if (assignment.has(local.myId())) {
 
