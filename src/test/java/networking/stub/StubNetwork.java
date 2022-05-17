@@ -1,5 +1,6 @@
 package networking.stub;
 
+import java.util.ArrayList;
 import java.util.concurrent.ConcurrentHashMap;
 
 import model.Entity;
@@ -17,6 +18,8 @@ import unittest.fixtures.IdentifierFixture;
  * A mock implementation of networking layer as a test util.
  */
 public class StubNetwork implements Network, NetworkAdapter {
+  private final String channel1 = "test-network-channel-1";
+  private final String channel2 = "test-network-channel-2";
   private final ConcurrentHashMap<String, Engine> engines;
   private final Hub hub;
   private final Identifier identifier;
@@ -98,7 +101,6 @@ public class StubNetwork implements Network, NetworkAdapter {
     } catch (IllegalStateException ex) {
       throw new LightChainNetworkingException("stub network could not transfer entity", ex);
     }
-
   }
 
   /**
@@ -110,7 +112,7 @@ public class StubNetwork implements Network, NetworkAdapter {
    */
   @Override
   public void put(Entity e, String namespace) throws LightChainDistributedStorageException {
-
+    this.hub.putEntityToChannel(e, namespace);
   }
 
   /**
@@ -124,6 +126,19 @@ public class StubNetwork implements Network, NetworkAdapter {
    */
   @Override
   public Entity get(Identifier identifier, String namespace) throws LightChainDistributedStorageException {
-    return null;
+    return this.hub.getEntityFromChannel(identifier, namespace);
   }
+
+  /**
+   * Retrieves all entities stored on the underlying DHT of nodes that stored on this channel.
+   *
+   * @param namespace the namespace on which this query is resolved.
+   * @return list of all entities stored on this channel from underlying DHT.
+   * @throws LightChainDistributedStorageException any unhappy path taken on retrieving the Entities.
+   */
+  @Override
+  public ArrayList<Entity> allEntities(String namespace) throws LightChainDistributedStorageException {
+    return this.hub.getAllEntities(namespace);
+  }
+
 }

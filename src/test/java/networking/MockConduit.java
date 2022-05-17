@@ -53,6 +53,7 @@ public class MockConduit implements Conduit {
    */
   @Override
   public void put(Entity e) throws LightChainDistributedStorageException {
+    this.networkAdapter.put(e, channel);
 
   }
 
@@ -66,12 +67,12 @@ public class MockConduit implements Conduit {
    */
   @Override
   public Entity get(Identifier identifier) throws LightChainDistributedStorageException {
-    return null;
+    return this.networkAdapter.get(identifier, channel);
   }
 
   @Override
   public ArrayList<Entity> allEntities() throws LightChainDistributedStorageException {
-    return null;
+    return this.networkAdapter.allEntities(channel);
   }
 
   public boolean hasSent(Identifier entityId) {
