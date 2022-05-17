@@ -1,11 +1,11 @@
 package network;
 
+import java.util.ArrayList;
+
 import model.Entity;
 import model.exceptions.LightChainDistributedStorageException;
 import model.exceptions.LightChainNetworkingException;
 import model.lightchain.Identifier;
-
-import java.util.ArrayList;
 
 /**
  * NetworkAdapter models the interface that is exposed to the conduits from the networking layer.

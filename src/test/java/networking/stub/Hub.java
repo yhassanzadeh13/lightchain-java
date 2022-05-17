@@ -83,7 +83,8 @@ public class Hub {
    * @param namespace  channel name.
    * @return entity.
    */
-  public Entity getEntityFromChannel(Identifier identifier, String namespace) throws LightChainDistributedStorageException {
+  public Entity getEntityFromChannel(Identifier identifier, String namespace)
+      throws LightChainDistributedStorageException {
     try {
       lock.readLock().lock();
       Identifier identifierOfNetwork = binarySearch(identifier);
@@ -106,7 +107,8 @@ public class Hub {
    * @return identifier of the network that store the entity.
    */
   public Identifier binarySearch(Identifier identifier) {
-    int left = 0, right = identifierSet.size() - 1;
+    int left = 0;
+    int right = identifierSet.size() - 1;
     while (left < right) {
       int mid = left + (right - left) / 2;
       if (identifierSet.get(mid).compareTo(identifier) == 0) {

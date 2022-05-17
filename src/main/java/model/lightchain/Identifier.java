@@ -9,7 +9,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Represents a 32-byte unique identifier for an entity. Normally is computed as the hash value of the entity.
  */
-public class Identifier implements Serializable,Comparable<Identifier> {
+public class Identifier implements Serializable, Comparable<Identifier> {
   public static final int Size = 32;
   private final byte[] value;
 
