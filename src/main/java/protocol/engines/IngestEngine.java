@@ -69,16 +69,15 @@ public class IngestEngine implements Engine {
    */
   @Override
   public void process(Entity e) throws IllegalArgumentException {
-    if (seenEntities.has(e.id())) {
-      return; // entity already ingested.
-    }
-
-    if (!e.type().equals(EntityType.TYPE_VALIDATED_BLOCK) && !e.type().equals(EntityType.TYPE_VALIDATED_TRANSACTION)) {
-      throw new IllegalArgumentException("entity is neither a validated transaction nor a validated block");
-    }
-
     try {
       lock.lock();
+      if (!e.type().equals(EntityType.TYPE_VALIDATED_BLOCK) && !e.type().equals(EntityType.TYPE_VALIDATED_TRANSACTION)) {
+        throw new IllegalArgumentException("entity is neither a validated transaction nor a validated block");
+      }
+
+      if (seenEntities.has(e.id())) {
+        return; // entity already ingested.
+      }
 
       LightChainValidatorAssigner assigner = new LightChainValidatorAssigner();
       if (e.type().equals(EntityType.TYPE_VALIDATED_BLOCK)) {
@@ -141,6 +140,7 @@ public class IngestEngine implements Engine {
           }
         }
       }
+      seenEntities.add(e.id());
     } finally {
       lock.unlock();
     }
