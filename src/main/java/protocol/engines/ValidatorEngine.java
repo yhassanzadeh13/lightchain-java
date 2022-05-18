@@ -72,7 +72,7 @@ public class ValidatorEngine implements Engine {
     }
 
     if (seenEntities.has(e.id())) {
-      return; // entity already processed.
+      return; // entity already processed
     }
 
     try {
