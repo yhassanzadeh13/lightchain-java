@@ -71,7 +71,8 @@ public class IngestEngine implements Engine {
   public void process(Entity e) throws IllegalArgumentException {
     try {
       lock.lock();
-      if (!e.type().equals(EntityType.TYPE_VALIDATED_BLOCK) && !e.type().equals(EntityType.TYPE_VALIDATED_TRANSACTION)) {
+      if (!e.type().equals(EntityType.TYPE_VALIDATED_BLOCK)
+          && !e.type().equals(EntityType.TYPE_VALIDATED_TRANSACTION)) {
         throw new IllegalArgumentException("entity is neither a validated transaction nor a validated block");
       }
 
@@ -95,9 +96,9 @@ public class IngestEngine implements Engine {
             return;
           }
           if (this.state.atBlockId(block.getPreviousBlockId())
-                  .getAccount(certificate.getSignerId())
-                  .getPublicKey()
-                  .verifySignature(block, certificate)) {
+              .getAccount(certificate.getSignerId())
+              .getPublicKey()
+              .verifySignature(block, certificate)) {
             signatures++;
           }
         }
@@ -127,9 +128,9 @@ public class IngestEngine implements Engine {
             return;
           }
           if (this.state.atBlockId(tx.getReferenceBlockId())
-                  .getAccount(certificate.getSignerId())
-                  .getPublicKey()
-                  .verifySignature(tx, certificate)) {
+              .getAccount(certificate.getSignerId())
+              .getPublicKey()
+              .verifySignature(tx, certificate)) {
             signatures++;
           }
         }

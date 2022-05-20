@@ -757,8 +757,9 @@ public class IngestEngineTest {
     ingestEngine.process(validatedTransaction);
     verify(pendingTransactions, times(1)).add(validatedTransaction);
   }
+
   // 14. Happy path of receiving two duplicate pair of validated transactions concurrently.
-  @Test // 14.
+  @Test
   public void testValidatedConcurrentDuplicateTwoTransactions() {
     // ingest engine set up
     blocks = mock(Blocks.class);
