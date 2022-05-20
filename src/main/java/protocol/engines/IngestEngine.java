@@ -140,6 +140,7 @@ public class IngestEngine implements Engine {
           }
         }
       }
+
       seenEntities.add(e.id());
     } finally {
       lock.unlock();
