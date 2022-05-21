@@ -26,8 +26,6 @@ import networking.MockConduit;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 import protocol.Parameters;
@@ -130,16 +128,13 @@ public class ValidatorEngineTest {
     accounts2 = a[1];
     accountsNoCurrent = a[2];
     when(snapshot1.all()).thenReturn(accounts1);
-    when(snapshot2.all()).thenReturn(accounts1);
+    when(snapshot2.all()).thenReturn(accounts2);
 
     for (int i = 0; i < accounts1.size(); i++) {
       when(snapshot1.getAccount(snapshot1.all().get(i).getIdentifier())).thenReturn(accounts1.get(i));
-      when(snapshot2.getAccount(snapshot2.all().get(i).getIdentifier())).thenReturn(accounts1.get(i));
+      when(snapshot2.getAccount(snapshot2.all().get(i).getIdentifier())).thenReturn(accounts2.get(i));
     }
-    /*
-    for (Account account: snapshot1.all()) {
-      when(state.atBlockId(account.getLastBlockId())).thenReturn(snapshot1);
-    }*/
+
     for (Account account : snapshot2.all()) {
       when(state.atBlockId(account.getLastBlockId())).thenReturn(snapshot1);
     }
@@ -154,7 +149,7 @@ public class ValidatorEngineTest {
 
   @Test
   public void testReceiveOneValidBlock() throws LightChainDistributedStorageException {
-
+setup();
     Identifier proposer = accounts2.get(propInd).getIdentifier();
     Block block = BlockFixture.newBlock(proposer, block2.id(), block2.getHeight() + 1, snapshot2.all());
     when(network.register(any(ValidatorEngine.class), eq(Channels.ProposedBlocks))).thenReturn(blockConduit);
@@ -181,7 +176,7 @@ public class ValidatorEngineTest {
       for (Entity e : blockConduit.allEntities()) {
         Assertions.assertTrue(blockConduit.hasSent(e.id()));
       }
-      Assertions.assertNotEquals(blockConduit.allEntities().size(), 0);
+      Assertions.assertNotEquals(0, blockConduit.allEntities().size());
     } catch (LightChainDistributedStorageException e) {
       e.printStackTrace();
     }
@@ -528,7 +523,7 @@ public class ValidatorEngineTest {
 
     try {
       engine.process(block);
-      Assertions.assertEquals(0,blockConduit.allEntities().size());
+      Assertions.assertEquals(0, blockConduit.allEntities().size());
     } catch (Exception ex) {
       ex.printStackTrace();
       Assertions.fail(ex);
@@ -548,7 +543,7 @@ public class ValidatorEngineTest {
 
     try {
       engine.process(block);
-      Assertions.assertEquals(0,blockConduit.allEntities().size());
+      Assertions.assertEquals(0, blockConduit.allEntities().size());
     } catch (Exception ex) {
       ex.printStackTrace();
       Assertions.fail(ex);
@@ -571,7 +566,7 @@ public class ValidatorEngineTest {
 
     try {
       engine.process(block);
-      Assertions.assertEquals(0,blockConduit.allEntities().size());
+      Assertions.assertEquals(0, blockConduit.allEntities().size());
     } catch (Exception ex) {
       ex.printStackTrace();
       Assertions.fail(ex);
@@ -593,7 +588,7 @@ public class ValidatorEngineTest {
         .verifySignature(block, block.getSignature())).thenReturn(true);
     try {
       engine.process(block);
-      Assertions.assertEquals(0,blockConduit.allEntities().size());
+      Assertions.assertEquals(0, blockConduit.allEntities().size());
     } catch (Exception ex) {
       ex.printStackTrace();
       Assertions.fail(ex);
@@ -616,7 +611,7 @@ public class ValidatorEngineTest {
 
     try {
       engine.process(block);
-      Assertions.assertEquals(0,blockConduit.allEntities().size());
+      Assertions.assertEquals(0, blockConduit.allEntities().size());
     } catch (Exception ex) {
       ex.printStackTrace();
       Assertions.fail(ex);
@@ -639,7 +634,7 @@ public class ValidatorEngineTest {
 
     try {
       engine.process(block);
-      Assertions.assertEquals(0,blockConduit.allEntities().size());
+      Assertions.assertEquals(0, blockConduit.allEntities().size());
     } catch (Exception ex) {
       ex.printStackTrace();
       Assertions.fail(ex);
@@ -666,7 +661,7 @@ public class ValidatorEngineTest {
 
     try {
       engine.process(block);
-      Assertions.assertEquals(0,blockConduit.allEntities().size());
+      Assertions.assertEquals(0, blockConduit.allEntities().size());
     } catch (Exception ex) {
       ex.printStackTrace();
       Assertions.fail(ex);
@@ -695,7 +690,7 @@ public class ValidatorEngineTest {
 
     try {
       engine.process(block);
-      Assertions.assertEquals(0,blockConduit.allEntities().size());
+      Assertions.assertEquals(0, blockConduit.allEntities().size());
     } catch (Exception ex) {
       ex.printStackTrace();
       Assertions.fail(ex);
@@ -717,7 +712,7 @@ public class ValidatorEngineTest {
           .thenReturn(true);
     }
     when(state.atBlockId(snapshot2.getAccount(block.getTransactions()[0].getSender()).getLastBlockId())
-        .getReferenceBlockHeight()).thenReturn((long) block2.getHeight()*2+10);
+        .getReferenceBlockHeight()).thenReturn((long) block2.getHeight() * 2 + 10);
     when(state.atBlockId(block.getPreviousBlockId())
         .getAccount(block.getProposer())
         .getPublicKey()
@@ -725,7 +720,7 @@ public class ValidatorEngineTest {
 
     try {
       engine.process(block);
-      Assertions.assertEquals(0,blockConduit.allEntities().size());
+      Assertions.assertEquals(0, blockConduit.allEntities().size());
     } catch (Exception ex) {
       ex.printStackTrace();
       Assertions.fail(ex);
@@ -747,7 +742,7 @@ public class ValidatorEngineTest {
           .thenReturn(true);
     }
     when(snapshot2.getAccount(block.getTransactions()[0].getSender())).
-        thenReturn(snapshot2.getAccount(block.getTransactions()[1].getSender()));
+        thenReturn(accounts2.get(accounts2.indexOf(block.getTransactions()[1].getSender())));
     when(state.atBlockId(block.getPreviousBlockId())
         .getAccount(block.getProposer())
         .getPublicKey()
@@ -755,7 +750,7 @@ public class ValidatorEngineTest {
 
     try {
       engine.process(block);
-      Assertions.assertEquals(0,blockConduit.allEntities().size());
+      Assertions.assertEquals(0, blockConduit.allEntities().size());
     } catch (Exception ex) {
       ex.printStackTrace();
       Assertions.fail(ex);
