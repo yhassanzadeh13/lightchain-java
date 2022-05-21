@@ -592,7 +592,7 @@ public class ValidatorEngineTest {
     verify(seenEntities, never()).add(any());
   }
 
- /* @Test
+  /* @Test
   public void testReceiveBlockNotCorrect_ValidatedTransactionBelowMinimum() {
     setup();
     //TODO add a new fixture?
@@ -614,7 +614,7 @@ public class ValidatorEngineTest {
     Assertions.assertFalse(blockConduit.hasSent(block.id()));
     verify(seenEntities, never()).add(any());
   }
-*/
+  */
   /*@Test
   public void testReceiveBlockNotCorrect_ValidatedTransactionAboveMaximum() {
     setup();

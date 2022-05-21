@@ -40,7 +40,6 @@ public class ProposerEngine implements NewBlockSubscriber, Engine {
   private static LightChainValidatorAssigner assigner;
   private final ArrayList<BlockApproval> approvals;
   public Block newB;
-  private Assignment assignment;
 
   /**
    * Constructor.
@@ -52,7 +51,7 @@ public class ProposerEngine implements NewBlockSubscriber, Engine {
    * @param net                 Network.
    */
   public ProposerEngine(Blocks blocks, Transactions pendingTransactions, State state,
-                        Local local, Network net, Assignment assignment) {
+                        Local local, Network net, LightChainValidatorAssigner assigner) {
     ProposerEngine.local = local;
     ProposerEngine.blocks = blocks;
     ProposerEngine.pendingTransactions = pendingTransactions;
@@ -61,7 +60,7 @@ public class ProposerEngine implements NewBlockSubscriber, Engine {
     proposerCon = net.register(this, Channels.ProposedBlocks);
     validatedCon = net.register(this, Channels.ValidatedBlocks);
     ProposerEngine.net = net;
-    this.assignment = assignment;
+    ProposerEngine.assigner = assigner;
   }
 
   /**
@@ -104,11 +103,7 @@ public class ProposerEngine implements NewBlockSubscriber, Engine {
       }
       Identifier taggedId = new Identifier(output.toByteArray());
 
-      // Calls the assigner with tagged id.
-      LightChainValidatorAssigner assigner = new LightChainValidatorAssigner();
-      /* Commented out for testing.
       Assignment assignment = assigner.assign(taggedId, state.atBlockId(blockId), (short) 1);
-        */
       // Checks whether the assigner has assigned this node.
       if (assignment.has(local.myId())) {
 
