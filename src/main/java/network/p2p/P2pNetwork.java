@@ -117,4 +117,7 @@ public class P2pNetwork implements network.Network {
     }
   }
 
+  public ConcurrentMap<Identifier, String> getIdToAddressMap() {
+    return this.idToAddressMap;
+  }
 }

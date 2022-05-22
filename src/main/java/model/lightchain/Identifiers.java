@@ -47,8 +47,10 @@ public class Identifiers {
 
   @Override
   public String toString() {
-    return "Identifiers{"
-            + "identifiers=" + identifiers
-            + '}';
+    return "Identifiers{" + "identifiers=" + identifiers + '}';
+  }
+
+  public ArrayList<Identifier> all() {
+    return this.identifiers;
   }
 }

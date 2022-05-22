@@ -159,4 +159,20 @@ public class AccountFixture {
     accounts[2] = accounts3;
     return accounts;
   }
+
+  /**
+   * Creates staked accounts.
+   *
+   * @param stakedCount number of staked accounts.
+   * @return An array list consist of staked accounts.
+   */
+  public static ArrayList<Account> newAccounts(int stakedCount) {
+    ArrayList<Account> accountArrayList = new ArrayList<>();
+    for (int i = 0; i < stakedCount; i++) {
+      Identifier accountId = IdentifierFixture.newIdentifier();
+      Account account = AccountFixture.newAccount(accountId, Parameters.MINIMUM_STAKE + i);
+      accountArrayList.add(account);
+    }
+    return accountArrayList;
+  }
 }
