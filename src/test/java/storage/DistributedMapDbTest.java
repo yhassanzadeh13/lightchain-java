@@ -57,7 +57,6 @@ public class DistributedMapDbTest {
     FileUtils.deleteDirectory(new File(tempdir.toString()));
   }
 
-
   /**
    * When adding 20 new entities of different types (10 transactions and 10 blocks) sequentially,
    * the Add method must return true for all of them. Moreover, after
@@ -194,7 +193,6 @@ public class DistributedMapDbTest {
     this.checkForHasConcurrently(10);
     this.checkForAllConcurrently(10);
   }
-
 
   /**
    * Removes entities from blocks storage database till the given index concurrently.
