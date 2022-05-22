@@ -1,5 +1,6 @@
 package modules.ads.merkletree;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Objects;
@@ -11,7 +12,7 @@ import modules.ads.MembershipProof;
 /**
  * A proof of membership in a Merkle tree.
  */
-public class MerkleProof implements MembershipProof {
+public class MerkleProof implements MembershipProof, Serializable {
   private ArrayList<Sha3256Hash> path;
   private final ArrayList<Boolean> isLeftNode;
   private final Sha3256Hash root;
