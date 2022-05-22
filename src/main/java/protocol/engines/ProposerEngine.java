@@ -128,7 +128,7 @@ public class ProposerEngine implements NewBlockSubscriber, Engine {
 
         // Adds the Block Proposer tag to the assigner.
         bytesId = newBlock.id().getBytes();
-        bytesTag = Tags.ValidatorTag.getBytes();
+        bytesTag = Tags.ValidatorTag.getBytes(StandardCharsets.UTF_8);
         output = new ByteArrayOutputStream();
         try {
           output.write(bytesId, 0, 32);
