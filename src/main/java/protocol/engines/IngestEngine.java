@@ -9,7 +9,8 @@ import model.crypto.Signature;
 import model.lightchain.*;
 import protocol.Engine;
 import protocol.Parameters;
-import protocol.assigner.LightChainValidatorAssigner;
+import protocol.assigner.ValidatorAssigner;
+import state.Snapshot;
 import state.State;
 import storage.Blocks;
 import storage.Identifiers;
@@ -26,7 +27,7 @@ public class IngestEngine implements Engine {
   private final Transactions pendingTransactions;
   private final Identifiers seenEntities; //TODO: Add the seen entities
   private final ReentrantLock lock = new ReentrantLock();
-  private final Assignment assignment;
+  private final ValidatorAssigner assigner;
 
   Counter pendingTransactionAdditions;
   Counter validBlocks;
@@ -84,7 +85,8 @@ public class IngestEngine implements Engine {
   public void process(Entity e) throws IllegalArgumentException {
     try {
       lock.lock();
-      if (!e.type().equals(EntityType.TYPE_VALIDATED_BLOCK) && !e.type().equals(EntityType.TYPE_VALIDATED_TRANSACTION)) {
+      if (!e.type().equals(EntityType.TYPE_VALIDATED_BLOCK)
+          && !e.type().equals(EntityType.TYPE_VALIDATED_TRANSACTION)) {
         throw new IllegalArgumentException("entity is neither a validated transaction nor a validated block");
       }
 
@@ -92,28 +94,27 @@ public class IngestEngine implements Engine {
         return; // entity already ingested.
       }
 
-      LightChainValidatorAssigner assigner = new LightChainValidatorAssigner();
       if (e.type().equals(EntityType.TYPE_VALIDATED_BLOCK)) {
 
         validBlocks.inc(1);
 
         Block block = ((Block) e); // skims off the non-block attributes (e.g., certificates).
         Signature[] certificates = ((ValidatedBlock) e).getCertificates();
-        /* Commented out for testing (to be able to give it mock)
-        Assignment assignment = assigner.assign(block.id(),
-                state.atBlockId(block.getPreviousBlockId()),
-                Parameters.VALIDATOR_THRESHOLD);
-          */
+
+        // performs validator assignment.
+        Snapshot snapshot = this.state.atBlockId(block.getPreviousBlockId());
+        Assignment assignment = this.assigner.assign(block.id(), snapshot, Parameters.VALIDATOR_THRESHOLD);
+
         int signatures = 0;
         for (Signature certificate : certificates) {
           if (!assignment.has(certificate.getSignerId())) {
             // certificate issued by a non-assigned validator
             return;
           }
-          if (this.state.atBlockId(block.getPreviousBlockId())
-                  .getAccount(certificate.getSignerId())
-                  .getPublicKey()
-                  .verifySignature(block, certificate)) {
+          if (snapshot
+              .getAccount(certificate.getSignerId())
+              .getPublicKey()
+              .verifySignature(block, certificate)) {
             signatures++;
           }
         }
@@ -134,26 +135,26 @@ public class IngestEngine implements Engine {
 
         Transaction tx = ((Transaction) e); // skims off the non-transaction attributes (e.g., certificates).
         Signature[] certificates = ((ValidatedTransaction) e).getCertificates();
-        /* Commented out for testing (to be able to give it mock)
-        Assignment assignment = assigner.assign(tx.id(),
-                state.atBlockId(tx.getReferenceBlockId()),
-                Parameters.VALIDATOR_THRESHOLD);
-        */
+
+        // performs validator assignment.
+        Snapshot snapshot = this.state.atBlockId(tx.getReferenceBlockId());
+        Assignment assignment = this.assigner.assign(tx.id(), snapshot, Parameters.VALIDATOR_THRESHOLD);
+
         int signatures = 0;
         for (Signature certificate : certificates) {
           if (!assignment.has(certificate.getSignerId())) {
             // certificate issued by a non-assigned validator
             return;
           }
-          if (this.state.atBlockId(tx.getReferenceBlockId())
-                  .getAccount(certificate.getSignerId())
-                  .getPublicKey()
-                  .verifySignature(tx, certificate)) {
+          if (snapshot
+              .getAccount(certificate.getSignerId())
+              .getPublicKey()
+              .verifySignature(tx, certificate)) {
             signatures++;
           }
         }
 
-        if (signatures >= Parameters.SIGNATURE_THRESHOLD && !pendingTransactions.has(tx.id())) {
+        if (signatures >= Parameters.SIGNATURE_THRESHOLD) {
           if (!transactionIds.has(tx.id())) {
 
             pendingTransactionAdditions.inc(1);
@@ -162,6 +163,7 @@ public class IngestEngine implements Engine {
           }
         }
       }
+
       seenEntities.add(e.id());
     } finally {
       lock.unlock();
