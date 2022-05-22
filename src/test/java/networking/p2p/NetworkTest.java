@@ -41,7 +41,8 @@ public class NetworkTest {
   private final String channel2 = "test-network-channel-2";
 
   /**
-   * 10 networks, one to all concurrently.
+   *Create 10 networks, all having a mock engine registering to the same channels. The first network unicasts an entity
+   * fixture concurrently to all other engines, and other engines should receive it.
    */
   @Test
   void testTenP2pNetworksOneToAll() {
@@ -93,7 +94,8 @@ public class NetworkTest {
   }
 
   /**
-   * 10 networks, all to all concurrently.
+   * Create 10 networks, all having a mock engine registering to the same channels.
+   * Each network unicasts an entity fixture concurrently to all other engines, and other engines should receive it.
    */
   @Test
   void testTenP2pNetworksAllToAll() {
@@ -148,7 +150,9 @@ public class NetworkTest {
   }
 
   /**
-   * 10 networks, all to all concurrently with two engines.
+   * Create 10 networks, all having two mock engine registering one registering on channel 1 and the other on channel
+   * 2. Each network unicasts an entity fixture concurrently to all other engines, and other engines should receive it.
+   * Engines registering on different channel should not receive each others’ unicasts.
    */
   @Test
   void testTenP2pNetworksWithTwoEnginesAllToAll() {
