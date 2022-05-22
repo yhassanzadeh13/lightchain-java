@@ -21,11 +21,13 @@ import java.util.concurrent.TimeUnit;
 
 import com.google.protobuf.ByteString;
 import com.google.protobuf.Empty;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.grpc.Channel;
 import io.grpc.Status;
 import io.grpc.stub.StreamObserver;
 import model.Entity;
 import model.codec.EncodedEntity;
+import model.exceptions.CodecException;
 import model.lightchain.Identifier;
 import modules.codec.JsonEncoder;
 import network.p2p.proto.Message;
@@ -47,6 +49,7 @@ public class MessageClient {
   /**
    * Implements logic to asynchronously deliver message to the target.
    */
+  @SuppressFBWarnings(value = "DM_EXIT", justification = "meant to fail VM safely upon error")
   public void deliver(Entity entity, Identifier target, String channel) throws InterruptedException {
     final CountDownLatch finishLatch = new CountDownLatch(1);
     StreamObserver<Empty> responseObserver = new StreamObserver<Empty>() {
@@ -90,6 +93,10 @@ public class MessageClient {
       // Cancel RPC
       requestObserver.onError(e);
       throw e;
+    } catch (CodecException e) {
+      // TODO: replace with fatal level log.
+      System.err.println("attempt on delivering an un-encode-ble entity" + e.getMessage());
+      System.exit(1);
     }
 
     // Mark the end of requests
