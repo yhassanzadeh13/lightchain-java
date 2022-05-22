@@ -5,6 +5,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import model.Entity;
 import model.codec.EncodedEntity;
+import model.exceptions.CodecException;
 import model.lightchain.Identifier;
 import modules.codec.JsonEncoder;
 import org.mapdb.DB;
@@ -59,12 +60,14 @@ public class DistributedMapDb implements storage.Distributed {
    * database.
    */
   @Override
-  public boolean add(Entity e) {
+  public boolean add(Entity e) throws CodecException {
     JsonEncoder encoder = new JsonEncoder();
     boolean addBoolean;
     try {
       lock.writeLock().lock();
       addBoolean = distributedMap.putIfAbsentBoolean(e.id().getBytes(), encoder.encode(e));
+    } catch (CodecException ex) {
+      throw new CodecException("could not encode the entity", ex);
     } finally {
       lock.writeLock().unlock();
     }
@@ -79,12 +82,14 @@ public class DistributedMapDb implements storage.Distributed {
    * database.
    */
   @Override
-  public boolean remove(Entity e) {
+  public boolean remove(Entity e) throws CodecException {
     JsonEncoder encoder = new JsonEncoder();
     boolean removeBoolean;
     try {
       lock.writeLock().lock();
       removeBoolean = distributedMap.remove(e.id().getBytes(), encoder.encode(e));
+    } catch (CodecException exception) {
+      throw new CodecException("could not encode entity", exception);
     } finally {
       lock.writeLock().unlock();
     }
@@ -98,9 +103,9 @@ public class DistributedMapDb implements storage.Distributed {
    * @return the entity itself if exists and null otherwise.
    */
   @Override
-  public Entity get(Identifier entityId) {
+  public Entity get(Identifier entityId) throws CodecException {
 
-    Entity decodedEntity = null;
+    Entity decodedEntity;
 
     try {
       JsonEncoder encoder = new JsonEncoder();
@@ -110,8 +115,8 @@ public class DistributedMapDb implements storage.Distributed {
         return null;
       }
       decodedEntity = encoder.decode(encodedEntity);
-    } catch (ClassNotFoundException e) {
-      //throw new ClassNotFoundException("could not found the class"+e);
+    } catch (CodecException e) {
+      throw new CodecException("could not found the class", e);
     } finally {
       lock.readLock().unlock();
     }
@@ -124,14 +129,14 @@ public class DistributedMapDb implements storage.Distributed {
    * @return all stored entities in database.
    */
   @Override
-  public ArrayList<Entity> all() {
+  public ArrayList<Entity> all() throws CodecException {
     JsonEncoder encoder = new JsonEncoder();
     ArrayList<Entity> allEntities = new ArrayList<>();
     for (Object encodedEntity : distributedMap.values()) {
       try {
         allEntities.add(encoder.decode((EncodedEntity) encodedEntity));
-      } catch (ClassNotFoundException e) {
-        //throw new ClassNotFoundException("could not found the class"+e);
+      } catch (CodecException e) {
+        throw new CodecException("could not found the class", e);
       }
     }
     return allEntities;

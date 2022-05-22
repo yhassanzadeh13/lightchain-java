@@ -11,6 +11,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import model.Entity;
+import model.exceptions.CodecException;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -68,7 +69,7 @@ public class DistributedMapDbTest {
    * @throws IOException throw IOException.
    */
   @Test
-  void sequentialAddTest() throws IOException {
+  void sequentialAddTest() throws IOException, CodecException {
     for (Entity entity : allEntities) {
       Assertions.assertTrue(db.add(entity));
     }
@@ -98,22 +99,13 @@ public class DistributedMapDbTest {
    * After adding all entities
    * are done, each entity must be retrievable using both its id (get). Also, when
    * querying All method, list of all 20 entities must be returned.
-   *
    */
   @Test
-  void concurrentAddTest() {
-    /*
-     Adding all blocks concurrently.
-     */
+  void concurrentAddTest() throws CodecException {
     this.addAllEntitiesConcurrently(true);
-
-     /*
-     All blocks should be retrievable
-     */
     this.checkForHasConcurrently(0);
     this.checkForGetConcurrently(0);
     this.checkForAllConcurrently(0);
-
   }
 
   /**
@@ -131,7 +123,7 @@ public class DistributedMapDbTest {
    * @throws IOException for any unhappy path.
    */
   @Test
-  void removeFirstTenTest() throws IOException {
+  void removeFirstTenTest() throws IOException, CodecException {
     for (Entity entity : allEntities) {
       Assertions.assertTrue(db.add(entity));
     }
@@ -164,31 +156,17 @@ public class DistributedMapDbTest {
    * and get should return null. But for the last 5 blocks and 5 transactions, has should return true, and get
    * should successfully retrieve the exact entity.
    * Also, All should return only the last 5 blocks and 5 transactions.
-   *
    */
   @Test
-  void concurrentRemoveFirstTenTest() {
- /*
-     Adding all entities concurrently.
-     */
+  void concurrentRemoveFirstTenTest() throws CodecException {
     this.addAllEntitiesConcurrently(true);
 
-     /*
-     All entities should be retrievable.
-     */
     this.checkForGetConcurrently(0);
     this.checkForHasConcurrently(0);
     this.checkForAllConcurrently(0);
 
-     /*
-     Removing first 10 concurrently
-      */
     this.removeEntityTill(10);
 
-     /*
-     first five blocks must not be retrievable,
-     the rest must be.
-      */
     this.checkForGetConcurrently(10);
     this.checkForHasConcurrently(10);
     this.checkForAllConcurrently(10);
@@ -206,7 +184,11 @@ public class DistributedMapDbTest {
     for (int i = 0; i < till; i++) {
       int finalI = i;
       removeThreads[i] = new Thread(() -> {
-        if (!db.remove(allEntities.get(finalI))) {
+        try {
+          if (!db.remove(allEntities.get(finalI))) {
+            threadError.getAndIncrement();
+          }
+        } catch (CodecException e) {
           threadError.getAndIncrement();
         }
         doneRemove.countDown();
@@ -237,7 +219,7 @@ public class DistributedMapDbTest {
    * @throws IOException for any unhappy path.
    */
   @Test
-  void duplicationTest() throws IOException {
+  void duplicationTest() throws IOException, CodecException {
     for (Entity entity : allEntities) {
       Assertions.assertTrue(db.add(entity));
     }
@@ -279,27 +261,17 @@ public class DistributedMapDbTest {
    * entity is retrievable using its identifier (get). Then try Adding all of them again, and
    * Add should return false for each of them, while has should still return true, and get should be
    * able to retrieve the entity.
-   *
    */
   @Test
-  void concurrentDuplicationTest() {
-    /*
-     Adding all entities concurrently.
-      */
+  void concurrentDuplicationTest() throws CodecException {
     this.addAllEntitiesConcurrently(true);
-     /*
-     All entities should be retrievable using their id or height.
-     */
+
     this.checkForGetConcurrently(0);
     this.checkForHasConcurrently(0);
     this.checkForAllConcurrently(0);
-     /*
-     Adding all entities again concurrently, all should fail due to duplication.
-      */
+
     this.addAllEntitiesConcurrently(false);
-     /*
-     Again, all entities should be retrievable using their id or height.
-     */
+
     this.checkForGetConcurrently(0);
     this.checkForHasConcurrently(0);
     this.checkForAllConcurrently(0);
@@ -315,13 +287,15 @@ public class DistributedMapDbTest {
     AtomicInteger threadError = new AtomicInteger();
     CountDownLatch addDone = new CountDownLatch(allEntities.size());
     Thread[] addThreads = new Thread[allEntities.size()];
-     /*
-     Adding all blocks concurrently.
-      */
+
     for (int i = 0; i < allEntities.size(); i++) {
       int finalI = i;
       addThreads[i] = new Thread(() -> {
-        if (db.add(allEntities.get(finalI)) != expectedResult) {
+        try {
+          if (db.add(allEntities.get(finalI)) != expectedResult) {
+            threadError.getAndIncrement();
+          }
+        } catch (CodecException e) {
           threadError.getAndIncrement();
         }
         addDone.countDown();
@@ -355,12 +329,10 @@ public class DistributedMapDbTest {
 
       hasThreads[i] = new Thread(() -> {
         if (finalI < from) {
-          // blocks should not exist
           if (this.db.has(entity.id())) {
             threadError.incrementAndGet();
           }
         } else {
-          // block should exist
           if (!this.db.has(entity.id())) {
             threadError.getAndIncrement();
           }
@@ -369,7 +341,6 @@ public class DistributedMapDbTest {
         hasDone.countDown();
       });
     }
-
     for (Thread t : hasThreads) {
       t.start();
     }
@@ -396,14 +367,17 @@ public class DistributedMapDbTest {
       int finalI = i;
       Entity entity = allEntities.get(i);
       getThreads[i] = new Thread(() -> {
-        Entity got = db.get(entity.id());
+        Entity got = null;
+        try {
+          got = db.get(entity.id());
+        } catch (CodecException e) {
+          threadError.incrementAndGet();
+        }
         if (finalI < from) {
-          // blocks should not exist
           if (got != null) {
             threadError.incrementAndGet();
           }
         } else {
-          // block should exist
           if (!entity.equals(got)) {
             threadError.getAndIncrement();
           }
@@ -411,7 +385,6 @@ public class DistributedMapDbTest {
             threadError.getAndIncrement();
           }
         }
-
         getDone.countDown();
       });
     }
@@ -433,7 +406,7 @@ public class DistributedMapDbTest {
    *
    * @param from inclusive index of the first transaction to check.
    */
-  private void checkForAllConcurrently(int from) {
+  private void checkForAllConcurrently(int from) throws CodecException {
     AtomicInteger threadError = new AtomicInteger();
     CountDownLatch doneAll = new CountDownLatch(allEntities.size());
     Thread[] allThreads = new Thread[allEntities.size()];
@@ -443,12 +416,10 @@ public class DistributedMapDbTest {
       final Entity entity = allEntities.get(i);
       allThreads[i] = new Thread(() -> {
         if (finalI < from) {
-          // blocks should not exist
           if (all.contains(entity)) {
             threadError.incrementAndGet();
           }
         } else {
-          // block should exist
           if (!all.contains(entity)) {
             threadError.getAndIncrement();
           }
