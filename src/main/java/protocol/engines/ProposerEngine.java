@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.Map;
 import java.util.concurrent.locks.ReentrantLock;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import model.Entity;
 import model.codec.EntityType;
 import model.crypto.Signature;
@@ -50,6 +51,7 @@ public class ProposerEngine implements NewBlockSubscriber, Engine {
    * @param local               Local storage.
    * @param net                 Network.
    */
+  @SuppressFBWarnings(value = "EI_EXPOSE_REP2", justification = "fields are intentionally mutable externally")
   public ProposerEngine(Blocks blocks, Transactions pendingTransactions, State state,
                         Local local, Network net, LightChainValidatorAssigner assigner) {
     this.local = local;
