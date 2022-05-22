@@ -2,6 +2,7 @@ package protocol.engines;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.concurrent.locks.ReentrantLock;
@@ -95,7 +96,7 @@ public class ProposerEngine implements NewBlockSubscriber, Engine {
     try {
       // Adds the Block Proposer tag to the assigner.
       byte[] bytesId = blockId.getBytes();
-      byte[] bytesTag = Tags.BlockProposerTag.getBytes();
+      byte[] bytesTag = Tags.BlockProposerTag.getBytes(StandardCharsets.UTF_8);
       ByteArrayOutputStream output = new ByteArrayOutputStream();
       try {
         output.write(bytesId, 0, 32);
