@@ -2,6 +2,7 @@ package protocol.engines;
 
 import java.util.concurrent.locks.ReentrantLock;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import model.Entity;
 import model.codec.EntityType;
 import model.crypto.Signature;
@@ -31,6 +32,7 @@ public class IngestEngine implements Engine {
   /**
    * Constructor of a IngestEngine.
    */
+  @SuppressFBWarnings(value = "EI_EXPOSE_REP2", justification = "fields are intentionally mutable externally")
   public IngestEngine(State state,
                       Blocks blocks,
                       Identifiers transactionIds,
