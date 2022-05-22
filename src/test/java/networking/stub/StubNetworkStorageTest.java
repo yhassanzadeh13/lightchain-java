@@ -126,7 +126,7 @@ public class StubNetworkStorageTest {
   }
 
   /**
-   * Engine A1 (on one network)  can CONCURRENTLY put 100 different entities on channel1
+   * Engine A1 (on one network)  can CONCURRENTLY put 100 different entities on channel1.
    */
   private void putEntityConcurrentlyFunction() {
     int concurrencyDegree = 100;
