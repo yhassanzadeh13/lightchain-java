@@ -102,7 +102,7 @@ public class P2pNetwork implements network.Network {
    * @throws IllegalArgumentException if target identifier does not correspond to a valid address.
    */
   public void sendUnicast(Entity e, Identifier target, String channel) throws InterruptedException,
-      IOException, IllegalArgumentException {
+          IOException, IllegalArgumentException {
 
     String targetAddress = this.idToAddressMap.get(target);
     if (targetAddress == null) {
@@ -117,4 +117,8 @@ public class P2pNetwork implements network.Network {
     }
   }
 
+  @SuppressFBWarnings(value = "EI_EXPOSE_REP", justification = "internal representation is intentionally returned")
+  public ConcurrentMap<Identifier, String> getIdToAddressMap() {
+    return this.idToAddressMap;
+  }
 }

@@ -13,9 +13,13 @@ public class Parameters {
    */
   public static final int MIN_TRANSACTIONS_NUM = 1;
   /**
+   * Minimum number of validated transactions a block should carry on.
+   */
+  public static final int MIN_VALIDATED_TRANSACTIONS_NUM = 1;
+  /**
    * Maximum number of validators a node can seek for a block or transaction.
    */
-  public static final int VALIDATOR_THRESHOLD = 10;
+  public static final short VALIDATOR_THRESHOLD = 10;
   /**
    * Maximum number of validators' signature a block or transaction must have to be considered as validated.
    */

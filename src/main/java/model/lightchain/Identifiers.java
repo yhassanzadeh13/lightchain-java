@@ -2,6 +2,8 @@ package model.lightchain;
 
 import java.util.ArrayList;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+
 /**
  * Represents an aggregated type for identifiers.
  */
@@ -41,10 +43,18 @@ public class Identifiers {
     return this.identifiers.size();
   }
 
+  @SuppressFBWarnings(value = "EI_EXPOSE_REP", justification = "internal representation is intentionally returned")
+  public ArrayList<Identifier> getAll() {
+    return this.identifiers;
+  }
+
   @Override
   public String toString() {
-    return "Identifiers{"
-        + "identifiers=" + identifiers
-        + '}';
+    return "Identifiers{" + "identifiers=" + identifiers + '}';
+  }
+
+  @SuppressFBWarnings(value = "EI_EXPOSE_REP", justification = "internal representation is intentionally returned")
+  public ArrayList<Identifier> all() {
+    return this.identifiers;
   }
 }
