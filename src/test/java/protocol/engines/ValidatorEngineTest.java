@@ -69,64 +69,45 @@ public class ValidatorEngineTest {
   //     soundness, etc). Invalid block should be discarded without sending back a signature to its proposer.
   private static final Random random = new Random();
   private ValidatorEngine engine;
-  private Identifier localId;
-  private PrivateKey localPrivateKey;
-  private Local local;
-  private Network network;
-  private MockConduit blockConduit;
-  private MockConduit txConduit;
-  private Identifiers seenEntities;
-  private Block block1;
-  private Block block2;
-  private State state;
-  private Snapshot snapshot1;
-  private Snapshot snapshot2;
 
-  private ArrayList<Account> accounts1;
-  private ArrayList<Account> accounts2;
-  private ArrayList<Account> accountsNoCurrent;
-  private int propInd;
 
   /**
    * Initialize the test. TODO: fix this.
    */
-  @Before
-  public void setup() {
-    /// Local node
-    localId = IdentifierFixture.newIdentifier();
-    localPrivateKey = KeyGenFixture.newKeyGen().getPrivateKey();
-    local = new Local(localId, localPrivateKey);
+  @Test
+  public void testReceiveOneValidBlock() throws LightChainDistributedStorageException {
+    Local local = new Local(IdentifierFixture.newIdentifier(), KeyGenFixture.newKeyGen().getPrivateKey());
+    Network network = mock(Network.class);
+    MockConduit blockConduit = new MockConduit(Channels.ProposedBlocks, mock(NetworkAdapter.class));
+    when(network.register(any(ValidatorEngine.class), eq(Channels.ProposedBlocks))).thenReturn(blockConduit);
 
-    /// Network
-    network = mock(Network.class);
-    NetworkAdapter networkAdapter = mock(NetworkAdapter.class);
-    blockConduit = new MockConduit(Channels.ProposedBlocks, networkAdapter);
-    txConduit = new MockConduit(Channels.ProposedTransactions, networkAdapter);
+    Block genesis = BlockFixture.newBlock();
+    Block block1 = BlockFixture.newBlock(genesis.id(), genesis.getHeight() + 1);
+    Block block2 = BlockFixture.newBlock(block1.id(), block1.getHeight() + 1);
 
-    block1 = BlockFixture.newBlock();
-    block2 = BlockFixture.newBlock(block1.id(), block1.getHeight() + 1);
+    ArrayList<Account>[] a = AccountFixture.newAccounts(local.myId(), genesis.id(),
+        block1.id(), 10, 10);
+    ArrayList<Account> accounts1 = a[0];
+    ArrayList<Account> accounts2 = a[1];
 
     /// State and Snapshots
-    state = mock(State.class);
-    snapshot1 = mock(Snapshot.class);
-    snapshot2 = mock(Snapshot.class);
+    State state = mock(State.class);
+    Snapshot genesisSnapshot = mock(Snapshot.class);
+    Snapshot snapshot1 = mock(Snapshot.class);
+    Snapshot snapshot2 = mock(Snapshot.class);
 
+    when(genesisSnapshot.getReferenceBlockId()).thenReturn(genesis.id());
     when(snapshot1.getReferenceBlockId()).thenReturn(block1.id());
     when(snapshot2.getReferenceBlockId()).thenReturn(block2.id());
 
+    when(genesisSnapshot.getReferenceBlockHeight()).thenReturn((long) genesis.getHeight());
     when(snapshot1.getReferenceBlockHeight()).thenReturn((long) block1.getHeight());
     when(snapshot2.getReferenceBlockHeight()).thenReturn((long) block2.getHeight());
 
+    when(state.atBlockId(genesis.id())).thenReturn(genesisSnapshot);
     when(state.atBlockId(block1.id())).thenReturn(snapshot1);
     when(state.atBlockId(block2.id())).thenReturn(snapshot2);
 
-    /// Accounts
-    /// Create accounts for the snapshot including an account with the local id.
-    ArrayList<Account>[] a = AccountFixture.newAccounts(localId, block1.id(),
-        block2.id(), 10, 10);
-    accounts1 = a[0];
-    accounts2 = a[1];
-    accountsNoCurrent = a[2];
     when(snapshot1.all()).thenReturn(accounts1);
     when(snapshot2.all()).thenReturn(accounts2);
 
@@ -139,20 +120,16 @@ public class ValidatorEngineTest {
       when(state.atBlockId(account.getLastBlockId())).thenReturn(snapshot1);
     }
 
-    seenEntities = mock(Identifiers.class);
     when(state.last()).thenReturn(snapshot2);
-    propInd = random.nextInt(accounts2.size());
+
+    int propInd = random.nextInt(accounts2.size());
     while (accounts2.get(propInd).getStake() < Parameters.MINIMUM_STAKE) {
       propInd = random.nextInt(accounts2.size());
     }
-  }
+    Identifiers seenEntities = mock(Identifiers.class);
 
-  @Test
-  public void testReceiveOneValidBlock() throws LightChainDistributedStorageException {
-setup();
     Identifier proposer = accounts2.get(propInd).getIdentifier();
     Block block = BlockFixture.newBlock(proposer, block2.id(), block2.getHeight() + 1, snapshot2.all());
-    when(network.register(any(ValidatorEngine.class), eq(Channels.ProposedBlocks))).thenReturn(blockConduit);
     engine = new ValidatorEngine(network, local, state, seenEntities);
 
     for (Transaction transaction : block.getTransactions()) {
@@ -182,8 +159,60 @@ setup();
     }
   }
 
+
   @Test
   public void testReceiveTwoValidBlocksSequentially() {
+    Local local = new Local(IdentifierFixture.newIdentifier(), KeyGenFixture.newKeyGen().getPrivateKey());
+    Network network = mock(Network.class);
+    MockConduit blockConduit = new MockConduit(Channels.ProposedBlocks, mock(NetworkAdapter.class));
+    when(network.register(any(ValidatorEngine.class), eq(Channels.ProposedBlocks))).thenReturn(blockConduit);
+
+    Block genesis = BlockFixture.newBlock();
+    Block block1 = BlockFixture.newBlock(genesis.id(), genesis.getHeight() + 1);
+    Block block2 = BlockFixture.newBlock(block1.id(), block1.getHeight() + 1);
+
+    ArrayList<Account>[] a = AccountFixture.newAccounts(local.myId(), genesis.id(),
+        block1.id(), 10, 10);
+    ArrayList<Account> accounts1 = a[0];
+    ArrayList<Account> accounts2 = a[1];
+
+    /// State and Snapshots
+    State state = mock(State.class);
+    Snapshot genesisSnapshot = mock(Snapshot.class);
+    Snapshot snapshot1 = mock(Snapshot.class);
+    Snapshot snapshot2 = mock(Snapshot.class);
+
+    when(genesisSnapshot.getReferenceBlockId()).thenReturn(genesis.id());
+    when(snapshot1.getReferenceBlockId()).thenReturn(block1.id());
+    when(snapshot2.getReferenceBlockId()).thenReturn(block2.id());
+
+    when(genesisSnapshot.getReferenceBlockHeight()).thenReturn((long) genesis.getHeight());
+    when(snapshot1.getReferenceBlockHeight()).thenReturn((long) block1.getHeight());
+    when(snapshot2.getReferenceBlockHeight()).thenReturn((long) block2.getHeight());
+
+    when(state.atBlockId(genesis.id())).thenReturn(genesisSnapshot);
+    when(state.atBlockId(block1.id())).thenReturn(snapshot1);
+    when(state.atBlockId(block2.id())).thenReturn(snapshot2);
+
+    when(snapshot1.all()).thenReturn(accounts1);
+    when(snapshot2.all()).thenReturn(accounts2);
+
+    for (int i = 0; i < accounts1.size(); i++) {
+      when(snapshot1.getAccount(snapshot1.all().get(i).getIdentifier())).thenReturn(accounts1.get(i));
+      when(snapshot2.getAccount(snapshot2.all().get(i).getIdentifier())).thenReturn(accounts2.get(i));
+    }
+
+    for (Account account : snapshot2.all()) {
+      when(state.atBlockId(account.getLastBlockId())).thenReturn(snapshot1);
+    }
+
+    when(state.last()).thenReturn(snapshot2);
+
+    int propInd = random.nextInt(accounts2.size());
+    while (accounts2.get(propInd).getStake() < Parameters.MINIMUM_STAKE) {
+      propInd = random.nextInt(accounts2.size());
+    }
+    Identifiers seenEntities = mock(Identifiers.class);
     Identifier proposer = accounts2.get(propInd).getIdentifier();
     Block[] blocks = new Block[2];
     blocks[0] = BlockFixture.newBlock(proposer, block2.id(), block2.getHeight() + 1, snapshot2.all());
@@ -214,7 +243,57 @@ setup();
 
   @Test
   public void testReceiveTwoValidBlocksConcurrently() {
+    Local local = new Local(IdentifierFixture.newIdentifier(), KeyGenFixture.newKeyGen().getPrivateKey());
+    Network network = mock(Network.class);
+    MockConduit blockConduit = new MockConduit(Channels.ProposedBlocks, mock(NetworkAdapter.class));
+    when(network.register(any(ValidatorEngine.class), eq(Channels.ProposedBlocks))).thenReturn(blockConduit);
 
+    Block genesis = BlockFixture.newBlock();
+    Block block1 = BlockFixture.newBlock(genesis.id(), genesis.getHeight() + 1);
+    Block block2 = BlockFixture.newBlock(block1.id(), block1.getHeight() + 1);
+
+    ArrayList<Account>[] a = AccountFixture.newAccounts(local.myId(), genesis.id(),
+        block1.id(), 10, 10);
+    ArrayList<Account> accounts1 = a[0];
+    ArrayList<Account> accounts2 = a[1];
+
+    /// State and Snapshots
+    State state = mock(State.class);
+    Snapshot genesisSnapshot = mock(Snapshot.class);
+    Snapshot snapshot1 = mock(Snapshot.class);
+    Snapshot snapshot2 = mock(Snapshot.class);
+
+    when(genesisSnapshot.getReferenceBlockId()).thenReturn(genesis.id());
+    when(snapshot1.getReferenceBlockId()).thenReturn(block1.id());
+    when(snapshot2.getReferenceBlockId()).thenReturn(block2.id());
+
+    when(genesisSnapshot.getReferenceBlockHeight()).thenReturn((long) genesis.getHeight());
+    when(snapshot1.getReferenceBlockHeight()).thenReturn((long) block1.getHeight());
+    when(snapshot2.getReferenceBlockHeight()).thenReturn((long) block2.getHeight());
+
+    when(state.atBlockId(genesis.id())).thenReturn(genesisSnapshot);
+    when(state.atBlockId(block1.id())).thenReturn(snapshot1);
+    when(state.atBlockId(block2.id())).thenReturn(snapshot2);
+
+    when(snapshot1.all()).thenReturn(accounts1);
+    when(snapshot2.all()).thenReturn(accounts2);
+
+    for (int i = 0; i < accounts1.size(); i++) {
+      when(snapshot1.getAccount(snapshot1.all().get(i).getIdentifier())).thenReturn(accounts1.get(i));
+      when(snapshot2.getAccount(snapshot2.all().get(i).getIdentifier())).thenReturn(accounts2.get(i));
+    }
+
+    for (Account account : snapshot2.all()) {
+      when(state.atBlockId(account.getLastBlockId())).thenReturn(snapshot1);
+    }
+
+    when(state.last()).thenReturn(snapshot2);
+
+    int propInd = random.nextInt(accounts2.size());
+    while (accounts2.get(propInd).getStake() < Parameters.MINIMUM_STAKE) {
+      propInd = random.nextInt(accounts2.size());
+    }
+    Identifiers seenEntities = mock(Identifiers.class);
     Identifier proposer = accounts2.get(propInd).getIdentifier();
     Block[] blocks = new Block[2];
     blocks[0] = BlockFixture.newBlock(proposer, block2.id(), block2.getHeight() + 1, snapshot2.all());
@@ -274,6 +353,57 @@ setup();
 
   @Test
   public void testReceiveDuplicateBlocksSequentially() {
+    Local local = new Local(IdentifierFixture.newIdentifier(), KeyGenFixture.newKeyGen().getPrivateKey());
+    Network network = mock(Network.class);
+    MockConduit blockConduit = new MockConduit(Channels.ProposedBlocks, mock(NetworkAdapter.class));
+    when(network.register(any(ValidatorEngine.class), eq(Channels.ProposedBlocks))).thenReturn(blockConduit);
+
+    Block genesis = BlockFixture.newBlock();
+    Block block1 = BlockFixture.newBlock(genesis.id(), genesis.getHeight() + 1);
+    Block block2 = BlockFixture.newBlock(block1.id(), block1.getHeight() + 1);
+
+    ArrayList<Account>[] a = AccountFixture.newAccounts(local.myId(), genesis.id(),
+        block1.id(), 10, 10);
+    ArrayList<Account> accounts1 = a[0];
+    ArrayList<Account> accounts2 = a[1];
+
+    /// State and Snapshots
+    State state = mock(State.class);
+    Snapshot genesisSnapshot = mock(Snapshot.class);
+    Snapshot snapshot1 = mock(Snapshot.class);
+    Snapshot snapshot2 = mock(Snapshot.class);
+
+    when(genesisSnapshot.getReferenceBlockId()).thenReturn(genesis.id());
+    when(snapshot1.getReferenceBlockId()).thenReturn(block1.id());
+    when(snapshot2.getReferenceBlockId()).thenReturn(block2.id());
+
+    when(genesisSnapshot.getReferenceBlockHeight()).thenReturn((long) genesis.getHeight());
+    when(snapshot1.getReferenceBlockHeight()).thenReturn((long) block1.getHeight());
+    when(snapshot2.getReferenceBlockHeight()).thenReturn((long) block2.getHeight());
+
+    when(state.atBlockId(genesis.id())).thenReturn(genesisSnapshot);
+    when(state.atBlockId(block1.id())).thenReturn(snapshot1);
+    when(state.atBlockId(block2.id())).thenReturn(snapshot2);
+
+    when(snapshot1.all()).thenReturn(accounts1);
+    when(snapshot2.all()).thenReturn(accounts2);
+
+    for (int i = 0; i < accounts1.size(); i++) {
+      when(snapshot1.getAccount(snapshot1.all().get(i).getIdentifier())).thenReturn(accounts1.get(i));
+      when(snapshot2.getAccount(snapshot2.all().get(i).getIdentifier())).thenReturn(accounts2.get(i));
+    }
+
+    for (Account account : snapshot2.all()) {
+      when(state.atBlockId(account.getLastBlockId())).thenReturn(snapshot1);
+    }
+
+    when(state.last()).thenReturn(snapshot2);
+
+    int propInd = random.nextInt(accounts2.size());
+    while (accounts2.get(propInd).getStake() < Parameters.MINIMUM_STAKE) {
+      propInd = random.nextInt(accounts2.size());
+    }
+    Identifiers seenEntities = mock(Identifiers.class);
 
     Identifier proposer = accounts2.get(propInd).getIdentifier();
 
@@ -320,7 +450,57 @@ setup();
 
   @Test
   public void testReceiveDuplicateBlocksConcurrently() {
+    Local local = new Local(IdentifierFixture.newIdentifier(), KeyGenFixture.newKeyGen().getPrivateKey());
+    Network network = mock(Network.class);
+    MockConduit blockConduit = new MockConduit(Channels.ProposedBlocks, mock(NetworkAdapter.class));
+    when(network.register(any(ValidatorEngine.class), eq(Channels.ProposedBlocks))).thenReturn(blockConduit);
 
+    Block genesis = BlockFixture.newBlock();
+    Block block1 = BlockFixture.newBlock(genesis.id(), genesis.getHeight() + 1);
+    Block block2 = BlockFixture.newBlock(block1.id(), block1.getHeight() + 1);
+
+    ArrayList<Account>[] a = AccountFixture.newAccounts(local.myId(), genesis.id(),
+        block1.id(), 10, 10);
+    ArrayList<Account> accounts1 = a[0];
+    ArrayList<Account> accounts2 = a[1];
+
+    /// State and Snapshots
+    State state = mock(State.class);
+    Snapshot genesisSnapshot = mock(Snapshot.class);
+    Snapshot snapshot1 = mock(Snapshot.class);
+    Snapshot snapshot2 = mock(Snapshot.class);
+
+    when(genesisSnapshot.getReferenceBlockId()).thenReturn(genesis.id());
+    when(snapshot1.getReferenceBlockId()).thenReturn(block1.id());
+    when(snapshot2.getReferenceBlockId()).thenReturn(block2.id());
+
+    when(genesisSnapshot.getReferenceBlockHeight()).thenReturn((long) genesis.getHeight());
+    when(snapshot1.getReferenceBlockHeight()).thenReturn((long) block1.getHeight());
+    when(snapshot2.getReferenceBlockHeight()).thenReturn((long) block2.getHeight());
+
+    when(state.atBlockId(genesis.id())).thenReturn(genesisSnapshot);
+    when(state.atBlockId(block1.id())).thenReturn(snapshot1);
+    when(state.atBlockId(block2.id())).thenReturn(snapshot2);
+
+    when(snapshot1.all()).thenReturn(accounts1);
+    when(snapshot2.all()).thenReturn(accounts2);
+
+    for (int i = 0; i < accounts1.size(); i++) {
+      when(snapshot1.getAccount(snapshot1.all().get(i).getIdentifier())).thenReturn(accounts1.get(i));
+      when(snapshot2.getAccount(snapshot2.all().get(i).getIdentifier())).thenReturn(accounts2.get(i));
+    }
+
+    for (Account account : snapshot2.all()) {
+      when(state.atBlockId(account.getLastBlockId())).thenReturn(snapshot1);
+    }
+
+    when(state.last()).thenReturn(snapshot2);
+
+    int propInd = random.nextInt(accounts2.size());
+    while (accounts2.get(propInd).getStake() < Parameters.MINIMUM_STAKE) {
+      propInd = random.nextInt(accounts2.size());
+    }
+    Identifiers seenEntities = mock(Identifiers.class);
     Identifier proposer = accounts2.get(propInd).getIdentifier();
     when(network.register(any(ValidatorEngine.class), eq(Channels.ProposedBlocks))).thenReturn(blockConduit);
     engine = new ValidatorEngine(network, local, state, seenEntities);
@@ -394,7 +574,61 @@ setup();
 
   @Test
   public void testReceiveEntityNotAssignedToThisNodeConcurrently() {
+    Local local = new Local(IdentifierFixture.newIdentifier(), KeyGenFixture.newKeyGen().getPrivateKey());
+    Network network = mock(Network.class);
+    MockConduit blockConduit = new MockConduit(Channels.ProposedBlocks, mock(NetworkAdapter.class));
+    when(network.register(any(ValidatorEngine.class), eq(Channels.ProposedBlocks))).thenReturn(blockConduit);
+    MockConduit txConduit = new MockConduit(Channels.ProposedTransactions, mock(NetworkAdapter.class));
+    when(network.register(any(ValidatorEngine.class), eq(Channels.ProposedTransactions))).thenReturn(txConduit);
 
+    Block genesis = BlockFixture.newBlock();
+    Block block1 = BlockFixture.newBlock(genesis.id(), genesis.getHeight() + 1);
+    Block block2 = BlockFixture.newBlock(block1.id(), block1.getHeight() + 1);
+
+    ArrayList<Account>[] a = AccountFixture.newAccounts(local.myId(), genesis.id(),
+        block1.id(), 10, 10);
+    ArrayList<Account> accounts1 = a[0];
+    ArrayList<Account> accounts2 = a[1];
+    ArrayList<Account> accountsNoCurrent = a[2];
+
+
+    /// State and Snapshots
+    State state = mock(State.class);
+    Snapshot genesisSnapshot = mock(Snapshot.class);
+    Snapshot snapshot1 = mock(Snapshot.class);
+    Snapshot snapshot2 = mock(Snapshot.class);
+
+    when(genesisSnapshot.getReferenceBlockId()).thenReturn(genesis.id());
+    when(snapshot1.getReferenceBlockId()).thenReturn(block1.id());
+    when(snapshot2.getReferenceBlockId()).thenReturn(block2.id());
+
+    when(genesisSnapshot.getReferenceBlockHeight()).thenReturn((long) genesis.getHeight());
+    when(snapshot1.getReferenceBlockHeight()).thenReturn((long) block1.getHeight());
+    when(snapshot2.getReferenceBlockHeight()).thenReturn((long) block2.getHeight());
+
+    when(state.atBlockId(genesis.id())).thenReturn(genesisSnapshot);
+    when(state.atBlockId(block1.id())).thenReturn(snapshot1);
+    when(state.atBlockId(block2.id())).thenReturn(snapshot2);
+
+    when(snapshot1.all()).thenReturn(accounts1);
+    when(snapshot2.all()).thenReturn(accounts2);
+
+    for (int i = 0; i < accounts1.size(); i++) {
+      when(snapshot1.getAccount(snapshot1.all().get(i).getIdentifier())).thenReturn(accounts1.get(i));
+      when(snapshot2.getAccount(snapshot2.all().get(i).getIdentifier())).thenReturn(accounts2.get(i));
+    }
+
+    for (Account account : snapshot2.all()) {
+      when(state.atBlockId(account.getLastBlockId())).thenReturn(snapshot1);
+    }
+
+    when(state.last()).thenReturn(snapshot2);
+
+    int propInd = random.nextInt(accounts2.size());
+    while (accounts2.get(propInd).getStake() < Parameters.MINIMUM_STAKE) {
+      propInd = random.nextInt(accounts2.size());
+    }
+    Identifiers seenEntities = mock(Identifiers.class);
 
     when(snapshot2.all()).thenReturn(accountsNoCurrent);
     when(network.register(any(ValidatorEngine.class), eq(Channels.ProposedTransactions))).thenReturn(txConduit);
@@ -467,7 +701,59 @@ setup();
 
   @Test
   public void testReceiveEntityNotAssignedToThisNodeSequentially() {
+    Local local = new Local(IdentifierFixture.newIdentifier(), KeyGenFixture.newKeyGen().getPrivateKey());
+    Network network = mock(Network.class);
+    MockConduit blockConduit = new MockConduit(Channels.ProposedBlocks, mock(NetworkAdapter.class));
+    when(network.register(any(ValidatorEngine.class), eq(Channels.ProposedBlocks))).thenReturn(blockConduit);
+    MockConduit txConduit = new MockConduit(Channels.ProposedTransactions, mock(NetworkAdapter.class));
+    when(network.register(any(ValidatorEngine.class), eq(Channels.ProposedTransactions))).thenReturn(txConduit);
 
+    Block genesis = BlockFixture.newBlock();
+    Block block1 = BlockFixture.newBlock(genesis.id(), genesis.getHeight() + 1);
+    Block block2 = BlockFixture.newBlock(block1.id(), block1.getHeight() + 1);
+
+    ArrayList<Account>[] a = AccountFixture.newAccounts(local.myId(), genesis.id(),
+        block1.id(), 10, 10);
+    ArrayList<Account> accounts1 = a[0];
+    ArrayList<Account> accounts2 = a[1];
+    ArrayList<Account> accountsNoCurrent = a[2];
+    /// State and Snapshots
+    State state = mock(State.class);
+    Snapshot genesisSnapshot = mock(Snapshot.class);
+    Snapshot snapshot1 = mock(Snapshot.class);
+    Snapshot snapshot2 = mock(Snapshot.class);
+
+    when(genesisSnapshot.getReferenceBlockId()).thenReturn(genesis.id());
+    when(snapshot1.getReferenceBlockId()).thenReturn(block1.id());
+    when(snapshot2.getReferenceBlockId()).thenReturn(block2.id());
+
+    when(genesisSnapshot.getReferenceBlockHeight()).thenReturn((long) genesis.getHeight());
+    when(snapshot1.getReferenceBlockHeight()).thenReturn((long) block1.getHeight());
+    when(snapshot2.getReferenceBlockHeight()).thenReturn((long) block2.getHeight());
+
+    when(state.atBlockId(genesis.id())).thenReturn(genesisSnapshot);
+    when(state.atBlockId(block1.id())).thenReturn(snapshot1);
+    when(state.atBlockId(block2.id())).thenReturn(snapshot2);
+
+    when(snapshot1.all()).thenReturn(accounts1);
+    when(snapshot2.all()).thenReturn(accounts2);
+
+    for (int i = 0; i < accounts1.size(); i++) {
+      when(snapshot1.getAccount(snapshot1.all().get(i).getIdentifier())).thenReturn(accounts1.get(i));
+      when(snapshot2.getAccount(snapshot2.all().get(i).getIdentifier())).thenReturn(accounts2.get(i));
+    }
+
+    for (Account account : snapshot2.all()) {
+      when(state.atBlockId(account.getLastBlockId())).thenReturn(snapshot1);
+    }
+
+    when(state.last()).thenReturn(snapshot2);
+
+    int propInd = random.nextInt(accounts2.size());
+    while (accounts2.get(propInd).getStake() < Parameters.MINIMUM_STAKE) {
+      propInd = random.nextInt(accounts2.size());
+    }
+    Identifiers seenEntities = mock(Identifiers.class);
 
     when(snapshot2.all()).thenReturn(accountsNoCurrent);
     when(network.register(any(ValidatorEngine.class), eq(Channels.ProposedTransactions))).thenReturn(txConduit);
@@ -510,7 +796,57 @@ setup();
 
   @Test
   public void testReceiveBlockNotCorrect_InvalidPreviousBlockSnapshot() {
+    Local local = new Local(IdentifierFixture.newIdentifier(), KeyGenFixture.newKeyGen().getPrivateKey());
+    Network network = mock(Network.class);
+    MockConduit blockConduit = new MockConduit(Channels.ProposedBlocks, mock(NetworkAdapter.class));
+    when(network.register(any(ValidatorEngine.class), eq(Channels.ProposedBlocks))).thenReturn(blockConduit);
 
+    Block genesis = BlockFixture.newBlock();
+    Block block1 = BlockFixture.newBlock(genesis.id(), genesis.getHeight() + 1);
+    Block block2 = BlockFixture.newBlock(block1.id(), block1.getHeight() + 1);
+
+    ArrayList<Account>[] a = AccountFixture.newAccounts(local.myId(), genesis.id(),
+        block1.id(), 10, 10);
+    ArrayList<Account> accounts1 = a[0];
+    ArrayList<Account> accounts2 = a[1];
+
+    /// State and Snapshots
+    State state = mock(State.class);
+    Snapshot genesisSnapshot = mock(Snapshot.class);
+    Snapshot snapshot1 = mock(Snapshot.class);
+    Snapshot snapshot2 = mock(Snapshot.class);
+
+    when(genesisSnapshot.getReferenceBlockId()).thenReturn(genesis.id());
+    when(snapshot1.getReferenceBlockId()).thenReturn(block1.id());
+    when(snapshot2.getReferenceBlockId()).thenReturn(block2.id());
+
+    when(genesisSnapshot.getReferenceBlockHeight()).thenReturn((long) genesis.getHeight());
+    when(snapshot1.getReferenceBlockHeight()).thenReturn((long) block1.getHeight());
+    when(snapshot2.getReferenceBlockHeight()).thenReturn((long) block2.getHeight());
+
+    when(state.atBlockId(genesis.id())).thenReturn(genesisSnapshot);
+    when(state.atBlockId(block1.id())).thenReturn(snapshot1);
+    when(state.atBlockId(block2.id())).thenReturn(snapshot2);
+
+    when(snapshot1.all()).thenReturn(accounts1);
+    when(snapshot2.all()).thenReturn(accounts2);
+
+    for (int i = 0; i < accounts1.size(); i++) {
+      when(snapshot1.getAccount(snapshot1.all().get(i).getIdentifier())).thenReturn(accounts1.get(i));
+      when(snapshot2.getAccount(snapshot2.all().get(i).getIdentifier())).thenReturn(accounts2.get(i));
+    }
+
+    for (Account account : snapshot2.all()) {
+      when(state.atBlockId(account.getLastBlockId())).thenReturn(snapshot1);
+    }
+
+    when(state.last()).thenReturn(snapshot2);
+
+    int propInd = random.nextInt(accounts2.size());
+    while (accounts2.get(propInd).getStake() < Parameters.MINIMUM_STAKE) {
+      propInd = random.nextInt(accounts2.size());
+    }
+    Identifiers seenEntities = mock(Identifiers.class);
 
     Identifier proposer = accounts2.get(propInd).getIdentifier();
     Identifier newPreviousBlockId = IdentifierFixture.newIdentifier();
@@ -534,7 +870,57 @@ setup();
 
   @Test
   public void testReceiveBlockNotCorrect_InvalidProposer() {
+    Local local = new Local(IdentifierFixture.newIdentifier(), KeyGenFixture.newKeyGen().getPrivateKey());
+    Network network = mock(Network.class);
+    MockConduit blockConduit = new MockConduit(Channels.ProposedBlocks, mock(NetworkAdapter.class));
+    when(network.register(any(ValidatorEngine.class), eq(Channels.ProposedBlocks))).thenReturn(blockConduit);
 
+    Block genesis = BlockFixture.newBlock();
+    Block block1 = BlockFixture.newBlock(genesis.id(), genesis.getHeight() + 1);
+    Block block2 = BlockFixture.newBlock(block1.id(), block1.getHeight() + 1);
+
+    ArrayList<Account>[] a = AccountFixture.newAccounts(local.myId(), genesis.id(),
+        block1.id(), 10, 10);
+    ArrayList<Account> accounts1 = a[0];
+    ArrayList<Account> accounts2 = a[1];
+
+    /// State and Snapshots
+    State state = mock(State.class);
+    Snapshot genesisSnapshot = mock(Snapshot.class);
+    Snapshot snapshot1 = mock(Snapshot.class);
+    Snapshot snapshot2 = mock(Snapshot.class);
+
+    when(genesisSnapshot.getReferenceBlockId()).thenReturn(genesis.id());
+    when(snapshot1.getReferenceBlockId()).thenReturn(block1.id());
+    when(snapshot2.getReferenceBlockId()).thenReturn(block2.id());
+
+    when(genesisSnapshot.getReferenceBlockHeight()).thenReturn((long) genesis.getHeight());
+    when(snapshot1.getReferenceBlockHeight()).thenReturn((long) block1.getHeight());
+    when(snapshot2.getReferenceBlockHeight()).thenReturn((long) block2.getHeight());
+
+    when(state.atBlockId(genesis.id())).thenReturn(genesisSnapshot);
+    when(state.atBlockId(block1.id())).thenReturn(snapshot1);
+    when(state.atBlockId(block2.id())).thenReturn(snapshot2);
+
+    when(snapshot1.all()).thenReturn(accounts1);
+    when(snapshot2.all()).thenReturn(accounts2);
+
+    for (int i = 0; i < accounts1.size(); i++) {
+      when(snapshot1.getAccount(snapshot1.all().get(i).getIdentifier())).thenReturn(accounts1.get(i));
+      when(snapshot2.getAccount(snapshot2.all().get(i).getIdentifier())).thenReturn(accounts2.get(i));
+    }
+
+    for (Account account : snapshot2.all()) {
+      when(state.atBlockId(account.getLastBlockId())).thenReturn(snapshot1);
+    }
+
+    when(state.last()).thenReturn(snapshot2);
+
+    int propInd = random.nextInt(accounts2.size());
+    while (accounts2.get(propInd).getStake() < Parameters.MINIMUM_STAKE) {
+      propInd = random.nextInt(accounts2.size());
+    }
+    Identifiers seenEntities = mock(Identifiers.class);
     Identifier invalidProposer = IdentifierFixture.newIdentifier();
     Block block = BlockFixture.newBlock(invalidProposer, block2.id(), block2.getHeight() + 1, snapshot2.all());
 
@@ -554,9 +940,62 @@ setup();
 
   @Test
   public void testReceiveBlockNotCorrect_ValidatedTransactionBelowMinimum() {
-    //TODO add a new fixture?
-    Block block = BlockFixture.newBlock(Parameters.MIN_TRANSACTIONS_NUM - 1);
+    Local local = new Local(IdentifierFixture.newIdentifier(), KeyGenFixture.newKeyGen().getPrivateKey());
+    Network network = mock(Network.class);
+    MockConduit blockConduit = new MockConduit(Channels.ProposedBlocks, mock(NetworkAdapter.class));
+    when(network.register(any(ValidatorEngine.class), eq(Channels.ProposedBlocks))).thenReturn(blockConduit);
 
+    Block genesis = BlockFixture.newBlock();
+    Block block1 = BlockFixture.newBlock(genesis.id(), genesis.getHeight() + 1);
+    Block block2 = BlockFixture.newBlock(block1.id(), block1.getHeight() + 1);
+
+    ArrayList<Account>[] a = AccountFixture.newAccounts(local.myId(), genesis.id(),
+        block1.id(), 10, 10);
+    ArrayList<Account> accounts1 = a[0];
+    ArrayList<Account> accounts2 = a[1];
+
+    /// State and Snapshots
+    State state = mock(State.class);
+    Snapshot genesisSnapshot = mock(Snapshot.class);
+    Snapshot snapshot1 = mock(Snapshot.class);
+    Snapshot snapshot2 = mock(Snapshot.class);
+
+    when(genesisSnapshot.getReferenceBlockId()).thenReturn(genesis.id());
+    when(snapshot1.getReferenceBlockId()).thenReturn(block1.id());
+    when(snapshot2.getReferenceBlockId()).thenReturn(block2.id());
+
+    when(genesisSnapshot.getReferenceBlockHeight()).thenReturn((long) genesis.getHeight());
+    when(snapshot1.getReferenceBlockHeight()).thenReturn((long) block1.getHeight());
+    when(snapshot2.getReferenceBlockHeight()).thenReturn((long) block2.getHeight());
+
+    when(state.atBlockId(genesis.id())).thenReturn(genesisSnapshot);
+    when(state.atBlockId(block1.id())).thenReturn(snapshot1);
+    when(state.atBlockId(block2.id())).thenReturn(snapshot2);
+
+    when(snapshot1.all()).thenReturn(accounts1);
+    when(snapshot2.all()).thenReturn(accounts2);
+
+    for (int i = 0; i < accounts1.size(); i++) {
+      when(snapshot1.getAccount(snapshot1.all().get(i).getIdentifier())).thenReturn(accounts1.get(i));
+      when(snapshot2.getAccount(snapshot2.all().get(i).getIdentifier())).thenReturn(accounts2.get(i));
+    }
+
+    for (Account account : snapshot2.all()) {
+      when(state.atBlockId(account.getLastBlockId())).thenReturn(snapshot1);
+    }
+
+    when(state.last()).thenReturn(snapshot2);
+
+    int propInd = random.nextInt(accounts2.size());
+    while (accounts2.get(propInd).getStake() < Parameters.MINIMUM_STAKE) {
+      propInd = random.nextInt(accounts2.size());
+    }
+    Identifiers seenEntities = mock(Identifiers.class);
+    Block block = BlockFixture.newBlock(accounts2.get(propInd).getIdentifier()
+        , block2.id()
+        , block2.getHeight() + 1
+        , snapshot2.all()
+        , Parameters.MIN_TRANSACTIONS_NUM - 1);
     when(network.register(any(ValidatorEngine.class), eq(Channels.ProposedBlocks))).thenReturn(blockConduit);
     engine = new ValidatorEngine(network, local, state, seenEntities);
     when(state.atBlockId(block.getPreviousBlockId())
@@ -577,8 +1016,62 @@ setup();
 
   @Test
   public void testReceiveBlockNotCorrect_ValidatedTransactionAboveMaximum() {
+    Local local = new Local(IdentifierFixture.newIdentifier(), KeyGenFixture.newKeyGen().getPrivateKey());
+    Network network = mock(Network.class);
+    MockConduit blockConduit = new MockConduit(Channels.ProposedBlocks, mock(NetworkAdapter.class));
+    when(network.register(any(ValidatorEngine.class), eq(Channels.ProposedBlocks))).thenReturn(blockConduit);
 
-    Block block = BlockFixture.newBlock(Parameters.MAX_TRANSACTIONS_NUM + 1);
+    Block genesis = BlockFixture.newBlock();
+    Block block1 = BlockFixture.newBlock(genesis.id(), genesis.getHeight() + 1);
+    Block block2 = BlockFixture.newBlock(block1.id(), block1.getHeight() + 1);
+
+    ArrayList<Account>[] a = AccountFixture.newAccounts(local.myId(), genesis.id(),
+        block1.id(), 10, 10);
+    ArrayList<Account> accounts1 = a[0];
+    ArrayList<Account> accounts2 = a[1];
+
+    /// State and Snapshots
+    State state = mock(State.class);
+    Snapshot genesisSnapshot = mock(Snapshot.class);
+    Snapshot snapshot1 = mock(Snapshot.class);
+    Snapshot snapshot2 = mock(Snapshot.class);
+
+    when(genesisSnapshot.getReferenceBlockId()).thenReturn(genesis.id());
+    when(snapshot1.getReferenceBlockId()).thenReturn(block1.id());
+    when(snapshot2.getReferenceBlockId()).thenReturn(block2.id());
+
+    when(genesisSnapshot.getReferenceBlockHeight()).thenReturn((long) genesis.getHeight());
+    when(snapshot1.getReferenceBlockHeight()).thenReturn((long) block1.getHeight());
+    when(snapshot2.getReferenceBlockHeight()).thenReturn((long) block2.getHeight());
+
+    when(state.atBlockId(genesis.id())).thenReturn(genesisSnapshot);
+    when(state.atBlockId(block1.id())).thenReturn(snapshot1);
+    when(state.atBlockId(block2.id())).thenReturn(snapshot2);
+
+    when(snapshot1.all()).thenReturn(accounts1);
+    when(snapshot2.all()).thenReturn(accounts2);
+
+    for (int i = 0; i < accounts1.size(); i++) {
+      when(snapshot1.getAccount(snapshot1.all().get(i).getIdentifier())).thenReturn(accounts1.get(i));
+      when(snapshot2.getAccount(snapshot2.all().get(i).getIdentifier())).thenReturn(accounts2.get(i));
+    }
+
+    for (Account account : snapshot2.all()) {
+      when(state.atBlockId(account.getLastBlockId())).thenReturn(snapshot1);
+    }
+
+    when(state.last()).thenReturn(snapshot2);
+
+    int propInd = random.nextInt(accounts2.size());
+    while (accounts2.get(propInd).getStake() < Parameters.MINIMUM_STAKE) {
+      propInd = random.nextInt(accounts2.size());
+    }
+    Identifiers seenEntities = mock(Identifiers.class);
+    Block block = BlockFixture.newBlock(accounts2.get(propInd).getIdentifier()
+        , block2.id()
+        , block2.getHeight() + 1
+        , snapshot2.all()
+        , Parameters.MAX_TRANSACTIONS_NUM + 1);
 
     when(network.register(any(ValidatorEngine.class), eq(Channels.ProposedBlocks))).thenReturn(blockConduit);
     engine = new ValidatorEngine(network, local, state, seenEntities);
@@ -598,7 +1091,57 @@ setup();
 
   @Test
   public void testReceiveBlockNotConsistent_InvalidPreviousBlockId() {
+    Local local = new Local(IdentifierFixture.newIdentifier(), KeyGenFixture.newKeyGen().getPrivateKey());
+    Network network = mock(Network.class);
+    MockConduit blockConduit = new MockConduit(Channels.ProposedBlocks, mock(NetworkAdapter.class));
+    when(network.register(any(ValidatorEngine.class), eq(Channels.ProposedBlocks))).thenReturn(blockConduit);
 
+    Block genesis = BlockFixture.newBlock();
+    Block block1 = BlockFixture.newBlock(genesis.id(), genesis.getHeight() + 1);
+    Block block2 = BlockFixture.newBlock(block1.id(), block1.getHeight() + 1);
+
+    ArrayList<Account>[] a = AccountFixture.newAccounts(local.myId(), genesis.id(),
+        block1.id(), 10, 10);
+    ArrayList<Account> accounts1 = a[0];
+    ArrayList<Account> accounts2 = a[1];
+
+    /// State and Snapshots
+    State state = mock(State.class);
+    Snapshot genesisSnapshot = mock(Snapshot.class);
+    Snapshot snapshot1 = mock(Snapshot.class);
+    Snapshot snapshot2 = mock(Snapshot.class);
+
+    when(genesisSnapshot.getReferenceBlockId()).thenReturn(genesis.id());
+    when(snapshot1.getReferenceBlockId()).thenReturn(block1.id());
+    when(snapshot2.getReferenceBlockId()).thenReturn(block2.id());
+
+    when(genesisSnapshot.getReferenceBlockHeight()).thenReturn((long) genesis.getHeight());
+    when(snapshot1.getReferenceBlockHeight()).thenReturn((long) block1.getHeight());
+    when(snapshot2.getReferenceBlockHeight()).thenReturn((long) block2.getHeight());
+
+    when(state.atBlockId(genesis.id())).thenReturn(genesisSnapshot);
+    when(state.atBlockId(block1.id())).thenReturn(snapshot1);
+    when(state.atBlockId(block2.id())).thenReturn(snapshot2);
+
+    when(snapshot1.all()).thenReturn(accounts1);
+    when(snapshot2.all()).thenReturn(accounts2);
+
+    for (int i = 0; i < accounts1.size(); i++) {
+      when(snapshot1.getAccount(snapshot1.all().get(i).getIdentifier())).thenReturn(accounts1.get(i));
+      when(snapshot2.getAccount(snapshot2.all().get(i).getIdentifier())).thenReturn(accounts2.get(i));
+    }
+
+    for (Account account : snapshot2.all()) {
+      when(state.atBlockId(account.getLastBlockId())).thenReturn(snapshot1);
+    }
+
+    when(state.last()).thenReturn(snapshot2);
+
+    int propInd = random.nextInt(accounts2.size());
+    while (accounts2.get(propInd).getStake() < Parameters.MINIMUM_STAKE) {
+      propInd = random.nextInt(accounts2.size());
+    }
+    Identifiers seenEntities = mock(Identifiers.class);
     Identifier proposer = accounts2.get(propInd).getIdentifier();
     Block block = BlockFixture.newBlock(proposer, block1.id(), block2.getHeight() + 1, snapshot2.all());
     when(network.register(any(ValidatorEngine.class), eq(Channels.ProposedBlocks))).thenReturn(blockConduit);
@@ -621,7 +1164,57 @@ setup();
 
   @Test
   public void testReceiveBlockNotAuthenticated() {
+    Local local = new Local(IdentifierFixture.newIdentifier(), KeyGenFixture.newKeyGen().getPrivateKey());
+    Network network = mock(Network.class);
+    MockConduit blockConduit = new MockConduit(Channels.ProposedBlocks, mock(NetworkAdapter.class));
+    when(network.register(any(ValidatorEngine.class), eq(Channels.ProposedBlocks))).thenReturn(blockConduit);
 
+    Block genesis = BlockFixture.newBlock();
+    Block block1 = BlockFixture.newBlock(genesis.id(), genesis.getHeight() + 1);
+    Block block2 = BlockFixture.newBlock(block1.id(), block1.getHeight() + 1);
+
+    ArrayList<Account>[] a = AccountFixture.newAccounts(local.myId(), genesis.id(),
+        block1.id(), 10, 10);
+    ArrayList<Account> accounts1 = a[0];
+    ArrayList<Account> accounts2 = a[1];
+
+    /// State and Snapshots
+    State state = mock(State.class);
+    Snapshot genesisSnapshot = mock(Snapshot.class);
+    Snapshot snapshot1 = mock(Snapshot.class);
+    Snapshot snapshot2 = mock(Snapshot.class);
+
+    when(genesisSnapshot.getReferenceBlockId()).thenReturn(genesis.id());
+    when(snapshot1.getReferenceBlockId()).thenReturn(block1.id());
+    when(snapshot2.getReferenceBlockId()).thenReturn(block2.id());
+
+    when(genesisSnapshot.getReferenceBlockHeight()).thenReturn((long) genesis.getHeight());
+    when(snapshot1.getReferenceBlockHeight()).thenReturn((long) block1.getHeight());
+    when(snapshot2.getReferenceBlockHeight()).thenReturn((long) block2.getHeight());
+
+    when(state.atBlockId(genesis.id())).thenReturn(genesisSnapshot);
+    when(state.atBlockId(block1.id())).thenReturn(snapshot1);
+    when(state.atBlockId(block2.id())).thenReturn(snapshot2);
+
+    when(snapshot1.all()).thenReturn(accounts1);
+    when(snapshot2.all()).thenReturn(accounts2);
+
+    for (int i = 0; i < accounts1.size(); i++) {
+      when(snapshot1.getAccount(snapshot1.all().get(i).getIdentifier())).thenReturn(accounts1.get(i));
+      when(snapshot2.getAccount(snapshot2.all().get(i).getIdentifier())).thenReturn(accounts2.get(i));
+    }
+
+    for (Account account : snapshot2.all()) {
+      when(state.atBlockId(account.getLastBlockId())).thenReturn(snapshot1);
+    }
+
+    when(state.last()).thenReturn(snapshot2);
+
+    int propInd = random.nextInt(accounts2.size());
+    while (accounts2.get(propInd).getStake() < Parameters.MINIMUM_STAKE) {
+      propInd = random.nextInt(accounts2.size());
+    }
+    Identifiers seenEntities = mock(Identifiers.class);
     Identifier proposer = accounts2.get(propInd).getIdentifier();
     Block block = BlockFixture.newBlock(proposer, block2.id(), block2.getHeight() + 1, snapshot2.all());
     when(network.register(any(ValidatorEngine.class), eq(Channels.ProposedBlocks))).thenReturn(blockConduit);
@@ -645,6 +1238,52 @@ setup();
 
   @Test
   public void testReceiveBlockProposerHasNotEnoughStake() {
+    Local local = new Local(IdentifierFixture.newIdentifier(), KeyGenFixture.newKeyGen().getPrivateKey());
+    Network network = mock(Network.class);
+    MockConduit blockConduit = new MockConduit(Channels.ProposedBlocks, mock(NetworkAdapter.class));
+    when(network.register(any(ValidatorEngine.class), eq(Channels.ProposedBlocks))).thenReturn(blockConduit);
+
+    Block genesis = BlockFixture.newBlock();
+    Block block1 = BlockFixture.newBlock(genesis.id(), genesis.getHeight() + 1);
+    Block block2 = BlockFixture.newBlock(block1.id(), block1.getHeight() + 1);
+
+    ArrayList<Account>[] a = AccountFixture.newAccounts(local.myId(), genesis.id(),
+        block1.id(), 10, 10);
+    ArrayList<Account> accounts1 = a[0];
+    ArrayList<Account> accounts2 = a[1];
+
+    /// State and Snapshots
+    State state = mock(State.class);
+    Snapshot genesisSnapshot = mock(Snapshot.class);
+    Snapshot snapshot1 = mock(Snapshot.class);
+    Snapshot snapshot2 = mock(Snapshot.class);
+
+    when(genesisSnapshot.getReferenceBlockId()).thenReturn(genesis.id());
+    when(snapshot1.getReferenceBlockId()).thenReturn(block1.id());
+    when(snapshot2.getReferenceBlockId()).thenReturn(block2.id());
+
+    when(genesisSnapshot.getReferenceBlockHeight()).thenReturn((long) genesis.getHeight());
+    when(snapshot1.getReferenceBlockHeight()).thenReturn((long) block1.getHeight());
+    when(snapshot2.getReferenceBlockHeight()).thenReturn((long) block2.getHeight());
+
+    when(state.atBlockId(genesis.id())).thenReturn(genesisSnapshot);
+    when(state.atBlockId(block1.id())).thenReturn(snapshot1);
+    when(state.atBlockId(block2.id())).thenReturn(snapshot2);
+
+    when(snapshot1.all()).thenReturn(accounts1);
+    when(snapshot2.all()).thenReturn(accounts2);
+
+    for (int i = 0; i < accounts1.size(); i++) {
+      when(snapshot1.getAccount(snapshot1.all().get(i).getIdentifier())).thenReturn(accounts1.get(i));
+      when(snapshot2.getAccount(snapshot2.all().get(i).getIdentifier())).thenReturn(accounts2.get(i));
+    }
+
+    for (Account account : snapshot2.all()) {
+      when(state.atBlockId(account.getLastBlockId())).thenReturn(snapshot1);
+    }
+
+    when(state.last()).thenReturn(snapshot2);
+    Identifiers seenEntities = mock(Identifiers.class);
     int propInd = random.nextInt(accounts2.size());
     while (accounts2.get(propInd).getStake() >= Parameters.MINIMUM_STAKE) {
       propInd = random.nextInt(accounts2.size());
@@ -671,7 +1310,57 @@ setup();
 
   @Test
   public void testReceiveBlockAllTransactionsNotValidated() {
+    Local local = new Local(IdentifierFixture.newIdentifier(), KeyGenFixture.newKeyGen().getPrivateKey());
+    Network network = mock(Network.class);
+    MockConduit blockConduit = new MockConduit(Channels.ProposedBlocks, mock(NetworkAdapter.class));
+    when(network.register(any(ValidatorEngine.class), eq(Channels.ProposedBlocks))).thenReturn(blockConduit);
 
+    Block genesis = BlockFixture.newBlock();
+    Block block1 = BlockFixture.newBlock(genesis.id(), genesis.getHeight() + 1);
+    Block block2 = BlockFixture.newBlock(block1.id(), block1.getHeight() + 1);
+
+    ArrayList<Account>[] a = AccountFixture.newAccounts(local.myId(), genesis.id(),
+        block1.id(), 10, 10);
+    ArrayList<Account> accounts1 = a[0];
+    ArrayList<Account> accounts2 = a[1];
+
+    /// State and Snapshots
+    State state = mock(State.class);
+    Snapshot genesisSnapshot = mock(Snapshot.class);
+    Snapshot snapshot1 = mock(Snapshot.class);
+    Snapshot snapshot2 = mock(Snapshot.class);
+
+    when(genesisSnapshot.getReferenceBlockId()).thenReturn(genesis.id());
+    when(snapshot1.getReferenceBlockId()).thenReturn(block1.id());
+    when(snapshot2.getReferenceBlockId()).thenReturn(block2.id());
+
+    when(genesisSnapshot.getReferenceBlockHeight()).thenReturn((long) genesis.getHeight());
+    when(snapshot1.getReferenceBlockHeight()).thenReturn((long) block1.getHeight());
+    when(snapshot2.getReferenceBlockHeight()).thenReturn((long) block2.getHeight());
+
+    when(state.atBlockId(genesis.id())).thenReturn(genesisSnapshot);
+    when(state.atBlockId(block1.id())).thenReturn(snapshot1);
+    when(state.atBlockId(block2.id())).thenReturn(snapshot2);
+
+    when(snapshot1.all()).thenReturn(accounts1);
+    when(snapshot2.all()).thenReturn(accounts2);
+
+    for (int i = 0; i < accounts1.size(); i++) {
+      when(snapshot1.getAccount(snapshot1.all().get(i).getIdentifier())).thenReturn(accounts1.get(i));
+      when(snapshot2.getAccount(snapshot2.all().get(i).getIdentifier())).thenReturn(accounts2.get(i));
+    }
+
+    for (Account account : snapshot2.all()) {
+      when(state.atBlockId(account.getLastBlockId())).thenReturn(snapshot1);
+    }
+
+    when(state.last()).thenReturn(snapshot2);
+
+    int propInd = random.nextInt(accounts2.size());
+    while (accounts2.get(propInd).getStake() < Parameters.MINIMUM_STAKE) {
+      propInd = random.nextInt(accounts2.size());
+    }
+    Identifiers seenEntities = mock(Identifiers.class);
     Identifier proposer = accounts2.get(propInd).getIdentifier();
     Block block = BlockFixture.newBlockUnvalidatedTransaction(proposer, block2.id(), block2.getHeight() + 1, snapshot2.all());
     when(network.register(any(ValidatorEngine.class), eq(Channels.ProposedBlocks))).thenReturn(blockConduit);
@@ -700,6 +1389,57 @@ setup();
 
   @Test
   public void testReceiveBlockAllTransactionsNotSound() {
+    Local local = new Local(IdentifierFixture.newIdentifier(), KeyGenFixture.newKeyGen().getPrivateKey());
+    Network network = mock(Network.class);
+    MockConduit blockConduit = new MockConduit(Channels.ProposedBlocks, mock(NetworkAdapter.class));
+    when(network.register(any(ValidatorEngine.class), eq(Channels.ProposedBlocks))).thenReturn(blockConduit);
+
+    Block genesis = BlockFixture.newBlock();
+    Block block1 = BlockFixture.newBlock(genesis.id(), genesis.getHeight() + 1);
+    Block block2 = BlockFixture.newBlock(block1.id(), block1.getHeight() + 1);
+
+    ArrayList<Account>[] a = AccountFixture.newAccounts(local.myId(), genesis.id(),
+        block1.id(), 10, 10);
+    ArrayList<Account> accounts1 = a[0];
+    ArrayList<Account> accounts2 = a[1];
+
+    /// State and Snapshots
+    State state = mock(State.class);
+    Snapshot genesisSnapshot = mock(Snapshot.class);
+    Snapshot snapshot1 = mock(Snapshot.class);
+    Snapshot snapshot2 = mock(Snapshot.class);
+
+    when(genesisSnapshot.getReferenceBlockId()).thenReturn(genesis.id());
+    when(snapshot1.getReferenceBlockId()).thenReturn(block1.id());
+    when(snapshot2.getReferenceBlockId()).thenReturn(block2.id());
+
+    when(genesisSnapshot.getReferenceBlockHeight()).thenReturn((long) genesis.getHeight());
+    when(snapshot1.getReferenceBlockHeight()).thenReturn((long) block1.getHeight());
+    when(snapshot2.getReferenceBlockHeight()).thenReturn((long) block2.getHeight());
+
+    when(state.atBlockId(genesis.id())).thenReturn(genesisSnapshot);
+    when(state.atBlockId(block1.id())).thenReturn(snapshot1);
+    when(state.atBlockId(block2.id())).thenReturn(snapshot2);
+
+    when(snapshot1.all()).thenReturn(accounts1);
+    when(snapshot2.all()).thenReturn(accounts2);
+
+    for (int i = 0; i < accounts1.size(); i++) {
+      when(snapshot1.getAccount(snapshot1.all().get(i).getIdentifier())).thenReturn(accounts1.get(i));
+      when(snapshot2.getAccount(snapshot2.all().get(i).getIdentifier())).thenReturn(accounts2.get(i));
+    }
+
+    for (Account account : snapshot2.all()) {
+      when(state.atBlockId(account.getLastBlockId())).thenReturn(snapshot1);
+    }
+
+    when(state.last()).thenReturn(snapshot2);
+
+    int propInd = random.nextInt(accounts2.size());
+    while (accounts2.get(propInd).getStake() < Parameters.MINIMUM_STAKE) {
+      propInd = random.nextInt(accounts2.size());
+    }
+    Identifiers seenEntities = mock(Identifiers.class);
     Identifier proposer = accounts2.get(propInd).getIdentifier();
     Block block = BlockFixture.newBlock(proposer, block2.id(), block2.getHeight() + 1, snapshot2.all());
     when(network.register(any(ValidatorEngine.class), eq(Channels.ProposedBlocks))).thenReturn(blockConduit);
@@ -730,8 +1470,59 @@ setup();
 
   @Test
   public void testReceiveBlockDuplicateSender() {
+    Local local = new Local(IdentifierFixture.newIdentifier(), KeyGenFixture.newKeyGen().getPrivateKey());
+    Network network = mock(Network.class);
+    MockConduit blockConduit = new MockConduit(Channels.ProposedBlocks, mock(NetworkAdapter.class));
+    when(network.register(any(ValidatorEngine.class), eq(Channels.ProposedBlocks))).thenReturn(blockConduit);
+
+    Block genesis = BlockFixture.newBlock();
+    Block block1 = BlockFixture.newBlock(genesis.id(), genesis.getHeight() + 1);
+    Block block2 = BlockFixture.newBlock(block1.id(), block1.getHeight() + 1);
+
+    ArrayList<Account>[] a = AccountFixture.newAccounts(local.myId(), genesis.id(),
+        block1.id(), 10, 10);
+    ArrayList<Account> accounts1 = a[0];
+    ArrayList<Account> accounts2 = a[1];
+
+    /// State and Snapshots
+    State state = mock(State.class);
+    Snapshot genesisSnapshot = mock(Snapshot.class);
+    Snapshot snapshot1 = mock(Snapshot.class);
+    Snapshot snapshot2 = mock(Snapshot.class);
+
+    when(genesisSnapshot.getReferenceBlockId()).thenReturn(genesis.id());
+    when(snapshot1.getReferenceBlockId()).thenReturn(block1.id());
+    when(snapshot2.getReferenceBlockId()).thenReturn(block2.id());
+
+    when(genesisSnapshot.getReferenceBlockHeight()).thenReturn((long) genesis.getHeight());
+    when(snapshot1.getReferenceBlockHeight()).thenReturn((long) block1.getHeight());
+    when(snapshot2.getReferenceBlockHeight()).thenReturn((long) block2.getHeight());
+
+    when(state.atBlockId(genesis.id())).thenReturn(genesisSnapshot);
+    when(state.atBlockId(block1.id())).thenReturn(snapshot1);
+    when(state.atBlockId(block2.id())).thenReturn(snapshot2);
+
+    when(snapshot1.all()).thenReturn(accounts1);
+    when(snapshot2.all()).thenReturn(accounts2);
+
+    for (int i = 0; i < accounts1.size(); i++) {
+      when(snapshot1.getAccount(snapshot1.all().get(i).getIdentifier())).thenReturn(accounts1.get(i));
+      when(snapshot2.getAccount(snapshot2.all().get(i).getIdentifier())).thenReturn(accounts2.get(i));
+    }
+
+    for (Account account : snapshot2.all()) {
+      when(state.atBlockId(account.getLastBlockId())).thenReturn(snapshot1);
+    }
+
+    when(state.last()).thenReturn(snapshot2);
+
+    int propInd = random.nextInt(accounts2.size());
+    while (accounts2.get(propInd).getStake() < Parameters.MINIMUM_STAKE) {
+      propInd = random.nextInt(accounts2.size());
+    }
+    Identifiers seenEntities = mock(Identifiers.class);
     Identifier proposer = accounts2.get(propInd).getIdentifier();
-    Block block = BlockFixture.newBlock(proposer, block2.id(), block2.getHeight() + 1, snapshot2.all());
+    Block block = BlockFixture.newBlockDuplicateSender(proposer, block2.id(), block2.getHeight() + 1, snapshot2.all());
     when(network.register(any(ValidatorEngine.class), eq(Channels.ProposedBlocks))).thenReturn(blockConduit);
     engine = new ValidatorEngine(network, local, state, seenEntities);
 
@@ -741,8 +1532,7 @@ setup();
           .getPublicKey().verifySignature(transaction, transaction.getSignature()))
           .thenReturn(true);
     }
-    when(snapshot2.getAccount(block.getTransactions()[0].getSender())).
-        thenReturn(accounts2.get(accounts2.indexOf(block.getTransactions()[1].getSender())));
+
     when(state.atBlockId(block.getPreviousBlockId())
         .getAccount(block.getProposer())
         .getPublicKey()
@@ -761,6 +1551,57 @@ setup();
 
   @Test
   public void testReceiveOneValidTransaction() {
+    Local local = new Local(IdentifierFixture.newIdentifier(), KeyGenFixture.newKeyGen().getPrivateKey());
+    Network network = mock(Network.class);
+    MockConduit txConduit = new MockConduit(Channels.ProposedTransactions, mock(NetworkAdapter.class));
+    when(network.register(any(ValidatorEngine.class), eq(Channels.ProposedTransactions))).thenReturn(txConduit);
+
+    Block genesis = BlockFixture.newBlock();
+    Block block1 = BlockFixture.newBlock(genesis.id(), genesis.getHeight() + 1);
+    Block block2 = BlockFixture.newBlock(block1.id(), block1.getHeight() + 1);
+
+    ArrayList<Account>[] a = AccountFixture.newAccounts(local.myId(), genesis.id(),
+        block1.id(), 10, 10);
+    ArrayList<Account> accounts1 = a[0];
+    ArrayList<Account> accounts2 = a[1];
+
+    /// State and Snapshots
+    State state = mock(State.class);
+    Snapshot genesisSnapshot = mock(Snapshot.class);
+    Snapshot snapshot1 = mock(Snapshot.class);
+    Snapshot snapshot2 = mock(Snapshot.class);
+
+    when(genesisSnapshot.getReferenceBlockId()).thenReturn(genesis.id());
+    when(snapshot1.getReferenceBlockId()).thenReturn(block1.id());
+    when(snapshot2.getReferenceBlockId()).thenReturn(block2.id());
+
+    when(genesisSnapshot.getReferenceBlockHeight()).thenReturn((long) genesis.getHeight());
+    when(snapshot1.getReferenceBlockHeight()).thenReturn((long) block1.getHeight());
+    when(snapshot2.getReferenceBlockHeight()).thenReturn((long) block2.getHeight());
+
+    when(state.atBlockId(genesis.id())).thenReturn(genesisSnapshot);
+    when(state.atBlockId(block1.id())).thenReturn(snapshot1);
+    when(state.atBlockId(block2.id())).thenReturn(snapshot2);
+
+    when(snapshot1.all()).thenReturn(accounts1);
+    when(snapshot2.all()).thenReturn(accounts2);
+
+    for (int i = 0; i < accounts1.size(); i++) {
+      when(snapshot1.getAccount(snapshot1.all().get(i).getIdentifier())).thenReturn(accounts1.get(i));
+      when(snapshot2.getAccount(snapshot2.all().get(i).getIdentifier())).thenReturn(accounts2.get(i));
+    }
+
+    for (Account account : snapshot2.all()) {
+      when(state.atBlockId(account.getLastBlockId())).thenReturn(snapshot1);
+    }
+
+    when(state.last()).thenReturn(snapshot2);
+
+    int propInd = random.nextInt(accounts2.size());
+    while (accounts2.get(propInd).getStake() < Parameters.MINIMUM_STAKE) {
+      propInd = random.nextInt(accounts2.size());
+    }
+    Identifiers seenEntities = mock(Identifiers.class);
     // Register the network adapter with the network and create engine.
     when(network.register(any(ValidatorEngine.class), eq(Channels.ProposedTransactions))).thenReturn(txConduit);
     engine = new ValidatorEngine(network, local, state, seenEntities);
@@ -795,7 +1636,57 @@ setup();
 
   @Test
   public void testReceiveTwoValidTransactionsSequentially() {
+    Local local = new Local(IdentifierFixture.newIdentifier(), KeyGenFixture.newKeyGen().getPrivateKey());
+    Network network = mock(Network.class);
+    MockConduit txConduit = new MockConduit(Channels.ProposedTransactions, mock(NetworkAdapter.class));
+    when(network.register(any(ValidatorEngine.class), eq(Channels.ProposedTransactions))).thenReturn(txConduit);
 
+    Block genesis = BlockFixture.newBlock();
+    Block block1 = BlockFixture.newBlock(genesis.id(), genesis.getHeight() + 1);
+    Block block2 = BlockFixture.newBlock(block1.id(), block1.getHeight() + 1);
+
+    ArrayList<Account>[] a = AccountFixture.newAccounts(local.myId(), genesis.id(),
+        block1.id(), 10, 10);
+    ArrayList<Account> accounts1 = a[0];
+    ArrayList<Account> accounts2 = a[1];
+
+    /// State and Snapshots
+    State state = mock(State.class);
+    Snapshot genesisSnapshot = mock(Snapshot.class);
+    Snapshot snapshot1 = mock(Snapshot.class);
+    Snapshot snapshot2 = mock(Snapshot.class);
+
+    when(genesisSnapshot.getReferenceBlockId()).thenReturn(genesis.id());
+    when(snapshot1.getReferenceBlockId()).thenReturn(block1.id());
+    when(snapshot2.getReferenceBlockId()).thenReturn(block2.id());
+
+    when(genesisSnapshot.getReferenceBlockHeight()).thenReturn((long) genesis.getHeight());
+    when(snapshot1.getReferenceBlockHeight()).thenReturn((long) block1.getHeight());
+    when(snapshot2.getReferenceBlockHeight()).thenReturn((long) block2.getHeight());
+
+    when(state.atBlockId(genesis.id())).thenReturn(genesisSnapshot);
+    when(state.atBlockId(block1.id())).thenReturn(snapshot1);
+    when(state.atBlockId(block2.id())).thenReturn(snapshot2);
+
+    when(snapshot1.all()).thenReturn(accounts1);
+    when(snapshot2.all()).thenReturn(accounts2);
+
+    for (int i = 0; i < accounts1.size(); i++) {
+      when(snapshot1.getAccount(snapshot1.all().get(i).getIdentifier())).thenReturn(accounts1.get(i));
+      when(snapshot2.getAccount(snapshot2.all().get(i).getIdentifier())).thenReturn(accounts2.get(i));
+    }
+
+    for (Account account : snapshot2.all()) {
+      when(state.atBlockId(account.getLastBlockId())).thenReturn(snapshot1);
+    }
+
+    when(state.last()).thenReturn(snapshot2);
+
+    int propInd = random.nextInt(accounts2.size());
+    while (accounts2.get(propInd).getStake() < Parameters.MINIMUM_STAKE) {
+      propInd = random.nextInt(accounts2.size());
+    }
+    Identifiers seenEntities = mock(Identifiers.class);
     // Register the network adapter with the network and create engine.
     when(network.register(any(ValidatorEngine.class), eq(Channels.ProposedTransactions))).thenReturn(txConduit);
     engine = new ValidatorEngine(network, local, state, seenEntities);
@@ -830,7 +1721,57 @@ setup();
 
   @Test
   public void testReceiveTwoValidTransactionsConcurrently() {
+    Local local = new Local(IdentifierFixture.newIdentifier(), KeyGenFixture.newKeyGen().getPrivateKey());
+    Network network = mock(Network.class);
+    MockConduit txConduit = new MockConduit(Channels.ProposedTransactions, mock(NetworkAdapter.class));
+    when(network.register(any(ValidatorEngine.class), eq(Channels.ProposedTransactions))).thenReturn(txConduit);
 
+    Block genesis = BlockFixture.newBlock();
+    Block block1 = BlockFixture.newBlock(genesis.id(), genesis.getHeight() + 1);
+    Block block2 = BlockFixture.newBlock(block1.id(), block1.getHeight() + 1);
+
+    ArrayList<Account>[] a = AccountFixture.newAccounts(local.myId(), genesis.id(),
+        block1.id(), 10, 10);
+    ArrayList<Account> accounts1 = a[0];
+    ArrayList<Account> accounts2 = a[1];
+
+    /// State and Snapshots
+    State state = mock(State.class);
+    Snapshot genesisSnapshot = mock(Snapshot.class);
+    Snapshot snapshot1 = mock(Snapshot.class);
+    Snapshot snapshot2 = mock(Snapshot.class);
+
+    when(genesisSnapshot.getReferenceBlockId()).thenReturn(genesis.id());
+    when(snapshot1.getReferenceBlockId()).thenReturn(block1.id());
+    when(snapshot2.getReferenceBlockId()).thenReturn(block2.id());
+
+    when(genesisSnapshot.getReferenceBlockHeight()).thenReturn((long) genesis.getHeight());
+    when(snapshot1.getReferenceBlockHeight()).thenReturn((long) block1.getHeight());
+    when(snapshot2.getReferenceBlockHeight()).thenReturn((long) block2.getHeight());
+
+    when(state.atBlockId(genesis.id())).thenReturn(genesisSnapshot);
+    when(state.atBlockId(block1.id())).thenReturn(snapshot1);
+    when(state.atBlockId(block2.id())).thenReturn(snapshot2);
+
+    when(snapshot1.all()).thenReturn(accounts1);
+    when(snapshot2.all()).thenReturn(accounts2);
+
+    for (int i = 0; i < accounts1.size(); i++) {
+      when(snapshot1.getAccount(snapshot1.all().get(i).getIdentifier())).thenReturn(accounts1.get(i));
+      when(snapshot2.getAccount(snapshot2.all().get(i).getIdentifier())).thenReturn(accounts2.get(i));
+    }
+
+    for (Account account : snapshot2.all()) {
+      when(state.atBlockId(account.getLastBlockId())).thenReturn(snapshot1);
+    }
+
+    when(state.last()).thenReturn(snapshot2);
+
+    int propInd = random.nextInt(accounts2.size());
+    while (accounts2.get(propInd).getStake() < Parameters.MINIMUM_STAKE) {
+      propInd = random.nextInt(accounts2.size());
+    }
+    Identifiers seenEntities = mock(Identifiers.class);
     // Register the network adapter with the network and create engine.
     when(network.register(any(ValidatorEngine.class), eq(Channels.ProposedTransactions))).thenReturn(txConduit);
     engine = new ValidatorEngine(network, local, state, seenEntities);
@@ -893,7 +1834,57 @@ setup();
 
   @Test
   public void testReceiveDuplicateTransactionsSequentially() {
+    Local local = new Local(IdentifierFixture.newIdentifier(), KeyGenFixture.newKeyGen().getPrivateKey());
+    Network network = mock(Network.class);
+    MockConduit txConduit = new MockConduit(Channels.ProposedTransactions, mock(NetworkAdapter.class));
+    when(network.register(any(ValidatorEngine.class), eq(Channels.ProposedTransactions))).thenReturn(txConduit);
 
+    Block genesis = BlockFixture.newBlock();
+    Block block1 = BlockFixture.newBlock(genesis.id(), genesis.getHeight() + 1);
+    Block block2 = BlockFixture.newBlock(block1.id(), block1.getHeight() + 1);
+
+    ArrayList<Account>[] a = AccountFixture.newAccounts(local.myId(), genesis.id(),
+        block1.id(), 10, 10);
+    ArrayList<Account> accounts1 = a[0];
+    ArrayList<Account> accounts2 = a[1];
+
+    /// State and Snapshots
+    State state = mock(State.class);
+    Snapshot genesisSnapshot = mock(Snapshot.class);
+    Snapshot snapshot1 = mock(Snapshot.class);
+    Snapshot snapshot2 = mock(Snapshot.class);
+
+    when(genesisSnapshot.getReferenceBlockId()).thenReturn(genesis.id());
+    when(snapshot1.getReferenceBlockId()).thenReturn(block1.id());
+    when(snapshot2.getReferenceBlockId()).thenReturn(block2.id());
+
+    when(genesisSnapshot.getReferenceBlockHeight()).thenReturn((long) genesis.getHeight());
+    when(snapshot1.getReferenceBlockHeight()).thenReturn((long) block1.getHeight());
+    when(snapshot2.getReferenceBlockHeight()).thenReturn((long) block2.getHeight());
+
+    when(state.atBlockId(genesis.id())).thenReturn(genesisSnapshot);
+    when(state.atBlockId(block1.id())).thenReturn(snapshot1);
+    when(state.atBlockId(block2.id())).thenReturn(snapshot2);
+
+    when(snapshot1.all()).thenReturn(accounts1);
+    when(snapshot2.all()).thenReturn(accounts2);
+
+    for (int i = 0; i < accounts1.size(); i++) {
+      when(snapshot1.getAccount(snapshot1.all().get(i).getIdentifier())).thenReturn(accounts1.get(i));
+      when(snapshot2.getAccount(snapshot2.all().get(i).getIdentifier())).thenReturn(accounts2.get(i));
+    }
+
+    for (Account account : snapshot2.all()) {
+      when(state.atBlockId(account.getLastBlockId())).thenReturn(snapshot1);
+    }
+
+    when(state.last()).thenReturn(snapshot2);
+
+    int propInd = random.nextInt(accounts2.size());
+    while (accounts2.get(propInd).getStake() < Parameters.MINIMUM_STAKE) {
+      propInd = random.nextInt(accounts2.size());
+    }
+    Identifiers seenEntities = mock(Identifiers.class);
     // Register the network adapter with the network and create engine.
     when(network.register(any(ValidatorEngine.class), eq(Channels.ProposedTransactions))).thenReturn(txConduit);
     engine = new ValidatorEngine(network, local, state, seenEntities);
@@ -944,7 +1935,57 @@ setup();
 
   @Test
   public void testReceiveDuplicateTransactionsConcurrently() {
+    Local local = new Local(IdentifierFixture.newIdentifier(), KeyGenFixture.newKeyGen().getPrivateKey());
+    Network network = mock(Network.class);
+    MockConduit txConduit = new MockConduit(Channels.ProposedTransactions, mock(NetworkAdapter.class));
+    when(network.register(any(ValidatorEngine.class), eq(Channels.ProposedTransactions))).thenReturn(txConduit);
 
+    Block genesis = BlockFixture.newBlock();
+    Block block1 = BlockFixture.newBlock(genesis.id(), genesis.getHeight() + 1);
+    Block block2 = BlockFixture.newBlock(block1.id(), block1.getHeight() + 1);
+
+    ArrayList<Account>[] a = AccountFixture.newAccounts(local.myId(), genesis.id(),
+        block1.id(), 10, 10);
+    ArrayList<Account> accounts1 = a[0];
+    ArrayList<Account> accounts2 = a[1];
+
+    /// State and Snapshots
+    State state = mock(State.class);
+    Snapshot genesisSnapshot = mock(Snapshot.class);
+    Snapshot snapshot1 = mock(Snapshot.class);
+    Snapshot snapshot2 = mock(Snapshot.class);
+
+    when(genesisSnapshot.getReferenceBlockId()).thenReturn(genesis.id());
+    when(snapshot1.getReferenceBlockId()).thenReturn(block1.id());
+    when(snapshot2.getReferenceBlockId()).thenReturn(block2.id());
+
+    when(genesisSnapshot.getReferenceBlockHeight()).thenReturn((long) genesis.getHeight());
+    when(snapshot1.getReferenceBlockHeight()).thenReturn((long) block1.getHeight());
+    when(snapshot2.getReferenceBlockHeight()).thenReturn((long) block2.getHeight());
+
+    when(state.atBlockId(genesis.id())).thenReturn(genesisSnapshot);
+    when(state.atBlockId(block1.id())).thenReturn(snapshot1);
+    when(state.atBlockId(block2.id())).thenReturn(snapshot2);
+
+    when(snapshot1.all()).thenReturn(accounts1);
+    when(snapshot2.all()).thenReturn(accounts2);
+
+    for (int i = 0; i < accounts1.size(); i++) {
+      when(snapshot1.getAccount(snapshot1.all().get(i).getIdentifier())).thenReturn(accounts1.get(i));
+      when(snapshot2.getAccount(snapshot2.all().get(i).getIdentifier())).thenReturn(accounts2.get(i));
+    }
+
+    for (Account account : snapshot2.all()) {
+      when(state.atBlockId(account.getLastBlockId())).thenReturn(snapshot1);
+    }
+
+    when(state.last()).thenReturn(snapshot2);
+
+    int propInd = random.nextInt(accounts2.size());
+    while (accounts2.get(propInd).getStake() < Parameters.MINIMUM_STAKE) {
+      propInd = random.nextInt(accounts2.size());
+    }
+    Identifiers seenEntities = mock(Identifiers.class);
     // Register the network adapter with the network and create engine.
     when(network.register(any(ValidatorEngine.class), eq(Channels.ProposedTransactions))).thenReturn(txConduit);
     engine = new ValidatorEngine(network, local, state, seenEntities);
@@ -1022,7 +2063,57 @@ setup();
 
   @Test
   public void testReceiveNoTransactionNorBlockTxConduit() {
+    Local local = new Local(IdentifierFixture.newIdentifier(), KeyGenFixture.newKeyGen().getPrivateKey());
+    Network network = mock(Network.class);
+    MockConduit txConduit = new MockConduit(Channels.ProposedTransactions, mock(NetworkAdapter.class));
+    when(network.register(any(ValidatorEngine.class), eq(Channels.ProposedTransactions))).thenReturn(txConduit);
 
+    Block genesis = BlockFixture.newBlock();
+    Block block1 = BlockFixture.newBlock(genesis.id(), genesis.getHeight() + 1);
+    Block block2 = BlockFixture.newBlock(block1.id(), block1.getHeight() + 1);
+
+    ArrayList<Account>[] a = AccountFixture.newAccounts(local.myId(), genesis.id(),
+        block1.id(), 10, 10);
+    ArrayList<Account> accounts1 = a[0];
+    ArrayList<Account> accounts2 = a[1];
+
+    /// State and Snapshots
+    State state = mock(State.class);
+    Snapshot genesisSnapshot = mock(Snapshot.class);
+    Snapshot snapshot1 = mock(Snapshot.class);
+    Snapshot snapshot2 = mock(Snapshot.class);
+
+    when(genesisSnapshot.getReferenceBlockId()).thenReturn(genesis.id());
+    when(snapshot1.getReferenceBlockId()).thenReturn(block1.id());
+    when(snapshot2.getReferenceBlockId()).thenReturn(block2.id());
+
+    when(genesisSnapshot.getReferenceBlockHeight()).thenReturn((long) genesis.getHeight());
+    when(snapshot1.getReferenceBlockHeight()).thenReturn((long) block1.getHeight());
+    when(snapshot2.getReferenceBlockHeight()).thenReturn((long) block2.getHeight());
+
+    when(state.atBlockId(genesis.id())).thenReturn(genesisSnapshot);
+    when(state.atBlockId(block1.id())).thenReturn(snapshot1);
+    when(state.atBlockId(block2.id())).thenReturn(snapshot2);
+
+    when(snapshot1.all()).thenReturn(accounts1);
+    when(snapshot2.all()).thenReturn(accounts2);
+
+    for (int i = 0; i < accounts1.size(); i++) {
+      when(snapshot1.getAccount(snapshot1.all().get(i).getIdentifier())).thenReturn(accounts1.get(i));
+      when(snapshot2.getAccount(snapshot2.all().get(i).getIdentifier())).thenReturn(accounts2.get(i));
+    }
+
+    for (Account account : snapshot2.all()) {
+      when(state.atBlockId(account.getLastBlockId())).thenReturn(snapshot1);
+    }
+
+    when(state.last()).thenReturn(snapshot2);
+
+    int propInd = random.nextInt(accounts2.size());
+    while (accounts2.get(propInd).getStake() < Parameters.MINIMUM_STAKE) {
+      propInd = random.nextInt(accounts2.size());
+    }
+    Identifiers seenEntities = mock(Identifiers.class);
     // Register the network adapter with the network and create engine.
     when(network.register(any(ValidatorEngine.class), eq(Channels.ProposedTransactions))).thenReturn(txConduit);
     engine = new ValidatorEngine(network, local, state, seenEntities);
@@ -1040,7 +2131,57 @@ setup();
 
   @Test
   public void testReceiveNoTransactionNorBlockSecondConduit() {
+    Local local = new Local(IdentifierFixture.newIdentifier(), KeyGenFixture.newKeyGen().getPrivateKey());
+    Network network = mock(Network.class);
+    MockConduit blockConduit = new MockConduit(Channels.ProposedBlocks, mock(NetworkAdapter.class));
+    when(network.register(any(ValidatorEngine.class), eq(Channels.ProposedBlocks))).thenReturn(blockConduit);
 
+    Block genesis = BlockFixture.newBlock();
+    Block block1 = BlockFixture.newBlock(genesis.id(), genesis.getHeight() + 1);
+    Block block2 = BlockFixture.newBlock(block1.id(), block1.getHeight() + 1);
+
+    ArrayList<Account>[] a = AccountFixture.newAccounts(local.myId(), genesis.id(),
+        block1.id(), 10, 10);
+    ArrayList<Account> accounts1 = a[0];
+    ArrayList<Account> accounts2 = a[1];
+
+    /// State and Snapshots
+    State state = mock(State.class);
+    Snapshot genesisSnapshot = mock(Snapshot.class);
+    Snapshot snapshot1 = mock(Snapshot.class);
+    Snapshot snapshot2 = mock(Snapshot.class);
+
+    when(genesisSnapshot.getReferenceBlockId()).thenReturn(genesis.id());
+    when(snapshot1.getReferenceBlockId()).thenReturn(block1.id());
+    when(snapshot2.getReferenceBlockId()).thenReturn(block2.id());
+
+    when(genesisSnapshot.getReferenceBlockHeight()).thenReturn((long) genesis.getHeight());
+    when(snapshot1.getReferenceBlockHeight()).thenReturn((long) block1.getHeight());
+    when(snapshot2.getReferenceBlockHeight()).thenReturn((long) block2.getHeight());
+
+    when(state.atBlockId(genesis.id())).thenReturn(genesisSnapshot);
+    when(state.atBlockId(block1.id())).thenReturn(snapshot1);
+    when(state.atBlockId(block2.id())).thenReturn(snapshot2);
+
+    when(snapshot1.all()).thenReturn(accounts1);
+    when(snapshot2.all()).thenReturn(accounts2);
+
+    for (int i = 0; i < accounts1.size(); i++) {
+      when(snapshot1.getAccount(snapshot1.all().get(i).getIdentifier())).thenReturn(accounts1.get(i));
+      when(snapshot2.getAccount(snapshot2.all().get(i).getIdentifier())).thenReturn(accounts2.get(i));
+    }
+
+    for (Account account : snapshot2.all()) {
+      when(state.atBlockId(account.getLastBlockId())).thenReturn(snapshot1);
+    }
+
+    when(state.last()).thenReturn(snapshot2);
+
+    int propInd = random.nextInt(accounts2.size());
+    while (accounts2.get(propInd).getStake() < Parameters.MINIMUM_STAKE) {
+      propInd = random.nextInt(accounts2.size());
+    }
+    Identifiers seenEntities = mock(Identifiers.class);
     // Register the network adapter with the network and create engine.
     when(network.register(any(ValidatorEngine.class), eq(Channels.ProposedBlocks))).thenReturn(blockConduit);
     engine = new ValidatorEngine(network, local, state, seenEntities);
@@ -1058,7 +2199,57 @@ setup();
 
   @Test
   public void testReceiveTransactionsSequentially() throws LightChainDistributedStorageException {
+    Local local = new Local(IdentifierFixture.newIdentifier(), KeyGenFixture.newKeyGen().getPrivateKey());
+    Network network = mock(Network.class);
+    MockConduit txConduit = new MockConduit(Channels.ProposedTransactions, mock(NetworkAdapter.class));
+    when(network.register(any(ValidatorEngine.class), eq(Channels.ProposedTransactions))).thenReturn(txConduit);
 
+    Block genesis = BlockFixture.newBlock();
+    Block block1 = BlockFixture.newBlock(genesis.id(), genesis.getHeight() + 1);
+    Block block2 = BlockFixture.newBlock(block1.id(), block1.getHeight() + 1);
+
+    ArrayList<Account>[] a = AccountFixture.newAccounts(local.myId(), genesis.id(),
+        block1.id(), 10, 10);
+    ArrayList<Account> accounts1 = a[0];
+    ArrayList<Account> accounts2 = a[1];
+
+    /// State and Snapshots
+    State state = mock(State.class);
+    Snapshot genesisSnapshot = mock(Snapshot.class);
+    Snapshot snapshot1 = mock(Snapshot.class);
+    Snapshot snapshot2 = mock(Snapshot.class);
+
+    when(genesisSnapshot.getReferenceBlockId()).thenReturn(genesis.id());
+    when(snapshot1.getReferenceBlockId()).thenReturn(block1.id());
+    when(snapshot2.getReferenceBlockId()).thenReturn(block2.id());
+
+    when(genesisSnapshot.getReferenceBlockHeight()).thenReturn((long) genesis.getHeight());
+    when(snapshot1.getReferenceBlockHeight()).thenReturn((long) block1.getHeight());
+    when(snapshot2.getReferenceBlockHeight()).thenReturn((long) block2.getHeight());
+
+    when(state.atBlockId(genesis.id())).thenReturn(genesisSnapshot);
+    when(state.atBlockId(block1.id())).thenReturn(snapshot1);
+    when(state.atBlockId(block2.id())).thenReturn(snapshot2);
+
+    when(snapshot1.all()).thenReturn(accounts1);
+    when(snapshot2.all()).thenReturn(accounts2);
+
+    for (int i = 0; i < accounts1.size(); i++) {
+      when(snapshot1.getAccount(snapshot1.all().get(i).getIdentifier())).thenReturn(accounts1.get(i));
+      when(snapshot2.getAccount(snapshot2.all().get(i).getIdentifier())).thenReturn(accounts2.get(i));
+    }
+
+    for (Account account : snapshot2.all()) {
+      when(state.atBlockId(account.getLastBlockId())).thenReturn(snapshot1);
+    }
+
+    when(state.last()).thenReturn(snapshot2);
+
+    int propInd = random.nextInt(accounts2.size());
+    while (accounts2.get(propInd).getStake() < Parameters.MINIMUM_STAKE) {
+      propInd = random.nextInt(accounts2.size());
+    }
+    Identifiers seenEntities = mock(Identifiers.class);
     // Register the network adapter with the network and create engine.
     when(network.register(any(ValidatorEngine.class), eq(Channels.ProposedTransactions))).thenReturn(txConduit);
     engine = new ValidatorEngine(network, local, state, seenEntities);
@@ -1109,7 +2300,57 @@ setup();
 
   @Test
   public void testReceiveTransactionNotCorrect_InvalidSender() {
+    Local local = new Local(IdentifierFixture.newIdentifier(), KeyGenFixture.newKeyGen().getPrivateKey());
+    Network network = mock(Network.class);
+    MockConduit txConduit = new MockConduit(Channels.ProposedTransactions, mock(NetworkAdapter.class));
+    when(network.register(any(ValidatorEngine.class), eq(Channels.ProposedTransactions))).thenReturn(txConduit);
 
+    Block genesis = BlockFixture.newBlock();
+    Block block1 = BlockFixture.newBlock(genesis.id(), genesis.getHeight() + 1);
+    Block block2 = BlockFixture.newBlock(block1.id(), block1.getHeight() + 1);
+
+    ArrayList<Account>[] a = AccountFixture.newAccounts(local.myId(), genesis.id(),
+        block1.id(), 10, 10);
+    ArrayList<Account> accounts1 = a[0];
+    ArrayList<Account> accounts2 = a[1];
+
+    /// State and Snapshots
+    State state = mock(State.class);
+    Snapshot genesisSnapshot = mock(Snapshot.class);
+    Snapshot snapshot1 = mock(Snapshot.class);
+    Snapshot snapshot2 = mock(Snapshot.class);
+
+    when(genesisSnapshot.getReferenceBlockId()).thenReturn(genesis.id());
+    when(snapshot1.getReferenceBlockId()).thenReturn(block1.id());
+    when(snapshot2.getReferenceBlockId()).thenReturn(block2.id());
+
+    when(genesisSnapshot.getReferenceBlockHeight()).thenReturn((long) genesis.getHeight());
+    when(snapshot1.getReferenceBlockHeight()).thenReturn((long) block1.getHeight());
+    when(snapshot2.getReferenceBlockHeight()).thenReturn((long) block2.getHeight());
+
+    when(state.atBlockId(genesis.id())).thenReturn(genesisSnapshot);
+    when(state.atBlockId(block1.id())).thenReturn(snapshot1);
+    when(state.atBlockId(block2.id())).thenReturn(snapshot2);
+
+    when(snapshot1.all()).thenReturn(accounts1);
+    when(snapshot2.all()).thenReturn(accounts2);
+
+    for (int i = 0; i < accounts1.size(); i++) {
+      when(snapshot1.getAccount(snapshot1.all().get(i).getIdentifier())).thenReturn(accounts1.get(i));
+      when(snapshot2.getAccount(snapshot2.all().get(i).getIdentifier())).thenReturn(accounts2.get(i));
+    }
+
+    for (Account account : snapshot2.all()) {
+      when(state.atBlockId(account.getLastBlockId())).thenReturn(snapshot1);
+    }
+
+    when(state.last()).thenReturn(snapshot2);
+
+    int propInd = random.nextInt(accounts2.size());
+    while (accounts2.get(propInd).getStake() < Parameters.MINIMUM_STAKE) {
+      propInd = random.nextInt(accounts2.size());
+    }
+    Identifiers seenEntities = mock(Identifiers.class);
     // Register the network adapter with the network and create engine.
     when(network.register(any(ValidatorEngine.class), eq(Channels.ProposedTransactions))).thenReturn(txConduit);
     engine = new ValidatorEngine(network, local, state, seenEntities);
@@ -1137,7 +2378,57 @@ setup();
 
   @Test
   public void testReceiveTransactionNotCorrect_InvalidReceiver() {
+    Local local = new Local(IdentifierFixture.newIdentifier(), KeyGenFixture.newKeyGen().getPrivateKey());
+    Network network = mock(Network.class);
+    MockConduit txConduit = new MockConduit(Channels.ProposedTransactions, mock(NetworkAdapter.class));
+    when(network.register(any(ValidatorEngine.class), eq(Channels.ProposedTransactions))).thenReturn(txConduit);
 
+    Block genesis = BlockFixture.newBlock();
+    Block block1 = BlockFixture.newBlock(genesis.id(), genesis.getHeight() + 1);
+    Block block2 = BlockFixture.newBlock(block1.id(), block1.getHeight() + 1);
+
+    ArrayList<Account>[] a = AccountFixture.newAccounts(local.myId(), genesis.id(),
+        block1.id(), 10, 10);
+    ArrayList<Account> accounts1 = a[0];
+    ArrayList<Account> accounts2 = a[1];
+
+    /// State and Snapshots
+    State state = mock(State.class);
+    Snapshot genesisSnapshot = mock(Snapshot.class);
+    Snapshot snapshot1 = mock(Snapshot.class);
+    Snapshot snapshot2 = mock(Snapshot.class);
+
+    when(genesisSnapshot.getReferenceBlockId()).thenReturn(genesis.id());
+    when(snapshot1.getReferenceBlockId()).thenReturn(block1.id());
+    when(snapshot2.getReferenceBlockId()).thenReturn(block2.id());
+
+    when(genesisSnapshot.getReferenceBlockHeight()).thenReturn((long) genesis.getHeight());
+    when(snapshot1.getReferenceBlockHeight()).thenReturn((long) block1.getHeight());
+    when(snapshot2.getReferenceBlockHeight()).thenReturn((long) block2.getHeight());
+
+    when(state.atBlockId(genesis.id())).thenReturn(genesisSnapshot);
+    when(state.atBlockId(block1.id())).thenReturn(snapshot1);
+    when(state.atBlockId(block2.id())).thenReturn(snapshot2);
+
+    when(snapshot1.all()).thenReturn(accounts1);
+    when(snapshot2.all()).thenReturn(accounts2);
+
+    for (int i = 0; i < accounts1.size(); i++) {
+      when(snapshot1.getAccount(snapshot1.all().get(i).getIdentifier())).thenReturn(accounts1.get(i));
+      when(snapshot2.getAccount(snapshot2.all().get(i).getIdentifier())).thenReturn(accounts2.get(i));
+    }
+
+    for (Account account : snapshot2.all()) {
+      when(state.atBlockId(account.getLastBlockId())).thenReturn(snapshot1);
+    }
+
+    when(state.last()).thenReturn(snapshot2);
+
+    int propInd = random.nextInt(accounts2.size());
+    while (accounts2.get(propInd).getStake() < Parameters.MINIMUM_STAKE) {
+      propInd = random.nextInt(accounts2.size());
+    }
+    Identifiers seenEntities = mock(Identifiers.class);
     // Register the network adapter with the network and create engine.
     when(network.register(any(ValidatorEngine.class), eq(Channels.ProposedTransactions))).thenReturn(txConduit);
     engine = new ValidatorEngine(network, local, state, seenEntities);
@@ -1166,7 +2457,57 @@ setup();
 
   @Test
   public void testReceiveTransactionNotCorrect_NegativeAmount() {
+    Local local = new Local(IdentifierFixture.newIdentifier(), KeyGenFixture.newKeyGen().getPrivateKey());
+    Network network = mock(Network.class);
+    MockConduit txConduit = new MockConduit(Channels.ProposedTransactions, mock(NetworkAdapter.class));
+    when(network.register(any(ValidatorEngine.class), eq(Channels.ProposedTransactions))).thenReturn(txConduit);
 
+    Block genesis = BlockFixture.newBlock();
+    Block block1 = BlockFixture.newBlock(genesis.id(), genesis.getHeight() + 1);
+    Block block2 = BlockFixture.newBlock(block1.id(), block1.getHeight() + 1);
+
+    ArrayList<Account>[] a = AccountFixture.newAccounts(local.myId(), genesis.id(),
+        block1.id(), 10, 10);
+    ArrayList<Account> accounts1 = a[0];
+    ArrayList<Account> accounts2 = a[1];
+
+    /// State and Snapshots
+    State state = mock(State.class);
+    Snapshot genesisSnapshot = mock(Snapshot.class);
+    Snapshot snapshot1 = mock(Snapshot.class);
+    Snapshot snapshot2 = mock(Snapshot.class);
+
+    when(genesisSnapshot.getReferenceBlockId()).thenReturn(genesis.id());
+    when(snapshot1.getReferenceBlockId()).thenReturn(block1.id());
+    when(snapshot2.getReferenceBlockId()).thenReturn(block2.id());
+
+    when(genesisSnapshot.getReferenceBlockHeight()).thenReturn((long) genesis.getHeight());
+    when(snapshot1.getReferenceBlockHeight()).thenReturn((long) block1.getHeight());
+    when(snapshot2.getReferenceBlockHeight()).thenReturn((long) block2.getHeight());
+
+    when(state.atBlockId(genesis.id())).thenReturn(genesisSnapshot);
+    when(state.atBlockId(block1.id())).thenReturn(snapshot1);
+    when(state.atBlockId(block2.id())).thenReturn(snapshot2);
+
+    when(snapshot1.all()).thenReturn(accounts1);
+    when(snapshot2.all()).thenReturn(accounts2);
+
+    for (int i = 0; i < accounts1.size(); i++) {
+      when(snapshot1.getAccount(snapshot1.all().get(i).getIdentifier())).thenReturn(accounts1.get(i));
+      when(snapshot2.getAccount(snapshot2.all().get(i).getIdentifier())).thenReturn(accounts2.get(i));
+    }
+
+    for (Account account : snapshot2.all()) {
+      when(state.atBlockId(account.getLastBlockId())).thenReturn(snapshot1);
+    }
+
+    when(state.last()).thenReturn(snapshot2);
+
+    int propInd = random.nextInt(accounts2.size());
+    while (accounts2.get(propInd).getStake() < Parameters.MINIMUM_STAKE) {
+      propInd = random.nextInt(accounts2.size());
+    }
+    Identifiers seenEntities = mock(Identifiers.class);
     // Register the network adapter with the network and create engine.
     when(network.register(any(ValidatorEngine.class), eq(Channels.ProposedTransactions))).thenReturn(txConduit);
     engine = new ValidatorEngine(network, local, state, seenEntities);
@@ -1195,7 +2536,57 @@ setup();
 
   @Test
   public void testReceiveTransactionNotSound_LowerHeight() {
+    Local local = new Local(IdentifierFixture.newIdentifier(), KeyGenFixture.newKeyGen().getPrivateKey());
+    Network network = mock(Network.class);
+    MockConduit txConduit = new MockConduit(Channels.ProposedTransactions, mock(NetworkAdapter.class));
+    when(network.register(any(ValidatorEngine.class), eq(Channels.ProposedTransactions))).thenReturn(txConduit);
 
+    Block genesis = BlockFixture.newBlock();
+    Block block1 = BlockFixture.newBlock(genesis.id(), genesis.getHeight() + 1);
+    Block block2 = BlockFixture.newBlock(block1.id(), block1.getHeight() + 1);
+
+    ArrayList<Account>[] a = AccountFixture.newAccounts(local.myId(), genesis.id(),
+        block1.id(), 10, 10);
+    ArrayList<Account> accounts1 = a[0];
+    ArrayList<Account> accounts2 = a[1];
+
+    /// State and Snapshots
+    State state = mock(State.class);
+    Snapshot genesisSnapshot = mock(Snapshot.class);
+    Snapshot snapshot1 = mock(Snapshot.class);
+    Snapshot snapshot2 = mock(Snapshot.class);
+
+    when(genesisSnapshot.getReferenceBlockId()).thenReturn(genesis.id());
+    when(snapshot1.getReferenceBlockId()).thenReturn(block1.id());
+    when(snapshot2.getReferenceBlockId()).thenReturn(block2.id());
+
+    when(genesisSnapshot.getReferenceBlockHeight()).thenReturn((long) genesis.getHeight());
+    when(snapshot1.getReferenceBlockHeight()).thenReturn((long) block1.getHeight());
+    when(snapshot2.getReferenceBlockHeight()).thenReturn((long) block2.getHeight());
+
+    when(state.atBlockId(genesis.id())).thenReturn(genesisSnapshot);
+    when(state.atBlockId(block1.id())).thenReturn(snapshot1);
+    when(state.atBlockId(block2.id())).thenReturn(snapshot2);
+
+    when(snapshot1.all()).thenReturn(accounts1);
+    when(snapshot2.all()).thenReturn(accounts2);
+
+    for (int i = 0; i < accounts1.size(); i++) {
+      when(snapshot1.getAccount(snapshot1.all().get(i).getIdentifier())).thenReturn(accounts1.get(i));
+      when(snapshot2.getAccount(snapshot2.all().get(i).getIdentifier())).thenReturn(accounts2.get(i));
+    }
+
+    for (Account account : snapshot2.all()) {
+      when(state.atBlockId(account.getLastBlockId())).thenReturn(snapshot1);
+    }
+
+    when(state.last()).thenReturn(snapshot2);
+
+    int propInd = random.nextInt(accounts2.size());
+    while (accounts2.get(propInd).getStake() < Parameters.MINIMUM_STAKE) {
+      propInd = random.nextInt(accounts2.size());
+    }
+    Identifiers seenEntities = mock(Identifiers.class);
     // Register the network adapter with the network and create engine.
     when(network.register(any(ValidatorEngine.class), eq(Channels.ProposedTransactions))).thenReturn(txConduit);
     engine = new ValidatorEngine(network, local, state, seenEntities);
@@ -1227,7 +2618,57 @@ setup();
 
   @Test
   public void testReceiveTransactionNotAuthenticated() {
+    Local local = new Local(IdentifierFixture.newIdentifier(), KeyGenFixture.newKeyGen().getPrivateKey());
+    Network network = mock(Network.class);
+    MockConduit txConduit = new MockConduit(Channels.ProposedTransactions, mock(NetworkAdapter.class));
+    when(network.register(any(ValidatorEngine.class), eq(Channels.ProposedTransactions))).thenReturn(txConduit);
 
+    Block genesis = BlockFixture.newBlock();
+    Block block1 = BlockFixture.newBlock(genesis.id(), genesis.getHeight() + 1);
+    Block block2 = BlockFixture.newBlock(block1.id(), block1.getHeight() + 1);
+
+    ArrayList<Account>[] a = AccountFixture.newAccounts(local.myId(), genesis.id(),
+        block1.id(), 10, 10);
+    ArrayList<Account> accounts1 = a[0];
+    ArrayList<Account> accounts2 = a[1];
+
+    /// State and Snapshots
+    State state = mock(State.class);
+    Snapshot genesisSnapshot = mock(Snapshot.class);
+    Snapshot snapshot1 = mock(Snapshot.class);
+    Snapshot snapshot2 = mock(Snapshot.class);
+
+    when(genesisSnapshot.getReferenceBlockId()).thenReturn(genesis.id());
+    when(snapshot1.getReferenceBlockId()).thenReturn(block1.id());
+    when(snapshot2.getReferenceBlockId()).thenReturn(block2.id());
+
+    when(genesisSnapshot.getReferenceBlockHeight()).thenReturn((long) genesis.getHeight());
+    when(snapshot1.getReferenceBlockHeight()).thenReturn((long) block1.getHeight());
+    when(snapshot2.getReferenceBlockHeight()).thenReturn((long) block2.getHeight());
+
+    when(state.atBlockId(genesis.id())).thenReturn(genesisSnapshot);
+    when(state.atBlockId(block1.id())).thenReturn(snapshot1);
+    when(state.atBlockId(block2.id())).thenReturn(snapshot2);
+
+    when(snapshot1.all()).thenReturn(accounts1);
+    when(snapshot2.all()).thenReturn(accounts2);
+
+    for (int i = 0; i < accounts1.size(); i++) {
+      when(snapshot1.getAccount(snapshot1.all().get(i).getIdentifier())).thenReturn(accounts1.get(i));
+      when(snapshot2.getAccount(snapshot2.all().get(i).getIdentifier())).thenReturn(accounts2.get(i));
+    }
+
+    for (Account account : snapshot2.all()) {
+      when(state.atBlockId(account.getLastBlockId())).thenReturn(snapshot1);
+    }
+
+    when(state.last()).thenReturn(snapshot2);
+
+    int propInd = random.nextInt(accounts2.size());
+    while (accounts2.get(propInd).getStake() < Parameters.MINIMUM_STAKE) {
+      propInd = random.nextInt(accounts2.size());
+    }
+    Identifiers seenEntities = mock(Identifiers.class);
     // Register the network adapter with the network and create engine.
     when(network.register(any(ValidatorEngine.class), eq(Channels.ProposedTransactions))).thenReturn(txConduit);
     engine = new ValidatorEngine(network, local, state, seenEntities);
@@ -1256,7 +2697,57 @@ setup();
 
   @Test
   public void testReceiveTransactionNotEnoughBalance() {
+    Local local = new Local(IdentifierFixture.newIdentifier(), KeyGenFixture.newKeyGen().getPrivateKey());
+    Network network = mock(Network.class);
+    MockConduit txConduit = new MockConduit(Channels.ProposedTransactions, mock(NetworkAdapter.class));
+    when(network.register(any(ValidatorEngine.class), eq(Channels.ProposedTransactions))).thenReturn(txConduit);
 
+    Block genesis = BlockFixture.newBlock();
+    Block block1 = BlockFixture.newBlock(genesis.id(), genesis.getHeight() + 1);
+    Block block2 = BlockFixture.newBlock(block1.id(), block1.getHeight() + 1);
+
+    ArrayList<Account>[] a = AccountFixture.newAccounts(local.myId(), genesis.id(),
+        block1.id(), 10, 10);
+    ArrayList<Account> accounts1 = a[0];
+    ArrayList<Account> accounts2 = a[1];
+
+    /// State and Snapshots
+    State state = mock(State.class);
+    Snapshot genesisSnapshot = mock(Snapshot.class);
+    Snapshot snapshot1 = mock(Snapshot.class);
+    Snapshot snapshot2 = mock(Snapshot.class);
+
+    when(genesisSnapshot.getReferenceBlockId()).thenReturn(genesis.id());
+    when(snapshot1.getReferenceBlockId()).thenReturn(block1.id());
+    when(snapshot2.getReferenceBlockId()).thenReturn(block2.id());
+
+    when(genesisSnapshot.getReferenceBlockHeight()).thenReturn((long) genesis.getHeight());
+    when(snapshot1.getReferenceBlockHeight()).thenReturn((long) block1.getHeight());
+    when(snapshot2.getReferenceBlockHeight()).thenReturn((long) block2.getHeight());
+
+    when(state.atBlockId(genesis.id())).thenReturn(genesisSnapshot);
+    when(state.atBlockId(block1.id())).thenReturn(snapshot1);
+    when(state.atBlockId(block2.id())).thenReturn(snapshot2);
+
+    when(snapshot1.all()).thenReturn(accounts1);
+    when(snapshot2.all()).thenReturn(accounts2);
+
+    for (int i = 0; i < accounts1.size(); i++) {
+      when(snapshot1.getAccount(snapshot1.all().get(i).getIdentifier())).thenReturn(accounts1.get(i));
+      when(snapshot2.getAccount(snapshot2.all().get(i).getIdentifier())).thenReturn(accounts2.get(i));
+    }
+
+    for (Account account : snapshot2.all()) {
+      when(state.atBlockId(account.getLastBlockId())).thenReturn(snapshot1);
+    }
+
+    when(state.last()).thenReturn(snapshot2);
+
+    int propInd = random.nextInt(accounts2.size());
+    while (accounts2.get(propInd).getStake() < Parameters.MINIMUM_STAKE) {
+      propInd = random.nextInt(accounts2.size());
+    }
+    Identifiers seenEntities = mock(Identifiers.class);
     // Register the network adapter with the network and create engine.
     when(network.register(any(ValidatorEngine.class), eq(Channels.ProposedTransactions))).thenReturn(txConduit);
     engine = new ValidatorEngine(network, local, state, seenEntities);
@@ -1282,5 +2773,4 @@ setup();
     Assertions.assertFalse(txConduit.hasSent(transaction.id()));
     verify(seenEntities, never()).add(any());
   }
-
 }
