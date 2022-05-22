@@ -1213,7 +1213,6 @@ public class IngestEngineTest {
     }
 
     // verification
-    verify(seenEntities, times(1)).add(tx.id());
     verify(seenEntities, times(2)).has(tx.id());
     verify(transactionIds, times(1)).has(tx.id());
     verify(pendingTransactions, times(1)).add(tx);
@@ -1278,65 +1277,62 @@ public class IngestEngineTest {
     verify(pendingTransactions, times(0)).add(tx);
   }
 
-  // Commented out because ingest engine does not have this functionality
-  // asked Yahya and waiting for his response. Will be added back when he responds.
-  //  /**
-  //   * Evaluates that when a validated transaction which is already in pendingTx arrives at ingest engine,
-  //   * the engine discards the transaction.
-  //   */
-  //  @Test
-  //  public void testValidatedTransactionAlreadyInPendingTx() {
-  //    Blocks blocks = mock(Blocks.class);
-  //    Snapshot snapshot = mock(Snapshot.class);
-  //    ValidatorAssigner assigner = mock(ValidatorAssigner.class);
-  //    Identifiers transactionIds = mock(Identifiers.class);
-  //
-  //    ArrayList<Account> accounts = new ArrayList<>(AccountFixture.newAccounts(10, 10).values());
-  //    for (Account account : accounts) {
-  //      when(snapshot.getAccount(account.getIdentifier())).thenReturn(account);
-  //    }
-  //    ValidatedTransaction tx = ValidatedTransactionFixture.newValidatedTransaction();
-  //    when(snapshot.all()).thenReturn(accounts);
-  //
-  //    Identifiers seenEntities = mock(Identifiers.class);
-  //    when(seenEntities.has(tx.id())).thenReturn(false);
-  //
-  //    State state = mock(State.class);
-  //    when(state.atBlockId(tx.getReferenceBlockId())).thenReturn(snapshot);
-  //
-  //    Transactions pendingTransactions = mock(Transactions.class);
-  //    when(pendingTransactions.has(tx.id())).thenReturn(true);
-  //
-  //    IngestEngine ingestEngine = new IngestEngine(
-  //            state,
-  //            blocks,
-  //            transactionIds,
-  //            pendingTransactions,
-  //            seenEntities,
-  //            assigner);
-  //
-  //    // mocks assignment
-  //    Assignment assignment = mock(Assignment.class);
-  //    when(assigner.assign(tx.id(), snapshot, Parameters.VALIDATOR_THRESHOLD)).thenReturn(assignment);
-  //    when(assignment.has(any(Identifier.class))).thenReturn(true); // returns true for all identifiers
-  //    PublicKey pubKey = mock(PublicKey.class); // mock public key
-  //    Account account = mock(Account.class); // mock account
-  //    when(account.getPublicKey()).thenReturn(pubKey); // returns the mocked public key for all accounts
-  //
-  //    // returns true for all signatures
-  //    when(pubKey.verifySignature(any(Transaction.class), any(Signature.class))).thenReturn(true);
-  //    // returns the mock account for all identifiers
-  //    when(snapshot.getAccount(any(Identifier.class))).thenReturn(account);
-  //
-  //    // action
-  //    ingestEngine.process(tx);
-  //
-  //    // verification
-  //    verify(seenEntities, times(1)).add(tx.id());
-  //    verify(transactionIds, times(1)).has(tx.id());
-  //    verify(pendingTransactions, times(1)).has(tx.id());
-  //    verify(pendingTransactions, times(0)).add(tx);
-  //  }
+    /**
+     * Evaluates that when a validated transaction which is already in pendingTx arrives at ingest engine,
+     * the engine discards the transaction.
+     */
+    @Test
+    public void testValidatedTransactionAlreadyInPendingTx() {
+      Blocks blocks = mock(Blocks.class);
+      Snapshot snapshot = mock(Snapshot.class);
+      ValidatorAssigner assigner = mock(ValidatorAssigner.class);
+      Identifiers transactionIds = mock(Identifiers.class);
+
+      ArrayList<Account> accounts = new ArrayList<>(AccountFixture.newAccounts(10, 10).values());
+      for (Account account : accounts) {
+        when(snapshot.getAccount(account.getIdentifier())).thenReturn(account);
+      }
+      ValidatedTransaction tx = ValidatedTransactionFixture.newValidatedTransaction();
+      when(snapshot.all()).thenReturn(accounts);
+
+      Identifiers seenEntities = mock(Identifiers.class);
+      when(seenEntities.has(tx.id())).thenReturn(false);
+
+      State state = mock(State.class);
+      when(state.atBlockId(tx.getReferenceBlockId())).thenReturn(snapshot);
+
+      Transactions pendingTransactions = mock(Transactions.class);
+      when(pendingTransactions.has(tx.id())).thenReturn(true);
+
+      IngestEngine ingestEngine = new IngestEngine(
+              state,
+              blocks,
+              transactionIds,
+              pendingTransactions,
+              seenEntities,
+              assigner);
+
+      // mocks assignment
+      Assignment assignment = mock(Assignment.class);
+      when(assigner.assign(tx.id(), snapshot, Parameters.VALIDATOR_THRESHOLD)).thenReturn(assignment);
+      when(assignment.has(any(Identifier.class))).thenReturn(true); // returns true for all identifiers
+      PublicKey pubKey = mock(PublicKey.class); // mock public key
+      Account account = mock(Account.class); // mock account
+      when(account.getPublicKey()).thenReturn(pubKey); // returns the mocked public key for all accounts
+
+      // returns true for all signatures
+      when(pubKey.verifySignature(any(Transaction.class), any(Signature.class))).thenReturn(true);
+      // returns the mock account for all identifiers
+      when(snapshot.getAccount(any(Identifier.class))).thenReturn(account);
+
+      // action
+      ingestEngine.process(tx);
+
+      // verification
+      verify(seenEntities, times(1)).add(tx.id());
+      verify(pendingTransactions, times(1)).has(tx.id());
+      verify(pendingTransactions, times(0)).add(tx);
+    }
 
   /**
    * Evaluates that when an entity that is neither a validated block nor a validated transaction
@@ -1564,7 +1560,6 @@ public class IngestEngineTest {
     verify(blocks, times(1)).add(block);
     verify(seenEntities, times(1)).add(block.id());
     for (Transaction tx : block.getTransactions()) {
-      verify(pendingTransactions, times(1)).has(tx.id());
       verify(transactionIds, times(1)).add(tx.id());
     }
 
@@ -1572,7 +1567,6 @@ public class IngestEngineTest {
     verify(seenEntities, times(1)).add(validatedTx.id());
     verify(transactionIds, times(1)).has(validatedTx.id());
     verify(transactionIds, times(1)).add(validatedTx.id());
-    verify(pendingTransactions, times(1)).has(validatedTx.id());
 
     Assertions.assertEquals(0, threadError.get());
   }

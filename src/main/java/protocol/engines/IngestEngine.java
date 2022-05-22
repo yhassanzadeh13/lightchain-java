@@ -135,7 +135,7 @@ public class IngestEngine implements Engine {
           }
         }
 
-        if (signatures >= Parameters.SIGNATURE_THRESHOLD) {
+        if (signatures >= Parameters.SIGNATURE_THRESHOLD && !pendingTransactions.has(tx.id())) {
           if (!transactionIds.has(tx.id())) {
             pendingTransactions.add(tx);
           }
