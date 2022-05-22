@@ -10,6 +10,10 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
+import io.prometheus.client.Counter;
+import metrics.collectors.LightChainCollector;
+import metrics.collectors.MetricServer;
+import metrics.integration.MetricsTestNet;
 import model.Entity;
 import model.crypto.PrivateKey;
 import model.crypto.Signature;
@@ -23,8 +27,12 @@ import network.Channels;
 import network.Network;
 import network.NetworkAdapter;
 import networking.MockConduit;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
 import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
@@ -86,11 +94,61 @@ public class ValidatorEngineTest {
   private ArrayList<Account> accounts2;
   private ArrayList<Account> accountsNoCurrent;
 
+
+  static LightChainCollector collector;
+  static Counter incomingBlockCount;
+  static Counter incomingTransactionCount;
+  static Counter validBlocks;
+  static Counter validTransactions;
+
+  @BeforeClass
+  public static void set() {
+
+      try {
+        MetricServer server = new MetricServer();
+        server.start();
+      } catch (IllegalStateException ex) {
+        throw new IllegalStateException("could not start the Metric Server", ex);
+      }
+
+    try {
+      collector = new LightChainCollector();
+      // possibly change the namespace and subsystem values
+      incomingBlockCount = collector.counter().register("incoming_block_count",
+              "consensus", "ValidatorEngine", "Number of blocks received");
+      incomingTransactionCount = collector.counter().register("incoming_transaction_count",
+              "consensus", "ValidatorEngine", "Number of transactions received");
+      validBlocks = collector.counter().register("valid_block_count",
+              "consensus", "ValidatorEngine", "Number of blocks that passed validation");
+      validTransactions = collector.counter().register("valid_transaction_count",
+              "consensus", "ValidatorEngine", "Number of transactions that passed validation");
+
+    } catch (IllegalArgumentException ex) {
+      throw new IllegalStateException("could not initialize the metrics with the provided arguments", ex);
+    }
+
+  }
+
+  @AfterClass
+  public static void tearDown() {
+
+    try {
+      MetricsTestNet testNet = new MetricsTestNet();
+      testNet.runMetricsTestNet();
+    } catch (IllegalStateException e) {
+      System.err.println("could not run metrics testnet" + e);
+      System.exit(1);
+    }
+
+    while(true);
+  }
+
   /**
    * Initialize the test. TODO: fix this.
    */
   @BeforeEach
   public void setup() {
+
     // Arrange
     /// Local node
     localId = IdentifierFixture.newIdentifier();
@@ -157,7 +215,8 @@ public class ValidatorEngineTest {
     Identifier proposer = accounts2.get(propInd).getIdentifier();
     Block block = BlockFixture.newBlock(proposer, block2.id(), block2.getHeight() + 1, snapshot2.all());
     when(network.register(any(ValidatorEngine.class), eq(Channels.ProposedBlocks))).thenReturn(blockConduit);
-    engine = new ValidatorEngine(network, local, state, seenEntities);
+    engine = new ValidatorEngine(network, local, state, seenEntities, incomingBlockCount,
+            incomingTransactionCount, validBlocks, validTransactions);
 
     for (Transaction transaction : block.getTransactions()) {
       when(state.atBlockId(transaction.getReferenceBlockId())
@@ -200,7 +259,8 @@ public class ValidatorEngineTest {
     blocks[1] = BlockFixture.newBlock(proposer, block2.id(), block2.getHeight() + 1, snapshot2.all());
 
     when(network.register(any(ValidatorEngine.class), eq(Channels.ProposedBlocks))).thenReturn(blockConduit);
-    engine = new ValidatorEngine(network, local, state, seenEntities);
+    engine = new ValidatorEngine(network, local, state, seenEntities,incomingBlockCount,
+            incomingTransactionCount, validBlocks, validTransactions);
     for (int i = 0; i < 2; i++) {
       when(state.atBlockId(blocks[i].getPreviousBlockId())
               .getAccount(blocks[i].getProposer())
@@ -235,7 +295,8 @@ public class ValidatorEngineTest {
     blocks[1] = BlockFixture.newBlock(proposer, block2.id(), block2.getHeight() + 1, snapshot2.all());
 
     when(network.register(any(ValidatorEngine.class), eq(Channels.ProposedBlocks))).thenReturn(blockConduit);
-    engine = new ValidatorEngine(network, local, state, seenEntities);
+    engine = new ValidatorEngine(network, local, state, seenEntities, incomingBlockCount,
+            incomingTransactionCount, validBlocks, validTransactions);
 
     for (int i = 0; i < 2; i++) {
       when(state.atBlockId(blocks[i].getPreviousBlockId())
@@ -297,7 +358,8 @@ public class ValidatorEngineTest {
     Identifier proposer = accounts2.get(propInd).getIdentifier();
 
     when(network.register(any(ValidatorEngine.class), eq(Channels.ProposedBlocks))).thenReturn(blockConduit);
-    engine = new ValidatorEngine(network, local, state, seenEntities);
+    engine = new ValidatorEngine(network, local, state, seenEntities, incomingBlockCount,
+            incomingTransactionCount, validBlocks, validTransactions);
 
     Block[] blocks = new Block[2];
     Block b = BlockFixture.newBlock(proposer, block2.id(), block2.getHeight() + 1, snapshot2.all());
@@ -347,7 +409,8 @@ public class ValidatorEngineTest {
     }
     Identifier proposer = accounts2.get(propInd).getIdentifier();
     when(network.register(any(ValidatorEngine.class), eq(Channels.ProposedBlocks))).thenReturn(blockConduit);
-    engine = new ValidatorEngine(network, local, state, seenEntities);
+    engine = new ValidatorEngine(network, local, state, seenEntities, incomingBlockCount,
+            incomingTransactionCount, validBlocks, validTransactions);
 
     Block[] blocks = new Block[2];
     Block b = BlockFixture.newBlock(proposer, block2.id(), block2.getHeight() + 1, snapshot2.all());
@@ -428,7 +491,8 @@ public class ValidatorEngineTest {
     when(snapshot2.all()).thenReturn(accountsNoCurrent);
     when(network.register(any(ValidatorEngine.class), eq(Channels.ProposedTransactions))).thenReturn(txConduit);
     when(network.register(any(ValidatorEngine.class), eq(Channels.ProposedBlocks))).thenReturn(blockConduit);
-    engine = new ValidatorEngine(network, local, state, seenEntities);
+    engine = new ValidatorEngine(network, local, state, seenEntities, incomingBlockCount,
+            incomingTransactionCount, validBlocks, validTransactions);
     Identifier proposer = accounts2.get(propInd).getIdentifier();
     Block b = BlockFixture.newBlock(proposer, block2.id(), block2.getHeight() + 1, snapshot2.all());
 
@@ -507,7 +571,8 @@ public class ValidatorEngineTest {
     when(snapshot2.all()).thenReturn(accountsNoCurrent);
     when(network.register(any(ValidatorEngine.class), eq(Channels.ProposedTransactions))).thenReturn(txConduit);
     when(network.register(any(ValidatorEngine.class), eq(Channels.ProposedBlocks))).thenReturn(blockConduit);
-    engine = new ValidatorEngine(network, local, state, seenEntities);
+    engine = new ValidatorEngine(network, local, state, seenEntities, incomingBlockCount,
+            incomingTransactionCount, validBlocks, validTransactions);
     Identifier proposer = accounts2.get(propInd).getIdentifier();
     Block b = BlockFixture.newBlock(proposer, block2.id(), block2.getHeight() + 1, snapshot2.all());
 
@@ -558,7 +623,8 @@ public class ValidatorEngineTest {
     }
     Block block = BlockFixture.newBlock(proposer, newPreviousBlockId, block2.getHeight() + 1, snapshot2.all());
     when(network.register(any(ValidatorEngine.class), eq(Channels.ProposedBlocks))).thenReturn(blockConduit);
-    engine = new ValidatorEngine(network, local, state, seenEntities);
+    engine = new ValidatorEngine(network, local, state, seenEntities, incomingBlockCount,
+            incomingTransactionCount, validBlocks, validTransactions);
 
     try {
       engine.process(block);
@@ -579,7 +645,8 @@ public class ValidatorEngineTest {
     Block block = BlockFixture.newBlock(invalidProposer, block2.id(), block2.getHeight() + 1, snapshot2.all());
 
     when(network.register(any(ValidatorEngine.class), eq(Channels.ProposedBlocks))).thenReturn(blockConduit);
-    engine = new ValidatorEngine(network, local, state, seenEntities);
+    engine = new ValidatorEngine(network, local, state, seenEntities, incomingBlockCount,
+            incomingTransactionCount, validBlocks, validTransactions);
 
     try {
       engine.process(block);
@@ -599,7 +666,8 @@ public class ValidatorEngineTest {
     Block block = BlockFixture.newBlock(Parameters.MIN_TRANSACTIONS_NUM - 1);
 
     when(network.register(any(ValidatorEngine.class), eq(Channels.ProposedBlocks))).thenReturn(blockConduit);
-    engine = new ValidatorEngine(network, local, state, seenEntities);
+    engine = new ValidatorEngine(network, local, state, seenEntities, incomingBlockCount,
+            incomingTransactionCount, validBlocks, validTransactions);
     when(state.atBlockId(block.getPreviousBlockId())
             .getAccount(block.getProposer())
             .getPublicKey()
@@ -622,7 +690,8 @@ public class ValidatorEngineTest {
     Block block = BlockFixture.newBlock(Parameters.MAX_TRANSACTIONS_NUM + 1);
 
     when(network.register(any(ValidatorEngine.class), eq(Channels.ProposedBlocks))).thenReturn(blockConduit);
-    engine = new ValidatorEngine(network, local, state, seenEntities);
+    engine = new ValidatorEngine(network, local, state, seenEntities, incomingBlockCount,
+            incomingTransactionCount, validBlocks, validTransactions);
     when(state.atBlockId(block.getPreviousBlockId())
             .getAccount(block.getProposer())
             .getPublicKey()
@@ -648,7 +717,8 @@ public class ValidatorEngineTest {
     Identifier proposer = accounts2.get(propInd).getIdentifier();
     Block block = BlockFixture.newBlock(proposer, block1.id(), block2.getHeight() + 1, snapshot2.all());
     when(network.register(any(ValidatorEngine.class), eq(Channels.ProposedBlocks))).thenReturn(blockConduit);
-    engine = new ValidatorEngine(network, local, state, seenEntities);
+    engine = new ValidatorEngine(network, local, state, seenEntities, incomingBlockCount,
+            incomingTransactionCount, validBlocks, validTransactions);
 
     when(state.atBlockId(block.getPreviousBlockId())
             .getAccount(block.getProposer())
@@ -674,7 +744,8 @@ public class ValidatorEngineTest {
     Identifier proposer = accounts2.get(propInd).getIdentifier();
     Block block = BlockFixture.newBlock(proposer, block2.id(), block2.getHeight() + 1, snapshot2.all());
     when(network.register(any(ValidatorEngine.class), eq(Channels.ProposedBlocks))).thenReturn(blockConduit);
-    engine = new ValidatorEngine(network, local, state, seenEntities);
+    engine = new ValidatorEngine(network, local, state, seenEntities, incomingBlockCount,
+            incomingTransactionCount, validBlocks, validTransactions);
 
     when(state.atBlockId(block.getPreviousBlockId())
             .getAccount(block.getProposer())
@@ -701,7 +772,8 @@ public class ValidatorEngineTest {
     Identifier proposer = accounts2.get(propInd).getIdentifier();
     Block block = BlockFixture.newBlock(proposer, block2.id(), block2.getHeight() + 1, snapshot2.all());
     when(network.register(any(ValidatorEngine.class), eq(Channels.ProposedBlocks))).thenReturn(blockConduit);
-    engine = new ValidatorEngine(network, local, state, seenEntities);
+    engine = new ValidatorEngine(network, local, state, seenEntities, incomingBlockCount,
+            incomingTransactionCount, validBlocks, validTransactions);
 
     when(state.atBlockId(block.getPreviousBlockId())
             .getAccount(block.getProposer())
@@ -728,7 +800,8 @@ public class ValidatorEngineTest {
     Identifier proposer = accounts2.get(propInd).getIdentifier();
     Block block = BlockFixture.newBlock(proposer, block2.id(), block2.getHeight() + 1, snapshot2.all());
     when(network.register(any(ValidatorEngine.class), eq(Channels.ProposedBlocks))).thenReturn(blockConduit);
-    engine = new ValidatorEngine(network, local, state, seenEntities);
+    engine = new ValidatorEngine(network, local, state, seenEntities, incomingBlockCount,
+            incomingTransactionCount, validBlocks, validTransactions);
 
     for (Transaction transaction : block.getTransactions()) {
       when(state.atBlockId(transaction.getReferenceBlockId())
@@ -765,7 +838,8 @@ public class ValidatorEngineTest {
     setup();
     // Register the network adapter with the network and create engine.
     when(network.register(any(ValidatorEngine.class), eq(Channels.ProposedTransactions))).thenReturn(txConduit);
-    engine = new ValidatorEngine(network, local, state, seenEntities);
+    engine = new ValidatorEngine(network, local, state, seenEntities, incomingBlockCount,
+            incomingTransactionCount, validBlocks, validTransactions);
 
     Identifier signerId = snapshot2.all().get(random.nextInt(accounts2.size())).getIdentifier();
     Transaction transaction = TransactionFixture.newTransaction(
@@ -802,7 +876,8 @@ public class ValidatorEngineTest {
 
     // Register the network adapter with the network and create engine.
     when(network.register(any(ValidatorEngine.class), eq(Channels.ProposedTransactions))).thenReturn(txConduit);
-    engine = new ValidatorEngine(network, local, state, seenEntities);
+    engine = new ValidatorEngine(network, local, state, seenEntities, incomingBlockCount,
+            incomingTransactionCount, validBlocks, validTransactions);
 
     Identifier signerId = snapshot2.all().get(random.nextInt(accounts2.size())).getIdentifier();
     ArrayList<Transaction> transactions = new ArrayList<>();
@@ -839,7 +914,8 @@ public class ValidatorEngineTest {
 
     // Register the network adapter with the network and create engine.
     when(network.register(any(ValidatorEngine.class), eq(Channels.ProposedTransactions))).thenReturn(txConduit);
-    engine = new ValidatorEngine(network, local, state, seenEntities);
+    engine = new ValidatorEngine(network, local, state, seenEntities, incomingBlockCount,
+            incomingTransactionCount, validBlocks, validTransactions);
 
     Identifier signerId = snapshot2.all().get(random.nextInt(accounts2.size())).getIdentifier();
     ArrayList<Transaction> transactions = new ArrayList<>();
@@ -904,7 +980,8 @@ public class ValidatorEngineTest {
 
     // Register the network adapter with the network and create engine.
     when(network.register(any(ValidatorEngine.class), eq(Channels.ProposedTransactions))).thenReturn(txConduit);
-    engine = new ValidatorEngine(network, local, state, seenEntities);
+    engine = new ValidatorEngine(network, local, state, seenEntities, incomingBlockCount,
+            incomingTransactionCount, validBlocks, validTransactions);
 
     Identifier signerId = snapshot2.all().get(random.nextInt(accounts2.size())).getIdentifier();
     ArrayList<Transaction> transactions = new ArrayList<>();
@@ -957,7 +1034,8 @@ public class ValidatorEngineTest {
 
     // Register the network adapter with the network and create engine.
     when(network.register(any(ValidatorEngine.class), eq(Channels.ProposedTransactions))).thenReturn(txConduit);
-    engine = new ValidatorEngine(network, local, state, seenEntities);
+    engine = new ValidatorEngine(network, local, state, seenEntities, incomingBlockCount,
+            incomingTransactionCount, validBlocks, validTransactions);
 
     Identifier signerId = snapshot2.all().get(random.nextInt(accounts2.size())).getIdentifier();
     ArrayList<Transaction> transactions = new ArrayList<>();
@@ -1037,8 +1115,8 @@ public class ValidatorEngineTest {
 
     // Register the network adapter with the network and create engine.
     when(network.register(any(ValidatorEngine.class), eq(Channels.ProposedTransactions))).thenReturn(txConduit);
-    engine = new ValidatorEngine(network, local, state, seenEntities);
-
+    engine = new ValidatorEngine(network, local, state, seenEntities, incomingBlockCount,
+            incomingTransactionCount, validBlocks, validTransactions);
     // An entity which is neither block nor transaction.
     Entity ent = new EntityFixture();
     try {
@@ -1057,7 +1135,8 @@ public class ValidatorEngineTest {
 
     // Register the network adapter with the network and create engine.
     when(network.register(any(ValidatorEngine.class), eq(Channels.ProposedBlocks))).thenReturn(blockConduit);
-    engine = new ValidatorEngine(network, local, state, seenEntities);
+    engine = new ValidatorEngine(network, local, state, seenEntities, incomingBlockCount,
+            incomingTransactionCount, validBlocks, validTransactions);
 
     // An entity which is neither block nor transaction.
     Signature signature = SignatureFixture.newSignatureFixture();
@@ -1077,7 +1156,8 @@ public class ValidatorEngineTest {
 
     // Register the network adapter with the network and create engine.
     when(network.register(any(ValidatorEngine.class), eq(Channels.ProposedTransactions))).thenReturn(txConduit);
-    engine = new ValidatorEngine(network, local, state, seenEntities);
+    engine = new ValidatorEngine(network, local, state, seenEntities, incomingBlockCount,
+            incomingTransactionCount, validBlocks, validTransactions);
 
     Identifier signerId = snapshot2.all().get(random.nextInt(accounts1.size())).getIdentifier();
     ArrayList<Transaction> transactions = new ArrayList<>();
@@ -1130,7 +1210,8 @@ public class ValidatorEngineTest {
 
     // Register the network adapter with the network and create engine.
     when(network.register(any(ValidatorEngine.class), eq(Channels.ProposedTransactions))).thenReturn(txConduit);
-    engine = new ValidatorEngine(network, local, state, seenEntities);
+    engine = new ValidatorEngine(network, local, state, seenEntities, incomingBlockCount,
+            incomingTransactionCount, validBlocks, validTransactions);
 
     Identifier invalidSender = IdentifierFixture.newIdentifier();
     while (accounts2.contains(invalidSender)) {
@@ -1160,7 +1241,8 @@ public class ValidatorEngineTest {
 
     // Register the network adapter with the network and create engine.
     when(network.register(any(ValidatorEngine.class), eq(Channels.ProposedTransactions))).thenReturn(txConduit);
-    engine = new ValidatorEngine(network, local, state, seenEntities);
+    engine = new ValidatorEngine(network, local, state, seenEntities, incomingBlockCount,
+            incomingTransactionCount, validBlocks, validTransactions);
 
     Identifier invalidReceiver = IdentifierFixture.newIdentifier();
     while (accounts2.contains(invalidReceiver)) {
@@ -1191,7 +1273,8 @@ public class ValidatorEngineTest {
 
     // Register the network adapter with the network and create engine.
     when(network.register(any(ValidatorEngine.class), eq(Channels.ProposedTransactions))).thenReturn(txConduit);
-    engine = new ValidatorEngine(network, local, state, seenEntities);
+    engine = new ValidatorEngine(network, local, state, seenEntities, incomingBlockCount,
+            incomingTransactionCount, validBlocks, validTransactions);
 
     Identifier signerId = snapshot2.all().get(random.nextInt(accounts2.size())).getIdentifier();
     Transaction transaction = TransactionFixture.newTransaction(
@@ -1222,7 +1305,8 @@ public class ValidatorEngineTest {
 
     // Register the network adapter with the network and create engine.
     when(network.register(any(ValidatorEngine.class), eq(Channels.ProposedTransactions))).thenReturn(txConduit);
-    engine = new ValidatorEngine(network, local, state, seenEntities);
+    engine = new ValidatorEngine(network, local, state, seenEntities, incomingBlockCount,
+            incomingTransactionCount, validBlocks, validTransactions);
 
     Identifier signerId = snapshot2.all().get(random.nextInt(accounts2.size())).getIdentifier();
     Transaction transaction = TransactionFixture.newTransaction(
@@ -1256,7 +1340,8 @@ public class ValidatorEngineTest {
 
     // Register the network adapter with the network and create engine.
     when(network.register(any(ValidatorEngine.class), eq(Channels.ProposedTransactions))).thenReturn(txConduit);
-    engine = new ValidatorEngine(network, local, state, seenEntities);
+    engine = new ValidatorEngine(network, local, state, seenEntities, incomingBlockCount,
+            incomingTransactionCount, validBlocks, validTransactions);
 
     Identifier signerId = snapshot2.all().get(random.nextInt(accounts2.size())).getIdentifier();
     Transaction transaction = TransactionFixture.newTransaction(
@@ -1287,7 +1372,8 @@ public class ValidatorEngineTest {
 
     // Register the network adapter with the network and create engine.
     when(network.register(any(ValidatorEngine.class), eq(Channels.ProposedTransactions))).thenReturn(txConduit);
-    engine = new ValidatorEngine(network, local, state, seenEntities);
+    engine = new ValidatorEngine(network, local, state, seenEntities, incomingBlockCount,
+            incomingTransactionCount, validBlocks, validTransactions);
 
     Identifier signerId = snapshot2.all().get(random.nextInt(accounts2.size())).getIdentifier();
     Transaction transaction = TransactionFixture.newTransaction(

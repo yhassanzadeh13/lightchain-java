@@ -2,6 +2,8 @@ package protocol.engines;
 
 import java.util.concurrent.locks.ReentrantLock;
 
+import metrics.collectors.LightChainCollector;
+import metrics.collectors.MetricServer;
 import model.Entity;
 import model.codec.EntityType;
 import model.crypto.Signature;
@@ -22,6 +24,8 @@ import protocol.transaction.TransactionValidator;
 import state.State;
 import storage.Identifiers;
 
+import io.prometheus.client.Counter;
+
 /**
  * ValidatorEngine is a standalone engine of LightChain that runs transaction and block validation.
  */
@@ -32,6 +36,10 @@ public class ValidatorEngine implements Engine {
   private final Conduit transCon;
   private final State state;
   private final ReentrantLock lock;
+  Counter incomingBlockCount;
+  Counter incomingTransactionCount;
+  Counter validBlocks;
+  Counter validTransactions;
 
   /**
    * Constructor for ValidatorEngine.
@@ -41,13 +49,23 @@ public class ValidatorEngine implements Engine {
    * @param state        the state
    * @param seenEntities the seen entities
    */
-  public ValidatorEngine(Network net, Local local, State state, Identifiers seenEntities) {
+  public ValidatorEngine(Network net, Local local, State state, Identifiers seenEntities,
+                         Counter incomingBlockCount, Counter incomingTransactionCount ,
+                         Counter validBlocks, Counter validTransactions) {
     this.local = local;
     this.blockCon = net.register(this, Channels.ProposedBlocks);
     this.transCon = net.register(this, Channels.ProposedTransactions);
     this.state = state;
     this.seenEntities = seenEntities;
     this.lock = new ReentrantLock();
+
+    // Metrics Initiation
+
+    this.incomingBlockCount = incomingBlockCount;
+    this.incomingTransactionCount = incomingTransactionCount;
+    this.validBlocks = validBlocks;
+    this.validTransactions = validTransactions;
+
   }
 
 
@@ -81,6 +99,9 @@ public class ValidatorEngine implements Engine {
       Identifier currentNode = this.local.myId();
 
       if (e.type().equals(EntityType.TYPE_BLOCK)) {
+
+        incomingBlockCount.inc(1);
+
         Block block = ((Block) e);
         Assignment assignment;
         try {
@@ -107,6 +128,8 @@ public class ValidatorEngine implements Engine {
         }
 
       } else if (e.type().equals(EntityType.TYPE_TRANSACTION)) {
+
+        incomingTransactionCount.inc(1);
 
         Transaction tx = ((Transaction) e);
         Assignment assignment;
@@ -159,6 +182,17 @@ public class ValidatorEngine implements Engine {
     System.out.println("correct " + verifier.isCorrect(b));
     System.out.println("dup " + verifier.noDuplicateSender(b));
     System.out.println("stake " + verifier.proposerHasEnoughStake(b));
+
+    if(verifier.allTransactionsSound(b)
+            && verifier.allTransactionsValidated(b)
+            && verifier.isAuthenticated(b)
+            && verifier.isConsistent(b)
+            && verifier.isCorrect(b)
+            && verifier.noDuplicateSender(b)
+            && verifier.proposerHasEnoughStake(b)) {
+      validBlocks.inc(1);
+    }
+
     return verifier.allTransactionsSound(b)
             && verifier.allTransactionsValidated(b)
             && verifier.isAuthenticated(b)
@@ -183,6 +217,14 @@ public class ValidatorEngine implements Engine {
     System.out.println("sound trans " + verifier.isSound(t));
     System.out.println("auth trans " + verifier.isAuthenticated(t));
     System.out.println("bal trans " + verifier.senderHasEnoughBalance(t));
+
+    if(verifier.isCorrect(t)
+            && verifier.isSound(t)
+            && verifier.isAuthenticated(t)
+            && verifier.senderHasEnoughBalance(t)) {
+      validTransactions.inc(1);
+    }
+
     return verifier.isCorrect(t)
             && verifier.isSound(t)
             && verifier.isAuthenticated(t)

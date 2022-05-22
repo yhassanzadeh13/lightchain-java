@@ -148,7 +148,7 @@ public class MetricsTestNet {
       this.dockerClient.pullImageCmd(GRAFANA_IMAGE)
           .withTag(MAIN_TAG)
           .exec(new PullImageResultCallback())
-          .awaitCompletion(60, TimeUnit.SECONDS);
+          .awaitCompletion(240, TimeUnit.SECONDS);
     } catch (InterruptedException ex) {
       throw new IllegalStateException("could not run grafana container" + ex);
     }

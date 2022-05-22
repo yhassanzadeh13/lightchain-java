@@ -2,6 +2,7 @@ package protocol.engines;
 
 import java.util.concurrent.locks.ReentrantLock;
 
+import io.prometheus.client.Counter;
 import model.Entity;
 import model.codec.EntityType;
 import model.crypto.Signature;
@@ -27,6 +28,10 @@ public class IngestEngine implements Engine {
   private final ReentrantLock lock = new ReentrantLock();
   private final Assignment assignment;
 
+  Counter pendingTransactionAdditions;
+  Counter validBlocks;
+  Counter validTransactions;
+
   /**
    * Constructor of a IngestEngine.
    */
@@ -35,13 +40,21 @@ public class IngestEngine implements Engine {
                       Identifiers transactionIds,
                       Transactions pendingTransactions,
                       Identifiers seenEntities,
-                      Assignment assignment) {
+                      Assignment assignment,
+                      Counter pendingTransactionAdditions,
+                      Counter validBlocks,
+                      Counter validTransactions) {
     this.state = state;
     this.blocks = blocks;
     this.transactionIds = transactionIds;
     this.pendingTransactions = pendingTransactions;
     this.seenEntities = seenEntities;
     this.assignment = assignment;
+
+    this.pendingTransactionAdditions=pendingTransactionAdditions;
+    this.validBlocks=validBlocks;
+    this.validTransactions=validTransactions;
+
   }
 
   /**
@@ -81,6 +94,9 @@ public class IngestEngine implements Engine {
 
       LightChainValidatorAssigner assigner = new LightChainValidatorAssigner();
       if (e.type().equals(EntityType.TYPE_VALIDATED_BLOCK)) {
+
+        validBlocks.inc(1);
+
         Block block = ((Block) e); // skims off the non-block attributes (e.g., certificates).
         Signature[] certificates = ((ValidatedBlock) e).getCertificates();
         /* Commented out for testing (to be able to give it mock)
@@ -113,6 +129,9 @@ public class IngestEngine implements Engine {
         }
 
       } else if (e.type().equals(EntityType.TYPE_VALIDATED_TRANSACTION)) {
+
+        validTransactions.inc(1);
+
         Transaction tx = ((Transaction) e); // skims off the non-transaction attributes (e.g., certificates).
         Signature[] certificates = ((ValidatedTransaction) e).getCertificates();
         /* Commented out for testing (to be able to give it mock)
@@ -136,6 +155,9 @@ public class IngestEngine implements Engine {
 
         if (signatures >= Parameters.SIGNATURE_THRESHOLD && !pendingTransactions.has(tx.id())) {
           if (!transactionIds.has(tx.id())) {
+
+            pendingTransactionAdditions.inc(1);
+
             pendingTransactions.add(tx);
           }
         }
