@@ -41,10 +41,14 @@ public class Identifiers {
     return this.identifiers.size();
   }
 
+  public ArrayList<Identifier> getAll() {
+    return this.identifiers;
+  }
+
   @Override
   public String toString() {
     return "Identifiers{"
-        + "identifiers=" + identifiers
-        + '}';
+            + "identifiers=" + identifiers
+            + '}';
   }
 }

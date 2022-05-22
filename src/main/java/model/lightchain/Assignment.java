@@ -1,5 +1,7 @@
 package model.lightchain;
 
+import java.util.ArrayList;
+
 /**
  * Represents list of assigned validators to a given entity.
  */
@@ -25,6 +27,16 @@ public class Assignment {
     this.validators.add(validator);
   }
 
+  /**
+   * Checks whether an identifier is included in this assignment.
+   *
+   * @param id identifier to check.
+   * @return true if identifier is in assignment
+   */
+  public boolean has(Identifier id) {
+    return this.validators.has(id);
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) {
@@ -45,6 +57,10 @@ public class Assignment {
 
   public int size() {
     return this.validators.size();
+  }
+
+  public ArrayList<Identifier> getAll() {
+    return this.validators.getAll();
   }
 
   @Override

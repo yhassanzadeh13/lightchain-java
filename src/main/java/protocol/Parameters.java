@@ -15,7 +15,7 @@ public class Parameters {
   /**
    * Maximum number of validators a node can seek for a block or transaction.
    */
-  public static final int VALIDATOR_THRESHOLD = 10;
+  public static final short VALIDATOR_THRESHOLD = 10;
   /**
    * Maximum number of validators' signature a block or transaction must have to be considered as validated.
    */
