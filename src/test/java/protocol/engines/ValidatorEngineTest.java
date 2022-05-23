@@ -123,7 +123,7 @@ public class ValidatorEngineTest {
     /// Accounts
     /// Create accounts for the snapshot including an account with the local id.
     ArrayList<Account>[] a = AccountFixture.newAccounts(localId, block1.id(),
-        block2.id(), 10, 10);
+            block2.id(), 10, 10);
     accounts1 = a[0];
     accounts2 = a[1];
     accountsNoCurrent = a[2];
@@ -149,7 +149,7 @@ public class ValidatorEngineTest {
 
   @Test
   public void testReceiveOneValidBlock() throws LightChainDistributedStorageException {
-setup();
+    setup();
     Identifier proposer = accounts2.get(propInd).getIdentifier();
     Block block = BlockFixture.newBlock(proposer, block2.id(), block2.getHeight() + 1, snapshot2.all());
     when(network.register(any(ValidatorEngine.class), eq(Channels.ProposedBlocks))).thenReturn(blockConduit);
@@ -157,14 +157,14 @@ setup();
 
     for (Transaction transaction : block.getTransactions()) {
       when(state.atBlockId(transaction.getReferenceBlockId())
-          .getAccount(transaction.getSender())
-          .getPublicKey().verifySignature(transaction, transaction.getSignature()))
-          .thenReturn(true);
+              .getAccount(transaction.getSender())
+              .getPublicKey().verifySignature(transaction, transaction.getSignature()))
+              .thenReturn(true);
     }
     when(state.atBlockId(block.getPreviousBlockId())
-        .getAccount(block.getProposer())
-        .getPublicKey()
-        .verifySignature(block, block.getSignature())).thenReturn(true);
+            .getAccount(block.getProposer())
+            .getPublicKey()
+            .verifySignature(block, block.getSignature())).thenReturn(true);
 
     try {
       engine.process(block);
@@ -193,9 +193,9 @@ setup();
     engine = new ValidatorEngine(network, local, state, seenEntities);
     for (int i = 0; i < 2; i++) {
       when(state.atBlockId(blocks[i].getPreviousBlockId())
-          .getAccount(blocks[i].getProposer())
-          .getPublicKey()
-          .verifySignature(blocks[i], blocks[i].getSignature())).thenReturn(true);
+              .getAccount(blocks[i].getProposer())
+              .getPublicKey()
+              .verifySignature(blocks[i], blocks[i].getSignature())).thenReturn(true);
       try {
         engine.process(blocks[i]);
       } catch (IllegalArgumentException ex) {
@@ -225,9 +225,9 @@ setup();
 
     for (int i = 0; i < 2; i++) {
       when(state.atBlockId(blocks[i].getPreviousBlockId())
-          .getAccount(blocks[i].getProposer())
-          .getPublicKey()
-          .verifySignature(blocks[i], blocks[i].getSignature())).thenReturn(true);
+              .getAccount(blocks[i].getProposer())
+              .getPublicKey()
+              .verifySignature(blocks[i], blocks[i].getSignature())).thenReturn(true);
     }
 
     // Act
@@ -285,9 +285,9 @@ setup();
     blocks[0] = b;
     blocks[1] = b;
     when(state.atBlockId(blocks[0].getPreviousBlockId())
-        .getAccount(blocks[0].getProposer())
-        .getPublicKey()
-        .verifySignature(blocks[0], blocks[0].getSignature())).thenReturn(true);
+            .getAccount(blocks[0].getProposer())
+            .getPublicKey()
+            .verifySignature(blocks[0], blocks[0].getSignature())).thenReturn(true);
 
     final boolean[] called = {false};
     when(seenEntities.add(blocks[0].id())).thenAnswer(new Answer() {
@@ -330,9 +330,9 @@ setup();
     blocks[0] = b;
     blocks[1] = b;
     when(state.atBlockId(blocks[0].getPreviousBlockId())
-        .getAccount(blocks[0].getProposer())
-        .getPublicKey()
-        .verifySignature(blocks[0], blocks[0].getSignature())).thenReturn(true);
+            .getAccount(blocks[0].getProposer())
+            .getPublicKey()
+            .verifySignature(blocks[0], blocks[0].getSignature())).thenReturn(true);
 
     final boolean[] called = {false};
     when(seenEntities.add(blocks[0].id())).thenAnswer(new Answer() {
@@ -394,8 +394,6 @@ setup();
 
   @Test
   public void testReceiveEntityNotAssignedToThisNodeConcurrently() {
-
-
     when(snapshot2.all()).thenReturn(accountsNoCurrent);
     when(network.register(any(ValidatorEngine.class), eq(Channels.ProposedTransactions))).thenReturn(txConduit);
     when(network.register(any(ValidatorEngine.class), eq(Channels.ProposedBlocks))).thenReturn(blockConduit);
@@ -404,18 +402,18 @@ setup();
     Block b = BlockFixture.newBlock(proposer, block2.id(), block2.getHeight() + 1, snapshot2.all());
 
     when(state.atBlockId(b.getPreviousBlockId())
-        .getAccount(b.getProposer())
-        .getPublicKey()
-        .verifySignature(b, b.getSignature())).thenReturn(true);
+            .getAccount(b.getProposer())
+            .getPublicKey()
+            .verifySignature(b, b.getSignature())).thenReturn(true);
 
     Identifier signerId = snapshot2.all().get(random.nextInt(accountsNoCurrent.size())).getIdentifier();
     Transaction tx = TransactionFixture.newTransaction(
-        block2.id(),
-        snapshot2.all().get(0).getIdentifier(),
-        snapshot2.all().get(1).getIdentifier(),
-        signerId);
+            block2.id(),
+            snapshot2.all().get(0).getIdentifier(),
+            snapshot2.all().get(1).getIdentifier(),
+            signerId);
     when(state.atBlockId(tx.getReferenceBlockId()).getAccount(tx.getSender()).getPublicKey()
-        .verifySignature(tx, tx.getSignature())).thenReturn(true);
+            .verifySignature(tx, tx.getSignature())).thenReturn(true);
     snapshot2.all().get(0).setBalance(tx.getAmount() * 10 + 1);
 
     // Act
@@ -467,8 +465,6 @@ setup();
 
   @Test
   public void testReceiveEntityNotAssignedToThisNodeSequentially() {
-
-
     when(snapshot2.all()).thenReturn(accountsNoCurrent);
     when(network.register(any(ValidatorEngine.class), eq(Channels.ProposedTransactions))).thenReturn(txConduit);
     when(network.register(any(ValidatorEngine.class), eq(Channels.ProposedBlocks))).thenReturn(blockConduit);
@@ -477,18 +473,18 @@ setup();
     Block b = BlockFixture.newBlock(proposer, block2.id(), block2.getHeight() + 1, snapshot2.all());
 
     when(state.atBlockId(b.getPreviousBlockId())
-        .getAccount(b.getProposer())
-        .getPublicKey()
-        .verifySignature(b, b.getSignature())).thenReturn(true);
+            .getAccount(b.getProposer())
+            .getPublicKey()
+            .verifySignature(b, b.getSignature())).thenReturn(true);
 
     Identifier signerId = snapshot2.all().get(random.nextInt(accountsNoCurrent.size())).getIdentifier();
     Transaction tx = TransactionFixture.newTransaction(
-        block2.id(),
-        snapshot2.all().get(0).getIdentifier(),
-        snapshot2.all().get(1).getIdentifier(),
-        signerId);
+            block2.id(),
+            snapshot2.all().get(0).getIdentifier(),
+            snapshot2.all().get(1).getIdentifier(),
+            signerId);
     when(state.atBlockId(tx.getReferenceBlockId()).getAccount(tx.getSender()).getPublicKey()
-        .verifySignature(tx, tx.getSignature())).thenReturn(true);
+            .verifySignature(tx, tx.getSignature())).thenReturn(true);
     snapshot2.all().get(0).setBalance(tx.getAmount() * 10 + 1);
 
     try {
@@ -510,8 +506,6 @@ setup();
 
   @Test
   public void testReceiveBlockNotCorrect_InvalidPreviousBlockSnapshot() {
-
-
     Identifier proposer = accounts2.get(propInd).getIdentifier();
     Identifier newPreviousBlockId = IdentifierFixture.newIdentifier();
     while (accounts2.contains(newPreviousBlockId)) {
@@ -560,9 +554,9 @@ setup();
     when(network.register(any(ValidatorEngine.class), eq(Channels.ProposedBlocks))).thenReturn(blockConduit);
     engine = new ValidatorEngine(network, local, state, seenEntities);
     when(state.atBlockId(block.getPreviousBlockId())
-        .getAccount(block.getProposer())
-        .getPublicKey()
-        .verifySignature(block, block.getSignature())).thenReturn(true);
+            .getAccount(block.getProposer())
+            .getPublicKey()
+            .verifySignature(block, block.getSignature())).thenReturn(true);
 
     try {
       engine.process(block);
@@ -583,9 +577,9 @@ setup();
     when(network.register(any(ValidatorEngine.class), eq(Channels.ProposedBlocks))).thenReturn(blockConduit);
     engine = new ValidatorEngine(network, local, state, seenEntities);
     when(state.atBlockId(block.getPreviousBlockId())
-        .getAccount(block.getProposer())
-        .getPublicKey()
-        .verifySignature(block, block.getSignature())).thenReturn(true);
+            .getAccount(block.getProposer())
+            .getPublicKey()
+            .verifySignature(block, block.getSignature())).thenReturn(true);
     try {
       engine.process(block);
       Assertions.assertEquals(0, blockConduit.allEntities().size());
@@ -605,9 +599,9 @@ setup();
     engine = new ValidatorEngine(network, local, state, seenEntities);
 
     when(state.atBlockId(block.getPreviousBlockId())
-        .getAccount(block.getProposer())
-        .getPublicKey()
-        .verifySignature(block, block.getSignature())).thenReturn(true);
+            .getAccount(block.getProposer())
+            .getPublicKey()
+            .verifySignature(block, block.getSignature())).thenReturn(true);
 
     try {
       engine.process(block);
@@ -628,9 +622,9 @@ setup();
     engine = new ValidatorEngine(network, local, state, seenEntities);
 
     when(state.atBlockId(block.getPreviousBlockId())
-        .getAccount(block.getProposer())
-        .getPublicKey()
-        .verifySignature(block, block.getSignature())).thenReturn(false);
+            .getAccount(block.getProposer())
+            .getPublicKey()
+            .verifySignature(block, block.getSignature())).thenReturn(false);
 
     try {
       engine.process(block);
@@ -655,9 +649,9 @@ setup();
     engine = new ValidatorEngine(network, local, state, seenEntities);
 
     when(state.atBlockId(block.getPreviousBlockId())
-        .getAccount(block.getProposer())
-        .getPublicKey()
-        .verifySignature(block, block.getSignature())).thenReturn(true);
+            .getAccount(block.getProposer())
+            .getPublicKey()
+            .verifySignature(block, block.getSignature())).thenReturn(true);
 
     try {
       engine.process(block);
@@ -673,20 +667,21 @@ setup();
   public void testReceiveBlockAllTransactionsNotValidated() {
 
     Identifier proposer = accounts2.get(propInd).getIdentifier();
-    Block block = BlockFixture.newBlockUnvalidatedTransaction(proposer, block2.id(), block2.getHeight() + 1, snapshot2.all());
+    Block block = BlockFixture.newBlockUnvalidatedTransaction(proposer, block2.id(),
+            block2.getHeight() + 1, snapshot2.all());
     when(network.register(any(ValidatorEngine.class), eq(Channels.ProposedBlocks))).thenReturn(blockConduit);
     engine = new ValidatorEngine(network, local, state, seenEntities);
 
     for (Transaction transaction : block.getTransactions()) {
       when(state.atBlockId(transaction.getReferenceBlockId())
-          .getAccount(transaction.getSender())
-          .getPublicKey().verifySignature(transaction, transaction.getSignature()))
-          .thenReturn(true);
+              .getAccount(transaction.getSender())
+              .getPublicKey().verifySignature(transaction, transaction.getSignature()))
+              .thenReturn(true);
     }
     when(state.atBlockId(block.getPreviousBlockId())
-        .getAccount(block.getProposer())
-        .getPublicKey()
-        .verifySignature(block, block.getSignature())).thenReturn(true);
+            .getAccount(block.getProposer())
+            .getPublicKey()
+            .verifySignature(block, block.getSignature())).thenReturn(true);
 
     try {
       engine.process(block);
@@ -707,16 +702,16 @@ setup();
 
     for (Transaction transaction : block.getTransactions()) {
       when(state.atBlockId(transaction.getReferenceBlockId())
-          .getAccount(transaction.getSender())
-          .getPublicKey().verifySignature(transaction, transaction.getSignature()))
-          .thenReturn(true);
+              .getAccount(transaction.getSender())
+              .getPublicKey().verifySignature(transaction, transaction.getSignature()))
+              .thenReturn(true);
     }
     when(state.atBlockId(snapshot2.getAccount(block.getTransactions()[0].getSender()).getLastBlockId())
-        .getReferenceBlockHeight()).thenReturn((long) block2.getHeight() * 2 + 10);
+            .getReferenceBlockHeight()).thenReturn((long) block2.getHeight() * 2 + 10);
     when(state.atBlockId(block.getPreviousBlockId())
-        .getAccount(block.getProposer())
-        .getPublicKey()
-        .verifySignature(block, block.getSignature())).thenReturn(true);
+            .getAccount(block.getProposer())
+            .getPublicKey()
+            .verifySignature(block, block.getSignature())).thenReturn(true);
 
     try {
       engine.process(block);
@@ -737,16 +732,16 @@ setup();
 
     for (Transaction transaction : block.getTransactions()) {
       when(state.atBlockId(transaction.getReferenceBlockId())
-          .getAccount(transaction.getSender())
-          .getPublicKey().verifySignature(transaction, transaction.getSignature()))
-          .thenReturn(true);
+              .getAccount(transaction.getSender())
+              .getPublicKey().verifySignature(transaction, transaction.getSignature()))
+              .thenReturn(true);
     }
-    when(snapshot2.getAccount(block.getTransactions()[0].getSender())).
-        thenReturn(accounts2.get(accounts2.indexOf(block.getTransactions()[1].getSender())));
+    when(snapshot2.getAccount(block.getTransactions()[0].getSender()))
+            .thenReturn(accounts2.get(accounts2.indexOf(block.getTransactions()[1].getSender())));
     when(state.atBlockId(block.getPreviousBlockId())
-        .getAccount(block.getProposer())
-        .getPublicKey()
-        .verifySignature(block, block.getSignature())).thenReturn(true);
+            .getAccount(block.getProposer())
+            .getPublicKey()
+            .verifySignature(block, block.getSignature())).thenReturn(true);
 
     try {
       engine.process(block);
@@ -767,13 +762,13 @@ setup();
 
     Identifier signerId = snapshot2.all().get(random.nextInt(accounts2.size())).getIdentifier();
     Transaction transaction = TransactionFixture.newTransaction(
-        block2.id(),
-        snapshot2.all().get(0).getIdentifier(),
-        snapshot2.all().get(1).getIdentifier(),
-        signerId);
+            block2.id(),
+            snapshot2.all().get(0).getIdentifier(),
+            snapshot2.all().get(1).getIdentifier(),
+            signerId);
 
     when(state.atBlockId(transaction.getReferenceBlockId()).getAccount(transaction.getSender()).getPublicKey()
-        .verifySignature(transaction, transaction.getSignature())).thenReturn(true);
+            .verifySignature(transaction, transaction.getSignature())).thenReturn(true);
     snapshot2.all().get(0).setBalance(transaction.getAmount() * 10 + 1);
 
     try {
@@ -804,13 +799,13 @@ setup();
     ArrayList<Transaction> transactions = new ArrayList<>();
     for (int i = 0; i < 2; i++) {
       Transaction transaction = TransactionFixture.newTransaction(
-          block2.id(),
-          snapshot2.all().get(i).getIdentifier(),
-          snapshot2.all().get(i + 1).getIdentifier(),
-          signerId);
+              block2.id(),
+              snapshot2.all().get(i).getIdentifier(),
+              snapshot2.all().get(i + 1).getIdentifier(),
+              signerId);
       transactions.add(transaction);
       when(state.atBlockId(transaction.getReferenceBlockId()).getAccount(transaction.getSender()).getPublicKey()
-          .verifySignature(transaction, transaction.getSignature())).thenReturn(true);
+              .verifySignature(transaction, transaction.getSignature())).thenReturn(true);
       snapshot2.all().get(i).setBalance(transaction.getAmount() * 10 + 1);
     }
 
@@ -839,13 +834,13 @@ setup();
     ArrayList<Transaction> transactions = new ArrayList<>();
     for (int i = 0; i < 2; i++) {
       Transaction transaction = TransactionFixture.newTransaction(
-          block2.id(),
-          snapshot2.all().get(i).getIdentifier(),
-          snapshot2.all().get(i + 1).getIdentifier(),
-          signerId);
+              block2.id(),
+              snapshot2.all().get(i).getIdentifier(),
+              snapshot2.all().get(i + 1).getIdentifier(),
+              signerId);
       transactions.add(transaction);
       when(state.atBlockId(transaction.getReferenceBlockId()).getAccount(transaction.getSender()).getPublicKey()
-          .verifySignature(transaction, transaction.getSignature())).thenReturn(true);
+              .verifySignature(transaction, transaction.getSignature())).thenReturn(true);
       snapshot2.all().get(i).setBalance(transaction.getAmount() * 10 + 1);
     }
 
@@ -901,12 +896,12 @@ setup();
     Identifier signerId = snapshot2.all().get(random.nextInt(accounts2.size())).getIdentifier();
     ArrayList<Transaction> transactions = new ArrayList<>();
     Transaction transaction = TransactionFixture.newTransaction(
-        block2.id(),
-        snapshot2.all().get(0).getIdentifier(),
-        snapshot2.all().get(1).getIdentifier(),
-        signerId);
+            block2.id(),
+            snapshot2.all().get(0).getIdentifier(),
+            snapshot2.all().get(1).getIdentifier(),
+            signerId);
     when(state.atBlockId(transaction.getReferenceBlockId()).getAccount(transaction.getSender()).getPublicKey()
-        .verifySignature(transaction, transaction.getSignature())).thenReturn(true);
+            .verifySignature(transaction, transaction.getSignature())).thenReturn(true);
     snapshot2.all().get(0).setBalance(transaction.getAmount() * 10 + 1);
 
     for (int i = 0; i < 2; i++) {
@@ -952,12 +947,12 @@ setup();
     Identifier signerId = snapshot2.all().get(random.nextInt(accounts2.size())).getIdentifier();
     ArrayList<Transaction> transactions = new ArrayList<>();
     Transaction transaction = TransactionFixture.newTransaction(
-        block2.id(),
-        snapshot2.all().get(0).getIdentifier(),
-        snapshot2.all().get(1).getIdentifier(),
-        signerId);
+            block2.id(),
+            snapshot2.all().get(0).getIdentifier(),
+            snapshot2.all().get(1).getIdentifier(),
+            signerId);
     when(state.atBlockId(transaction.getReferenceBlockId()).getAccount(transaction.getSender()).getPublicKey()
-        .verifySignature(transaction, transaction.getSignature())).thenReturn(true);
+            .verifySignature(transaction, transaction.getSignature())).thenReturn(true);
     snapshot2.all().get(0).setBalance(transaction.getAmount() * 10 + 1);
 
     for (int i = 0; i < 2; i++) {
@@ -1066,12 +1061,12 @@ setup();
     Identifier signerId = snapshot2.all().get(random.nextInt(accounts1.size())).getIdentifier();
     ArrayList<Transaction> transactions = new ArrayList<>();
     Transaction transaction = TransactionFixture.newTransaction(
-        block2.id(),
-        snapshot2.all().get(0).getIdentifier(),
-        snapshot2.all().get(1).getIdentifier(),
-        signerId);
+            block2.id(),
+            snapshot2.all().get(0).getIdentifier(),
+            snapshot2.all().get(1).getIdentifier(),
+            signerId);
     when(state.atBlockId(transaction.getReferenceBlockId()).getAccount(transaction.getSender()).getPublicKey()
-        .verifySignature(transaction, transaction.getSignature())).thenReturn(true);
+            .verifySignature(transaction, transaction.getSignature())).thenReturn(true);
     snapshot2.all().get(0).setBalance(transaction.getAmount() * 10 + 1);
 
     for (int i = 0; i < 2; i++) {
@@ -1120,10 +1115,10 @@ setup();
     }
     Identifier signerId = snapshot2.all().get(random.nextInt(accounts2.size())).getIdentifier();
     Transaction transaction = TransactionFixture.newTransaction(
-        block2.id(),
-        invalidSender,
-        snapshot2.all().get(1).getIdentifier(),
-        signerId);
+            block2.id(),
+            invalidSender,
+            snapshot2.all().get(1).getIdentifier(),
+            signerId);
     try {
       engine.process(transaction);
     } catch (IllegalArgumentException ex) {
@@ -1148,10 +1143,10 @@ setup();
     }
     Identifier signerId = snapshot2.all().get(random.nextInt(accounts2.size())).getIdentifier();
     Transaction transaction = TransactionFixture.newTransaction(
-        block2.id(),
-        snapshot2.all().get(0).getIdentifier(),
-        invalidReceiver,
-        signerId);
+            block2.id(),
+            snapshot2.all().get(0).getIdentifier(),
+            invalidReceiver,
+            signerId);
 
     try {
       engine.process(transaction);
@@ -1173,14 +1168,14 @@ setup();
 
     Identifier signerId = snapshot2.all().get(random.nextInt(accounts2.size())).getIdentifier();
     Transaction transaction = TransactionFixture.newTransaction(
-        block2.id(),
-        snapshot2.all().get(0).getIdentifier(),
-        snapshot2.all().get(1).getIdentifier(),
-        signerId,
-        -5);
+            block2.id(),
+            snapshot2.all().get(0).getIdentifier(),
+            snapshot2.all().get(1).getIdentifier(),
+            signerId,
+            -5);
 
     when(state.atBlockId(transaction.getReferenceBlockId()).getAccount(transaction.getSender()).getPublicKey()
-        .verifySignature(transaction, transaction.getSignature())).thenReturn(true);
+            .verifySignature(transaction, transaction.getSignature())).thenReturn(true);
 
     try {
       engine.process(transaction);
@@ -1202,17 +1197,17 @@ setup();
 
     Identifier signerId = snapshot2.all().get(random.nextInt(accounts2.size())).getIdentifier();
     Transaction transaction = TransactionFixture.newTransaction(
-        block2.id(),
-        snapshot2.all().get(0).getIdentifier(),
-        snapshot2.all().get(1).getIdentifier(),
-        signerId);
+            block2.id(),
+            snapshot2.all().get(0).getIdentifier(),
+            snapshot2.all().get(1).getIdentifier(),
+            signerId);
 
     snapshot2.getAccount(transaction.getSender()).setBalance(transaction.getAmount() * 5 + 5);
     when(state.atBlockId(transaction.getReferenceBlockId()).getAccount(transaction.getSender()).getPublicKey()
-        .verifySignature(transaction, transaction.getSignature())).thenReturn(true);
+            .verifySignature(transaction, transaction.getSignature())).thenReturn(true);
 
     when(state.atBlockId(snapshot2.getAccount(transaction.getSender()).getLastBlockId()).getReferenceBlockHeight())
-        .thenReturn((long) block2.getHeight() + 5);
+            .thenReturn((long) block2.getHeight() + 5);
 
     try {
       engine.process(transaction);
@@ -1234,14 +1229,14 @@ setup();
 
     Identifier signerId = snapshot2.all().get(random.nextInt(accounts2.size())).getIdentifier();
     Transaction transaction = TransactionFixture.newTransaction(
-        block2.id(),
-        snapshot2.all().get(0).getIdentifier(),
-        snapshot2.all().get(1).getIdentifier(),
-        signerId);
+            block2.id(),
+            snapshot2.all().get(0).getIdentifier(),
+            snapshot2.all().get(1).getIdentifier(),
+            signerId);
 
     snapshot2.getAccount(transaction.getSender()).setBalance(transaction.getAmount() * 5 + 5);
     when(state.atBlockId(transaction.getReferenceBlockId()).getAccount(transaction.getSender()).getPublicKey()
-        .verifySignature(transaction, transaction.getSignature())).thenReturn(false);
+            .verifySignature(transaction, transaction.getSignature())).thenReturn(false);
 
     try {
       engine.process(transaction);
@@ -1263,14 +1258,14 @@ setup();
 
     Identifier signerId = snapshot2.all().get(random.nextInt(accounts2.size())).getIdentifier();
     Transaction transaction = TransactionFixture.newTransaction(
-        block2.id(),
-        snapshot2.all().get(0).getIdentifier(),
-        snapshot2.all().get(1).getIdentifier(),
-        signerId);
+            block2.id(),
+            snapshot2.all().get(0).getIdentifier(),
+            snapshot2.all().get(1).getIdentifier(),
+            signerId);
 
     snapshot2.getAccount(transaction.getSender()).setBalance(transaction.getAmount() - 5);
     when(state.atBlockId(transaction.getReferenceBlockId()).getAccount(transaction.getSender()).getPublicKey()
-        .verifySignature(transaction, transaction.getSignature())).thenReturn(true);
+            .verifySignature(transaction, transaction.getSignature())).thenReturn(true);
 
     try {
       engine.process(transaction);
