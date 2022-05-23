@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.Map;
 import java.util.concurrent.locks.ReentrantLock;
 
+import io.prometheus.client.Counter;
 import model.Entity;
 import model.codec.EntityType;
 import model.crypto.Signature;
@@ -41,6 +42,10 @@ public class ProposerEngine implements NewBlockSubscriber, Engine {
   private final ArrayList<BlockApproval> approvals;
   public Block newB;
 
+  static Counter validatorElections;
+  static Counter proposedBlocks;
+  static Counter proposedValidBlocks;
+
   /**
    * Constructor.
    *
@@ -51,7 +56,9 @@ public class ProposerEngine implements NewBlockSubscriber, Engine {
    * @param net                 Network.
    */
   public ProposerEngine(Blocks blocks, Transactions pendingTransactions, State state,
-                        Local local, Network net, LightChainValidatorAssigner assigner) {
+                        Local local, Network net, LightChainValidatorAssigner assigner,
+                        Counter validatorElections, Counter proposedBlocks, Counter proposedValidBlocks) {
+
     ProposerEngine.local = local;
     ProposerEngine.blocks = blocks;
     ProposerEngine.pendingTransactions = pendingTransactions;
@@ -61,6 +68,13 @@ public class ProposerEngine implements NewBlockSubscriber, Engine {
     validatedCon = net.register(this, Channels.ValidatedBlocks);
     ProposerEngine.net = net;
     ProposerEngine.assigner = assigner;
+
+    // Metrics Initiation
+
+    this.validatorElections = validatorElections;
+    this.proposedBlocks = proposedBlocks;
+    this.proposedValidBlocks = proposedValidBlocks;
+
   }
 
   /**
@@ -107,7 +121,9 @@ public class ProposerEngine implements NewBlockSubscriber, Engine {
       // Checks whether the assigner has assigned this node.
       if (assignment.has(local.myId())) {
 
-        // Waits until there are enough pending transactions.
+          validatorElections.inc(1);
+
+          // Waits until there are enough pending transactions.
         while (pendingTransactions.size() < Parameters.MIN_VALIDATED_TRANSACTIONS_NUM) {
         }
 
@@ -136,6 +152,9 @@ public class ProposerEngine implements NewBlockSubscriber, Engine {
         taggedId = new Identifier(output.toByteArray());
         assignment = assigner.assign(taggedId, state.atBlockId(newBlock.getPreviousBlockId()),
                 Parameters.VALIDATOR_THRESHOLD);
+
+        proposedBlocks.inc(1);
+
         for (Identifier id : assignment.all()) {
           try {
             proposerCon.unicast(newBlock, id);
@@ -174,6 +193,9 @@ public class ProposerEngine implements NewBlockSubscriber, Engine {
                 local.signEntity(newB),
                 signs,
                 newB.getHeight());
+
+        proposedValidBlocks.inc(1);
+
         for (Map.Entry<Identifier, String> pair : ((P2pNetwork) net).getIdToAddressMap().entrySet()) {
           if (pair.getValue().equals(Channels.ValidatedBlocks)) {
             try {

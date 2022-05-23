@@ -41,21 +41,22 @@ public class IngestEngine implements Engine {
                       Identifiers transactionIds,
                       Transactions pendingTransactions,
                       Identifiers seenEntities,
-                      Assignment assignment,
+                      ValidatorAssigner assigner,
                       Counter pendingTransactionAdditions,
                       Counter validBlocks,
                       Counter validTransactions) {
+
     this.state = state;
     this.blocks = blocks;
     this.transactionIds = transactionIds;
     this.pendingTransactions = pendingTransactions;
     this.seenEntities = seenEntities;
-    this.assignment = assignment;
+    this.assigner = assigner;
+
 
     this.pendingTransactionAdditions=pendingTransactionAdditions;
     this.validBlocks=validBlocks;
     this.validTransactions=validTransactions;
-
   }
 
   /**
@@ -86,7 +87,7 @@ public class IngestEngine implements Engine {
     try {
       lock.lock();
       if (!e.type().equals(EntityType.TYPE_VALIDATED_BLOCK)
-          && !e.type().equals(EntityType.TYPE_VALIDATED_TRANSACTION)) {
+              && !e.type().equals(EntityType.TYPE_VALIDATED_TRANSACTION)) {
         throw new IllegalArgumentException("entity is neither a validated transaction nor a validated block");
       }
 
@@ -112,9 +113,9 @@ public class IngestEngine implements Engine {
             return;
           }
           if (snapshot
-              .getAccount(certificate.getSignerId())
-              .getPublicKey()
-              .verifySignature(block, certificate)) {
+                  .getAccount(certificate.getSignerId())
+                  .getPublicKey()
+                  .verifySignature(block, certificate)) {
             signatures++;
           }
         }
@@ -147,9 +148,9 @@ public class IngestEngine implements Engine {
             return;
           }
           if (snapshot
-              .getAccount(certificate.getSignerId())
-              .getPublicKey()
-              .verifySignature(tx, certificate)) {
+                  .getAccount(certificate.getSignerId())
+                  .getPublicKey()
+                  .verifySignature(tx, certificate)) {
             signatures++;
           }
         }
@@ -170,6 +171,5 @@ public class IngestEngine implements Engine {
     }
   }
 }
-
 
 

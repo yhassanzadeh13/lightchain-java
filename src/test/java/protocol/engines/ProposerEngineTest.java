@@ -10,6 +10,10 @@ import java.util.concurrent.atomic.AtomicInteger;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
+import io.prometheus.client.Counter;
+import metrics.collectors.LightChainCollector;
+import metrics.collectors.MetricServer;
+import metrics.integration.MetricsTestNet;
 import model.crypto.PrivateKey;
 import model.exceptions.LightChainNetworkingException;
 import model.lightchain.*;
@@ -20,7 +24,9 @@ import network.Network;
 import network.NetworkAdapter;
 import network.p2p.P2pNetwork;
 import networking.MockConduit;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import protocol.Engine;
 import protocol.Parameters;
@@ -51,7 +57,55 @@ public class ProposerEngineTest {
   // it on its storage (using either height or id).
   // 5. Proposer engine creates a validated block whenever it receives enough block approvals for its proposed block,
   // it also sends the validated block to all nodes including itself on the expected channel.
-  // 6. Extend test case 5 for when proposer engine receives all block approvals concurrently. 
+  // 6. Extend test case 5 for when proposer engine receives all block approvals concurrently.
+
+  static LightChainCollector collector;
+  static Counter validatorElections;
+  static Counter proposedBlocks;
+  static Counter proposedValidBlocks;
+  @BeforeAll
+  public static void set() {
+
+    try {
+      MetricServer server = new MetricServer();
+      server.start();
+    } catch (IllegalStateException ex) {
+      throw new IllegalStateException("could not start the Metric Server", ex);
+    }
+
+    try {
+      collector = new LightChainCollector();
+      // possibly change the namespace and subsystem values
+      validatorElections = collector.counter().register("additions_to_pending_count",
+              "consensus", "ProposerEngine", "Counter for keeping the " +
+                      "number of times this node is elected as a validator");
+      proposedBlocks = collector.counter().register("proposed_block_count",
+              "consensus", "ProposerEngine", "Counter for keeping the number of " +
+                      "proposed blocks");
+      proposedValidBlocks = collector.counter().register("proposed_valid_block_count",
+              "consensus", "ProposerEngine", "Counter for keeping the number of " +
+                      "proposed blocks that passed validation");
+
+    } catch (IllegalArgumentException ex) {
+      throw new IllegalStateException("could not initialize the metrics with the provided arguments", ex);
+    }
+
+    try {
+      MetricsTestNet testNet = new MetricsTestNet();
+      testNet.runMetricsTestNet();
+    } catch (IllegalStateException e) {
+      System.err.println("could not run metrics testnet" + e);
+      System.exit(1);
+    }
+
+  }
+
+  @AfterAll
+  public static void tearDown() {
+
+    while(true);
+
+  }
 
   /**
    * Evaluates that when a new block arrives at the proposer engine, it creates a valid block and sends it to its
@@ -96,7 +150,8 @@ public class ProposerEngineTest {
     when(network.register(any(Engine.class), eq(Channels.ValidatedBlocks))).thenReturn(validatedCon);
 
     // action
-    ProposerEngine proposerEngine = new ProposerEngine(blocks, pendingTransactions, state, local, network, assigner);
+    ProposerEngine proposerEngine = new ProposerEngine(blocks, pendingTransactions, state, local, network, assigner,
+            validatorElections, proposedBlocks, proposedValidBlocks);
     proposerEngine.onNewValidatedBlock(block.getHeight(), block.id());
     BlockValidator blockValidator = new BlockValidator(state);
 
@@ -154,7 +209,8 @@ public class ProposerEngineTest {
             state,
             local,
             network,
-            assigner);
+            assigner,
+            validatorElections, proposedBlocks, proposedValidBlocks);
 
     // Verification.
     AtomicBoolean proposerWaiting = new AtomicBoolean(true);
@@ -222,7 +278,8 @@ public class ProposerEngineTest {
     when(network.register(any(Engine.class), eq(Channels.ValidatedBlocks))).thenReturn(validatedCon);
 
     // Verification.
-    ProposerEngine proposerEngine = new ProposerEngine(blocks, pendingTransactions, state, local, network, assigner);
+    ProposerEngine proposerEngine = new ProposerEngine(blocks, pendingTransactions, state, local, network, assigner,
+            validatorElections, proposedBlocks, proposedValidBlocks);
     Thread proposerThread = new Thread(() -> {
       try {
         Assertions.assertThrows(IllegalStateException.class, () -> {
@@ -259,7 +316,8 @@ public class ProposerEngineTest {
     when(blocks.atHeight(block.getHeight())).thenReturn(BlockFixture.newBlock()); // another block
 
     // Verification.
-    ProposerEngine proposerEngine = new ProposerEngine(blocks, pendingTransactions, state, local, network, assigner);
+    ProposerEngine proposerEngine = new ProposerEngine(blocks, pendingTransactions, state, local, network, assigner,
+            validatorElections, proposedBlocks, proposedValidBlocks);
     Assertions.assertThrows(IllegalArgumentException.class, () -> {
       proposerEngine.onNewValidatedBlock(block.getHeight(), block.id());
     });
@@ -315,7 +373,8 @@ public class ProposerEngineTest {
     when(network.register(any(Engine.class), eq(Channels.ValidatedBlocks))).thenReturn(validatedCon);
 
     // Verification.
-    ProposerEngine proposerEngine = new ProposerEngine(blocks, pendingTransactions, state, local, network, assigner);
+    ProposerEngine proposerEngine = new ProposerEngine(blocks, pendingTransactions, state, local, network, assigner,
+            validatorElections, proposedBlocks, proposedValidBlocks);
     proposerEngine.onNewValidatedBlock(block.getHeight(), block.id());
     BlockValidator blockValidator = new BlockValidator(state);
     for (int i = 0; i < Parameters.VALIDATOR_THRESHOLD; i++) {
@@ -375,7 +434,8 @@ public class ProposerEngineTest {
     when(network.register(any(Engine.class), eq(Channels.ValidatedBlocks))).thenReturn(validatedCon);
 
     // Verification.
-    ProposerEngine proposerEngine = new ProposerEngine(blocks, pendingTransactions, state, local, network, assigner);
+    ProposerEngine proposerEngine = new ProposerEngine(blocks, pendingTransactions, state, local, network, assigner,
+            validatorElections, proposedBlocks, proposedValidBlocks);
     proposerEngine.onNewValidatedBlock(block.getHeight(), block.id());
     Thread[] threads = new Thread[Parameters.VALIDATOR_THRESHOLD];
     for (int i = 0; i < Parameters.VALIDATOR_THRESHOLD; i++) {

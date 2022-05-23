@@ -2,8 +2,7 @@ package protocol.engines;
 
 import java.util.concurrent.locks.ReentrantLock;
 
-import metrics.collectors.LightChainCollector;
-import metrics.collectors.MetricServer;
+import io.prometheus.client.Counter;
 import model.Entity;
 import model.codec.EntityType;
 import model.crypto.Signature;
@@ -24,8 +23,6 @@ import protocol.transaction.TransactionValidator;
 import state.State;
 import storage.Identifiers;
 
-import io.prometheus.client.Counter;
-
 /**
  * ValidatorEngine is a standalone engine of LightChain that runs transaction and block validation.
  */
@@ -36,6 +33,8 @@ public class ValidatorEngine implements Engine {
   private final Conduit transCon;
   private final State state;
   private final ReentrantLock lock;
+
+
   Counter incomingBlockCount;
   Counter incomingTransactionCount;
   Counter validBlocks;
@@ -58,6 +57,7 @@ public class ValidatorEngine implements Engine {
     this.state = state;
     this.seenEntities = seenEntities;
     this.lock = new ReentrantLock();
+
 
     // Metrics Initiation
 
@@ -90,7 +90,7 @@ public class ValidatorEngine implements Engine {
     }
 
     if (seenEntities.has(e.id())) {
-      return; // entity already processed
+      return; // entity already processed.
     }
 
     try {
@@ -182,6 +182,7 @@ public class ValidatorEngine implements Engine {
     System.out.println("correct " + verifier.isCorrect(b));
     System.out.println("dup " + verifier.noDuplicateSender(b));
     System.out.println("stake " + verifier.proposerHasEnoughStake(b));
+
 
     if(verifier.allTransactionsSound(b)
             && verifier.allTransactionsValidated(b)

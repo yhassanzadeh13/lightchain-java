@@ -28,12 +28,10 @@ import network.Network;
 import network.NetworkAdapter;
 import networking.MockConduit;
 import org.junit.AfterClass;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 import protocol.Parameters;
@@ -105,12 +103,12 @@ public class ValidatorEngineTest {
   @BeforeClass
   public static void set() {
 
-      try {
-        MetricServer server = new MetricServer();
-        server.start();
-      } catch (IllegalStateException ex) {
-        throw new IllegalStateException("could not start the Metric Server", ex);
-      }
+    try {
+      MetricServer server = new MetricServer();
+      server.start();
+    } catch (IllegalStateException ex) {
+      throw new IllegalStateException("could not start the Metric Server", ex);
+    }
 
     try {
       collector = new LightChainCollector();
@@ -128,10 +126,6 @@ public class ValidatorEngineTest {
       throw new IllegalStateException("could not initialize the metrics with the provided arguments", ex);
     }
 
-  }
-
-  @AfterClass
-  public static void tearDown() {
 
     try {
       MetricsTestNet testNet = new MetricsTestNet();
@@ -141,16 +135,21 @@ public class ValidatorEngineTest {
       System.exit(1);
     }
 
-    while(true);
   }
+
+  @AfterClass
+  public static void tearDown() {
+
+    while(true);
+
+  }
+
 
   /**
    * Initialize the test. TODO: fix this.
    */
   @Before
   public void setup() {
-
-    // Arrange
     /// Local node
     localId = IdentifierFixture.newIdentifier();
     localPrivateKey = KeyGenFixture.newKeyGen().getPrivateKey();
@@ -182,7 +181,7 @@ public class ValidatorEngineTest {
     /// Accounts
     /// Create accounts for the snapshot including an account with the local id.
     ArrayList<Account>[] a = AccountFixture.newAccounts(localId, block1.id(),
-        block2.id(), 10, 10);
+            block2.id(), 10, 10);
     accounts1 = a[0];
     accounts2 = a[1];
     accountsNoCurrent = a[2];
@@ -208,23 +207,25 @@ public class ValidatorEngineTest {
 
   @Test
   public void testReceiveOneValidBlock() throws LightChainDistributedStorageException {
-setup();
+
+    setup();
     Identifier proposer = accounts2.get(propInd).getIdentifier();
     Block block = BlockFixture.newBlock(proposer, block2.id(), block2.getHeight() + 1, snapshot2.all());
     when(network.register(any(ValidatorEngine.class), eq(Channels.ProposedBlocks))).thenReturn(blockConduit);
-    engine = new ValidatorEngine(network, local, state, seenEntities, incomingBlockCount,
-            incomingTransactionCount, validBlocks, validTransactions);
+    engine = new ValidatorEngine(network, local, state, seenEntities,
+            incomingBlockCount, incomingTransactionCount,
+            validBlocks, validTransactions);
 
     for (Transaction transaction : block.getTransactions()) {
       when(state.atBlockId(transaction.getReferenceBlockId())
-          .getAccount(transaction.getSender())
-          .getPublicKey().verifySignature(transaction, transaction.getSignature()))
-          .thenReturn(true);
+              .getAccount(transaction.getSender())
+              .getPublicKey().verifySignature(transaction, transaction.getSignature()))
+              .thenReturn(true);
     }
     when(state.atBlockId(block.getPreviousBlockId())
-        .getAccount(block.getProposer())
-        .getPublicKey()
-        .verifySignature(block, block.getSignature())).thenReturn(true);
+            .getAccount(block.getProposer())
+            .getPublicKey()
+            .verifySignature(block, block.getSignature())).thenReturn(true);
 
     try {
       engine.process(block);
@@ -240,6 +241,8 @@ setup();
     } catch (LightChainDistributedStorageException e) {
       e.printStackTrace();
     }
+
+
   }
 
   @Test
@@ -250,13 +253,14 @@ setup();
     blocks[1] = BlockFixture.newBlock(proposer, block2.id(), block2.getHeight() + 1, snapshot2.all());
 
     when(network.register(any(ValidatorEngine.class), eq(Channels.ProposedBlocks))).thenReturn(blockConduit);
-    engine = new ValidatorEngine(network, local, state, seenEntities,incomingBlockCount,
-            incomingTransactionCount, validBlocks, validTransactions);
+    engine = new ValidatorEngine(network, local, state, seenEntities,
+            incomingBlockCount, incomingTransactionCount,
+            validBlocks, validTransactions);
     for (int i = 0; i < 2; i++) {
       when(state.atBlockId(blocks[i].getPreviousBlockId())
-          .getAccount(blocks[i].getProposer())
-          .getPublicKey()
-          .verifySignature(blocks[i], blocks[i].getSignature())).thenReturn(true);
+              .getAccount(blocks[i].getProposer())
+              .getPublicKey()
+              .verifySignature(blocks[i], blocks[i].getSignature())).thenReturn(true);
       try {
         engine.process(blocks[i]);
       } catch (IllegalArgumentException ex) {
@@ -282,14 +286,15 @@ setup();
     blocks[1] = BlockFixture.newBlock(proposer, block2.id(), block2.getHeight() + 1, snapshot2.all());
 
     when(network.register(any(ValidatorEngine.class), eq(Channels.ProposedBlocks))).thenReturn(blockConduit);
-    engine = new ValidatorEngine(network, local, state, seenEntities, incomingBlockCount,
-            incomingTransactionCount, validBlocks, validTransactions);
+    engine = new ValidatorEngine(network, local, state, seenEntities,
+            incomingBlockCount, incomingTransactionCount,
+            validBlocks, validTransactions);
 
     for (int i = 0; i < 2; i++) {
       when(state.atBlockId(blocks[i].getPreviousBlockId())
-          .getAccount(blocks[i].getProposer())
-          .getPublicKey()
-          .verifySignature(blocks[i], blocks[i].getSignature())).thenReturn(true);
+              .getAccount(blocks[i].getProposer())
+              .getPublicKey()
+              .verifySignature(blocks[i], blocks[i].getSignature())).thenReturn(true);
     }
 
     // Act
@@ -340,17 +345,18 @@ setup();
     Identifier proposer = accounts2.get(propInd).getIdentifier();
 
     when(network.register(any(ValidatorEngine.class), eq(Channels.ProposedBlocks))).thenReturn(blockConduit);
-    engine = new ValidatorEngine(network, local, state, seenEntities, incomingBlockCount,
-            incomingTransactionCount, validBlocks, validTransactions);
+    engine = new ValidatorEngine(network, local, state, seenEntities,
+            incomingBlockCount, incomingTransactionCount,
+            validBlocks, validTransactions);
 
     Block[] blocks = new Block[2];
     Block b = BlockFixture.newBlock(proposer, block2.id(), block2.getHeight() + 1, snapshot2.all());
     blocks[0] = b;
     blocks[1] = b;
     when(state.atBlockId(blocks[0].getPreviousBlockId())
-        .getAccount(blocks[0].getProposer())
-        .getPublicKey()
-        .verifySignature(blocks[0], blocks[0].getSignature())).thenReturn(true);
+            .getAccount(blocks[0].getProposer())
+            .getPublicKey()
+            .verifySignature(blocks[0], blocks[0].getSignature())).thenReturn(true);
 
     final boolean[] called = {false};
     when(seenEntities.add(blocks[0].id())).thenAnswer(new Answer() {
@@ -386,17 +392,18 @@ setup();
 
     Identifier proposer = accounts2.get(propInd).getIdentifier();
     when(network.register(any(ValidatorEngine.class), eq(Channels.ProposedBlocks))).thenReturn(blockConduit);
-    engine = new ValidatorEngine(network, local, state, seenEntities, incomingBlockCount,
-            incomingTransactionCount, validBlocks, validTransactions);
+    engine = new ValidatorEngine(network, local, state, seenEntities,
+            incomingBlockCount, incomingTransactionCount,
+            validBlocks, validTransactions);
 
     Block[] blocks = new Block[2];
     Block b = BlockFixture.newBlock(proposer, block2.id(), block2.getHeight() + 1, snapshot2.all());
     blocks[0] = b;
     blocks[1] = b;
     when(state.atBlockId(blocks[0].getPreviousBlockId())
-        .getAccount(blocks[0].getProposer())
-        .getPublicKey()
-        .verifySignature(blocks[0], blocks[0].getSignature())).thenReturn(true);
+            .getAccount(blocks[0].getProposer())
+            .getPublicKey()
+            .verifySignature(blocks[0], blocks[0].getSignature())).thenReturn(true);
 
     final boolean[] called = {false};
     when(seenEntities.add(blocks[0].id())).thenAnswer(new Answer() {
@@ -463,24 +470,25 @@ setup();
     when(snapshot2.all()).thenReturn(accountsNoCurrent);
     when(network.register(any(ValidatorEngine.class), eq(Channels.ProposedTransactions))).thenReturn(txConduit);
     when(network.register(any(ValidatorEngine.class), eq(Channels.ProposedBlocks))).thenReturn(blockConduit);
-    engine = new ValidatorEngine(network, local, state, seenEntities, incomingBlockCount,
-            incomingTransactionCount, validBlocks, validTransactions);
+    engine = new ValidatorEngine(network, local, state, seenEntities,
+            incomingBlockCount, incomingTransactionCount,
+            validBlocks, validTransactions);
     Identifier proposer = accounts2.get(propInd).getIdentifier();
     Block b = BlockFixture.newBlock(proposer, block2.id(), block2.getHeight() + 1, snapshot2.all());
 
     when(state.atBlockId(b.getPreviousBlockId())
-        .getAccount(b.getProposer())
-        .getPublicKey()
-        .verifySignature(b, b.getSignature())).thenReturn(true);
+            .getAccount(b.getProposer())
+            .getPublicKey()
+            .verifySignature(b, b.getSignature())).thenReturn(true);
 
     Identifier signerId = snapshot2.all().get(random.nextInt(accountsNoCurrent.size())).getIdentifier();
     Transaction tx = TransactionFixture.newTransaction(
-        block2.id(),
-        snapshot2.all().get(0).getIdentifier(),
-        snapshot2.all().get(1).getIdentifier(),
-        signerId);
+            block2.id(),
+            snapshot2.all().get(0).getIdentifier(),
+            snapshot2.all().get(1).getIdentifier(),
+            signerId);
     when(state.atBlockId(tx.getReferenceBlockId()).getAccount(tx.getSender()).getPublicKey()
-        .verifySignature(tx, tx.getSignature())).thenReturn(true);
+            .verifySignature(tx, tx.getSignature())).thenReturn(true);
     snapshot2.all().get(0).setBalance(tx.getAmount() * 10 + 1);
 
     // Act
@@ -537,24 +545,25 @@ setup();
     when(snapshot2.all()).thenReturn(accountsNoCurrent);
     when(network.register(any(ValidatorEngine.class), eq(Channels.ProposedTransactions))).thenReturn(txConduit);
     when(network.register(any(ValidatorEngine.class), eq(Channels.ProposedBlocks))).thenReturn(blockConduit);
-    engine = new ValidatorEngine(network, local, state, seenEntities, incomingBlockCount,
-            incomingTransactionCount, validBlocks, validTransactions);
+    engine = new ValidatorEngine(network, local, state, seenEntities,
+            incomingBlockCount, incomingTransactionCount,
+            validBlocks, validTransactions);
     Identifier proposer = accounts2.get(propInd).getIdentifier();
     Block b = BlockFixture.newBlock(proposer, block2.id(), block2.getHeight() + 1, snapshot2.all());
 
     when(state.atBlockId(b.getPreviousBlockId())
-        .getAccount(b.getProposer())
-        .getPublicKey()
-        .verifySignature(b, b.getSignature())).thenReturn(true);
+            .getAccount(b.getProposer())
+            .getPublicKey()
+            .verifySignature(b, b.getSignature())).thenReturn(true);
 
     Identifier signerId = snapshot2.all().get(random.nextInt(accountsNoCurrent.size())).getIdentifier();
     Transaction tx = TransactionFixture.newTransaction(
-        block2.id(),
-        snapshot2.all().get(0).getIdentifier(),
-        snapshot2.all().get(1).getIdentifier(),
-        signerId);
+            block2.id(),
+            snapshot2.all().get(0).getIdentifier(),
+            snapshot2.all().get(1).getIdentifier(),
+            signerId);
     when(state.atBlockId(tx.getReferenceBlockId()).getAccount(tx.getSender()).getPublicKey()
-        .verifySignature(tx, tx.getSignature())).thenReturn(true);
+            .verifySignature(tx, tx.getSignature())).thenReturn(true);
     snapshot2.all().get(0).setBalance(tx.getAmount() * 10 + 1);
 
     try {
@@ -585,8 +594,9 @@ setup();
     }
     Block block = BlockFixture.newBlock(proposer, newPreviousBlockId, block2.getHeight() + 1, snapshot2.all());
     when(network.register(any(ValidatorEngine.class), eq(Channels.ProposedBlocks))).thenReturn(blockConduit);
-    engine = new ValidatorEngine(network, local, state, seenEntities, incomingBlockCount,
-            incomingTransactionCount, validBlocks, validTransactions);
+    engine = new ValidatorEngine(network, local, state, seenEntities,
+            incomingBlockCount, incomingTransactionCount,
+            validBlocks, validTransactions);
 
     try {
       engine.process(block);
@@ -606,8 +616,9 @@ setup();
     Block block = BlockFixture.newBlock(invalidProposer, block2.id(), block2.getHeight() + 1, snapshot2.all());
 
     when(network.register(any(ValidatorEngine.class), eq(Channels.ProposedBlocks))).thenReturn(blockConduit);
-    engine = new ValidatorEngine(network, local, state, seenEntities, incomingBlockCount,
-            incomingTransactionCount, validBlocks, validTransactions);
+    engine = new ValidatorEngine(network, local, state, seenEntities,
+            incomingBlockCount, incomingTransactionCount,
+            validBlocks, validTransactions);
 
     try {
       engine.process(block);
@@ -620,18 +631,19 @@ setup();
     verify(seenEntities, never()).add(any());
   }
 
-  /* @Test
+  @Test
   public void testReceiveBlockNotCorrect_ValidatedTransactionBelowMinimum() {
     //TODO add a new fixture?
     Block block = BlockFixture.newBlock(Parameters.MIN_TRANSACTIONS_NUM - 1);
 
     when(network.register(any(ValidatorEngine.class), eq(Channels.ProposedBlocks))).thenReturn(blockConduit);
-    engine = new ValidatorEngine(network, local, state, seenEntities, incomingBlockCount,
-            incomingTransactionCount, validBlocks, validTransactions);
+    engine = new ValidatorEngine(network, local, state, seenEntities,
+            incomingBlockCount, incomingTransactionCount,
+            validBlocks, validTransactions);
     when(state.atBlockId(block.getPreviousBlockId())
-        .getAccount(block.getProposer())
-        .getPublicKey()
-        .verifySignature(block, block.getSignature())).thenReturn(true);
+            .getAccount(block.getProposer())
+            .getPublicKey()
+            .verifySignature(block, block.getSignature())).thenReturn(true);
 
     try {
       engine.process(block);
@@ -643,19 +655,20 @@ setup();
 
     verify(seenEntities, never()).add(any());
   }
-  */
-  /*@Test
+
+  @Test
   public void testReceiveBlockNotCorrect_ValidatedTransactionAboveMaximum() {
 
     Block block = BlockFixture.newBlock(Parameters.MAX_TRANSACTIONS_NUM + 1);
 
     when(network.register(any(ValidatorEngine.class), eq(Channels.ProposedBlocks))).thenReturn(blockConduit);
-    engine = new ValidatorEngine(network, local, state, seenEntities, incomingBlockCount,
-            incomingTransactionCount, validBlocks, validTransactions);
+    engine = new ValidatorEngine(network, local, state, seenEntities,
+            incomingBlockCount, incomingTransactionCount,
+            validBlocks, validTransactions);
     when(state.atBlockId(block.getPreviousBlockId())
-        .getAccount(block.getProposer())
-        .getPublicKey()
-        .verifySignature(block, block.getSignature())).thenReturn(true);
+            .getAccount(block.getProposer())
+            .getPublicKey()
+            .verifySignature(block, block.getSignature())).thenReturn(true);
     try {
       engine.process(block);
       Assertions.assertEquals(0, blockConduit.allEntities().size());
@@ -664,7 +677,7 @@ setup();
       Assertions.fail(ex);
     }
     verify(seenEntities, never()).add(any());
-  }*/
+  }
 
   @Test
   public void testReceiveBlockNotConsistent_InvalidPreviousBlockId() {
@@ -672,13 +685,14 @@ setup();
     Identifier proposer = accounts2.get(propInd).getIdentifier();
     Block block = BlockFixture.newBlock(proposer, block1.id(), block2.getHeight() + 1, snapshot2.all());
     when(network.register(any(ValidatorEngine.class), eq(Channels.ProposedBlocks))).thenReturn(blockConduit);
-    engine = new ValidatorEngine(network, local, state, seenEntities, incomingBlockCount,
-            incomingTransactionCount, validBlocks, validTransactions);
+    engine = new ValidatorEngine(network, local, state, seenEntities,
+            incomingBlockCount, incomingTransactionCount,
+            validBlocks, validTransactions);
 
     when(state.atBlockId(block.getPreviousBlockId())
-        .getAccount(block.getProposer())
-        .getPublicKey()
-        .verifySignature(block, block.getSignature())).thenReturn(true);
+            .getAccount(block.getProposer())
+            .getPublicKey()
+            .verifySignature(block, block.getSignature())).thenReturn(true);
 
     try {
       engine.process(block);
@@ -696,13 +710,14 @@ setup();
     Identifier proposer = accounts2.get(propInd).getIdentifier();
     Block block = BlockFixture.newBlock(proposer, block2.id(), block2.getHeight() + 1, snapshot2.all());
     when(network.register(any(ValidatorEngine.class), eq(Channels.ProposedBlocks))).thenReturn(blockConduit);
-    engine = new ValidatorEngine(network, local, state, seenEntities, incomingBlockCount,
-            incomingTransactionCount, validBlocks, validTransactions);
+    engine = new ValidatorEngine(network, local, state, seenEntities,
+            incomingBlockCount, incomingTransactionCount,
+            validBlocks, validTransactions);
 
     when(state.atBlockId(block.getPreviousBlockId())
-        .getAccount(block.getProposer())
-        .getPublicKey()
-        .verifySignature(block, block.getSignature())).thenReturn(false);
+            .getAccount(block.getProposer())
+            .getPublicKey()
+            .verifySignature(block, block.getSignature())).thenReturn(false);
 
     try {
       engine.process(block);
@@ -724,13 +739,14 @@ setup();
     Identifier proposer = accounts2.get(propInd).getIdentifier();
     Block block = BlockFixture.newBlock(proposer, block2.id(), block2.getHeight() + 1, snapshot2.all());
     when(network.register(any(ValidatorEngine.class), eq(Channels.ProposedBlocks))).thenReturn(blockConduit);
-    engine = new ValidatorEngine(network, local, state, seenEntities, incomingBlockCount,
-            incomingTransactionCount, validBlocks, validTransactions);
+    engine = new ValidatorEngine(network, local, state, seenEntities,
+            incomingBlockCount, incomingTransactionCount,
+            validBlocks, validTransactions);
 
     when(state.atBlockId(block.getPreviousBlockId())
-        .getAccount(block.getProposer())
-        .getPublicKey()
-        .verifySignature(block, block.getSignature())).thenReturn(true);
+            .getAccount(block.getProposer())
+            .getPublicKey()
+            .verifySignature(block, block.getSignature())).thenReturn(true);
 
     try {
       engine.process(block);
@@ -742,25 +758,26 @@ setup();
     verify(seenEntities, never()).add(any());
   }
 
-  /*@Test
+  @Test
   public void testReceiveBlockAllTransactionsNotValidated() {
 
     Identifier proposer = accounts2.get(propInd).getIdentifier();
     Block block = BlockFixture.newBlockUnvalidatedTransaction(proposer, block2.id(), block2.getHeight() + 1, snapshot2.all());
     when(network.register(any(ValidatorEngine.class), eq(Channels.ProposedBlocks))).thenReturn(blockConduit);
-    engine = new ValidatorEngine(network, local, state, seenEntities, incomingBlockCount,
-            incomingTransactionCount, validBlocks, validTransactions);
+    engine = new ValidatorEngine(network, local, state, seenEntities,
+            incomingBlockCount, incomingTransactionCount,
+            validBlocks, validTransactions);
 
     for (Transaction transaction : block.getTransactions()) {
       when(state.atBlockId(transaction.getReferenceBlockId())
-          .getAccount(transaction.getSender())
-          .getPublicKey().verifySignature(transaction, transaction.getSignature()))
-          .thenReturn(true);
+              .getAccount(transaction.getSender())
+              .getPublicKey().verifySignature(transaction, transaction.getSignature()))
+              .thenReturn(true);
     }
     when(state.atBlockId(block.getPreviousBlockId())
-        .getAccount(block.getProposer())
-        .getPublicKey()
-        .verifySignature(block, block.getSignature())).thenReturn(true);
+            .getAccount(block.getProposer())
+            .getPublicKey()
+            .verifySignature(block, block.getSignature())).thenReturn(true);
 
     try {
       engine.process(block);
@@ -770,27 +787,29 @@ setup();
       Assertions.fail(ex);
     }
     verify(seenEntities, never()).add(any());
-  }*/
+  }
 
   @Test
   public void testReceiveBlockAllTransactionsNotSound() {
     Identifier proposer = accounts2.get(propInd).getIdentifier();
     Block block = BlockFixture.newBlock(proposer, block2.id(), block2.getHeight() + 1, snapshot2.all());
     when(network.register(any(ValidatorEngine.class), eq(Channels.ProposedBlocks))).thenReturn(blockConduit);
-    engine = new ValidatorEngine(network, local, state, seenEntities);
+    engine = new ValidatorEngine(network, local, state, seenEntities,
+            incomingBlockCount, incomingTransactionCount,
+            validBlocks, validTransactions);
 
     for (Transaction transaction : block.getTransactions()) {
       when(state.atBlockId(transaction.getReferenceBlockId())
-          .getAccount(transaction.getSender())
-          .getPublicKey().verifySignature(transaction, transaction.getSignature()))
-          .thenReturn(true);
+              .getAccount(transaction.getSender())
+              .getPublicKey().verifySignature(transaction, transaction.getSignature()))
+              .thenReturn(true);
     }
     when(state.atBlockId(snapshot2.getAccount(block.getTransactions()[0].getSender()).getLastBlockId())
-        .getReferenceBlockHeight()).thenReturn((long) block2.getHeight() * 2 + 10);
+            .getReferenceBlockHeight()).thenReturn((long) block2.getHeight() * 2 + 10);
     when(state.atBlockId(block.getPreviousBlockId())
-        .getAccount(block.getProposer())
-        .getPublicKey()
-        .verifySignature(block, block.getSignature())).thenReturn(true);
+            .getAccount(block.getProposer())
+            .getPublicKey()
+            .verifySignature(block, block.getSignature())).thenReturn(true);
 
     try {
       engine.process(block);
@@ -807,20 +826,22 @@ setup();
     Identifier proposer = accounts2.get(propInd).getIdentifier();
     Block block = BlockFixture.newBlock(proposer, block2.id(), block2.getHeight() + 1, snapshot2.all());
     when(network.register(any(ValidatorEngine.class), eq(Channels.ProposedBlocks))).thenReturn(blockConduit);
-    engine = new ValidatorEngine(network, local, state, seenEntities);
+    engine = new ValidatorEngine(network, local, state, seenEntities,
+            incomingBlockCount, incomingTransactionCount,
+            validBlocks, validTransactions);
 
     for (Transaction transaction : block.getTransactions()) {
       when(state.atBlockId(transaction.getReferenceBlockId())
-          .getAccount(transaction.getSender())
-          .getPublicKey().verifySignature(transaction, transaction.getSignature()))
-          .thenReturn(true);
+              .getAccount(transaction.getSender())
+              .getPublicKey().verifySignature(transaction, transaction.getSignature()))
+              .thenReturn(true);
     }
     when(snapshot2.getAccount(block.getTransactions()[0].getSender())).
-        thenReturn(accounts2.get(accounts2.indexOf(block.getTransactions()[1].getSender())));
+            thenReturn(accounts2.get(accounts2.indexOf(block.getTransactions()[1].getSender())));
     when(state.atBlockId(block.getPreviousBlockId())
-        .getAccount(block.getProposer())
-        .getPublicKey()
-        .verifySignature(block, block.getSignature())).thenReturn(true);
+            .getAccount(block.getProposer())
+            .getPublicKey()
+            .verifySignature(block, block.getSignature())).thenReturn(true);
 
     try {
       engine.process(block);
@@ -837,18 +858,19 @@ setup();
   public void testReceiveOneValidTransaction() {
     // Register the network adapter with the network and create engine.
     when(network.register(any(ValidatorEngine.class), eq(Channels.ProposedTransactions))).thenReturn(txConduit);
-    engine = new ValidatorEngine(network, local, state, seenEntities, incomingBlockCount,
-            incomingTransactionCount, validBlocks, validTransactions);
+    engine = new ValidatorEngine(network, local, state, seenEntities,
+            incomingBlockCount, incomingTransactionCount,
+            validBlocks, validTransactions);
 
     Identifier signerId = snapshot2.all().get(random.nextInt(accounts2.size())).getIdentifier();
     Transaction transaction = TransactionFixture.newTransaction(
-        block2.id(),
-        snapshot2.all().get(0).getIdentifier(),
-        snapshot2.all().get(1).getIdentifier(),
-        signerId);
+            block2.id(),
+            snapshot2.all().get(0).getIdentifier(),
+            snapshot2.all().get(1).getIdentifier(),
+            signerId);
 
     when(state.atBlockId(transaction.getReferenceBlockId()).getAccount(transaction.getSender()).getPublicKey()
-        .verifySignature(transaction, transaction.getSignature())).thenReturn(true);
+            .verifySignature(transaction, transaction.getSignature())).thenReturn(true);
     snapshot2.all().get(0).setBalance(transaction.getAmount() * 10 + 1);
 
     try {
@@ -873,20 +895,21 @@ setup();
 
     // Register the network adapter with the network and create engine.
     when(network.register(any(ValidatorEngine.class), eq(Channels.ProposedTransactions))).thenReturn(txConduit);
-    engine = new ValidatorEngine(network, local, state, seenEntities, incomingBlockCount,
-            incomingTransactionCount, validBlocks, validTransactions);
+    engine = new ValidatorEngine(network, local, state, seenEntities,
+            incomingBlockCount, incomingTransactionCount,
+            validBlocks, validTransactions);
 
     Identifier signerId = snapshot2.all().get(random.nextInt(accounts2.size())).getIdentifier();
     ArrayList<Transaction> transactions = new ArrayList<>();
     for (int i = 0; i < 2; i++) {
       Transaction transaction = TransactionFixture.newTransaction(
-          block2.id(),
-          snapshot2.all().get(i).getIdentifier(),
-          snapshot2.all().get(i + 1).getIdentifier(),
-          signerId);
+              block2.id(),
+              snapshot2.all().get(i).getIdentifier(),
+              snapshot2.all().get(i + 1).getIdentifier(),
+              signerId);
       transactions.add(transaction);
       when(state.atBlockId(transaction.getReferenceBlockId()).getAccount(transaction.getSender()).getPublicKey()
-          .verifySignature(transaction, transaction.getSignature())).thenReturn(true);
+              .verifySignature(transaction, transaction.getSignature())).thenReturn(true);
       snapshot2.all().get(i).setBalance(transaction.getAmount() * 10 + 1);
     }
 
@@ -909,20 +932,21 @@ setup();
 
     // Register the network adapter with the network and create engine.
     when(network.register(any(ValidatorEngine.class), eq(Channels.ProposedTransactions))).thenReturn(txConduit);
-    engine = new ValidatorEngine(network, local, state, seenEntities, incomingBlockCount,
-            incomingTransactionCount, validBlocks, validTransactions);
+    engine = new ValidatorEngine(network, local, state, seenEntities,
+            incomingBlockCount, incomingTransactionCount,
+            validBlocks, validTransactions);
 
     Identifier signerId = snapshot2.all().get(random.nextInt(accounts2.size())).getIdentifier();
     ArrayList<Transaction> transactions = new ArrayList<>();
     for (int i = 0; i < 2; i++) {
       Transaction transaction = TransactionFixture.newTransaction(
-          block2.id(),
-          snapshot2.all().get(i).getIdentifier(),
-          snapshot2.all().get(i + 1).getIdentifier(),
-          signerId);
+              block2.id(),
+              snapshot2.all().get(i).getIdentifier(),
+              snapshot2.all().get(i + 1).getIdentifier(),
+              signerId);
       transactions.add(transaction);
       when(state.atBlockId(transaction.getReferenceBlockId()).getAccount(transaction.getSender()).getPublicKey()
-          .verifySignature(transaction, transaction.getSignature())).thenReturn(true);
+              .verifySignature(transaction, transaction.getSignature())).thenReturn(true);
       snapshot2.all().get(i).setBalance(transaction.getAmount() * 10 + 1);
     }
 
@@ -973,18 +997,19 @@ setup();
 
     // Register the network adapter with the network and create engine.
     when(network.register(any(ValidatorEngine.class), eq(Channels.ProposedTransactions))).thenReturn(txConduit);
-    engine = new ValidatorEngine(network, local, state, seenEntities, incomingBlockCount,
-            incomingTransactionCount, validBlocks, validTransactions);
+    engine = new ValidatorEngine(network, local, state, seenEntities,
+            incomingBlockCount, incomingTransactionCount,
+            validBlocks, validTransactions);
 
     Identifier signerId = snapshot2.all().get(random.nextInt(accounts2.size())).getIdentifier();
     ArrayList<Transaction> transactions = new ArrayList<>();
     Transaction transaction = TransactionFixture.newTransaction(
-        block2.id(),
-        snapshot2.all().get(0).getIdentifier(),
-        snapshot2.all().get(1).getIdentifier(),
-        signerId);
+            block2.id(),
+            snapshot2.all().get(0).getIdentifier(),
+            snapshot2.all().get(1).getIdentifier(),
+            signerId);
     when(state.atBlockId(transaction.getReferenceBlockId()).getAccount(transaction.getSender()).getPublicKey()
-        .verifySignature(transaction, transaction.getSignature())).thenReturn(true);
+            .verifySignature(transaction, transaction.getSignature())).thenReturn(true);
     snapshot2.all().get(0).setBalance(transaction.getAmount() * 10 + 1);
 
     for (int i = 0; i < 2; i++) {
@@ -1025,18 +1050,19 @@ setup();
 
     // Register the network adapter with the network and create engine.
     when(network.register(any(ValidatorEngine.class), eq(Channels.ProposedTransactions))).thenReturn(txConduit);
-    engine = new ValidatorEngine(network, local, state, seenEntities, incomingBlockCount,
-            incomingTransactionCount, validBlocks, validTransactions);
+    engine = new ValidatorEngine(network, local, state, seenEntities,
+            incomingBlockCount, incomingTransactionCount,
+            validBlocks, validTransactions);
 
     Identifier signerId = snapshot2.all().get(random.nextInt(accounts2.size())).getIdentifier();
     ArrayList<Transaction> transactions = new ArrayList<>();
     Transaction transaction = TransactionFixture.newTransaction(
-        block2.id(),
-        snapshot2.all().get(0).getIdentifier(),
-        snapshot2.all().get(1).getIdentifier(),
-        signerId);
+            block2.id(),
+            snapshot2.all().get(0).getIdentifier(),
+            snapshot2.all().get(1).getIdentifier(),
+            signerId);
     when(state.atBlockId(transaction.getReferenceBlockId()).getAccount(transaction.getSender()).getPublicKey()
-        .verifySignature(transaction, transaction.getSignature())).thenReturn(true);
+            .verifySignature(transaction, transaction.getSignature())).thenReturn(true);
     snapshot2.all().get(0).setBalance(transaction.getAmount() * 10 + 1);
 
     for (int i = 0; i < 2; i++) {
@@ -1104,8 +1130,10 @@ setup();
 
     // Register the network adapter with the network and create engine.
     when(network.register(any(ValidatorEngine.class), eq(Channels.ProposedTransactions))).thenReturn(txConduit);
-    engine = new ValidatorEngine(network, local, state, seenEntities, incomingBlockCount,
-            incomingTransactionCount, validBlocks, validTransactions);
+    engine = new ValidatorEngine(network, local, state, seenEntities,
+            incomingBlockCount, incomingTransactionCount,
+            validBlocks, validTransactions);
+
     // An entity which is neither block nor transaction.
     Entity ent = new EntityFixture();
     try {
@@ -1122,8 +1150,9 @@ setup();
 
     // Register the network adapter with the network and create engine.
     when(network.register(any(ValidatorEngine.class), eq(Channels.ProposedBlocks))).thenReturn(blockConduit);
-    engine = new ValidatorEngine(network, local, state, seenEntities, incomingBlockCount,
-            incomingTransactionCount, validBlocks, validTransactions);
+    engine = new ValidatorEngine(network, local, state, seenEntities,
+            incomingBlockCount, incomingTransactionCount,
+            validBlocks, validTransactions);
 
     // An entity which is neither block nor transaction.
     Signature signature = SignatureFixture.newSignatureFixture();
@@ -1141,18 +1170,19 @@ setup();
 
     // Register the network adapter with the network and create engine.
     when(network.register(any(ValidatorEngine.class), eq(Channels.ProposedTransactions))).thenReturn(txConduit);
-    engine = new ValidatorEngine(network, local, state, seenEntities, incomingBlockCount,
-            incomingTransactionCount, validBlocks, validTransactions);
+    engine = new ValidatorEngine(network, local, state, seenEntities,
+            incomingBlockCount, incomingTransactionCount,
+            validBlocks, validTransactions);
 
     Identifier signerId = snapshot2.all().get(random.nextInt(accounts1.size())).getIdentifier();
     ArrayList<Transaction> transactions = new ArrayList<>();
     Transaction transaction = TransactionFixture.newTransaction(
-        block2.id(),
-        snapshot2.all().get(0).getIdentifier(),
-        snapshot2.all().get(1).getIdentifier(),
-        signerId);
+            block2.id(),
+            snapshot2.all().get(0).getIdentifier(),
+            snapshot2.all().get(1).getIdentifier(),
+            signerId);
     when(state.atBlockId(transaction.getReferenceBlockId()).getAccount(transaction.getSender()).getPublicKey()
-        .verifySignature(transaction, transaction.getSignature())).thenReturn(true);
+            .verifySignature(transaction, transaction.getSignature())).thenReturn(true);
     snapshot2.all().get(0).setBalance(transaction.getAmount() * 10 + 1);
 
     for (int i = 0; i < 2; i++) {
@@ -1193,8 +1223,9 @@ setup();
 
     // Register the network adapter with the network and create engine.
     when(network.register(any(ValidatorEngine.class), eq(Channels.ProposedTransactions))).thenReturn(txConduit);
-    engine = new ValidatorEngine(network, local, state, seenEntities, incomingBlockCount,
-            incomingTransactionCount, validBlocks, validTransactions);
+    engine = new ValidatorEngine(network, local, state, seenEntities,
+            incomingBlockCount, incomingTransactionCount,
+            validBlocks, validTransactions);
 
     Identifier invalidSender = IdentifierFixture.newIdentifier();
     while (accounts2.contains(invalidSender)) {
@@ -1202,10 +1233,10 @@ setup();
     }
     Identifier signerId = snapshot2.all().get(random.nextInt(accounts2.size())).getIdentifier();
     Transaction transaction = TransactionFixture.newTransaction(
-        block2.id(),
-        invalidSender,
-        snapshot2.all().get(1).getIdentifier(),
-        signerId);
+            block2.id(),
+            invalidSender,
+            snapshot2.all().get(1).getIdentifier(),
+            signerId);
     try {
       engine.process(transaction);
     } catch (IllegalArgumentException ex) {
@@ -1222,8 +1253,9 @@ setup();
 
     // Register the network adapter with the network and create engine.
     when(network.register(any(ValidatorEngine.class), eq(Channels.ProposedTransactions))).thenReturn(txConduit);
-    engine = new ValidatorEngine(network, local, state, seenEntities, incomingBlockCount,
-            incomingTransactionCount, validBlocks, validTransactions);
+    engine = new ValidatorEngine(network, local, state, seenEntities,
+            incomingBlockCount, incomingTransactionCount,
+            validBlocks, validTransactions);
 
     Identifier invalidReceiver = IdentifierFixture.newIdentifier();
     while (accounts2.contains(invalidReceiver)) {
@@ -1231,10 +1263,10 @@ setup();
     }
     Identifier signerId = snapshot2.all().get(random.nextInt(accounts2.size())).getIdentifier();
     Transaction transaction = TransactionFixture.newTransaction(
-        block2.id(),
-        snapshot2.all().get(0).getIdentifier(),
-        invalidReceiver,
-        signerId);
+            block2.id(),
+            snapshot2.all().get(0).getIdentifier(),
+            invalidReceiver,
+            signerId);
 
     try {
       engine.process(transaction);
@@ -1252,19 +1284,20 @@ setup();
 
     // Register the network adapter with the network and create engine.
     when(network.register(any(ValidatorEngine.class), eq(Channels.ProposedTransactions))).thenReturn(txConduit);
-    engine = new ValidatorEngine(network, local, state, seenEntities, incomingBlockCount,
-            incomingTransactionCount, validBlocks, validTransactions);
+    engine = new ValidatorEngine(network, local, state, seenEntities,
+            incomingBlockCount, incomingTransactionCount,
+            validBlocks, validTransactions);
 
     Identifier signerId = snapshot2.all().get(random.nextInt(accounts2.size())).getIdentifier();
     Transaction transaction = TransactionFixture.newTransaction(
-        block2.id(),
-        snapshot2.all().get(0).getIdentifier(),
-        snapshot2.all().get(1).getIdentifier(),
-        signerId,
-        -5);
+            block2.id(),
+            snapshot2.all().get(0).getIdentifier(),
+            snapshot2.all().get(1).getIdentifier(),
+            signerId,
+            -5);
 
     when(state.atBlockId(transaction.getReferenceBlockId()).getAccount(transaction.getSender()).getPublicKey()
-        .verifySignature(transaction, transaction.getSignature())).thenReturn(true);
+            .verifySignature(transaction, transaction.getSignature())).thenReturn(true);
 
     try {
       engine.process(transaction);
@@ -1282,22 +1315,23 @@ setup();
 
     // Register the network adapter with the network and create engine.
     when(network.register(any(ValidatorEngine.class), eq(Channels.ProposedTransactions))).thenReturn(txConduit);
-    engine = new ValidatorEngine(network, local, state, seenEntities, incomingBlockCount,
-            incomingTransactionCount, validBlocks, validTransactions);
+    engine = new ValidatorEngine(network, local, state, seenEntities,
+            incomingBlockCount, incomingTransactionCount,
+            validBlocks, validTransactions);
 
     Identifier signerId = snapshot2.all().get(random.nextInt(accounts2.size())).getIdentifier();
     Transaction transaction = TransactionFixture.newTransaction(
-        block2.id(),
-        snapshot2.all().get(0).getIdentifier(),
-        snapshot2.all().get(1).getIdentifier(),
-        signerId);
+            block2.id(),
+            snapshot2.all().get(0).getIdentifier(),
+            snapshot2.all().get(1).getIdentifier(),
+            signerId);
 
     snapshot2.getAccount(transaction.getSender()).setBalance(transaction.getAmount() * 5 + 5);
     when(state.atBlockId(transaction.getReferenceBlockId()).getAccount(transaction.getSender()).getPublicKey()
-        .verifySignature(transaction, transaction.getSignature())).thenReturn(true);
+            .verifySignature(transaction, transaction.getSignature())).thenReturn(true);
 
     when(state.atBlockId(snapshot2.getAccount(transaction.getSender()).getLastBlockId()).getReferenceBlockHeight())
-        .thenReturn((long) block2.getHeight() + 5);
+            .thenReturn((long) block2.getHeight() + 5);
 
     try {
       engine.process(transaction);
@@ -1315,19 +1349,20 @@ setup();
 
     // Register the network adapter with the network and create engine.
     when(network.register(any(ValidatorEngine.class), eq(Channels.ProposedTransactions))).thenReturn(txConduit);
-    engine = new ValidatorEngine(network, local, state, seenEntities, incomingBlockCount,
-            incomingTransactionCount, validBlocks, validTransactions);
+    engine = new ValidatorEngine(network, local, state, seenEntities,
+            incomingBlockCount, incomingTransactionCount,
+            validBlocks, validTransactions);
 
     Identifier signerId = snapshot2.all().get(random.nextInt(accounts2.size())).getIdentifier();
     Transaction transaction = TransactionFixture.newTransaction(
-        block2.id(),
-        snapshot2.all().get(0).getIdentifier(),
-        snapshot2.all().get(1).getIdentifier(),
-        signerId);
+            block2.id(),
+            snapshot2.all().get(0).getIdentifier(),
+            snapshot2.all().get(1).getIdentifier(),
+            signerId);
 
     snapshot2.getAccount(transaction.getSender()).setBalance(transaction.getAmount() * 5 + 5);
     when(state.atBlockId(transaction.getReferenceBlockId()).getAccount(transaction.getSender()).getPublicKey()
-        .verifySignature(transaction, transaction.getSignature())).thenReturn(false);
+            .verifySignature(transaction, transaction.getSignature())).thenReturn(false);
 
     try {
       engine.process(transaction);
@@ -1345,19 +1380,20 @@ setup();
 
     // Register the network adapter with the network and create engine.
     when(network.register(any(ValidatorEngine.class), eq(Channels.ProposedTransactions))).thenReturn(txConduit);
-    engine = new ValidatorEngine(network, local, state, seenEntities, incomingBlockCount,
-            incomingTransactionCount, validBlocks, validTransactions);
+    engine = new ValidatorEngine(network, local, state, seenEntities,
+            incomingBlockCount, incomingTransactionCount,
+            validBlocks, validTransactions);
 
     Identifier signerId = snapshot2.all().get(random.nextInt(accounts2.size())).getIdentifier();
     Transaction transaction = TransactionFixture.newTransaction(
-        block2.id(),
-        snapshot2.all().get(0).getIdentifier(),
-        snapshot2.all().get(1).getIdentifier(),
-        signerId);
+            block2.id(),
+            snapshot2.all().get(0).getIdentifier(),
+            snapshot2.all().get(1).getIdentifier(),
+            signerId);
 
     snapshot2.getAccount(transaction.getSender()).setBalance(transaction.getAmount() - 5);
     when(state.atBlockId(transaction.getReferenceBlockId()).getAccount(transaction.getSender()).getPublicKey()
-        .verifySignature(transaction, transaction.getSignature())).thenReturn(true);
+            .verifySignature(transaction, transaction.getSignature())).thenReturn(true);
 
     try {
       engine.process(transaction);
