@@ -58,7 +58,6 @@ public class TransactionsTest {
    * adding transactions is done, querying the Has method for each of the transaction should return true. Also, when
    * querying All method, list of all 10 transactions must be returned. Moreover, all transactions should be
    * retrievable through get method.
-   *
    */
   @Test
   void sequentialAddTest() {
@@ -107,7 +106,7 @@ public class TransactionsTest {
    * While Removing each of them, the Remove should return true. Then query all 10 transactions using has, get.
    */
   @Test
-  void removeFirstFiveTest()  {
+  void removeFirstFiveTest() {
     for (Transaction transaction : allTransactions) {
       Assertions.assertTrue(db.add(transaction));
     }
@@ -366,7 +365,7 @@ public class TransactionsTest {
       });
     }
 
-    for (Thread t: getThreads) {
+    for (Thread t : getThreads) {
       t.start();
     }
     try {
