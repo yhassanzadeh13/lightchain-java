@@ -1,6 +1,5 @@
 package model.lightchain;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
@@ -8,7 +7,7 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 /**
  * Represents an aggregated type for identifiers.
  */
-public class Identifiers implements Serializable {
+public class Identifiers {
   private final ArrayList<Identifier> identifiers;
 
   public Identifiers() {
