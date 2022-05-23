@@ -173,7 +173,7 @@ public class DistributedMapDbTest {
   }
 
   /**
-   * Removes entities from blocks storage database till the given index concurrently.
+   * Removes entities from distributed storage database till the given index concurrently.
    *
    * @param till exclusive index of the last entity being removed.
    */
