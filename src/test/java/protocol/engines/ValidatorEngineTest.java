@@ -11,7 +11,6 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 import model.Entity;
-import model.crypto.PrivateKey;
 import model.crypto.Signature;
 import model.exceptions.LightChainDistributedStorageException;
 import model.lightchain.Account;
@@ -23,7 +22,6 @@ import network.Channels;
 import network.Network;
 import network.NetworkAdapter;
 import networking.MockConduit;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.jupiter.api.Assertions;
 import org.mockito.invocation.InvocationOnMock;
@@ -86,7 +84,7 @@ public class ValidatorEngineTest {
     Block block2 = BlockFixture.newBlock(block1.id(), block1.getHeight() + 1);
 
     ArrayList<Account>[] a = AccountFixture.newAccounts(local.myId(), genesis.id(),
-        block1.id(), 10, 10);
+            block1.id(), 10, 10);
     ArrayList<Account> accounts1 = a[0];
     ArrayList<Account> accounts2 = a[1];
 
@@ -134,14 +132,14 @@ public class ValidatorEngineTest {
 
     for (Transaction transaction : block.getTransactions()) {
       when(state.atBlockId(transaction.getReferenceBlockId())
-          .getAccount(transaction.getSender())
-          .getPublicKey().verifySignature(transaction, transaction.getSignature()))
-          .thenReturn(true);
+              .getAccount(transaction.getSender())
+              .getPublicKey().verifySignature(transaction, transaction.getSignature()))
+              .thenReturn(true);
     }
     when(state.atBlockId(block.getPreviousBlockId())
-        .getAccount(block.getProposer())
-        .getPublicKey()
-        .verifySignature(block, block.getSignature())).thenReturn(true);
+            .getAccount(block.getProposer())
+            .getPublicKey()
+            .verifySignature(block, block.getSignature())).thenReturn(true);
 
     try {
       engine.process(block);
@@ -159,7 +157,6 @@ public class ValidatorEngineTest {
     }
   }
 
-
   @Test
   public void testReceiveTwoValidBlocksSequentially() {
     Local local = new Local(IdentifierFixture.newIdentifier(), KeyGenFixture.newKeyGen().getPrivateKey());
@@ -172,7 +169,7 @@ public class ValidatorEngineTest {
     Block block2 = BlockFixture.newBlock(block1.id(), block1.getHeight() + 1);
 
     ArrayList<Account>[] a = AccountFixture.newAccounts(local.myId(), genesis.id(),
-        block1.id(), 10, 10);
+            block1.id(), 10, 10);
     ArrayList<Account> accounts1 = a[0];
     ArrayList<Account> accounts2 = a[1];
 
@@ -212,19 +209,19 @@ public class ValidatorEngineTest {
     while (accounts2.get(propInd).getStake() < Parameters.MINIMUM_STAKE) {
       propInd = random.nextInt(accounts2.size());
     }
-    Identifiers seenEntities = mock(Identifiers.class);
     Identifier proposer = accounts2.get(propInd).getIdentifier();
     Block[] blocks = new Block[2];
     blocks[0] = BlockFixture.newBlock(proposer, block2.id(), block2.getHeight() + 1, snapshot2.all());
     blocks[1] = BlockFixture.newBlock(proposer, block2.id(), block2.getHeight() + 1, snapshot2.all());
+    Identifiers seenEntities = mock(Identifiers.class);
 
     when(network.register(any(ValidatorEngine.class), eq(Channels.ProposedBlocks))).thenReturn(blockConduit);
     engine = new ValidatorEngine(network, local, state, seenEntities);
     for (int i = 0; i < 2; i++) {
       when(state.atBlockId(blocks[i].getPreviousBlockId())
-          .getAccount(blocks[i].getProposer())
-          .getPublicKey()
-          .verifySignature(blocks[i], blocks[i].getSignature())).thenReturn(true);
+              .getAccount(blocks[i].getProposer())
+              .getPublicKey()
+              .verifySignature(blocks[i], blocks[i].getSignature())).thenReturn(true);
       try {
         engine.process(blocks[i]);
       } catch (IllegalArgumentException ex) {
@@ -253,7 +250,7 @@ public class ValidatorEngineTest {
     Block block2 = BlockFixture.newBlock(block1.id(), block1.getHeight() + 1);
 
     ArrayList<Account>[] a = AccountFixture.newAccounts(local.myId(), genesis.id(),
-        block1.id(), 10, 10);
+            block1.id(), 10, 10);
     ArrayList<Account> accounts1 = a[0];
     ArrayList<Account> accounts2 = a[1];
 
@@ -293,20 +290,20 @@ public class ValidatorEngineTest {
     while (accounts2.get(propInd).getStake() < Parameters.MINIMUM_STAKE) {
       propInd = random.nextInt(accounts2.size());
     }
-    Identifiers seenEntities = mock(Identifiers.class);
     Identifier proposer = accounts2.get(propInd).getIdentifier();
     Block[] blocks = new Block[2];
     blocks[0] = BlockFixture.newBlock(proposer, block2.id(), block2.getHeight() + 1, snapshot2.all());
     blocks[1] = BlockFixture.newBlock(proposer, block2.id(), block2.getHeight() + 1, snapshot2.all());
+    Identifiers seenEntities = mock(Identifiers.class);
 
     when(network.register(any(ValidatorEngine.class), eq(Channels.ProposedBlocks))).thenReturn(blockConduit);
     engine = new ValidatorEngine(network, local, state, seenEntities);
 
     for (int i = 0; i < 2; i++) {
       when(state.atBlockId(blocks[i].getPreviousBlockId())
-          .getAccount(blocks[i].getProposer())
-          .getPublicKey()
-          .verifySignature(blocks[i], blocks[i].getSignature())).thenReturn(true);
+              .getAccount(blocks[i].getProposer())
+              .getPublicKey()
+              .verifySignature(blocks[i], blocks[i].getSignature())).thenReturn(true);
     }
 
     // Act
@@ -363,7 +360,7 @@ public class ValidatorEngineTest {
     Block block2 = BlockFixture.newBlock(block1.id(), block1.getHeight() + 1);
 
     ArrayList<Account>[] a = AccountFixture.newAccounts(local.myId(), genesis.id(),
-        block1.id(), 10, 10);
+            block1.id(), 10, 10);
     ArrayList<Account> accounts1 = a[0];
     ArrayList<Account> accounts2 = a[1];
 
@@ -415,9 +412,9 @@ public class ValidatorEngineTest {
     blocks[0] = b;
     blocks[1] = b;
     when(state.atBlockId(blocks[0].getPreviousBlockId())
-        .getAccount(blocks[0].getProposer())
-        .getPublicKey()
-        .verifySignature(blocks[0], blocks[0].getSignature())).thenReturn(true);
+            .getAccount(blocks[0].getProposer())
+            .getPublicKey()
+            .verifySignature(blocks[0], blocks[0].getSignature())).thenReturn(true);
 
     final boolean[] called = {false};
     when(seenEntities.add(blocks[0].id())).thenAnswer(new Answer() {
@@ -460,7 +457,7 @@ public class ValidatorEngineTest {
     Block block2 = BlockFixture.newBlock(block1.id(), block1.getHeight() + 1);
 
     ArrayList<Account>[] a = AccountFixture.newAccounts(local.myId(), genesis.id(),
-        block1.id(), 10, 10);
+            block1.id(), 10, 10);
     ArrayList<Account> accounts1 = a[0];
     ArrayList<Account> accounts2 = a[1];
 
@@ -510,9 +507,9 @@ public class ValidatorEngineTest {
     blocks[0] = b;
     blocks[1] = b;
     when(state.atBlockId(blocks[0].getPreviousBlockId())
-        .getAccount(blocks[0].getProposer())
-        .getPublicKey()
-        .verifySignature(blocks[0], blocks[0].getSignature())).thenReturn(true);
+            .getAccount(blocks[0].getProposer())
+            .getPublicKey()
+            .verifySignature(blocks[0], blocks[0].getSignature())).thenReturn(true);
 
     final boolean[] called = {false};
     when(seenEntities.add(blocks[0].id())).thenAnswer(new Answer() {
@@ -586,11 +583,9 @@ public class ValidatorEngineTest {
     Block block2 = BlockFixture.newBlock(block1.id(), block1.getHeight() + 1);
 
     ArrayList<Account>[] a = AccountFixture.newAccounts(local.myId(), genesis.id(),
-        block1.id(), 10, 10);
+            block1.id(), 10, 10);
     ArrayList<Account> accounts1 = a[0];
     ArrayList<Account> accounts2 = a[1];
-    ArrayList<Account> accountsNoCurrent = a[2];
-
 
     /// State and Snapshots
     State state = mock(State.class);
@@ -628,28 +623,29 @@ public class ValidatorEngineTest {
     while (accounts2.get(propInd).getStake() < Parameters.MINIMUM_STAKE) {
       propInd = random.nextInt(accounts2.size());
     }
-    Identifiers seenEntities = mock(Identifiers.class);
 
+    ArrayList<Account> accountsNoCurrent = a[2];
     when(snapshot2.all()).thenReturn(accountsNoCurrent);
     when(network.register(any(ValidatorEngine.class), eq(Channels.ProposedTransactions))).thenReturn(txConduit);
     when(network.register(any(ValidatorEngine.class), eq(Channels.ProposedBlocks))).thenReturn(blockConduit);
+    Identifiers seenEntities = mock(Identifiers.class);
     engine = new ValidatorEngine(network, local, state, seenEntities);
     Identifier proposer = accounts2.get(propInd).getIdentifier();
     Block b = BlockFixture.newBlock(proposer, block2.id(), block2.getHeight() + 1, snapshot2.all());
 
     when(state.atBlockId(b.getPreviousBlockId())
-        .getAccount(b.getProposer())
-        .getPublicKey()
-        .verifySignature(b, b.getSignature())).thenReturn(true);
+            .getAccount(b.getProposer())
+            .getPublicKey()
+            .verifySignature(b, b.getSignature())).thenReturn(true);
 
     Identifier signerId = snapshot2.all().get(random.nextInt(accountsNoCurrent.size())).getIdentifier();
     Transaction tx = TransactionFixture.newTransaction(
-        block2.id(),
-        snapshot2.all().get(0).getIdentifier(),
-        snapshot2.all().get(1).getIdentifier(),
-        signerId);
+            block2.id(),
+            snapshot2.all().get(0).getIdentifier(),
+            snapshot2.all().get(1).getIdentifier(),
+            signerId);
     when(state.atBlockId(tx.getReferenceBlockId()).getAccount(tx.getSender()).getPublicKey()
-        .verifySignature(tx, tx.getSignature())).thenReturn(true);
+            .verifySignature(tx, tx.getSignature())).thenReturn(true);
     snapshot2.all().get(0).setBalance(tx.getAmount() * 10 + 1);
 
     // Act
@@ -713,10 +709,10 @@ public class ValidatorEngineTest {
     Block block2 = BlockFixture.newBlock(block1.id(), block1.getHeight() + 1);
 
     ArrayList<Account>[] a = AccountFixture.newAccounts(local.myId(), genesis.id(),
-        block1.id(), 10, 10);
+            block1.id(), 10, 10);
     ArrayList<Account> accounts1 = a[0];
     ArrayList<Account> accounts2 = a[1];
-    ArrayList<Account> accountsNoCurrent = a[2];
+
     /// State and Snapshots
     State state = mock(State.class);
     Snapshot genesisSnapshot = mock(Snapshot.class);
@@ -753,28 +749,29 @@ public class ValidatorEngineTest {
     while (accounts2.get(propInd).getStake() < Parameters.MINIMUM_STAKE) {
       propInd = random.nextInt(accounts2.size());
     }
-    Identifiers seenEntities = mock(Identifiers.class);
 
+    ArrayList<Account> accountsNoCurrent = a[2];
     when(snapshot2.all()).thenReturn(accountsNoCurrent);
     when(network.register(any(ValidatorEngine.class), eq(Channels.ProposedTransactions))).thenReturn(txConduit);
     when(network.register(any(ValidatorEngine.class), eq(Channels.ProposedBlocks))).thenReturn(blockConduit);
+    Identifiers seenEntities = mock(Identifiers.class);
     engine = new ValidatorEngine(network, local, state, seenEntities);
     Identifier proposer = accounts2.get(propInd).getIdentifier();
     Block b = BlockFixture.newBlock(proposer, block2.id(), block2.getHeight() + 1, snapshot2.all());
 
     when(state.atBlockId(b.getPreviousBlockId())
-        .getAccount(b.getProposer())
-        .getPublicKey()
-        .verifySignature(b, b.getSignature())).thenReturn(true);
+            .getAccount(b.getProposer())
+            .getPublicKey()
+            .verifySignature(b, b.getSignature())).thenReturn(true);
 
     Identifier signerId = snapshot2.all().get(random.nextInt(accountsNoCurrent.size())).getIdentifier();
     Transaction tx = TransactionFixture.newTransaction(
-        block2.id(),
-        snapshot2.all().get(0).getIdentifier(),
-        snapshot2.all().get(1).getIdentifier(),
-        signerId);
+            block2.id(),
+            snapshot2.all().get(0).getIdentifier(),
+            snapshot2.all().get(1).getIdentifier(),
+            signerId);
     when(state.atBlockId(tx.getReferenceBlockId()).getAccount(tx.getSender()).getPublicKey()
-        .verifySignature(tx, tx.getSignature())).thenReturn(true);
+            .verifySignature(tx, tx.getSignature())).thenReturn(true);
     snapshot2.all().get(0).setBalance(tx.getAmount() * 10 + 1);
 
     try {
@@ -806,7 +803,7 @@ public class ValidatorEngineTest {
     Block block2 = BlockFixture.newBlock(block1.id(), block1.getHeight() + 1);
 
     ArrayList<Account>[] a = AccountFixture.newAccounts(local.myId(), genesis.id(),
-        block1.id(), 10, 10);
+            block1.id(), 10, 10);
     ArrayList<Account> accounts1 = a[0];
     ArrayList<Account> accounts2 = a[1];
 
@@ -880,7 +877,7 @@ public class ValidatorEngineTest {
     Block block2 = BlockFixture.newBlock(block1.id(), block1.getHeight() + 1);
 
     ArrayList<Account>[] a = AccountFixture.newAccounts(local.myId(), genesis.id(),
-        block1.id(), 10, 10);
+            block1.id(), 10, 10);
     ArrayList<Account> accounts1 = a[0];
     ArrayList<Account> accounts2 = a[1];
 
@@ -950,7 +947,7 @@ public class ValidatorEngineTest {
     Block block2 = BlockFixture.newBlock(block1.id(), block1.getHeight() + 1);
 
     ArrayList<Account>[] a = AccountFixture.newAccounts(local.myId(), genesis.id(),
-        block1.id(), 10, 10);
+            block1.id(), 10, 10);
     ArrayList<Account> accounts1 = a[0];
     ArrayList<Account> accounts2 = a[1];
 
@@ -991,17 +988,17 @@ public class ValidatorEngineTest {
       propInd = random.nextInt(accounts2.size());
     }
     Identifiers seenEntities = mock(Identifiers.class);
-    Block block = BlockFixture.newBlock(accounts2.get(propInd).getIdentifier()
-        , block2.id()
-        , block2.getHeight() + 1
-        , snapshot2.all()
-        , Parameters.MIN_TRANSACTIONS_NUM - 1);
+    Block block = BlockFixture.newBlock(accounts2.get(propInd).getIdentifier(),
+            block2.id(),
+            block2.getHeight() + 1,
+            snapshot2.all(),
+            Parameters.MIN_TRANSACTIONS_NUM - 1);
     when(network.register(any(ValidatorEngine.class), eq(Channels.ProposedBlocks))).thenReturn(blockConduit);
     engine = new ValidatorEngine(network, local, state, seenEntities);
     when(state.atBlockId(block.getPreviousBlockId())
-        .getAccount(block.getProposer())
-        .getPublicKey()
-        .verifySignature(block, block.getSignature())).thenReturn(true);
+            .getAccount(block.getProposer())
+            .getPublicKey()
+            .verifySignature(block, block.getSignature())).thenReturn(true);
 
     try {
       engine.process(block);
@@ -1026,7 +1023,7 @@ public class ValidatorEngineTest {
     Block block2 = BlockFixture.newBlock(block1.id(), block1.getHeight() + 1);
 
     ArrayList<Account>[] a = AccountFixture.newAccounts(local.myId(), genesis.id(),
-        block1.id(), 10, 10);
+            block1.id(), 10, 10);
     ArrayList<Account> accounts1 = a[0];
     ArrayList<Account> accounts2 = a[1];
 
@@ -1067,18 +1064,18 @@ public class ValidatorEngineTest {
       propInd = random.nextInt(accounts2.size());
     }
     Identifiers seenEntities = mock(Identifiers.class);
-    Block block = BlockFixture.newBlock(accounts2.get(propInd).getIdentifier()
-        , block2.id()
-        , block2.getHeight() + 1
-        , snapshot2.all()
-        , Parameters.MAX_TRANSACTIONS_NUM + 1);
+    Block block = BlockFixture.newBlock(accounts2.get(propInd).getIdentifier(),
+            block2.id(),
+            block2.getHeight() + 1,
+            snapshot2.all(),
+            Parameters.MAX_TRANSACTIONS_NUM + 1);
 
     when(network.register(any(ValidatorEngine.class), eq(Channels.ProposedBlocks))).thenReturn(blockConduit);
     engine = new ValidatorEngine(network, local, state, seenEntities);
     when(state.atBlockId(block.getPreviousBlockId())
-        .getAccount(block.getProposer())
-        .getPublicKey()
-        .verifySignature(block, block.getSignature())).thenReturn(true);
+            .getAccount(block.getProposer())
+            .getPublicKey()
+            .verifySignature(block, block.getSignature())).thenReturn(true);
     try {
       engine.process(block);
       Assertions.assertEquals(0, blockConduit.allEntities().size());
@@ -1101,7 +1098,7 @@ public class ValidatorEngineTest {
     Block block2 = BlockFixture.newBlock(block1.id(), block1.getHeight() + 1);
 
     ArrayList<Account>[] a = AccountFixture.newAccounts(local.myId(), genesis.id(),
-        block1.id(), 10, 10);
+            block1.id(), 10, 10);
     ArrayList<Account> accounts1 = a[0];
     ArrayList<Account> accounts2 = a[1];
 
@@ -1148,9 +1145,9 @@ public class ValidatorEngineTest {
     engine = new ValidatorEngine(network, local, state, seenEntities);
 
     when(state.atBlockId(block.getPreviousBlockId())
-        .getAccount(block.getProposer())
-        .getPublicKey()
-        .verifySignature(block, block.getSignature())).thenReturn(true);
+            .getAccount(block.getProposer())
+            .getPublicKey()
+            .verifySignature(block, block.getSignature())).thenReturn(true);
 
     try {
       engine.process(block);
@@ -1174,7 +1171,7 @@ public class ValidatorEngineTest {
     Block block2 = BlockFixture.newBlock(block1.id(), block1.getHeight() + 1);
 
     ArrayList<Account>[] a = AccountFixture.newAccounts(local.myId(), genesis.id(),
-        block1.id(), 10, 10);
+            block1.id(), 10, 10);
     ArrayList<Account> accounts1 = a[0];
     ArrayList<Account> accounts2 = a[1];
 
@@ -1221,9 +1218,9 @@ public class ValidatorEngineTest {
     engine = new ValidatorEngine(network, local, state, seenEntities);
 
     when(state.atBlockId(block.getPreviousBlockId())
-        .getAccount(block.getProposer())
-        .getPublicKey()
-        .verifySignature(block, block.getSignature())).thenReturn(false);
+            .getAccount(block.getProposer())
+            .getPublicKey()
+            .verifySignature(block, block.getSignature())).thenReturn(false);
 
     try {
       engine.process(block);
@@ -1248,7 +1245,7 @@ public class ValidatorEngineTest {
     Block block2 = BlockFixture.newBlock(block1.id(), block1.getHeight() + 1);
 
     ArrayList<Account>[] a = AccountFixture.newAccounts(local.myId(), genesis.id(),
-        block1.id(), 10, 10);
+            block1.id(), 10, 10);
     ArrayList<Account> accounts1 = a[0];
     ArrayList<Account> accounts2 = a[1];
 
@@ -1294,9 +1291,9 @@ public class ValidatorEngineTest {
     engine = new ValidatorEngine(network, local, state, seenEntities);
 
     when(state.atBlockId(block.getPreviousBlockId())
-        .getAccount(block.getProposer())
-        .getPublicKey()
-        .verifySignature(block, block.getSignature())).thenReturn(true);
+            .getAccount(block.getProposer())
+            .getPublicKey()
+            .verifySignature(block, block.getSignature())).thenReturn(true);
 
     try {
       engine.process(block);
@@ -1320,7 +1317,7 @@ public class ValidatorEngineTest {
     Block block2 = BlockFixture.newBlock(block1.id(), block1.getHeight() + 1);
 
     ArrayList<Account>[] a = AccountFixture.newAccounts(local.myId(), genesis.id(),
-        block1.id(), 10, 10);
+            block1.id(), 10, 10);
     ArrayList<Account> accounts1 = a[0];
     ArrayList<Account> accounts2 = a[1];
 
@@ -1362,20 +1359,23 @@ public class ValidatorEngineTest {
     }
     Identifiers seenEntities = mock(Identifiers.class);
     Identifier proposer = accounts2.get(propInd).getIdentifier();
-    Block block = BlockFixture.newBlockUnvalidatedTransaction(proposer, block2.id(), block2.getHeight() + 1, snapshot2.all());
+    Block block = BlockFixture.newBlockUnvalidatedTransaction(proposer,
+            block2.id(),
+            block2.getHeight() + 1,
+            snapshot2.all());
     when(network.register(any(ValidatorEngine.class), eq(Channels.ProposedBlocks))).thenReturn(blockConduit);
     engine = new ValidatorEngine(network, local, state, seenEntities);
 
     for (Transaction transaction : block.getTransactions()) {
       when(state.atBlockId(transaction.getReferenceBlockId())
-          .getAccount(transaction.getSender())
-          .getPublicKey().verifySignature(transaction, transaction.getSignature()))
-          .thenReturn(true);
+              .getAccount(transaction.getSender())
+              .getPublicKey().verifySignature(transaction, transaction.getSignature()))
+              .thenReturn(true);
     }
     when(state.atBlockId(block.getPreviousBlockId())
-        .getAccount(block.getProposer())
-        .getPublicKey()
-        .verifySignature(block, block.getSignature())).thenReturn(true);
+            .getAccount(block.getProposer())
+            .getPublicKey()
+            .verifySignature(block, block.getSignature())).thenReturn(true);
 
     try {
       engine.process(block);
@@ -1399,7 +1399,7 @@ public class ValidatorEngineTest {
     Block block2 = BlockFixture.newBlock(block1.id(), block1.getHeight() + 1);
 
     ArrayList<Account>[] a = AccountFixture.newAccounts(local.myId(), genesis.id(),
-        block1.id(), 10, 10);
+            block1.id(), 10, 10);
     ArrayList<Account> accounts1 = a[0];
     ArrayList<Account> accounts2 = a[1];
 
@@ -1447,16 +1447,16 @@ public class ValidatorEngineTest {
 
     for (Transaction transaction : block.getTransactions()) {
       when(state.atBlockId(transaction.getReferenceBlockId())
-          .getAccount(transaction.getSender())
-          .getPublicKey().verifySignature(transaction, transaction.getSignature()))
-          .thenReturn(true);
+              .getAccount(transaction.getSender())
+              .getPublicKey().verifySignature(transaction, transaction.getSignature()))
+              .thenReturn(true);
     }
     when(state.atBlockId(snapshot2.getAccount(block.getTransactions()[0].getSender()).getLastBlockId())
-        .getReferenceBlockHeight()).thenReturn((long) block2.getHeight() * 2 + 10);
+            .getReferenceBlockHeight()).thenReturn((long) block2.getHeight() * 2 + 10);
     when(state.atBlockId(block.getPreviousBlockId())
-        .getAccount(block.getProposer())
-        .getPublicKey()
-        .verifySignature(block, block.getSignature())).thenReturn(true);
+            .getAccount(block.getProposer())
+            .getPublicKey()
+            .verifySignature(block, block.getSignature())).thenReturn(true);
 
     try {
       engine.process(block);
@@ -1480,7 +1480,7 @@ public class ValidatorEngineTest {
     Block block2 = BlockFixture.newBlock(block1.id(), block1.getHeight() + 1);
 
     ArrayList<Account>[] a = AccountFixture.newAccounts(local.myId(), genesis.id(),
-        block1.id(), 10, 10);
+            block1.id(), 10, 10);
     ArrayList<Account> accounts1 = a[0];
     ArrayList<Account> accounts2 = a[1];
 
@@ -1528,15 +1528,15 @@ public class ValidatorEngineTest {
 
     for (Transaction transaction : block.getTransactions()) {
       when(state.atBlockId(transaction.getReferenceBlockId())
-          .getAccount(transaction.getSender())
-          .getPublicKey().verifySignature(transaction, transaction.getSignature()))
-          .thenReturn(true);
+              .getAccount(transaction.getSender())
+              .getPublicKey().verifySignature(transaction, transaction.getSignature()))
+              .thenReturn(true);
     }
 
     when(state.atBlockId(block.getPreviousBlockId())
-        .getAccount(block.getProposer())
-        .getPublicKey()
-        .verifySignature(block, block.getSignature())).thenReturn(true);
+            .getAccount(block.getProposer())
+            .getPublicKey()
+            .verifySignature(block, block.getSignature())).thenReturn(true);
 
     try {
       engine.process(block);
@@ -1561,7 +1561,7 @@ public class ValidatorEngineTest {
     Block block2 = BlockFixture.newBlock(block1.id(), block1.getHeight() + 1);
 
     ArrayList<Account>[] a = AccountFixture.newAccounts(local.myId(), genesis.id(),
-        block1.id(), 10, 10);
+            block1.id(), 10, 10);
     ArrayList<Account> accounts1 = a[0];
     ArrayList<Account> accounts2 = a[1];
 
@@ -1608,13 +1608,13 @@ public class ValidatorEngineTest {
 
     Identifier signerId = snapshot2.all().get(random.nextInt(accounts2.size())).getIdentifier();
     Transaction transaction = TransactionFixture.newTransaction(
-        block2.id(),
-        snapshot2.all().get(0).getIdentifier(),
-        snapshot2.all().get(1).getIdentifier(),
-        signerId);
+            block2.id(),
+            snapshot2.all().get(0).getIdentifier(),
+            snapshot2.all().get(1).getIdentifier(),
+            signerId);
 
     when(state.atBlockId(transaction.getReferenceBlockId()).getAccount(transaction.getSender()).getPublicKey()
-        .verifySignature(transaction, transaction.getSignature())).thenReturn(true);
+            .verifySignature(transaction, transaction.getSignature())).thenReturn(true);
     snapshot2.all().get(0).setBalance(transaction.getAmount() * 10 + 1);
 
     try {
@@ -1646,7 +1646,7 @@ public class ValidatorEngineTest {
     Block block2 = BlockFixture.newBlock(block1.id(), block1.getHeight() + 1);
 
     ArrayList<Account>[] a = AccountFixture.newAccounts(local.myId(), genesis.id(),
-        block1.id(), 10, 10);
+            block1.id(), 10, 10);
     ArrayList<Account> accounts1 = a[0];
     ArrayList<Account> accounts2 = a[1];
 
@@ -1695,13 +1695,13 @@ public class ValidatorEngineTest {
     ArrayList<Transaction> transactions = new ArrayList<>();
     for (int i = 0; i < 2; i++) {
       Transaction transaction = TransactionFixture.newTransaction(
-          block2.id(),
-          snapshot2.all().get(i).getIdentifier(),
-          snapshot2.all().get(i + 1).getIdentifier(),
-          signerId);
+              block2.id(),
+              snapshot2.all().get(i).getIdentifier(),
+              snapshot2.all().get(i + 1).getIdentifier(),
+              signerId);
       transactions.add(transaction);
       when(state.atBlockId(transaction.getReferenceBlockId()).getAccount(transaction.getSender()).getPublicKey()
-          .verifySignature(transaction, transaction.getSignature())).thenReturn(true);
+              .verifySignature(transaction, transaction.getSignature())).thenReturn(true);
       snapshot2.all().get(i).setBalance(transaction.getAmount() * 10 + 1);
     }
 
@@ -1731,7 +1731,7 @@ public class ValidatorEngineTest {
     Block block2 = BlockFixture.newBlock(block1.id(), block1.getHeight() + 1);
 
     ArrayList<Account>[] a = AccountFixture.newAccounts(local.myId(), genesis.id(),
-        block1.id(), 10, 10);
+            block1.id(), 10, 10);
     ArrayList<Account> accounts1 = a[0];
     ArrayList<Account> accounts2 = a[1];
 
@@ -1780,13 +1780,13 @@ public class ValidatorEngineTest {
     ArrayList<Transaction> transactions = new ArrayList<>();
     for (int i = 0; i < 2; i++) {
       Transaction transaction = TransactionFixture.newTransaction(
-          block2.id(),
-          snapshot2.all().get(i).getIdentifier(),
-          snapshot2.all().get(i + 1).getIdentifier(),
-          signerId);
+              block2.id(),
+              snapshot2.all().get(i).getIdentifier(),
+              snapshot2.all().get(i + 1).getIdentifier(),
+              signerId);
       transactions.add(transaction);
       when(state.atBlockId(transaction.getReferenceBlockId()).getAccount(transaction.getSender()).getPublicKey()
-          .verifySignature(transaction, transaction.getSignature())).thenReturn(true);
+              .verifySignature(transaction, transaction.getSignature())).thenReturn(true);
       snapshot2.all().get(i).setBalance(transaction.getAmount() * 10 + 1);
     }
 
@@ -1844,7 +1844,7 @@ public class ValidatorEngineTest {
     Block block2 = BlockFixture.newBlock(block1.id(), block1.getHeight() + 1);
 
     ArrayList<Account>[] a = AccountFixture.newAccounts(local.myId(), genesis.id(),
-        block1.id(), 10, 10);
+            block1.id(), 10, 10);
     ArrayList<Account> accounts1 = a[0];
     ArrayList<Account> accounts2 = a[1];
 
@@ -1892,12 +1892,12 @@ public class ValidatorEngineTest {
     Identifier signerId = snapshot2.all().get(random.nextInt(accounts2.size())).getIdentifier();
     ArrayList<Transaction> transactions = new ArrayList<>();
     Transaction transaction = TransactionFixture.newTransaction(
-        block2.id(),
-        snapshot2.all().get(0).getIdentifier(),
-        snapshot2.all().get(1).getIdentifier(),
-        signerId);
+            block2.id(),
+            snapshot2.all().get(0).getIdentifier(),
+            snapshot2.all().get(1).getIdentifier(),
+            signerId);
     when(state.atBlockId(transaction.getReferenceBlockId()).getAccount(transaction.getSender()).getPublicKey()
-        .verifySignature(transaction, transaction.getSignature())).thenReturn(true);
+            .verifySignature(transaction, transaction.getSignature())).thenReturn(true);
     snapshot2.all().get(0).setBalance(transaction.getAmount() * 10 + 1);
 
     for (int i = 0; i < 2; i++) {
@@ -1945,7 +1945,7 @@ public class ValidatorEngineTest {
     Block block2 = BlockFixture.newBlock(block1.id(), block1.getHeight() + 1);
 
     ArrayList<Account>[] a = AccountFixture.newAccounts(local.myId(), genesis.id(),
-        block1.id(), 10, 10);
+            block1.id(), 10, 10);
     ArrayList<Account> accounts1 = a[0];
     ArrayList<Account> accounts2 = a[1];
 
@@ -1993,12 +1993,12 @@ public class ValidatorEngineTest {
     Identifier signerId = snapshot2.all().get(random.nextInt(accounts2.size())).getIdentifier();
     ArrayList<Transaction> transactions = new ArrayList<>();
     Transaction transaction = TransactionFixture.newTransaction(
-        block2.id(),
-        snapshot2.all().get(0).getIdentifier(),
-        snapshot2.all().get(1).getIdentifier(),
-        signerId);
+            block2.id(),
+            snapshot2.all().get(0).getIdentifier(),
+            snapshot2.all().get(1).getIdentifier(),
+            signerId);
     when(state.atBlockId(transaction.getReferenceBlockId()).getAccount(transaction.getSender()).getPublicKey()
-        .verifySignature(transaction, transaction.getSignature())).thenReturn(true);
+            .verifySignature(transaction, transaction.getSignature())).thenReturn(true);
     snapshot2.all().get(0).setBalance(transaction.getAmount() * 10 + 1);
 
     for (int i = 0; i < 2; i++) {
@@ -2073,7 +2073,7 @@ public class ValidatorEngineTest {
     Block block2 = BlockFixture.newBlock(block1.id(), block1.getHeight() + 1);
 
     ArrayList<Account>[] a = AccountFixture.newAccounts(local.myId(), genesis.id(),
-        block1.id(), 10, 10);
+            block1.id(), 10, 10);
     ArrayList<Account> accounts1 = a[0];
     ArrayList<Account> accounts2 = a[1];
 
@@ -2141,7 +2141,7 @@ public class ValidatorEngineTest {
     Block block2 = BlockFixture.newBlock(block1.id(), block1.getHeight() + 1);
 
     ArrayList<Account>[] a = AccountFixture.newAccounts(local.myId(), genesis.id(),
-        block1.id(), 10, 10);
+            block1.id(), 10, 10);
     ArrayList<Account> accounts1 = a[0];
     ArrayList<Account> accounts2 = a[1];
 
@@ -2209,7 +2209,7 @@ public class ValidatorEngineTest {
     Block block2 = BlockFixture.newBlock(block1.id(), block1.getHeight() + 1);
 
     ArrayList<Account>[] a = AccountFixture.newAccounts(local.myId(), genesis.id(),
-        block1.id(), 10, 10);
+            block1.id(), 10, 10);
     ArrayList<Account> accounts1 = a[0];
     ArrayList<Account> accounts2 = a[1];
 
@@ -2257,12 +2257,12 @@ public class ValidatorEngineTest {
     Identifier signerId = snapshot2.all().get(random.nextInt(accounts1.size())).getIdentifier();
     ArrayList<Transaction> transactions = new ArrayList<>();
     Transaction transaction = TransactionFixture.newTransaction(
-        block2.id(),
-        snapshot2.all().get(0).getIdentifier(),
-        snapshot2.all().get(1).getIdentifier(),
-        signerId);
+            block2.id(),
+            snapshot2.all().get(0).getIdentifier(),
+            snapshot2.all().get(1).getIdentifier(),
+            signerId);
     when(state.atBlockId(transaction.getReferenceBlockId()).getAccount(transaction.getSender()).getPublicKey()
-        .verifySignature(transaction, transaction.getSignature())).thenReturn(true);
+            .verifySignature(transaction, transaction.getSignature())).thenReturn(true);
     snapshot2.all().get(0).setBalance(transaction.getAmount() * 10 + 1);
 
     for (int i = 0; i < 2; i++) {
@@ -2310,7 +2310,7 @@ public class ValidatorEngineTest {
     Block block2 = BlockFixture.newBlock(block1.id(), block1.getHeight() + 1);
 
     ArrayList<Account>[] a = AccountFixture.newAccounts(local.myId(), genesis.id(),
-        block1.id(), 10, 10);
+            block1.id(), 10, 10);
     ArrayList<Account> accounts1 = a[0];
     ArrayList<Account> accounts2 = a[1];
 
@@ -2361,10 +2361,10 @@ public class ValidatorEngineTest {
     }
     Identifier signerId = snapshot2.all().get(random.nextInt(accounts2.size())).getIdentifier();
     Transaction transaction = TransactionFixture.newTransaction(
-        block2.id(),
-        invalidSender,
-        snapshot2.all().get(1).getIdentifier(),
-        signerId);
+            block2.id(),
+            invalidSender,
+            snapshot2.all().get(1).getIdentifier(),
+            signerId);
     try {
       engine.process(transaction);
     } catch (IllegalArgumentException ex) {
@@ -2388,7 +2388,7 @@ public class ValidatorEngineTest {
     Block block2 = BlockFixture.newBlock(block1.id(), block1.getHeight() + 1);
 
     ArrayList<Account>[] a = AccountFixture.newAccounts(local.myId(), genesis.id(),
-        block1.id(), 10, 10);
+            block1.id(), 10, 10);
     ArrayList<Account> accounts1 = a[0];
     ArrayList<Account> accounts2 = a[1];
 
@@ -2439,10 +2439,10 @@ public class ValidatorEngineTest {
     }
     Identifier signerId = snapshot2.all().get(random.nextInt(accounts2.size())).getIdentifier();
     Transaction transaction = TransactionFixture.newTransaction(
-        block2.id(),
-        snapshot2.all().get(0).getIdentifier(),
-        invalidReceiver,
-        signerId);
+            block2.id(),
+            snapshot2.all().get(0).getIdentifier(),
+            invalidReceiver,
+            signerId);
 
     try {
       engine.process(transaction);
@@ -2467,7 +2467,7 @@ public class ValidatorEngineTest {
     Block block2 = BlockFixture.newBlock(block1.id(), block1.getHeight() + 1);
 
     ArrayList<Account>[] a = AccountFixture.newAccounts(local.myId(), genesis.id(),
-        block1.id(), 10, 10);
+            block1.id(), 10, 10);
     ArrayList<Account> accounts1 = a[0];
     ArrayList<Account> accounts2 = a[1];
 
@@ -2514,14 +2514,14 @@ public class ValidatorEngineTest {
 
     Identifier signerId = snapshot2.all().get(random.nextInt(accounts2.size())).getIdentifier();
     Transaction transaction = TransactionFixture.newTransaction(
-        block2.id(),
-        snapshot2.all().get(0).getIdentifier(),
-        snapshot2.all().get(1).getIdentifier(),
-        signerId,
-        -5);
+            block2.id(),
+            snapshot2.all().get(0).getIdentifier(),
+            snapshot2.all().get(1).getIdentifier(),
+            signerId,
+            -5);
 
     when(state.atBlockId(transaction.getReferenceBlockId()).getAccount(transaction.getSender()).getPublicKey()
-        .verifySignature(transaction, transaction.getSignature())).thenReturn(true);
+            .verifySignature(transaction, transaction.getSignature())).thenReturn(true);
 
     try {
       engine.process(transaction);
@@ -2546,7 +2546,7 @@ public class ValidatorEngineTest {
     Block block2 = BlockFixture.newBlock(block1.id(), block1.getHeight() + 1);
 
     ArrayList<Account>[] a = AccountFixture.newAccounts(local.myId(), genesis.id(),
-        block1.id(), 10, 10);
+            block1.id(), 10, 10);
     ArrayList<Account> accounts1 = a[0];
     ArrayList<Account> accounts2 = a[1];
 
@@ -2593,17 +2593,17 @@ public class ValidatorEngineTest {
 
     Identifier signerId = snapshot2.all().get(random.nextInt(accounts2.size())).getIdentifier();
     Transaction transaction = TransactionFixture.newTransaction(
-        block2.id(),
-        snapshot2.all().get(0).getIdentifier(),
-        snapshot2.all().get(1).getIdentifier(),
-        signerId);
+            block2.id(),
+            snapshot2.all().get(0).getIdentifier(),
+            snapshot2.all().get(1).getIdentifier(),
+            signerId);
 
     snapshot2.getAccount(transaction.getSender()).setBalance(transaction.getAmount() * 5 + 5);
     when(state.atBlockId(transaction.getReferenceBlockId()).getAccount(transaction.getSender()).getPublicKey()
-        .verifySignature(transaction, transaction.getSignature())).thenReturn(true);
+            .verifySignature(transaction, transaction.getSignature())).thenReturn(true);
 
     when(state.atBlockId(snapshot2.getAccount(transaction.getSender()).getLastBlockId()).getReferenceBlockHeight())
-        .thenReturn((long) block2.getHeight() + 5);
+            .thenReturn((long) block2.getHeight() + 5);
 
     try {
       engine.process(transaction);
@@ -2628,7 +2628,7 @@ public class ValidatorEngineTest {
     Block block2 = BlockFixture.newBlock(block1.id(), block1.getHeight() + 1);
 
     ArrayList<Account>[] a = AccountFixture.newAccounts(local.myId(), genesis.id(),
-        block1.id(), 10, 10);
+            block1.id(), 10, 10);
     ArrayList<Account> accounts1 = a[0];
     ArrayList<Account> accounts2 = a[1];
 
@@ -2675,14 +2675,14 @@ public class ValidatorEngineTest {
 
     Identifier signerId = snapshot2.all().get(random.nextInt(accounts2.size())).getIdentifier();
     Transaction transaction = TransactionFixture.newTransaction(
-        block2.id(),
-        snapshot2.all().get(0).getIdentifier(),
-        snapshot2.all().get(1).getIdentifier(),
-        signerId);
+            block2.id(),
+            snapshot2.all().get(0).getIdentifier(),
+            snapshot2.all().get(1).getIdentifier(),
+            signerId);
 
     snapshot2.getAccount(transaction.getSender()).setBalance(transaction.getAmount() * 5 + 5);
     when(state.atBlockId(transaction.getReferenceBlockId()).getAccount(transaction.getSender()).getPublicKey()
-        .verifySignature(transaction, transaction.getSignature())).thenReturn(false);
+            .verifySignature(transaction, transaction.getSignature())).thenReturn(false);
 
     try {
       engine.process(transaction);
@@ -2707,7 +2707,7 @@ public class ValidatorEngineTest {
     Block block2 = BlockFixture.newBlock(block1.id(), block1.getHeight() + 1);
 
     ArrayList<Account>[] a = AccountFixture.newAccounts(local.myId(), genesis.id(),
-        block1.id(), 10, 10);
+            block1.id(), 10, 10);
     ArrayList<Account> accounts1 = a[0];
     ArrayList<Account> accounts2 = a[1];
 
@@ -2754,14 +2754,14 @@ public class ValidatorEngineTest {
 
     Identifier signerId = snapshot2.all().get(random.nextInt(accounts2.size())).getIdentifier();
     Transaction transaction = TransactionFixture.newTransaction(
-        block2.id(),
-        snapshot2.all().get(0).getIdentifier(),
-        snapshot2.all().get(1).getIdentifier(),
-        signerId);
+            block2.id(),
+            snapshot2.all().get(0).getIdentifier(),
+            snapshot2.all().get(1).getIdentifier(),
+            signerId);
 
     snapshot2.getAccount(transaction.getSender()).setBalance(transaction.getAmount() - 5);
     when(state.atBlockId(transaction.getReferenceBlockId()).getAccount(transaction.getSender()).getPublicKey()
-        .verifySignature(transaction, transaction.getSignature())).thenReturn(true);
+            .verifySignature(transaction, transaction.getSignature())).thenReturn(true);
 
     try {
       engine.process(transaction);
