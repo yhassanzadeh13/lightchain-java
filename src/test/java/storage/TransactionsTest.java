@@ -34,7 +34,7 @@ public class TransactionsTest {
    * Initializes database.
    */
   @BeforeEach
-  void setUp() throws IOException {
+  void setup() throws IOException {
     Path currentRelativePath = Paths.get("");
     tempdir = Files.createTempDirectory(currentRelativePath, TEMP_DIR);
     db = new TransactionsMapDb(tempdir.toAbsolutePath() + "/" + TEMP_FILE);
@@ -48,7 +48,7 @@ public class TransactionsTest {
    * Closes database.
    */
   @AfterEach
-  void cleanUp() throws IOException {
+  void cleanup() throws IOException {
     db.closeDb();
     FileUtils.deleteDirectory(new File(tempdir.toString()));
   }
@@ -59,10 +59,9 @@ public class TransactionsTest {
    * querying All method, list of all 10 transactions must be returned. Moreover, all transactions should be
    * retrievable through get method.
    *
-   * @throws IOException throw IOException.
    */
   @Test
-  void sequentialAddTest() throws IOException {
+  void sequentialAddTest() {
     for (Transaction transaction : allTransactions) {
       Assertions.assertTrue(db.add(transaction));
     }
@@ -84,11 +83,9 @@ public class TransactionsTest {
    * adding transactions is done, querying the Has method for each of the transaction should return true. Also, when
    * querying All method, list of all 10 transactions must be returned. Moreover, all transactions should be
    * retrievable through get method.
-   *
-   * @throws IOException throw IOException.
    */
   @Test
-  void concurrentAddTest() throws IOException {
+  void concurrentAddTest() {
     /*
     Adding all transactions concurrently.
     */
@@ -105,12 +102,12 @@ public class TransactionsTest {
   /**
    * Add 10 new transactions SEQUENTIALLY, check that they are added correctly, i.e., while adding each transaction
    * Add must return
-   * true, Has returns true for each of them, each block is retrievable by identifier,
+   * true, Has returns true for each of them, each transaction is retrievable by identifier,
    * and All returns list of all of them. Then Remove the first 5 transactions sequentially.
    * While Removing each of them, the Remove should return true. Then query all 10 transactions using has, get.
    */
   @Test
-  void removeFirstFiveTest() throws IOException {
+  void removeFirstFiveTest()  {
     for (Transaction transaction : allTransactions) {
       Assertions.assertTrue(db.add(transaction));
     }
@@ -120,11 +117,14 @@ public class TransactionsTest {
     for (Transaction transaction : allTransactions) {
       Assertions.assertEquals(transaction, db.get(transaction.id()));
     }
+
     ArrayList<Transaction> all = db.all();
     Assertions.assertEquals(all.size(), 10);
     for (Transaction transaction : all) {
       Assertions.assertTrue(allTransactions.contains(transaction));
     }
+
+    // removing first five
     for (int i = 0; i < 5; i++) {
       Assertions.assertTrue(db.remove(allTransactions.get(i).id()));
     }
@@ -145,12 +145,12 @@ public class TransactionsTest {
   /**
    * Add 10 new transactions CONCURRENTLY, check that they are added correctly, i.e., while adding each transaction
    * Add must return
-   * true, Has returns true for each of them, each block is retrievable by identifier,
+   * true, Has returns true for each of them, each transaction is retrievable by identifier,
    * and All returns list of all of them. Then Remove the first 5 transactions sequentially.
    * While Removing each of them, the Remove should return true. Then query all 10 transactions using has, get.
    */
   @Test
-  void concurrentRemoveFirstFiveTest() throws IOException {
+  void concurrentRemoveFirstFiveTest() {
 
     /*
     Adding all transactions concurrently.
@@ -188,7 +188,7 @@ public class TransactionsTest {
    * able to retrieve the transaction.
    */
   @Test
-  void duplicationTest() throws IOException {
+  void duplicationTest() {
     for (Transaction transaction : allTransactions) {
       Assertions.assertTrue(db.add(transaction));
     }
@@ -206,6 +206,8 @@ public class TransactionsTest {
     for (Transaction transaction : allTransactions) {
       Assertions.assertTrue(allTransactions.contains(db.get(transaction.id())));
     }
+
+    // adding all again
     for (Transaction transaction : allTransactions) {
       Assertions.assertFalse(db.add(transaction));
     }
@@ -230,7 +232,7 @@ public class TransactionsTest {
    * able to retrieve the transaction.
    */
   @Test
-  void concurrentDuplicationTest() throws IOException {
+  void concurrentDuplicationTest() {
     /*
     Adding all transactions concurrently.
      */
@@ -257,7 +259,7 @@ public class TransactionsTest {
   }
 
   /**
-   * Adds all transactions to the transaction storage database till the given index concurrently.
+   * Adds all transactions to the transaction storage.
    *
    * @param expectedResult expected boolean result after each insertion; true means transaction added successfully,
    *                       false means transaction was not added successfully.
@@ -305,12 +307,12 @@ public class TransactionsTest {
       hasThreads[i] = new Thread(() -> {
 
         if (finalI < from) {
-          // blocks should not exist
+          // transaction should not exist
           if (this.db.has(transaction.id())) {
             threadError.incrementAndGet();
           }
         } else {
-          // block should exist
+          // transaction should exist
           if (!this.db.has(transaction.id())) {
             threadError.getAndIncrement();
           }
@@ -339,18 +341,19 @@ public class TransactionsTest {
     AtomicInteger threadError = new AtomicInteger();
     CountDownLatch getDone = new CountDownLatch(allTransactions.size());
     Thread[] getThreads = new Thread[allTransactions.size()];
+
     for (int i = 0; i < allTransactions.size(); i++) {
       int finalI = i;
       Transaction transaction = allTransactions.get(i);
       getThreads[i] = new Thread(() -> {
         Transaction got = db.get(transaction.id());
         if (finalI < from) {
-          // blocks should not exist
+          // transaction should not exist
           if (got != null) {
             threadError.incrementAndGet();
           }
         } else {
-          // block should exist
+          // transaction should exist
           if (!transaction.equals(got)) {
             threadError.getAndIncrement();
           }
@@ -363,7 +366,7 @@ public class TransactionsTest {
       });
     }
 
-    for (Thread t : getThreads) {
+    for (Thread t: getThreads) {
       t.start();
     }
     try {
@@ -385,17 +388,18 @@ public class TransactionsTest {
     CountDownLatch doneAll = new CountDownLatch(allTransactions.size());
     Thread[] allThreads = new Thread[allTransactions.size()];
     ArrayList<Transaction> all = db.all();
+
     for (int i = 0; i < allTransactions.size(); i++) {
       int finalI = i;
       final Transaction transaction = allTransactions.get(i);
       allThreads[i] = new Thread(() -> {
         if (finalI < from) {
-          // blocks should not exist
+          // transaction should not exist
           if (all.contains(transaction)) {
             threadError.incrementAndGet();
           }
         } else {
-          // block should exist
+          // transaction should exist
           if (!all.contains(transaction)) {
             threadError.getAndIncrement();
           }
@@ -425,6 +429,7 @@ public class TransactionsTest {
     AtomicInteger threadError = new AtomicInteger();
     CountDownLatch doneRemove = new CountDownLatch(till);
     Thread[] removeThreads = new Thread[till];
+
     for (int i = 0; i < till; i++) {
       int finalI = i;
       removeThreads[i] = new Thread(() -> {
