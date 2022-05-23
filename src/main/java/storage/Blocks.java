@@ -9,6 +9,8 @@ import model.lightchain.Identifier;
  * Persistent module for storing blocks on the disk.
  */
 public interface Blocks {
+  // TODO: refactor blocks to keep validated blocks.
+
   /**
    * Checks existence of block on the database.
    *

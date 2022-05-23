@@ -27,6 +27,7 @@ public class BlocksMapDb implements Blocks {
    * @param filePathHeight of height,id mapdb.
    */
   public BlocksMapDb(String filePathId, String filePathHeight) {
+    // TODO: file paths consolidated.
     this.dbId = DBMaker.fileDB(filePathId).make();
     this.lock = new ReentrantReadWriteLock();
     blocksIdMap = this.dbId.hashMap(MAP_NAME_ID)
@@ -122,9 +123,13 @@ public class BlocksMapDb implements Blocks {
    */
   @Override
   public Block byId(Identifier blockId) {
-    lock.readLock().lock();
-    Block block = (Block) blocksIdMap.get(blockId.getBytes());
-    lock.readLock().unlock();
+    Block block;
+    try {
+      lock.readLock().lock();
+      block = (Block) blocksIdMap.get(blockId.getBytes());
+    } finally {
+      lock.readLock().unlock();
+    }
     return block;
   }
 
