@@ -1,12 +1,14 @@
 package model.lightchain;
 
+import java.io.Serializable;
+
 import model.codec.EntityType;
 import model.crypto.Signature;
 
 /**
  * Represents a LightChain Block that encapsulates set of ValidatedTransaction(s).
  */
-public class Block extends model.Entity {
+public class Block extends model.Entity implements Serializable {
   /**
    * Reference to the hash value of another block as its parent.
    */
@@ -70,6 +72,24 @@ public class Block extends model.Entity {
     this.transactions = transactions.clone();
     this.signature = signature;
     this.height = height;
+  }
+
+  @Override
+  public int hashCode() {
+    return this.id().hashCode();
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof Block))  {
+      return false;
+    }
+    Block that = (Block) o;
+
+    return this.id().equals(that.id());
   }
 
   /**

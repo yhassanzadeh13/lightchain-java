@@ -1,11 +1,12 @@
 package model.lightchain;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 
 /**
  * Represents an aggregated type for identifiers.
  */
-public class Identifiers {
+public class Identifiers implements Serializable {
   private final ArrayList<Identifier> identifiers;
 
   public Identifiers() {
