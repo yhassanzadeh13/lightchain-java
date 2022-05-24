@@ -116,6 +116,11 @@ public class TransactionsMapDb implements Transactions {
     return allTransactions;
   }
 
+  @Override
+  public int size() {
+    return transactionsMap.size();
+  }
+
   /**
    * It closes the database.
    */

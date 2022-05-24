@@ -1,5 +1,10 @@
 package protocol.engines;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.concurrent.ConcurrentHashMap;
@@ -28,6 +33,7 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.testcontainers.shaded.org.apache.commons.io.FileUtils;
 import protocol.Engine;
 import protocol.Parameters;
 import protocol.assigner.LightChainValidatorAssigner;
@@ -36,6 +42,7 @@ import state.Snapshot;
 import state.State;
 import storage.Blocks;
 import storage.Transactions;
+import storage.mapdb.BlocksMapDb;
 import unittest.fixtures.*;
 
 /**
@@ -142,8 +149,20 @@ public class ProposerEngineTest {
       when(pendingTransactions.size()).thenReturn(Parameters.MIN_TRANSACTIONS_NUM + 1);
       when(pendingTransactions.all()).thenReturn(new ArrayList<>(Arrays.asList(block.getTransactions())));
 
-      Blocks blocks = mock(Blocks.class);
-      when(blocks.atHeight(block.getHeight())).thenReturn(block); // block to be proposed
+      Path currentRelativePath = Paths.get("");
+      Path tempdir = null;
+      try {
+        tempdir = Files.createTempDirectory(currentRelativePath, "tempdir");
+      } catch (IOException e) {
+        throw new RuntimeException(e);
+      }
+      BlocksMapDb db = new BlocksMapDb(tempdir.toAbsolutePath() + "/" + "tempfileID.db",
+              tempdir.toAbsolutePath() + "/" + "tempfileHEIGHT.db");
+      Blocks blocks = db;
+
+      db.add(block);
+
+      // when(blocks.atHeight(block.getHeight())).thenReturn(block); // block to be proposed
 
       Snapshot snapshot = mock(Snapshot.class);
       when(snapshot.all()).thenReturn(accounts);
@@ -177,6 +196,13 @@ public class ProposerEngineTest {
       }
       verify(validatedCon, times(1)).unicast(any(Block.class), any(Identifier.class));
 
+
+      db.closeDb();
+      try {
+        FileUtils.deleteDirectory(new File(tempdir.toString()));
+      } catch (IOException e) {
+        throw new RuntimeException(e);
+      }
 
     }
   }
