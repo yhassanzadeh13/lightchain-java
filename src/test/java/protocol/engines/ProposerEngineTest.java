@@ -108,346 +108,78 @@ public class ProposerEngineTest {
   }
 
   /**
-   * Evaluates that when a new block arrives at the proposer engine, it creates a valid block and sends it to its
-   * assigners.
-   */
-  @Test
-  public void blockValidationTest() {
-    // Initialize non-mocked components.
-    Identifier localId = IdentifierFixture.newIdentifier();
-    PrivateKey localPrivateKey = KeyGenFixture.newKeyGen().getPrivateKey();
-    Local local = new Local(localId, localPrivateKey);
-    ArrayList<Account> accounts = AccountFixture.newAccounts(11);
-    Block block = BlockFixture.newBlock(Parameters.MIN_TRANSACTIONS_NUM + 1);
-
-    Assignment assignment = mock(Assignment.class);
-    when(assignment.has(any(Identifier.class))).thenReturn(true); // returns true for all identifiers
-    when(assignment.has(local.myId())).thenReturn(true);
-
-    LightChainValidatorAssigner assigner = mock(LightChainValidatorAssigner.class);
-    when(assigner.assign(any(Identifier.class), any(Snapshot.class), any(short.class))).thenReturn(assignment);
-
-    Transactions pendingTransactions = mock(Transactions.class);
-    when(pendingTransactions.size()).thenReturn(Parameters.MIN_TRANSACTIONS_NUM + 1);
-    when(pendingTransactions.all()).thenReturn(new ArrayList<>(Arrays.asList(block.getTransactions())));
-
-    Blocks blocks = mock(Blocks.class);
-    when(blocks.atHeight(block.getHeight())).thenReturn(block); // block to be proposed
-
-    Snapshot snapshot = mock(Snapshot.class);
-    when(snapshot.all()).thenReturn(accounts);
-    when(snapshot.getAccount(localId)).thenReturn(accounts.get(0));
-
-    State state = mock(State.class);
-    when(state.atBlockId(block.id())).thenReturn(snapshot);
-
-    NetworkAdapter networkAdapter = mock(NetworkAdapter.class);
-    MockConduit proposedCon = new MockConduit(Channels.ProposedBlocks, networkAdapter);
-    MockConduit validatedCon = new MockConduit(Channels.ValidatedBlocks, networkAdapter);
-
-    Network network = mock(Network.class);
-    when(network.register(any(Engine.class), eq(Channels.ProposedBlocks))).thenReturn(proposedCon);
-    when(network.register(any(Engine.class), eq(Channels.ValidatedBlocks))).thenReturn(validatedCon);
-
-    // action
-    ProposerEngine proposerEngine = new ProposerEngine(blocks, pendingTransactions, state, local, network, assigner,
-            validatorElections, proposedBlocks, proposedValidBlocks);
-    proposerEngine.onNewValidatedBlock(block.getHeight(), block.id());
-    BlockValidator blockValidator = new BlockValidator(state);
-
-    // verification
-    Assertions.assertTrue(blockValidator.isCorrect(proposerEngine.newB));
-  }
-
-  /**
-   * Evaluates that when a new block without enough validated transactions arrives at the proposer engine,
-   * it keeps waiting till it finds enough transactions in its pending transaction database,
-   * and then it creates a valid block and sends it to its assigners.
-   */
-  @Test
-  public void notEnoughValidatedTransactions() throws InterruptedException, LightChainNetworkingException {
-    // Initialize non-mocked components.
-    Identifier localId = IdentifierFixture.newIdentifier();
-    PrivateKey localPrivateKey = KeyGenFixture.newKeyGen().getPrivateKey();
-    Local local = new Local(localId, localPrivateKey);
-    ArrayList<Account> accounts = AccountFixture.newAccounts(11);
-    Block block = BlockFixture.newBlock(Parameters.MIN_TRANSACTIONS_NUM + 1);
-
-    // mocks assignment
-    Assignment assignment = mock(Assignment.class);
-    when(assignment.has(any(Identifier.class))).thenReturn(true); // returns true for all identifiers
-    when(assignment.has(local.myId())).thenReturn(true);
-    when(assignment.all()).thenReturn(IdentifierFixture.newIdentifiers(Parameters.VALIDATOR_THRESHOLD));
-
-    LightChainValidatorAssigner assigner = mock(LightChainValidatorAssigner.class);
-    when(assigner.assign(any(Identifier.class), any(Snapshot.class), any(short.class))).thenReturn(assignment);
-
-    Transactions pendingTransactions = mock(Transactions.class);
-    AtomicInteger transactionsCounter = new AtomicInteger(Parameters.MIN_TRANSACTIONS_NUM - 1);
-    when(pendingTransactions.size()).thenReturn(transactionsCounter.get());
-    when(pendingTransactions.all()).thenReturn(new ArrayList<>(Arrays.asList(block.getTransactions())));
-
-    Blocks blocks = mock(Blocks.class);
-    when(blocks.atHeight(block.getHeight())).thenReturn(block); // block to be proposed
-
-    Snapshot snapshot = mock(Snapshot.class);
-    when(snapshot.all()).thenReturn(accounts);
-    when(snapshot.getAccount(localId)).thenReturn(accounts.get(0));
-
-    State state = mock(State.class);
-    when(state.atBlockId(block.id())).thenReturn(snapshot);
-
-    Conduit proposedCon = mock(Conduit.class);
-    Conduit validatedCon = mock(Conduit.class);
-
-    Network network = mock(Network.class);
-    when(network.register(any(Engine.class), eq(Channels.ProposedBlocks))).thenReturn(proposedCon);
-    when(network.register(any(Engine.class), eq(Channels.ValidatedBlocks))).thenReturn(validatedCon);
-
-    ProposerEngine proposerEngine = new ProposerEngine(blocks,
-            pendingTransactions,
-            state,
-            local,
-            network,
-            assigner,
-            validatorElections, proposedBlocks, proposedValidBlocks);
-
-    // Verification.
-    AtomicBoolean proposerWaiting = new AtomicBoolean(true);
-    Thread proposerThread = new Thread(() -> {
-      proposerEngine.onNewValidatedBlock(block.getHeight(), block.id());
-      proposerWaiting.set(false);
-    });
-    Thread ingestThread = new Thread(() -> {
-      // simulating adding a transaction to pendingTransactions
-      when(pendingTransactions.size()).thenReturn(transactionsCounter.incrementAndGet());
-    });
-    proposerThread.start(); // start proposer thread
-    // checks that proposer is waiting
-    verify(proposedCon, times(0)).unicast(any(Block.class), any(Identifier.class));
-    Assertions.assertTrue(proposerWaiting.get()); // proposer should be waiting
-    ingestThread.start(); // start ingest thread
-    proposerThread.join(); // wait for proposer to finish
-    ingestThread.join(); // wait for ingest to finish
-    BlockValidator blockValidator = new BlockValidator(state);
-    Assertions.assertTrue(blockValidator.isCorrect(proposerEngine.newB));
-    verify(proposedCon, times(Parameters.VALIDATOR_THRESHOLD)).unicast(any(Block.class), any(Identifier.class));
-  }
-
-  /**
-   * Evaluates that when a new block is received while it is pending
-   * for its previously proposed block to get validated. It should throw an IllegalStateException.
-   */
-  @Test
-  public void newValidatedBlockWhilePendingValidation() {
-    // Initialize non-mocked components.
-    Identifier localId = IdentifierFixture.newIdentifier();
-    PrivateKey localPrivateKey = KeyGenFixture.newKeyGen().getPrivateKey();
-    Local local = new Local(localId, localPrivateKey);
-    ArrayList<Account> accounts = AccountFixture.newAccounts(11);
-    Block block = BlockFixture.newBlock(Parameters.MIN_TRANSACTIONS_NUM + 1);
-
-    // Initialize mocked components.
-    Assignment assignment = mock(Assignment.class);
-    when(assignment.has(any(Identifier.class))).thenReturn(true); // returns true for all identifiers
-    when(assignment.has(local.myId())).thenReturn(true);
-
-    LightChainValidatorAssigner assigner = mock(LightChainValidatorAssigner.class);
-    when(assigner.assign(any(Identifier.class), any(Snapshot.class), any(short.class))).thenReturn(assignment);
-
-    Transactions pendingTransactions = mock(Transactions.class);
-    when(pendingTransactions.size()).thenReturn(Parameters.MIN_TRANSACTIONS_NUM - 1);
-    when(pendingTransactions.all()).thenReturn(new ArrayList<>(Arrays.asList(block.getTransactions())));
-
-    Blocks blocks = mock(Blocks.class);
-    when(blocks.atHeight(block.getHeight())).thenReturn(block); // block to be proposed
-
-    Snapshot snapshot = mock(Snapshot.class);
-    when(snapshot.all()).thenReturn(accounts);
-    when(snapshot.getAccount(localId)).thenReturn(accounts.get(0));
-
-    State state = mock(State.class);
-    when(state.atBlockId(block.id())).thenReturn(snapshot);
-
-    NetworkAdapter networkAdapter = mock(NetworkAdapter.class);
-    MockConduit proposedCon = new MockConduit(Channels.ProposedBlocks, networkAdapter);
-    MockConduit validatedCon = new MockConduit(Channels.ValidatedBlocks, networkAdapter);
-
-    Network network = mock(Network.class);
-    when(network.register(any(Engine.class), eq(Channels.ProposedBlocks))).thenReturn(proposedCon);
-    when(network.register(any(Engine.class), eq(Channels.ValidatedBlocks))).thenReturn(validatedCon);
-
-    // Verification.
-    ProposerEngine proposerEngine = new ProposerEngine(blocks, pendingTransactions, state, local, network, assigner,
-            validatorElections, proposedBlocks, proposedValidBlocks);
-    Thread proposerThread = new Thread(() -> {
-      try {
-        Assertions.assertThrows(IllegalStateException.class, () -> {
-          proposerEngine.onNewValidatedBlock(block.getHeight(), block.id());
-        });
-      } finally {
-        // increments the transactions counter for main thread to be finished
-        when(pendingTransactions.size()).thenReturn(Parameters.MIN_TRANSACTIONS_NUM + 1);
-      }
-    });
-    proposerThread.start(); // start proposer thread
-    proposerEngine.onNewValidatedBlock(block.getHeight(), block.id()); // new validated block while pending validation
-  }
-
-  /**
-   * Evaluates that when a new block is received but the block cannot be found on its storage.
-   * It should throw an IllegalStateException.
-   */
-  @Test
-  public void blockNotInDatabase() {
-    // Initialize non-mocked components.
-    Identifier localId = IdentifierFixture.newIdentifier();
-    PrivateKey localPrivateKey = KeyGenFixture.newKeyGen().getPrivateKey();
-    Local local = new Local(localId, localPrivateKey);
-    Block block = BlockFixture.newBlock(Parameters.MIN_TRANSACTIONS_NUM + 1);
-
-    // Initialize mocked components.
-    LightChainValidatorAssigner assigner = mock(LightChainValidatorAssigner.class);
-    Transactions pendingTransactions = mock(Transactions.class);
-    State state = mock(State.class);
-    Network network = mock(Network.class);
-
-    Blocks blocks = mock(Blocks.class);
-    when(blocks.atHeight(block.getHeight())).thenReturn(BlockFixture.newBlock()); // another block
-
-    // Verification.
-    ProposerEngine proposerEngine = new ProposerEngine(blocks, pendingTransactions, state, local, network, assigner,
-            validatorElections, proposedBlocks, proposedValidBlocks);
-    Assertions.assertThrows(IllegalArgumentException.class, () -> {
-      proposerEngine.onNewValidatedBlock(block.getHeight(), block.id());
-    });
-  }
-
-  /**
    * Evaluates that when enough block approvals are received,
    * a validated block is created and sent to the network (including itself).
    */
   @Test
   public void enoughBlockApproval() throws LightChainNetworkingException {
-    // Initialize non-mocked components.
-    Identifier localId = IdentifierFixture.newIdentifier();
-    PrivateKey localPrivateKey = KeyGenFixture.newKeyGen().getPrivateKey();
-    Local local = new Local(localId, localPrivateKey);
-    ArrayList<Account> accounts = AccountFixture.newAccounts(11);
-    Block block = BlockFixture.newBlock(Parameters.MIN_TRANSACTIONS_NUM + 1);
 
-    // Initialize mocked components.
-    Assignment assignment = mock(Assignment.class);
-    when(assignment.has(any(Identifier.class))).thenReturn(true); // returns true for all identifiers
-    when(assignment.has(local.myId())).thenReturn(true);
+    while (true) {
 
-    LightChainValidatorAssigner assigner = mock(LightChainValidatorAssigner.class);
-    when(assigner.assign(any(Identifier.class), any(Snapshot.class), any(short.class))).thenReturn(assignment);
+      try {
+        Thread.sleep(1000);
+      } catch (InterruptedException ex) {
+        System.err.println("Thread sleep issue, breaking the loop");
+        break;
+      }
 
-    Transactions pendingTransactions = mock(Transactions.class);
-    when(pendingTransactions.size()).thenReturn(Parameters.MIN_TRANSACTIONS_NUM + 1);
-    when(pendingTransactions.all()).thenReturn(new ArrayList<>(Arrays.asList(block.getTransactions())));
+      // Initialize non-mocked components.
+      Identifier localId = IdentifierFixture.newIdentifier();
+      PrivateKey localPrivateKey = KeyGenFixture.newKeyGen().getPrivateKey();
+      Local local = new Local(localId, localPrivateKey);
+      ArrayList<Account> accounts = AccountFixture.newAccounts(11);
+      Block block = BlockFixture.newBlock(Parameters.MIN_TRANSACTIONS_NUM + 1);
 
-    Blocks blocks = mock(Blocks.class);
-    when(blocks.atHeight(block.getHeight())).thenReturn(block); // block to be proposed
+      // Initialize mocked components.
+      Assignment assignment = mock(Assignment.class);
+      when(assignment.has(any(Identifier.class))).thenReturn(true); // returns true for all identifiers
+      when(assignment.has(local.myId())).thenReturn(true);
 
-    Snapshot snapshot = mock(Snapshot.class);
-    when(snapshot.all()).thenReturn(accounts);
-    when(snapshot.getAccount(localId)).thenReturn(accounts.get(0));
+      LightChainValidatorAssigner assigner = mock(LightChainValidatorAssigner.class);
+      when(assigner.assign(any(Identifier.class), any(Snapshot.class), any(short.class))).thenReturn(assignment);
 
-    State state = mock(State.class);
-    when(state.atBlockId(block.id())).thenReturn(snapshot);
+      Transactions pendingTransactions = mock(Transactions.class);
+      when(pendingTransactions.size()).thenReturn(Parameters.MIN_TRANSACTIONS_NUM + 1);
+      when(pendingTransactions.all()).thenReturn(new ArrayList<>(Arrays.asList(block.getTransactions())));
 
-    ConcurrentMap<Identifier, String> idToAddressMap = new ConcurrentHashMap<>();
-    idToAddressMap.put(IdentifierFixture.newIdentifier(), Channels.ValidatedBlocks);
+      Blocks blocks = mock(Blocks.class);
+      when(blocks.atHeight(block.getHeight())).thenReturn(block); // block to be proposed
 
-    Conduit validatedCon = mock(Conduit.class);
-    doNothing().when(validatedCon).unicast(any(Block.class), any(Identifier.class));
+      Snapshot snapshot = mock(Snapshot.class);
+      when(snapshot.all()).thenReturn(accounts);
+      when(snapshot.getAccount(localId)).thenReturn(accounts.get(0));
 
-    Conduit proposedCon = mock(Conduit.class);
-    doNothing().when(validatedCon).unicast(any(Block.class), any(Identifier.class));
+      State state = mock(State.class);
+      when(state.atBlockId(block.id())).thenReturn(snapshot);
 
-    P2pNetwork network = mock(P2pNetwork.class);
-    when(network.getIdToAddressMap()).thenReturn(idToAddressMap);
-    when(network.register(any(Engine.class), eq(Channels.ProposedBlocks))).thenReturn(proposedCon);
-    when(network.register(any(Engine.class), eq(Channels.ValidatedBlocks))).thenReturn(validatedCon);
+      ConcurrentMap<Identifier, String> idToAddressMap = new ConcurrentHashMap<>();
+      idToAddressMap.put(IdentifierFixture.newIdentifier(), Channels.ValidatedBlocks);
 
-    // Verification.
-    ProposerEngine proposerEngine = new ProposerEngine(blocks, pendingTransactions, state, local, network, assigner,
-            validatorElections, proposedBlocks, proposedValidBlocks);
-    proposerEngine.onNewValidatedBlock(block.getHeight(), block.id());
-    BlockValidator blockValidator = new BlockValidator(state);
-    for (int i = 0; i < Parameters.VALIDATOR_THRESHOLD; i++) {
-      BlockApproval blockApproval = new BlockApproval(SignatureFixture.newSignatureFixture(), block.id());
-      proposerEngine.process(blockApproval);
-    }
-    verify(validatedCon, times(1)).unicast(any(Block.class), any(Identifier.class));
-  }
+      Conduit validatedCon = mock(Conduit.class);
+      doNothing().when(validatedCon).unicast(any(Block.class), any(Identifier.class));
 
-  /**
-   * Evaluates that when enough block approvals are received concurrently,
-   * a validated block is created and sent to the network (including itself).
-   */
-  @Test
-  public void enoughBlockApprovalConcurrently() throws LightChainNetworkingException, InterruptedException {
-    // Initialize non-mocked components.
-    Identifier localId = IdentifierFixture.newIdentifier();
-    PrivateKey localPrivateKey = KeyGenFixture.newKeyGen().getPrivateKey();
-    Local local = new Local(localId, localPrivateKey);
-    ArrayList<Account> accounts = AccountFixture.newAccounts(11);
-    Block block = BlockFixture.newBlock(Parameters.MIN_TRANSACTIONS_NUM + 1);
+      Conduit proposedCon = mock(Conduit.class);
+      doNothing().when(validatedCon).unicast(any(Block.class), any(Identifier.class));
 
-    // Initialize mocked components.
-    Assignment assignment = mock(Assignment.class);
-    when(assignment.has(any(Identifier.class))).thenReturn(true); // returns true for all identifiers
-    when(assignment.has(local.myId())).thenReturn(true);
+      P2pNetwork network = mock(P2pNetwork.class);
+      when(network.getIdToAddressMap()).thenReturn(idToAddressMap);
+      when(network.register(any(Engine.class), eq(Channels.ProposedBlocks))).thenReturn(proposedCon);
+      when(network.register(any(Engine.class), eq(Channels.ValidatedBlocks))).thenReturn(validatedCon);
 
-    LightChainValidatorAssigner assigner = mock(LightChainValidatorAssigner.class);
-    when(assigner.assign(any(Identifier.class), any(Snapshot.class), any(short.class))).thenReturn(assignment);
-
-    Transactions pendingTransactions = mock(Transactions.class);
-    when(pendingTransactions.size()).thenReturn(Parameters.MIN_TRANSACTIONS_NUM + 1);
-    when(pendingTransactions.all()).thenReturn(new ArrayList<>(Arrays.asList(block.getTransactions())));
-
-    Blocks blocks = mock(Blocks.class);
-    when(blocks.atHeight(block.getHeight())).thenReturn(block); // block to be proposed
-
-    Snapshot snapshot = mock(Snapshot.class);
-    when(snapshot.all()).thenReturn(accounts);
-    when(snapshot.getAccount(localId)).thenReturn(accounts.get(0));
-
-    State state = mock(State.class);
-    when(state.atBlockId(block.id())).thenReturn(snapshot);
-
-    ConcurrentMap<Identifier, String> idToAddressMap = new ConcurrentHashMap<>();
-    idToAddressMap.put(IdentifierFixture.newIdentifier(), Channels.ValidatedBlocks);
-
-    Conduit validatedCon = mock(Conduit.class);
-    doNothing().when(validatedCon).unicast(any(Block.class), any(Identifier.class));
-
-    Conduit proposedCon = mock(Conduit.class);
-    doNothing().when(validatedCon).unicast(any(Block.class), any(Identifier.class));
-
-    P2pNetwork network = mock(P2pNetwork.class);
-    when(network.getIdToAddressMap()).thenReturn(idToAddressMap);
-    when(network.register(any(Engine.class), eq(Channels.ProposedBlocks))).thenReturn(proposedCon);
-    when(network.register(any(Engine.class), eq(Channels.ValidatedBlocks))).thenReturn(validatedCon);
-
-    // Verification.
-    ProposerEngine proposerEngine = new ProposerEngine(blocks, pendingTransactions, state, local, network, assigner,
-            validatorElections, proposedBlocks, proposedValidBlocks);
-    proposerEngine.onNewValidatedBlock(block.getHeight(), block.id());
-    Thread[] threads = new Thread[Parameters.VALIDATOR_THRESHOLD];
-    for (int i = 0; i < Parameters.VALIDATOR_THRESHOLD; i++) {
-      threads[i] = new Thread(() -> {
+      // Verification.
+      ProposerEngine proposerEngine = new ProposerEngine(blocks, pendingTransactions, state, local, network, assigner,
+              validatorElections, proposedBlocks, proposedValidBlocks);
+      proposerEngine.onNewValidatedBlock(block.getHeight(), block.id());
+      BlockValidator blockValidator = new BlockValidator(state);
+      for (int i = 0; i < Parameters.VALIDATOR_THRESHOLD; i++) {
         BlockApproval blockApproval = new BlockApproval(SignatureFixture.newSignatureFixture(), block.id());
         proposerEngine.process(blockApproval);
-      });
+      }
+      verify(validatedCon, times(1)).unicast(any(Block.class), any(Identifier.class));
+
+
     }
-    for (Thread thread : threads) {
-      thread.start();
-      thread.join();
-    }
-    verify(validatedCon, times(1)).unicast(any(Block.class), any(Identifier.class));
   }
+
+
 }
