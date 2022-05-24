@@ -13,12 +13,11 @@ public class Cmd {
    */
   public static void main(String[] args) {
     LocalTestNet testNet = new LocalTestNet();
-
     try {
       testNet.runLocalTestNet();
     } catch (IllegalStateException e) {
-      System.err.println("could not initialize and run local net: " + e.getMessage());
       System.exit(1);
+      throw new IllegalStateException("could not initialize and run local net", e);
     }
   }
 }
