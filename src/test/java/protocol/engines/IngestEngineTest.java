@@ -62,12 +62,12 @@ public class IngestEngineTest {
     when(state.atBlockId(block.getPreviousBlockId())).thenReturn(snapshot);
 
     IngestEngine ingestEngine = new IngestEngine(
-            state,
-            blocks,
-            transactionIds,
-            pendingTransactions,
-            seenEntities,
-            assigner);
+        state,
+        blocks,
+        transactionIds,
+        pendingTransactions,
+        seenEntities,
+        assigner);
 
     // mocks assignment
     Assignment assignment = mock(Assignment.class);
@@ -85,13 +85,8 @@ public class IngestEngineTest {
     // action
     ingestEngine.process(block);
 
-    // verification
-    verify(blocks, times(1)).add(block);
-    verify(seenEntities, times(1)).add(block.id());
-    for (Transaction tx : block.getTransactions()) {
-      verify(pendingTransactions, times(1)).has(tx.id());
-      verify(transactionIds, times(1)).add(tx.id());
-    }
+    // verify
+    verifyBlockHappyPathCalled(block, blocks, pendingTransactions, transactionIds, seenEntities);
   }
 
   /**
@@ -138,12 +133,12 @@ public class IngestEngineTest {
     when(state.atBlockId(block2.getPreviousBlockId())).thenReturn(snapshot);
 
     IngestEngine ingestEngine = new IngestEngine(
-            state,
-            blocks,
-            transactionIds,
-            pendingTransactions,
-            seenEntities,
-            assigner);
+        state,
+        blocks,
+        transactionIds,
+        pendingTransactions,
+        seenEntities,
+        assigner);
 
     // mocks assignment
     Assignment assignment = mock(Assignment.class);
@@ -163,21 +158,11 @@ public class IngestEngineTest {
     ingestEngine.process(block1);
     ingestEngine.process(block2);
 
-    // verification for block1
-    verify(blocks, times(1)).add(block1);
-    verify(seenEntities, times(1)).add(block1.id());
-    for (Transaction tx : block1.getTransactions()) {
-      verify(pendingTransactions, times(1)).has(tx.id());
-      verify(transactionIds, times(1)).add(tx.id());
-    }
+    // verification for block 1
+    verifyBlockHappyPathCalled(block1, blocks, pendingTransactions, transactionIds, seenEntities);
 
-    // verification for block2
-    verify(blocks, times(1)).add(block2);
-    verify(seenEntities, times(1)).add(block2.id());
-    for (Transaction tx : block2.getTransactions()) {
-      verify(pendingTransactions, times(1)).has(tx.id());
-      verify(transactionIds, times(1)).add(tx.id());
-    }
+    // verification for block 2
+    verifyBlockHappyPathCalled(block2, blocks, pendingTransactions, transactionIds, seenEntities);
   }
 
   /**
@@ -224,12 +209,12 @@ public class IngestEngineTest {
     when(state.atBlockId(block2.getPreviousBlockId())).thenReturn(snapshot);
 
     IngestEngine ingestEngine = new IngestEngine(
-            state,
-            blocks,
-            transactionIds,
-            pendingTransactions,
-            seenEntities,
-            assigner);
+        state,
+        blocks,
+        transactionIds,
+        pendingTransactions,
+        seenEntities,
+        assigner);
 
     // mocks assignment
     Assignment assignment = mock(Assignment.class);
@@ -275,22 +260,13 @@ public class IngestEngineTest {
       Assertions.fail();
     }
 
-    // verification for block1
-    verify(blocks, times(1)).add(block1);
-    verify(seenEntities, times(1)).add(block1.id());
-    for (Transaction tx : block1.getTransactions()) {
-      verify(pendingTransactions, times(1)).has(tx.id());
-      verify(transactionIds, times(1)).add(tx.id());
-    }
-
-    // verification for block2
-    verify(blocks, times(1)).add(block2);
-    verify(seenEntities, times(1)).add(block2.id());
-    for (Transaction tx : block2.getTransactions()) {
-      verify(pendingTransactions, times(1)).has(tx.id());
-      verify(transactionIds, times(1)).add(tx.id());
-    }
     Assertions.assertEquals(0, threadError.get());
+
+    // verification for block 1
+    verifyBlockHappyPathCalled(block1, blocks, pendingTransactions, transactionIds, seenEntities);
+
+    // verification for block 2
+    verifyBlockHappyPathCalled(block2, blocks, pendingTransactions, transactionIds, seenEntities);
   }
 
   /**
@@ -326,12 +302,12 @@ public class IngestEngineTest {
     when(state.atBlockId(block.getPreviousBlockId())).thenReturn(snapshot);
 
     IngestEngine ingestEngine = new IngestEngine(
-            state,
-            blocks,
-            transactionIds,
-            pendingTransactions,
-            seenEntities,
-            assigner);
+        state,
+        blocks,
+        transactionIds,
+        pendingTransactions,
+        seenEntities,
+        assigner);
 
     // mocks assignment
     Assignment assignment = mock(Assignment.class);
@@ -352,13 +328,8 @@ public class IngestEngineTest {
     ingestEngine.process(block);
 
     // verification
-    verify(blocks, times(1)).add(block);
-    verify(seenEntities, times(1)).add(block.id());
+    verifyBlockHappyPathCalled(block, blocks, pendingTransactions, transactionIds, seenEntities);
     verify(seenEntities, times(2)).has(block.id());
-    for (Transaction tx : block.getTransactions()) {
-      verify(pendingTransactions, times(1)).has(tx.id());
-      verify(transactionIds, times(1)).add(tx.id());
-    }
   }
 
   /**
@@ -395,12 +366,12 @@ public class IngestEngineTest {
     when(state.atBlockId(block.getPreviousBlockId())).thenReturn(snapshot);
 
     IngestEngine ingestEngine = new IngestEngine(
-            state,
-            blocks,
-            transactionIds,
-            pendingTransactions,
-            seenEntities,
-            assigner);
+        state,
+        blocks,
+        transactionIds,
+        pendingTransactions,
+        seenEntities,
+        assigner);
 
     // mocks assignment
     Assignment assignment = mock(Assignment.class);
@@ -442,15 +413,11 @@ public class IngestEngineTest {
       Assertions.fail();
     }
 
-    // verification
-    verify(blocks, times(1)).add(block);
-    verify(seenEntities, times(1)).add(block.id());
-    verify(seenEntities, times(2)).has(block.id());
-    for (Transaction tx : block.getTransactions()) {
-      verify(pendingTransactions, times(1)).has(tx.id());
-      verify(transactionIds, times(1)).add(tx.id());
-    }
     Assertions.assertEquals(0, threadError.get());
+
+    // verification
+    verifyBlockHappyPathCalled(block, blocks, pendingTransactions, transactionIds, seenEntities);
+    verify(seenEntities, times(2)).has(block.id());
   }
 
   /**
@@ -486,12 +453,12 @@ public class IngestEngineTest {
     when(state.atBlockId(block.getPreviousBlockId())).thenReturn(snapshot);
 
     IngestEngine ingestEngine = new IngestEngine(
-            state,
-            blocks,
-            transactionIds,
-            pendingTransactions,
-            seenEntities,
-            assigner);
+        state,
+        blocks,
+        transactionIds,
+        pendingTransactions,
+        seenEntities,
+        assigner);
 
     // mocks assignment
     Assignment assignment = mock(Assignment.class);
@@ -510,12 +477,9 @@ public class IngestEngineTest {
     ingestEngine.process(block);
 
     // verification
-    verify(blocks, times(1)).add(block);
-    verify(seenEntities, times(1)).add(block.id());
+    verifyBlockHappyPathCalled(block, blocks, pendingTransactions, transactionIds, seenEntities);
     for (Transaction tx : block.getTransactions()) {
-      verify(pendingTransactions, times(1)).has(tx.id());
       verify(pendingTransactions, times(1)).remove(tx.id());
-      verify(transactionIds, times(1)).add(tx.id());
     }
   }
 
@@ -563,12 +527,12 @@ public class IngestEngineTest {
     when(state.atBlockId(block2.getPreviousBlockId())).thenReturn(snapshot);
 
     IngestEngine ingestEngine = new IngestEngine(
-            state,
-            blocks,
-            transactionIds,
-            pendingTransactions,
-            seenEntities,
-            assigner);
+        state,
+        blocks,
+        transactionIds,
+        pendingTransactions,
+        seenEntities,
+        assigner);
 
     // mocks assignment
     Assignment assignment = mock(Assignment.class);
@@ -619,26 +583,18 @@ public class IngestEngineTest {
       Assertions.fail();
     }
 
+    Assertions.assertEquals(0, threadError.get());
+
     // verification for block1
-    verify(blocks, times(1)).add(block1);
-    verify(seenEntities, times(1)).add(block1.id());
+    verifyBlockHappyPathCalled(block1, blocks, pendingTransactions, transactionIds, seenEntities);
     // shared transaction should be removed from pending transactions
     verify(pendingTransactions, times(1)).remove(block1.getTransactions()[0].id());
-    for (Transaction tx : block1.getTransactions()) {
-      verify(pendingTransactions, times(1)).has(tx.id());
-      verify(transactionIds, times(1)).add(tx.id());
-    }
+
 
     // verification for block2
-    verify(blocks, times(1)).add(block2);
-    verify(seenEntities, times(1)).add(block2.id());
+    verifyBlockHappyPathCalled(block2, blocks, pendingTransactions, transactionIds, seenEntities);
     // shared transaction should be removed from pending transactions
     verify(pendingTransactions, times(1)).remove(block2.getTransactions()[0].id());
-    for (Transaction tx : block2.getTransactions()) {
-      verify(pendingTransactions, times(1)).has(tx.id());
-      verify(transactionIds, times(1)).add(tx.id());
-    }
-    Assertions.assertEquals(0, threadError.get());
   }
 
   /**
@@ -685,12 +641,12 @@ public class IngestEngineTest {
     when(state.atBlockId(block2.getPreviousBlockId())).thenReturn(snapshot);
 
     IngestEngine ingestEngine = new IngestEngine(
-            state,
-            blocks,
-            transactionIds,
-            pendingTransactions,
-            seenEntities,
-            assigner);
+        state,
+        blocks,
+        transactionIds,
+        pendingTransactions,
+        seenEntities,
+        assigner);
 
     // mocks assignment
     Assignment assignment = mock(Assignment.class);
@@ -740,24 +696,19 @@ public class IngestEngineTest {
       Assertions.fail();
     }
 
+    Assertions.assertEquals(0, threadError.get());
+
     // verification for block1
-    verify(blocks, times(1)).add(block1);
-    verify(seenEntities, times(1)).add(block1.id());
+    verifyBlockHappyPathCalled(block1, blocks, pendingTransactions, transactionIds, seenEntities);
     for (Transaction tx : block1.getTransactions()) {
-      verify(pendingTransactions, times(1)).has(tx.id());
       verify(pendingTransactions, times(1)).remove(tx.id());
-      verify(transactionIds, times(1)).add(tx.id());
     }
 
     // verification for block2
-    verify(blocks, times(1)).add(block2);
-    verify(seenEntities, times(1)).add(block2.id());
+    verifyBlockHappyPathCalled(block2, blocks, pendingTransactions, transactionIds, seenEntities);
     for (Transaction tx : block2.getTransactions()) {
-      verify(pendingTransactions, times(1)).has(tx.id());
       verify(pendingTransactions, times(1)).remove(tx.id());
-      verify(transactionIds, times(1)).add(tx.id());
     }
-    Assertions.assertEquals(0, threadError.get());
   }
 
   /**
@@ -792,12 +743,12 @@ public class IngestEngineTest {
     when(state.atBlockId(block.getPreviousBlockId())).thenReturn(snapshot);
 
     IngestEngine ingestEngine = new IngestEngine(
-            state,
-            blocks,
-            transactionIds,
-            pendingTransactions,
-            seenEntities,
-            assigner);
+        state,
+        blocks,
+        transactionIds,
+        pendingTransactions,
+        seenEntities,
+        assigner);
 
     // mocks assignment
     Assignment assignment = mock(Assignment.class);
@@ -853,12 +804,12 @@ public class IngestEngineTest {
     when(transactionIds.has(tx.id())).thenReturn(false);
 
     IngestEngine ingestEngine = new IngestEngine(
-            state,
-            blocks,
-            transactionIds,
-            pendingTransactions,
-            seenEntities,
-            assigner);
+        state,
+        blocks,
+        transactionIds,
+        pendingTransactions,
+        seenEntities,
+        assigner);
 
     // mocks assignment
     Assignment assignment = mock(Assignment.class);
@@ -877,9 +828,7 @@ public class IngestEngineTest {
     ingestEngine.process(tx);
 
     // verification
-    verify(seenEntities, times(1)).add(tx.id());
-    verify(transactionIds, times(1)).has(tx.id());
-    verify(pendingTransactions, times(1)).add(tx);
+    verifyTransactionHappyPathCalled(tx, seenEntities, transactionIds, pendingTransactions);
   }
 
   /**
@@ -914,12 +863,12 @@ public class IngestEngineTest {
     when(transactionIds.has(tx2.id())).thenReturn(false);
 
     IngestEngine ingestEngine = new IngestEngine(
-            state,
-            blocks,
-            transactionIds,
-            pendingTransactions,
-            seenEntities,
-            assigner);
+        state,
+        blocks,
+        transactionIds,
+        pendingTransactions,
+        seenEntities,
+        assigner);
 
     // mocks assignment
     Assignment assignment = mock(Assignment.class);
@@ -940,14 +889,10 @@ public class IngestEngineTest {
     ingestEngine.process(tx2);
 
     // verification of tx1
-    verify(seenEntities, times(1)).add(tx1.id());
-    verify(transactionIds, times(1)).has(tx1.id());
-    verify(pendingTransactions, times(1)).add(tx1);
+    verifyTransactionHappyPathCalled(tx1, seenEntities, transactionIds, pendingTransactions);
 
     // verification of tx2
-    verify(seenEntities, times(1)).add(tx2.id());
-    verify(transactionIds, times(1)).has(tx2.id());
-    verify(pendingTransactions, times(1)).add(tx2);
+    verifyTransactionHappyPathCalled(tx2, seenEntities, transactionIds, pendingTransactions);
   }
 
   /**
@@ -982,12 +927,12 @@ public class IngestEngineTest {
     when(transactionIds.has(tx2.id())).thenReturn(false);
 
     IngestEngine ingestEngine = new IngestEngine(
-            state,
-            blocks,
-            transactionIds,
-            pendingTransactions,
-            seenEntities,
-            assigner);
+        state,
+        blocks,
+        transactionIds,
+        pendingTransactions,
+        seenEntities,
+        assigner);
 
     // mocks assignment
     Assignment assignment = mock(Assignment.class);
@@ -1033,17 +978,13 @@ public class IngestEngineTest {
       Assertions.fail();
     }
 
+    Assertions.assertEquals(0, threadError.get());
+
     // verification of tx1
-    verify(seenEntities, times(1)).add(tx1.id());
-    verify(transactionIds, times(1)).has(tx1.id());
-    verify(pendingTransactions, times(1)).add(tx1);
+    verifyTransactionHappyPathCalled(tx1, seenEntities, transactionIds, pendingTransactions);
 
     // verification of tx2
-    verify(seenEntities, times(1)).add(tx2.id());
-    verify(transactionIds, times(1)).has(tx2.id());
-    verify(pendingTransactions, times(1)).add(tx2);
-
-    Assertions.assertEquals(0, threadError.get());
+    verifyTransactionHappyPathCalled(tx2, seenEntities, transactionIds, pendingTransactions);
   }
 
   /**
@@ -1075,12 +1016,12 @@ public class IngestEngineTest {
     when(transactionIds.has(tx.id())).thenReturn(false);
 
     IngestEngine ingestEngine = new IngestEngine(
-            state,
-            blocks,
-            transactionIds,
-            pendingTransactions,
-            seenEntities,
-            assigner);
+        state,
+        blocks,
+        transactionIds,
+        pendingTransactions,
+        seenEntities,
+        assigner);
 
     // mocks assignment
     Assignment assignment = mock(Assignment.class);
@@ -1102,10 +1043,8 @@ public class IngestEngineTest {
     ingestEngine.process(tx);
 
     // verification
-    verify(seenEntities, times(1)).add(tx.id());
+    verifyTransactionHappyPathCalled(tx, seenEntities, transactionIds, pendingTransactions);
     verify(seenEntities, times(2)).has(tx.id());
-    verify(transactionIds, times(1)).has(tx.id());
-    verify(pendingTransactions, times(1)).add(tx);
   }
 
   /**
@@ -1137,12 +1076,12 @@ public class IngestEngineTest {
     when(transactionIds.has(tx.id())).thenReturn(false);
 
     IngestEngine ingestEngine = new IngestEngine(
-            state,
-            blocks,
-            transactionIds,
-            pendingTransactions,
-            seenEntities,
-            assigner);
+        state,
+        blocks,
+        transactionIds,
+        pendingTransactions,
+        seenEntities,
+        assigner);
 
     // mocks assignment
     Assignment assignment = mock(Assignment.class);
@@ -1221,12 +1160,12 @@ public class IngestEngineTest {
     when(transactionIds.has(tx.id())).thenReturn(true);
 
     IngestEngine ingestEngine = new IngestEngine(
-            state,
-            blocks,
-            transactionIds,
-            pendingTransactions,
-            seenEntities,
-            assigner);
+        state,
+        blocks,
+        transactionIds,
+        pendingTransactions,
+        seenEntities,
+        assigner);
 
     // mocks assignment
     Assignment assignment = mock(Assignment.class);
@@ -1278,12 +1217,12 @@ public class IngestEngineTest {
     when(pendingTransactions.has(tx.id())).thenReturn(true);
 
     IngestEngine ingestEngine = new IngestEngine(
-            state,
-            blocks,
-            transactionIds,
-            pendingTransactions,
-            seenEntities,
-            assigner);
+        state,
+        blocks,
+        transactionIds,
+        pendingTransactions,
+        seenEntities,
+        assigner);
 
     // mocks assignment
     Assignment assignment = mock(Assignment.class);
@@ -1322,12 +1261,12 @@ public class IngestEngineTest {
 
     Entity e = new EntityFixture(); // not a block nor a transaction
     IngestEngine ingestEngine = new IngestEngine(
-            state,
-            blocks,
-            transactionIds,
-            pendingTransactions,
-            seenEntities,
-            assigner);
+        state,
+        blocks,
+        transactionIds,
+        pendingTransactions,
+        seenEntities,
+        assigner);
     Assertions.assertThrows(IllegalArgumentException.class, () -> {
       ingestEngine.process(e);
     });
@@ -1373,12 +1312,12 @@ public class IngestEngineTest {
     when(state.atBlockId(validatedTx.getReferenceBlockId())).thenReturn(snapshot);
 
     IngestEngine ingestEngine = new IngestEngine(
-            state,
-            blocks,
-            transactionIds,
-            pendingTransactions,
-            seenEntities,
-            assigner);
+        state,
+        blocks,
+        transactionIds,
+        pendingTransactions,
+        seenEntities,
+        assigner);
 
     // mocks assignment
     Assignment assignment = mock(Assignment.class);
@@ -1424,17 +1363,10 @@ public class IngestEngineTest {
     }
 
     // verification for block
-    verify(blocks, times(1)).add(block);
-    verify(seenEntities, times(1)).add(block.id());
-    for (Transaction tx : block.getTransactions()) {
-      verify(pendingTransactions, times(1)).has(tx.id());
-      verify(transactionIds, times(1)).add(tx.id());
-    }
+    verifyBlockHappyPathCalled(block, blocks, pendingTransactions, transactionIds, seenEntities);
 
     // verification for transaction
-    verify(seenEntities, times(1)).add(validatedTx.id());
-    verify(transactionIds, times(1)).has(validatedTx.id());
-    verify(pendingTransactions, times(1)).add(validatedTx);
+    verifyTransactionHappyPathCalled(validatedTx, seenEntities, transactionIds, pendingTransactions);
 
     Assertions.assertEquals(0, threadError.get());
   }
@@ -1478,12 +1410,12 @@ public class IngestEngineTest {
     when(state.atBlockId(validatedTx.getReferenceBlockId())).thenReturn(snapshot);
 
     IngestEngine ingestEngine = new IngestEngine(
-            state,
-            blocks,
-            transactionIds,
-            pendingTransactions,
-            seenEntities,
-            assigner);
+        state,
+        blocks,
+        transactionIds,
+        pendingTransactions,
+        seenEntities,
+        assigner);
 
     // mocks assignment
     Assignment assignment = mock(Assignment.class);
@@ -1542,5 +1474,52 @@ public class IngestEngineTest {
     verify(transactionIds, times(1)).add(validatedTx.id());
 
     Assertions.assertEquals(0, threadError.get());
+  }
+
+  /**
+   * Verifies mocked storage components have been called with expected parameters on an
+   * expected number of times for block happy path, i.e., block is added to the blocks storage, and its id is
+   * added to seenEntities storage. Also, all its transactions ids are added to the pendingTx and
+   * txIds.
+   *
+   * @param block the block itself.
+   * @param blocks the blocks storage component.
+   * @param pendingTx the pending transactions identifiers.
+   * @param txIds the transaction identifiers.
+   * @param seenEntities identifiers of processed entities by engine.
+   */
+  private void verifyBlockHappyPathCalled(
+      Block block,
+      Blocks blocks,
+      Transactions pendingTx,
+      Identifiers txIds,
+      Identifiers seenEntities) {
+
+    verify(blocks, times(1)).add(block);
+    verify(seenEntities, times(1)).add(block.id());
+    for (Transaction tx : block.getTransactions()) {
+      verify(pendingTx, times(1)).has(tx.id());
+      verify(txIds, times(1)).add(tx.id());
+    }
+  }
+
+  /**
+   * Verifies mocked storage components have been called with the expected parameters on an
+   * expected number of times for transaction happy path.
+   *
+   * @param transaction the transaction itself.
+   * @param seenEntities identifiers of processed entities by engine.
+   * @param txIds the transaction identifiers.
+   * @param pendingTx the pending transactions identifiers.
+   */
+  private void verifyTransactionHappyPathCalled(
+      Transaction transaction,
+      Identifiers seenEntities,
+      Identifiers txIds,
+      Transactions pendingTx){
+
+    verify(seenEntities, times(1)).add(transaction.id());
+    verify(txIds, times(1)).has(transaction.id());
+    verify(pendingTx, times(1)).add(transaction);
   }
 }
