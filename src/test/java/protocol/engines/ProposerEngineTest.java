@@ -106,18 +106,15 @@ public class ProposerEngineTest {
     mockAssignment(assignment, assigner, pendingTransactions, blocks, snapshot, state);
     Conduit proposedCon = mock(Conduit.class);
     Conduit validatedCon = mock(Conduit.class);
-
     Network network = mock(Network.class);
     when(network.register(any(Engine.class), eq(Channels.ProposedBlocks))).thenReturn(proposedCon);
     when(network.register(any(Engine.class), eq(Channels.ValidatedBlocks))).thenReturn(validatedCon);
-
     ProposerEngine proposerEngine = new ProposerEngine(blocks,
         pendingTransactions,
         state,
         local,
         network,
         assigner);
-
     // Verification.
     AtomicBoolean proposerWaiting = new AtomicBoolean(true);
     Thread proposerThread = new Thread(() -> {
@@ -286,7 +283,8 @@ public class ProposerEngineTest {
     verify(validatedCon, times(1)).unicast(any(Block.class), any(Identifier.class));
   }
 
-  private void mockAssignment(Assignment assignment, LightChainValidatorAssigner assigner, Transactions pendingTransactions, Blocks blocks, Snapshot snapshot, State state) {
+  private void mockAssignment(Assignment assignment, LightChainValidatorAssigner assigner,
+                              Transactions pendingTransactions, Blocks blocks, Snapshot snapshot, State state) {
 
     when(assignment.has(any(Identifier.class))).thenReturn(true); // returns true for all identifiers
     when(assignment.has(local.myId())).thenReturn(true);
