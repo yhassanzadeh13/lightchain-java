@@ -102,6 +102,7 @@ public class ProposerEngineTest {
     Blocks blocks = mock(Blocks.class);
     Snapshot snapshot = mock(Snapshot.class);
     State state = mock(State.class);
+    AtomicInteger transactionsCounter = new AtomicInteger(Parameters.MIN_TRANSACTIONS_NUM - 1);
     mockAssignment(assignment, assigner, pendingTransactions, blocks, snapshot, state);
     Conduit proposedCon = mock(Conduit.class);
     Conduit validatedCon = mock(Conduit.class);
@@ -116,7 +117,6 @@ public class ProposerEngineTest {
         assigner);
     // Verification.
     AtomicBoolean proposerWaiting = new AtomicBoolean(true);
-    AtomicInteger transactionsCounter = new AtomicInteger(Parameters.MIN_TRANSACTIONS_NUM - 1);
     Thread proposerThread = new Thread(() -> {
       proposerEngine.onNewValidatedBlock(block.getHeight(), block.id());
       proposerWaiting.set(false);
