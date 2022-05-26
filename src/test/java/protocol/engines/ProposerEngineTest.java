@@ -122,11 +122,9 @@ public class ProposerEngineTest {
       proposerWaiting.set(false);
     });
     proposerThread.start(); // start proposer thread
-    // checks that proposer is waiting
     verify(proposedCon, times(0)).unicast(any(Block.class), any(Identifier.class));
     Assertions.assertTrue(proposerWaiting.get()); // proposer should be waiting
     Thread ingestThread = new Thread(() -> {
-      // simulating adding a transaction to pendingTransactions
       when(pendingTransactions.size()).thenReturn(transactionsCounter.incrementAndGet());
     });
     ingestThread.start(); // start ingest thread
