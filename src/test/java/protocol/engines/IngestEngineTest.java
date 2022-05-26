@@ -1,6 +1,8 @@
 package protocol.engines;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -45,11 +47,12 @@ public class IngestEngineTest {
     ArrayList<Account> accounts = new ArrayList<>(AccountFixture.newAccounts(10, 10).values());
     Block block = ValidatedBlockFixture.newValidatedBlock(accounts);
 
+    // mocks block as new to ingest engine.
     when(seenEntities.has(block.id())).thenReturn(false);
     when(blocks.has(block.id())).thenReturn(false);
 
-    IngestEngine ingestEngine = this.mockIngestEngineForOneEntity(
-        block,
+    IngestEngine ingestEngine = this.mockIngestEngineForEntities(
+        new ArrayList<>(List.of(block)),
         seenEntities,
         transactionIds,
         pendingTransactions,
@@ -63,7 +66,7 @@ public class IngestEngineTest {
   }
 
   /**
-   * Evaluates that when two validated blocks arrive at ingest engine,
+   * Evaluates that when two validated blocks arrive at ingest engine SEQUENTIALLY,
    * the engine adds the blocks to its block storage database.
    * The engine also adds hash of all the transactions of blocks into its "transactions" database.
    */
@@ -78,14 +81,14 @@ public class IngestEngineTest {
     Block block1 = ValidatedBlockFixture.newValidatedBlock(accounts);
     Block block2 = ValidatedBlockFixture.newValidatedBlock(accounts);
 
+    // mocks both blocks as new to ingest engine.
     when(seenEntities.has(block1.id())).thenReturn(false);
     when(seenEntities.has(block2.id())).thenReturn(false);
     when(blocks.has(block1.id())).thenReturn(false);
     when(blocks.has(block2.id())).thenReturn(false);
 
-    IngestEngine ingestEngine = this.mockIngestEngineForTwoEntities(
-        block1,
-        block2,
+    IngestEngine ingestEngine = this.mockIngestEngineForEntities(
+        new ArrayList<>(Arrays.asList(block1, block2)),
         seenEntities,
         transactionIds,
         pendingTransactions,
@@ -123,15 +126,16 @@ public class IngestEngineTest {
     when(blocks.has(block1.id())).thenReturn(false);
     when(blocks.has(block2.id())).thenReturn(false);
 
-    IngestEngine ingestEngine = this.mockIngestEngineForTwoEntities(
-        block1,
-        block2,
+    IngestEngine ingestEngine = this.mockIngestEngineForEntities(
+        new ArrayList<>(Arrays.asList(block1, block2)),
         seenEntities,
         transactionIds,
         pendingTransactions,
         blocks);
 
-    processTwoEntitiesConcurrently(ingestEngine, block1, block2, seenEntities, pendingTransactions, blocks);
+    this.processEntitiesConcurrently(
+        ingestEngine,
+        new ArrayList<>(Arrays.asList(block1, block2)));
 
     // verification for block 1
     verifyBlockHappyPathCalled(block1, blocks, pendingTransactions, transactionIds, seenEntities);
@@ -158,8 +162,8 @@ public class IngestEngineTest {
     when(seenEntities.has(block.id())).thenReturn(false);
     when(blocks.has(block.id())).thenReturn(false);
 
-    IngestEngine ingestEngine = this.mockIngestEngineForOneEntity(
-        block,
+    IngestEngine ingestEngine = this.mockIngestEngineForEntities(
+        new ArrayList<>(List.of(block)),
         seenEntities,
         transactionIds,
         pendingTransactions,
@@ -169,38 +173,6 @@ public class IngestEngineTest {
     ingestEngine.process(block);
     when(seenEntities.has(block.id())).thenReturn(true); // block is already seen
     ingestEngine.process(block);
-
-    // verification
-    verifyBlockHappyPathCalled(block, blocks, pendingTransactions, transactionIds, seenEntities);
-    verify(seenEntities, times(2)).has(block.id());
-  }
-
-  /**
-   * Evaluates that when two same validated blocks arrive at ingest engine concurrently (second one should be ignored),
-   * the engine adds the blocks to its block storage database.
-   * The engine also adds hash of all the transactions of blocks into its "transactions" database.
-   */
-  @Test
-  public void testValidatedSameTwoBlocksConcurrently() {
-    Blocks blocks = mock(Blocks.class);
-    Identifiers seenEntities = mock(Identifiers.class);
-    Identifiers transactionIds = mock(Identifiers.class);
-    Transactions pendingTransactions = mock(Transactions.class);
-
-    ArrayList<Account> accounts = new ArrayList<>(AccountFixture.newAccounts(10, 10).values());
-    Block block = ValidatedBlockFixture.newValidatedBlock(accounts);
-
-    when(seenEntities.has(block.id())).thenReturn(false);
-    when(blocks.has(block.id())).thenReturn(false);
-
-    IngestEngine ingestEngine = this.mockIngestEngineForOneEntity(
-        block,
-        seenEntities,
-        transactionIds,
-        pendingTransactions,
-        blocks);
-
-    processTwoEntitiesConcurrently(ingestEngine, block, block, seenEntities, pendingTransactions, blocks);
 
     // verification
     verifyBlockHappyPathCalled(block, blocks, pendingTransactions, transactionIds, seenEntities);
@@ -222,11 +194,8 @@ public class IngestEngineTest {
     ArrayList<Account> accounts = new ArrayList<>(AccountFixture.newAccounts(10, 10).values());
     Block block = ValidatedBlockFixture.newValidatedBlock(accounts);
 
-    when(seenEntities.has(block.id())).thenReturn(false);
-    when(blocks.has(block.id())).thenReturn(false);
-
-    IngestEngine ingestEngine = this.mockIngestEngineForOneEntity(
-        block,
+    IngestEngine ingestEngine = this.mockIngestEngineForEntities(
+        new ArrayList<>(List.of(block)),
         seenEntities,
         transactionIds,
         pendingTransactions,
@@ -262,14 +231,8 @@ public class IngestEngineTest {
     Block block1 = ValidatedBlockFixture.newValidatedBlock(accounts);
     Block block2 = ValidatedBlockFixture.newValidatedBlock(accounts);
 
-    when(seenEntities.has(block1.id())).thenReturn(false);
-    when(seenEntities.has(block2.id())).thenReturn(false);
-    when(blocks.has(block1.id())).thenReturn(false);
-    when(blocks.has(block2.id())).thenReturn(false);
-
-    IngestEngine ingestEngine = this.mockIngestEngineForTwoEntities(
-        block1,
-        block2,
+    IngestEngine ingestEngine = this.mockIngestEngineForEntities(
+        new ArrayList<>(Arrays.asList(block1, block2)),
         seenEntities,
         transactionIds,
         pendingTransactions,
@@ -279,7 +242,9 @@ public class IngestEngineTest {
     when(pendingTransactions.has(block1.getTransactions()[0].id())).thenReturn(true);
     when(pendingTransactions.has(block2.getTransactions()[0].id())).thenReturn(true);
 
-    processTwoEntitiesConcurrently(ingestEngine, block1, block2, seenEntities, pendingTransactions, blocks);
+    processEntitiesConcurrently(
+        ingestEngine,
+        new ArrayList<>(Arrays.asList(block1, block2)));
 
     // verification for block1
     verifyBlockHappyPathCalled(block1, blocks, pendingTransactions, transactionIds, seenEntities);
@@ -308,14 +273,8 @@ public class IngestEngineTest {
     Block block1 = ValidatedBlockFixture.newValidatedBlock(accounts);
     Block block2 = ValidatedBlockFixture.newValidatedBlock(accounts);
 
-    when(seenEntities.has(block1.id())).thenReturn(false);
-    when(seenEntities.has(block2.id())).thenReturn(false);
-    when(blocks.has(block1.id())).thenReturn(false);
-    when(blocks.has(block2.id())).thenReturn(false);
-
-    IngestEngine ingestEngine = this.mockIngestEngineForTwoEntities(
-        block1,
-        block2,
+    IngestEngine ingestEngine = this.mockIngestEngineForEntities(
+        new ArrayList<>(Arrays.asList(block1, block2)),
         seenEntities,
         transactionIds,
         pendingTransactions,
@@ -324,7 +283,9 @@ public class IngestEngineTest {
     // simulates an overlapping set of shared transactions
     when(pendingTransactions.has(any(Identifier.class))).thenReturn(true);
 
-    processTwoEntitiesConcurrently(ingestEngine, block1, block2, seenEntities, pendingTransactions, blocks);
+    processEntitiesConcurrently(
+        ingestEngine,
+        new ArrayList<>(Arrays.asList(block1, block2)));
 
     // verification for block1
     verifyBlockHappyPathCalled(block1, blocks, pendingTransactions, transactionIds, seenEntities);
@@ -353,11 +314,8 @@ public class IngestEngineTest {
     ArrayList<Account> accounts = new ArrayList<>(AccountFixture.newAccounts(10, 10).values());
     Block block = ValidatedBlockFixture.newValidatedBlock(accounts);
 
-    when(seenEntities.has(block.id())).thenReturn(false);
-    when(blocks.has(block.id())).thenReturn(false);
-
-    IngestEngine ingestEngine = this.mockIngestEngineForOneEntity(
-        block,
+    IngestEngine ingestEngine = this.mockIngestEngineForEntities(
+        new ArrayList<>(List.of(block)),
         seenEntities,
         transactionIds,
         pendingTransactions,
@@ -365,6 +323,7 @@ public class IngestEngineTest {
 
     when(seenEntities.has(block.id())).thenReturn(true); // block is already ingested
     when(blocks.has(block.id())).thenReturn(true); // block is already ingested
+
     // action
     ingestEngine.process(block);
 
@@ -394,8 +353,8 @@ public class IngestEngineTest {
     when(transactionIds.has(tx.id())).thenReturn(false);
     when(pendingTransactions.has(tx.id())).thenReturn(false);
 
-    IngestEngine ingestEngine = this.mockIngestEngineForOneEntity(
-        tx,
+    IngestEngine ingestEngine = this.mockIngestEngineForEntities(
+        new ArrayList<>(List.of(tx)),
         seenEntities,
         transactionIds,
         pendingTransactions,
@@ -425,9 +384,8 @@ public class IngestEngineTest {
     when(transactionIds.has(any(Identifier.class))).thenReturn(false);
     when(pendingTransactions.has(any(Identifier.class))).thenReturn(false);
 
-    IngestEngine ingestEngine = this.mockIngestEngineForTwoEntities(
-        tx1,
-        tx2,
+    IngestEngine ingestEngine = this.mockIngestEngineForEntities(
+        new ArrayList<>(Arrays.asList(tx1, tx2)),
         seenEntities,
         transactionIds,
         pendingTransactions,
@@ -461,15 +419,16 @@ public class IngestEngineTest {
     when(transactionIds.has(any(Identifier.class))).thenReturn(false);
     when(pendingTransactions.has(any(Identifier.class))).thenReturn(false);
 
-    IngestEngine ingestEngine = this.mockIngestEngineForTwoEntities(
-        tx1,
-        tx2,
+    IngestEngine ingestEngine = this.mockIngestEngineForEntities(
+        new ArrayList<>(Arrays.asList(tx1, tx2)),
         seenEntities,
         transactionIds,
         pendingTransactions,
         blocks);
 
-    processTwoEntitiesConcurrently(ingestEngine, tx1, tx2, seenEntities, pendingTransactions, blocks);
+    processEntitiesConcurrently(
+        ingestEngine,
+        new ArrayList<>(List.of(tx1, tx2)));
 
     // verification of tx1
     verifyTransactionHappyPathCalled(tx1, seenEntities, transactionIds, pendingTransactions);
@@ -495,8 +454,8 @@ public class IngestEngineTest {
     when(transactionIds.has(tx.id())).thenReturn(false);
     when(pendingTransactions.has(tx.id())).thenReturn(false);
 
-    IngestEngine ingestEngine = this.mockIngestEngineForOneEntity(
-        tx,
+    IngestEngine ingestEngine = this.mockIngestEngineForEntities(
+        new ArrayList<>(List.of(tx)),
         seenEntities,
         transactionIds,
         pendingTransactions,
@@ -530,14 +489,16 @@ public class IngestEngineTest {
     when(transactionIds.has(tx.id())).thenReturn(false);
     when(pendingTransactions.has(tx.id())).thenReturn(false);
 
-    IngestEngine ingestEngine = this.mockIngestEngineForOneEntity(
-        tx,
+    IngestEngine ingestEngine = this.mockIngestEngineForEntities(
+        new ArrayList<>(List.of(tx)),
         seenEntities,
         transactionIds,
         pendingTransactions,
         blocks);
 
-    processTwoEntitiesConcurrently(ingestEngine, tx, tx, seenEntities, pendingTransactions, blocks);
+    processEntitiesConcurrently(
+        ingestEngine,
+        new ArrayList<>(List.of(tx, tx)));
 
     // verification
     verify(seenEntities, times(2)).has(tx.id());
@@ -561,8 +522,8 @@ public class IngestEngineTest {
     when(transactionIds.has(tx.id())).thenReturn(true);
     when(pendingTransactions.has(tx.id())).thenReturn(false);
 
-    IngestEngine ingestEngine = this.mockIngestEngineForOneEntity(
-        tx,
+    IngestEngine ingestEngine = this.mockIngestEngineForEntities(
+        new ArrayList<>(List.of(tx)),
         seenEntities,
         transactionIds,
         pendingTransactions,
@@ -593,8 +554,8 @@ public class IngestEngineTest {
     when(transactionIds.has(tx.id())).thenReturn(false);
     when(pendingTransactions.has(tx.id())).thenReturn(true);
 
-    IngestEngine ingestEngine = this.mockIngestEngineForOneEntity(
-        tx,
+    IngestEngine ingestEngine = this.mockIngestEngineForEntities(
+        new ArrayList<>(List.of(tx)),
         seenEntities,
         transactionIds,
         pendingTransactions,
@@ -654,15 +615,16 @@ public class IngestEngineTest {
     when(transactionIds.has(any(Identifier.class))).thenReturn(false);
     when(pendingTransactions.has(any(Identifier.class))).thenReturn(false);
 
-    IngestEngine ingestEngine = this.mockIngestEngineForTwoEntities(
-        block,
-        validatedTx,
+    IngestEngine ingestEngine = this.mockIngestEngineForEntities(
+        new ArrayList<>(Arrays.asList(block, validatedTx)),
         seenEntities,
         transactionIds,
         pendingTransactions,
         blocks);
 
-    processTwoEntitiesConcurrently(ingestEngine, block, validatedTx, seenEntities, pendingTransactions, blocks);
+    processEntitiesConcurrently(
+        ingestEngine,
+        new ArrayList<>(List.of(block, validatedTx)));
 
     // verification for block
     verifyBlockHappyPathCalled(block, blocks, pendingTransactions, transactionIds, seenEntities);
@@ -691,16 +653,17 @@ public class IngestEngineTest {
     when(transactionIds.has(any(Identifier.class))).thenReturn(false);
     when(pendingTransactions.has(any(Identifier.class))).thenReturn(false);
 
-    IngestEngine ingestEngine = this.mockIngestEngineForTwoEntities(
-        block,
-        validatedTx,
+    IngestEngine ingestEngine = this.mockIngestEngineForEntities(
+        new ArrayList<>(Arrays.asList(block, validatedTx)),
         seenEntities,
         transactionIds,
         pendingTransactions,
         blocks);
 
     // mocks assignment
-    processTwoEntitiesConcurrently(ingestEngine, block, validatedTx, seenEntities, pendingTransactions, blocks);
+    processEntitiesConcurrently(
+        ingestEngine,
+        new ArrayList<>(List.of(block, validatedTx)));
 
     // verification for block
     verify(blocks, times(1)).add(block);
@@ -763,17 +726,17 @@ public class IngestEngineTest {
   }
 
   /**
-   * Sets up the mocks for ingest engine for one entity.
+   * Sets up the mocks for ingest engine for processing given list of entities.
    *
-   * @param e            the entity to be processed.
+   * @param entities     list of entities.
    * @param seenEntities identifiers of processed entities by engine.
    * @param txIds        identifiers of transactions.
    * @param pendingTx    identifiers of pending transactions.
    * @param blocks       the blocks storage component.
-   * @return ingest engine with mocked components.
+   * @return mocked ingest engine with mocked components.
    */
-  private IngestEngine mockIngestEngineForOneEntity(
-      Entity e,
+  private IngestEngine mockIngestEngineForEntities(
+      ArrayList<Entity> entities,
       Identifiers seenEntities,
       Identifiers txIds,
       Transactions pendingTx,
@@ -783,131 +746,59 @@ public class IngestEngineTest {
     ValidatorAssigner assigner = mock(ValidatorAssigner.class);
     State state = mock(State.class);
 
-    if (e.type().equals(EntityType.TYPE_VALIDATED_TRANSACTION)) {
-      ValidatedTransaction tx = (ValidatedTransaction) e;
-      when(state.atBlockId(tx.getReferenceBlockId())).thenReturn(snapshot);
-    } else if (e.type().equals(EntityType.TYPE_VALIDATED_BLOCK)) {
-      ValidatedBlock block = (ValidatedBlock) e;
-      when(state.atBlockId(block.getPreviousBlockId())).thenReturn(snapshot);
-      for (Transaction tx : block.getTransactions()) {
-        when(pendingTx.has(tx.id())).thenReturn(false);
+    for (Entity e : entities) {
+      // mocks entity as new
+      when(seenEntities.has(e.id())).thenReturn(false);
+
+      if (e.type().equals(EntityType.TYPE_VALIDATED_TRANSACTION)) {
+
+        ValidatedTransaction tx = (ValidatedTransaction) e;
+        when(state.atBlockId(tx.getReferenceBlockId())).thenReturn(snapshot);
+        when(pendingTx.has(tx.id())).thenReturn(true);
+
+      } else if (e.type().equals(EntityType.TYPE_VALIDATED_BLOCK)) {
+
+        ValidatedBlock block = (ValidatedBlock) e;
+        when(state.atBlockId(block.getPreviousBlockId())).thenReturn(snapshot);
+        when(blocks.has(block.id())).thenReturn(false);
+        for (Transaction tx : block.getTransactions()) {
+          when(pendingTx.has(tx.id())).thenReturn(false);
+        }
       }
+
+      // mocks assignment
+      mockAssignment(assigner, e, snapshot);
     }
 
-    IngestEngine ingestEngine = new IngestEngine(
+    return new IngestEngine(
         state,
         blocks,
         txIds,
         pendingTx,
         seenEntities,
         assigner);
-
-    // mocks assignment
-    mockAssignment(assigner, e, snapshot);
-
-    return ingestEngine;
   }
 
   /**
-   * Sets up the mocks for ingest engine for two entities.
+   * Processes entities concurrently thorough ingest engine.
    *
-   * @param e1           the first entity to be processed.
-   * @param e2           the second entity to be processed.
-   * @param seenEntities identifiers of processed entities by engine.
-   * @param txIds        identifiers of transactions.
-   * @param pendingTx    identifiers of pending transactions.
-   * @param blocks       the blocks storage component.
-   * @return ingest engine with mocked components.
+   * @param ingestEngine ingest engine.
+   * @param entities     the entities to be processed.
    */
-  private IngestEngine mockIngestEngineForTwoEntities(
-      Entity e1,
-      Entity e2,
-      Identifiers seenEntities,
-      Identifiers txIds,
-      Transactions pendingTx,
-      Blocks blocks) {
-
-    Snapshot snapshot = mock(Snapshot.class);
-    ValidatorAssigner assigner = mock(ValidatorAssigner.class);
-    State state = mock(State.class);
-
-    if (e1.type().equals(EntityType.TYPE_VALIDATED_TRANSACTION)) {
-      ValidatedTransaction tx = (ValidatedTransaction) e1;
-      when(state.atBlockId(tx.getReferenceBlockId())).thenReturn(snapshot);
-    } else if (e1.type().equals(EntityType.TYPE_VALIDATED_BLOCK)) {
-      ValidatedBlock block = (ValidatedBlock) e1;
-      when(state.atBlockId(block.getPreviousBlockId())).thenReturn(snapshot);
-      when(blocks.has(block.id())).thenReturn(false);
-      for (Transaction tx : block.getTransactions()) {
-        when(pendingTx.has(tx.id())).thenReturn(false);
-      }
-    }
-    if (e2.type().equals(EntityType.TYPE_VALIDATED_TRANSACTION)) {
-      ValidatedTransaction tx = (ValidatedTransaction) e2;
-      when(state.atBlockId(tx.getReferenceBlockId())).thenReturn(snapshot);
-    } else if (e2.type().equals(EntityType.TYPE_VALIDATED_BLOCK)) {
-      ValidatedBlock block = (ValidatedBlock) e2;
-      when(state.atBlockId(block.getPreviousBlockId())).thenReturn(snapshot);
-      when(blocks.has(block.id())).thenReturn(false);
-      for (Transaction tx : block.getTransactions()) {
-        when(pendingTx.has(tx.id())).thenReturn(false);
-      }
-    }
-
-    IngestEngine ingestEngine = new IngestEngine(
-        state,
-        blocks,
-        txIds,
-        pendingTx,
-        seenEntities,
-        assigner);
-
-    // mocks assignment
-    mockAssignment(assigner, e1, snapshot);
-    mockAssignment(assigner, e2, snapshot);
-
-    return ingestEngine;
-  }
-
-  /**
-   * Processes two entities concurrently thorough ingest engine.
-   *
-   * @param ingestEngine the ingest engine.
-   * @param e1           the first entity to be processed.
-   * @param e2           the second entity to be processed.
-   * @param seenEntities identifiers of processed entities by engine.
-   * @param pendingTx    identifiers of pending transactions.
-   * @param blocks       the blocks storage component.
-   */
-  private void processTwoEntitiesConcurrently(
+  private void processEntitiesConcurrently(
       IngestEngine ingestEngine,
-      Entity e1,
-      Entity e2,
-      Identifiers seenEntities,
-      Transactions pendingTx,
-      Blocks blocks) {
+      ArrayList<Entity> entities) {
 
     AtomicInteger threadError = new AtomicInteger();
-    ArrayList<Entity> concList = new ArrayList<>();
-    concList.add(e1);
-    concList.add(e2);
-    int concurrencyDegree = 2;
+    int concurrencyDegree = entities.size();
     CountDownLatch threadsDone = new CountDownLatch(concurrencyDegree);
     Thread[] threads = new Thread[concurrencyDegree];
+
     for (int i = 0; i < concurrencyDegree; i++) {
       int finalI = i;
       threads[i] = new Thread(() -> {
         try {
-          ingestEngine.process(concList.get(finalI));
-          if (concList.get(finalI).type().equals(EntityType.TYPE_VALIDATED_TRANSACTION)) {
-            Transaction tx = (Transaction) concList.get(finalI);
-            when(seenEntities.has(tx.id())).thenReturn(true);
-            when(pendingTx.has(tx.id())).thenReturn(true);
-          } else if (concList.get(finalI).type().equals(EntityType.TYPE_VALIDATED_BLOCK)) {
-            Block block = (Block) concList.get(finalI);
-            when(seenEntities.has(block.id())).thenReturn(true);
-            when(blocks.has(block.id())).thenReturn(true);
-          }
+          ingestEngine.process(entities.get(finalI));
           threadsDone.countDown();
         } catch (IllegalStateException e) {
           threadError.getAndIncrement();
@@ -940,6 +831,7 @@ public class IngestEngineTest {
     PublicKey pubKey = mock(PublicKey.class); // mock public key
     Account account = mock(Account.class); // mock account
     when(account.getPublicKey()).thenReturn(pubKey); // returns the mocked public key for all accounts
+
     // returns true for all signatures
     when(pubKey.verifySignature(any(Block.class), any(Signature.class))).thenReturn(true);
     when(pubKey.verifySignature(any(Transaction.class), any(Signature.class))).thenReturn(true);

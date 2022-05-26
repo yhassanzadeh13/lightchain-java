@@ -4,10 +4,8 @@ import java.util.ArrayList;
 import java.util.Random;
 
 import model.crypto.Signature;
-import model.lightchain.Account;
-import model.lightchain.Identifier;
-import model.lightchain.ValidatedBlock;
-import model.lightchain.ValidatedTransaction;
+import model.lightchain.*;
+import org.junit.jupiter.api.Assertions;
 import protocol.Parameters;
 
 /**
@@ -33,8 +31,8 @@ public class ValidatedBlockFixture {
         receiverIndex = random.nextInt(accounts.size());
       }
       transactions[i] = ValidatedTransactionFixture.newValidatedTransaction(
-              accounts.get(senderIndex).getIdentifier(),
-              accounts.get(receiverIndex).getIdentifier());
+          accounts.get(senderIndex).getIdentifier(),
+          accounts.get(receiverIndex).getIdentifier());
     }
     Signature signature = SignatureFixture.newSignatureFixture(proposer);
     int certificatesSize = Parameters.SIGNATURE_THRESHOLD;
@@ -43,6 +41,13 @@ public class ValidatedBlockFixture {
       certificates[i] = SignatureFixture.newSignatureFixture();
     }
     int height = Math.abs(random.nextInt(1_000_000));
-    return new ValidatedBlock(previousBlockId, proposer, transactions, signature, certificates, height);
+
+    ValidatedBlock validatedBlock =
+        new ValidatedBlock(previousBlockId, proposer, transactions, signature, certificates, height);
+
+    // identifier of a validated block should be equal to its core block structure
+    Assertions.assertEquals(validatedBlock.id(), ((Block) validatedBlock).id());
+
+    return validatedBlock;
   }
 }
