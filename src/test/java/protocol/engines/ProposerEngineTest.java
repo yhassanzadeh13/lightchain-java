@@ -99,7 +99,6 @@ public class ProposerEngineTest {
     Assignment assignment = mock(Assignment.class);
     LightChainValidatorAssigner assigner = mock(LightChainValidatorAssigner.class);
     Transactions pendingTransactions = mock(Transactions.class);
-    AtomicInteger transactionsCounter = new AtomicInteger(Parameters.MIN_TRANSACTIONS_NUM - 1);
     Blocks blocks = mock(Blocks.class);
     Snapshot snapshot = mock(Snapshot.class);
     State state = mock(State.class);
@@ -117,6 +116,7 @@ public class ProposerEngineTest {
         assigner);
     // Verification.
     AtomicBoolean proposerWaiting = new AtomicBoolean(true);
+    AtomicInteger transactionsCounter = new AtomicInteger(Parameters.MIN_TRANSACTIONS_NUM - 1);
     Thread proposerThread = new Thread(() -> {
       proposerEngine.onNewValidatedBlock(block.getHeight(), block.id());
       proposerWaiting.set(false);
