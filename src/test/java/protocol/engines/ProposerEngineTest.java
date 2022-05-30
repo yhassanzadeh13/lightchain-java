@@ -207,6 +207,14 @@ public class ProposerEngineTest {
     verify(validatedCon, times(1)).unicast(any(Block.class), any(Identifier.class));
   }
 
+  /**
+   * Evaluates that when enough block approvals are received concurrently,
+   * a validated block is created and sent to the network (including itself).
+   *
+   * @param proposerEngine proposerEngine of node.
+   * @param block          the block itself.
+   * @throws InterruptedException unhappy path exception.
+   */
   public void blockApprovalConcurrently(ProposerEngine proposerEngine, Block block) throws InterruptedException {
     Thread[] threads = new Thread[Parameters.VALIDATOR_THRESHOLD];
     for (int i = 0; i < Parameters.VALIDATOR_THRESHOLD; i++) {
@@ -221,7 +229,17 @@ public class ProposerEngineTest {
     }
   }
 
-  public void blockApproval(ConcurrentMap<Identifier, String> idToAddressMap, Conduit validatedCon, Conduit proposedCon, P2pNetwork network) throws LightChainNetworkingException {
+  /**
+   * Evaluates that when enough block approvals are received.
+   *
+   * @param idToAddressMap Concurrent map from id to address.
+   * @param validatedCon   conduits for validated ones.
+   * @param proposedCon    conduits for proposed ones.
+   * @param network        network of nodes.
+   * @throws LightChainNetworkingException unhappy path.
+   */
+  public void blockApproval(ConcurrentMap<Identifier, String> idToAddressMap, Conduit validatedCon, Conduit proposedCon,
+                            P2pNetwork network) throws LightChainNetworkingException {
     idToAddressMap.put(IdentifierFixture.newIdentifier(), Channels.ValidatedBlocks);
     doNothing().when(validatedCon).unicast(any(Block.class), any(Identifier.class));
     doNothing().when(validatedCon).unicast(any(Block.class), any(Identifier.class));
@@ -230,12 +248,31 @@ public class ProposerEngineTest {
     when(network.register(any(Engine.class), eq(Channels.ValidatedBlocks))).thenReturn(validatedCon);
   }
 
+  /**
+   * Mock the network
+   *
+   * @param network      network of nodes.
+   * @param proposedCon  conduits for proposed ones.
+   * @param validatedCon conduits for validated ones.
+   */
   public void mockNetwork(Network network, Conduit proposedCon, Conduit validatedCon) {
     when(network.register(any(Engine.class), eq(Channels.ProposedBlocks))).thenReturn(proposedCon);
     when(network.register(any(Engine.class), eq(Channels.ValidatedBlocks))).thenReturn(validatedCon);
   }
 
-  private ProposerEngine mockProposerEngine(Local local, ArrayList<Account> accounts, Block block, Network network, Transactions pendingTransactions, State state) {
+  /**
+   * Sets up the mocks for proposer engine for processing.
+   *
+   * @param local               Local represents the set of utilities available to the current LightChain node.
+   * @param accounts            array list of  LightChain account which is the constituent of the SnapShot.
+   * @param block               the block itself.
+   * @param network             network of nodes.
+   * @param pendingTransactions Pending transactions storage.
+   * @param state               State storage.
+   * @return mocked proposerEngine.
+   */
+  private ProposerEngine mockProposerEngine(Local local, ArrayList<Account> accounts, Block block, Network network,
+                                            Transactions pendingTransactions, State state) {
     Assignment assignment = mock(Assignment.class);
     LightChainValidatorAssigner assigner = mock(LightChainValidatorAssigner.class);
     Blocks blocks = mock(Blocks.class);
@@ -245,8 +282,12 @@ public class ProposerEngineTest {
     return new ProposerEngine(blocks, pendingTransactions, state, local, network, assigner);
   }
 
+  /**
+   * Sets the assignment.
+   */
   public void mockAssignment(Assignment assignment, LightChainValidatorAssigner assigner,
-                             Transactions pendingTransactions, Local local, Blocks blocks, Block block, ArrayList<Account> accounts, Snapshot snapshot, State state) {
+                             Transactions pendingTransactions, Local local, Blocks blocks, Block block,
+                             ArrayList<Account> accounts, Snapshot snapshot, State state) {
 
     when(assignment.has(any(Identifier.class))).thenReturn(true); // returns true for all identifiers
     when(assignment.has(local.myId())).thenReturn(true);
@@ -260,8 +301,16 @@ public class ProposerEngineTest {
     when(state.atBlockId(block.id())).thenReturn(snapshot);
   }
 
-  public void waitEnoughTransactions(ProposerEngine proposerEngine, Block block, Conduit proposedCon, Transactions pendingTransactions, State state) throws LightChainNetworkingException, InterruptedException {
-    AtomicInteger transactionsCounter = new AtomicInteger(Parameters.MIN_TRANSACTIONS_NUM - 1);
+  /**
+   * Evaluates that when a new block without enough validated transactions arrives at the proposer engine,
+   * it keeps waiting till it finds enough transactions in its pending transaction database,
+   * and then it creates a valid block and sends it to its assigners.
+   */
+  public void waitEnoughTransactions(ProposerEngine proposerEngine,
+                                     Block block, Conduit proposedCon,
+                                     Transactions pendingTransactions, State state)
+      throws LightChainNetworkingException, InterruptedException {
+
     AtomicBoolean proposerWaiting = new AtomicBoolean(true);
     Thread proposerThread = new Thread(() -> {
       proposerEngine.onNewValidatedBlock(block.getHeight(), block.id());
@@ -270,6 +319,7 @@ public class ProposerEngineTest {
     proposerThread.start(); // start proposer thread
     verify(proposedCon, times(0)).unicast(any(Block.class), any(Identifier.class));
     Assertions.assertTrue(proposerWaiting.get()); // proposer should be waiting
+    AtomicInteger transactionsCounter = new AtomicInteger(Parameters.MIN_TRANSACTIONS_NUM - 1);
     Thread ingestThread = new Thread(() -> {
       when(pendingTransactions.size()).thenReturn(transactionsCounter.incrementAndGet());
     });
@@ -281,6 +331,11 @@ public class ProposerEngineTest {
 
   }
 
+  /**
+   * OnNewFinalizedBlock notifies the proposer engine of a new validated block. The proposer engine runs validator
+   * assigner with the proposer tag and number of validators of 1. If this node is selected, it means that the
+   * proposer engine must create a new block.
+   */
   public void newValidatedBlock(ProposerEngine proposerEngine, Block block, Transactions pendingTransactions) {
     Thread proposerThread = new Thread(() -> {
       try {
