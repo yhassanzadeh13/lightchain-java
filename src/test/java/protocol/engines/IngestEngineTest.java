@@ -611,10 +611,6 @@ public class IngestEngineTest {
     ArrayList<Account> accounts = new ArrayList<>(AccountFixture.newAccounts(10, 10).values());
     Block block = ValidatedBlockFixture.newValidatedBlock(accounts);
 
-    when(seenEntities.has(any(Identifier.class))).thenReturn(false);
-    when(transactionIds.has(any(Identifier.class))).thenReturn(false);
-    when(pendingTransactions.has(any(Identifier.class))).thenReturn(false);
-
     IngestEngine ingestEngine = this.mockIngestEngineForEntities(
         new ArrayList<>(Arrays.asList(block, validatedTx)),
         seenEntities,
@@ -635,11 +631,14 @@ public class IngestEngineTest {
 
   /**
    * Evaluates that when a validated block and a validated transaction (which the block contains)
-   * arrives at ingest engine concurrently, the engine adds the block to its block storage database.
+   * arrive at ingest engine (block first), the engine adds the block to its block storage database.
    * The engine also adds hash of all the transactions of block into its "transactions" database.
+   * Hence, when the transaction that also included in the block comes next, it never is added to pending
+   * transactions database.
    */
   @Test
-  public void testConcurrentValidatedTransactionAndBlockOverlapping() {
+  public void testProcessBlockAndIncludedTransaction_BlockFirst() {
+    // R
     Identifiers seenEntities = mock(Identifiers.class);
     Identifiers transactionIds = mock(Identifiers.class);
     Transactions pendingTransactions = mock(Transactions.class);
@@ -649,10 +648,6 @@ public class IngestEngineTest {
     Block block = ValidatedBlockFixture.newValidatedBlock(accounts);
     ValidatedTransaction validatedTx = block.getTransactions()[0]; // the transaction is in the block
 
-    when(seenEntities.has(any(Identifier.class))).thenReturn(false);
-    when(transactionIds.has(any(Identifier.class))).thenReturn(false);
-    when(pendingTransactions.has(any(Identifier.class))).thenReturn(false);
-
     IngestEngine ingestEngine = this.mockIngestEngineForEntities(
         new ArrayList<>(Arrays.asList(block, validatedTx)),
         seenEntities,
@@ -660,10 +655,13 @@ public class IngestEngineTest {
         pendingTransactions,
         blocks);
 
-    // mocks assignment
-    processEntitiesConcurrently(
-        ingestEngine,
-        new ArrayList<>(List.of(block, validatedTx)));
+    // process block
+    ingestEngine.process(block);
+    // as result of processing block, the validated transaction that also included in the block is
+    // added to transaction ids.
+    when(transactionIds.has(validatedTx.id())).thenReturn(true);
+    // process transaction
+    ingestEngine.process(validatedTx);
 
     // verification for block
     verify(blocks, times(1)).add(block);
@@ -675,7 +673,7 @@ public class IngestEngineTest {
     // verification for transaction
     verify(seenEntities, times(1)).add(validatedTx.id());
     verify(transactionIds, times(1)).has(validatedTx.id());
-    verify(transactionIds, times(1)).add(validatedTx.id());
+    verify(pendingTransactions, times(0)).add(validatedTx);
   }
 
   /**
@@ -754,7 +752,8 @@ public class IngestEngineTest {
 
         ValidatedTransaction tx = (ValidatedTransaction) e;
         when(state.atBlockId(tx.getReferenceBlockId())).thenReturn(snapshot);
-        when(pendingTx.has(tx.id())).thenReturn(true);
+        when(pendingTx.has(tx.id())).thenReturn(false);
+        when(txIds.has(tx.id())).thenReturn(false);
 
       } else if (e.type().equals(EntityType.TYPE_VALIDATED_BLOCK)) {
 

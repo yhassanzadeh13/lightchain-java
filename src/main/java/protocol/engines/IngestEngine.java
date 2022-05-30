@@ -75,7 +75,7 @@ public class IngestEngine implements Engine {
     try {
       lock.lock();
       if (!e.type().equals(EntityType.TYPE_VALIDATED_BLOCK)
-              && !e.type().equals(EntityType.TYPE_VALIDATED_TRANSACTION)) {
+          && !e.type().equals(EntityType.TYPE_VALIDATED_TRANSACTION)) {
         throw new IllegalArgumentException("entity is neither a validated transaction nor a validated block");
       }
 
@@ -86,67 +86,99 @@ public class IngestEngine implements Engine {
       if (e.type().equals(EntityType.TYPE_VALIDATED_BLOCK)) {
         Block block = ((Block) e); // skims off the non-block attributes (e.g., certificates).
         Signature[] certificates = ((ValidatedBlock) e).getCertificates();
-
-        // performs validator assignment.
-        Snapshot snapshot = this.state.atBlockId(block.getPreviousBlockId());
-        Assignment assignment = this.assigner.assign(block.id(), snapshot, Parameters.VALIDATOR_THRESHOLD);
-
-        int signatures = 0;
-        for (Signature certificate : certificates) {
-          if (!assignment.has(certificate.getSignerId())) {
-            // certificate issued by a non-assigned validator
-            return;
-          }
-          if (snapshot
-                  .getAccount(certificate.getSignerId())
-                  .getPublicKey()
-                  .verifySignature(block, certificate)) {
-            signatures++;
-          }
-        }
-
-        if (signatures >= Parameters.SIGNATURE_THRESHOLD && !blocks.has(block.id())) {
-          blocks.add(block);
-          for (ValidatedTransaction t : block.getTransactions()) {
-            transactionIds.add(t.id());
-            if (pendingTransactions.has(t.id())) {
-              pendingTransactions.remove(t.id());
-            }
-          }
-        }
+        this.handleValidatedBlock(block, certificates);
 
       } else if (e.type().equals(EntityType.TYPE_VALIDATED_TRANSACTION)) {
         Transaction tx = ((Transaction) e); // skims off the non-transaction attributes (e.g., certificates).
         Signature[] certificates = ((ValidatedTransaction) e).getCertificates();
-
-        // performs validator assignment.
-        Snapshot snapshot = this.state.atBlockId(tx.getReferenceBlockId());
-        Assignment assignment = this.assigner.assign(tx.id(), snapshot, Parameters.VALIDATOR_THRESHOLD);
-
-        int signatures = 0;
-        for (Signature certificate : certificates) {
-          if (!assignment.has(certificate.getSignerId())) {
-            // certificate issued by a non-assigned validator
-            return;
-          }
-          if (snapshot
-                  .getAccount(certificate.getSignerId())
-                  .getPublicKey()
-                  .verifySignature(tx, certificate)) {
-            signatures++;
-          }
-        }
-
-        if (signatures >= Parameters.SIGNATURE_THRESHOLD && !pendingTransactions.has(tx.id())) {
-          if (!transactionIds.has(tx.id())) {
-            pendingTransactions.add(tx);
-          }
-        }
+        this.handleValidatedTransaction(tx, certificates);
       }
 
       seenEntities.add(e.id());
     } finally {
       lock.unlock();
     }
+  }
+
+  /**
+   * Handles a supposedly validated transaction given its set of certificates.
+   *
+   * @param tx           incoming transaction.
+   * @param certificates set of transaction signatures.
+   */
+  private void handleValidatedTransaction(Transaction tx, Signature[] certificates) {
+    // performs validator assignment.
+    Snapshot snapshot = this.state.atBlockId(tx.getReferenceBlockId());
+    if (!this.validateCertificatesForEntity(tx, snapshot, certificates)) {
+      return;
+    }
+
+    if (pendingTransactions.has(tx.id())) {
+      return;
+    }
+
+    if (transactionIds.has(tx.id())) {
+      return;
+    }
+
+    // transaction has not seen before, and it is not pending either.
+    pendingTransactions.add(tx);
+  }
+
+  /**
+   * Handles a supposedly validated block given its set of certificates.
+   *
+   * @param block        incoming block.
+   * @param certificates set of block certificates.
+   */
+  private void handleValidatedBlock(Block block, Signature[] certificates) {
+    // performs validator assignment.
+    Snapshot snapshot = this.state.atBlockId(block.getPreviousBlockId());
+    if (!this.validateCertificatesForEntity(block, snapshot, certificates)) {
+      return;
+    }
+
+    if (blocks.has(block.id())) {
+      return;
+    }
+
+    blocks.add(block);
+
+    for (ValidatedTransaction t : block.getTransactions()) {
+      transactionIds.add(t.id());
+      if (pendingTransactions.has(t.id())) {
+        pendingTransactions.remove(t.id());
+      }
+    }
+  }
+
+  /**
+   * Validates the certificates for given entity through performing a validator assignment and checking signature of
+   * assigned validators against given snapshot.
+   *
+   * @param entity       the entity to verify.
+   * @param snapshot     snapshot at which public key of validators are taken.
+   * @param certificates list of validators signatures over the entity.
+   * @return true if entity has enough signatures from its assigned validators, false otherwise.
+   */
+  private boolean validateCertificatesForEntity(Entity entity, Snapshot snapshot, Signature[] certificates) {
+    Assignment assignment = this.assigner.assign(entity.id(), snapshot, Parameters.VALIDATOR_THRESHOLD);
+
+    int signatures = 0;
+    for (Signature certificate : certificates) {
+      if (!assignment.has(certificate.getSignerId())) {
+        // TODO: add a return value and log the reason.
+        // certificate issued by a non-assigned validator
+        return false;
+      }
+      if (snapshot
+          .getAccount(certificate.getSignerId())
+          .getPublicKey()
+          .verifySignature(entity, certificate)) {
+        signatures++;
+      }
+    }
+
+    return signatures >= Parameters.SIGNATURE_THRESHOLD;
   }
 }
