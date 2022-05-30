@@ -249,7 +249,7 @@ public class ProposerEngineTest {
   }
 
   /**
-   * Mock the network
+   * Mock the network.
    *
    * @param network      network of nodes.
    * @param proposedCon  conduits for proposed ones.
