@@ -539,20 +539,18 @@ public class IngestEngineTest {
   }
 
   /**
-   * Evaluates that when a validated transaction which is already in pendingTx arrives at ingest engine,
+   * Evaluates that when a validated transaction which is already in pending transactions arrives at ingest engine,
    * the engine discards the transaction.
    */
   @Test
   public void testValidatedTransactionAlreadyInPendingTx() {
+    // R
     Identifiers seenEntities = mock(Identifiers.class);
     Identifiers transactionIds = mock(Identifiers.class);
     Transactions pendingTransactions = mock(Transactions.class);
     Blocks blocks = mock(Blocks.class);
 
     ValidatedTransaction tx = ValidatedTransactionFixture.newValidatedTransaction();
-    when(seenEntities.has(tx.id())).thenReturn(false);
-    when(transactionIds.has(tx.id())).thenReturn(false);
-    when(pendingTransactions.has(tx.id())).thenReturn(true);
 
     IngestEngine ingestEngine = this.mockIngestEngineForEntities(
         new ArrayList<>(List.of(tx)),
@@ -560,6 +558,11 @@ public class IngestEngineTest {
         transactionIds,
         pendingTransactions,
         blocks);
+
+    // transaction is not seen, but it is in transaction ids storage (as the result of processing a validated block).
+    when(seenEntities.has(tx.id())).thenReturn(false);
+    when(transactionIds.has(tx.id())).thenReturn(true);
+    when(pendingTransactions.has(tx.id())).thenReturn(false);
 
     // action
     ingestEngine.process(tx);
@@ -576,6 +579,7 @@ public class IngestEngineTest {
    */
   @Test
   public void testNeitherBlockNorTransaction() {
+    // R
     Transactions pendingTransactions = mock(Transactions.class);
     ValidatorAssigner assigner = mock(ValidatorAssigner.class);
     Identifiers transactionIds = mock(Identifiers.class);
@@ -602,6 +606,7 @@ public class IngestEngineTest {
    */
   @Test
   public void testConcurrentValidatedTransactionAndBlockNonOverlapping() {
+    // R
     Identifiers seenEntities = mock(Identifiers.class);
     Identifiers transactionIds = mock(Identifiers.class);
     Transactions pendingTransactions = mock(Transactions.class);
@@ -627,6 +632,8 @@ public class IngestEngineTest {
 
     // verification for transaction
     verifyTransactionHappyPathCalled(validatedTx, seenEntities, transactionIds, pendingTransactions);
+    // no transaction should be removed from pending ones
+    verify(pendingTransactions, times(0)).remove(any(Identifier.class));
   }
 
   /**
