@@ -216,12 +216,13 @@ public class IngestEngineTest {
   }
 
   /**
-   * Evaluates that when two new validated blocks (with shared transactions in pendingTx, disjoint set)
+   * Evaluates that when two new validated blocks (with a shared transactions in pendingTx, disjoint set)
    * arrive at ingest engine, the engine adds the blocks to its block storage database.
-   * The engine also removes hash of the transactions of blocks from pendingTransactions.
+   * The engine also removes the hash of the single shared transaction among blocks from pending transactions.
    */
   @Test
   public void testConcurrentBlockIngestionContainingSeenTransactionDisjointSet() {
+    // R
     Blocks blocks = mock(Blocks.class);
     Identifiers seenEntities = mock(Identifiers.class);
     Identifiers transactionIds = mock(Identifiers.class);
@@ -264,6 +265,7 @@ public class IngestEngineTest {
    */
   @Test
   public void testConcurrentBlockIngestionContainingSeenTransactionOverlappingSet() {
+    // R
     Blocks blocks = mock(Blocks.class);
     Identifiers seenEntities = mock(Identifiers.class);
     Identifiers transactionIds = mock(Identifiers.class);
@@ -301,11 +303,12 @@ public class IngestEngineTest {
   }
 
   /**
-   * Evaluates that when av already ingested validated block arrives at ingest engine,
+   * Evaluates that when an already ingested validated block arrives at ingest engine,
    * the engine discards the block right away.
    */
   @Test
   public void testValidatedAlreadyIngestedBlock() {
+    // R
     Blocks blocks = mock(Blocks.class);
     Identifiers seenEntities = mock(Identifiers.class);
     Identifiers transactionIds = mock(Identifiers.class);
@@ -339,19 +342,17 @@ public class IngestEngineTest {
 
   /**
    * Evaluates that when a new validated transaction arrives at ingest engine,
-   * the engine adds hash of the transaction into its "transactions" database.
+   * the engine adds hash of the transaction into its pending transactions' database.
    */
   @Test
   public void testValidatedTransaction() {
+    // R
     Identifiers seenEntities = mock(Identifiers.class);
     Identifiers transactionIds = mock(Identifiers.class);
     Transactions pendingTransactions = mock(Transactions.class);
     Blocks blocks = mock(Blocks.class);
 
     ValidatedTransaction tx = ValidatedTransactionFixture.newValidatedTransaction();
-    when(seenEntities.has(tx.id())).thenReturn(false);
-    when(transactionIds.has(tx.id())).thenReturn(false);
-    when(pendingTransactions.has(tx.id())).thenReturn(false);
 
     IngestEngine ingestEngine = this.mockIngestEngineForEntities(
         new ArrayList<>(List.of(tx)),
