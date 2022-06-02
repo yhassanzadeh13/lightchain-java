@@ -473,40 +473,6 @@ public class IngestEngineTest {
   }
 
   /**
-   * Evaluates that when two same validated transactions arrive at ingest engine concurrently,
-   * the engine adds the hash of the first transaction into its "transactions" database.
-   * The engine also discards the second transaction right away.
-   */
-  @Test
-  public void testValidatedConcurrentDuplicateTwoTransactions() {
-    Identifiers seenEntities = mock(Identifiers.class);
-    Identifiers transactionIds = mock(Identifiers.class);
-    Transactions pendingTransactions = mock(Transactions.class);
-    Blocks blocks = mock(Blocks.class);
-
-    ValidatedTransaction tx = ValidatedTransactionFixture.newValidatedTransaction();
-    when(seenEntities.has(tx.id())).thenReturn(false);
-    when(transactionIds.has(tx.id())).thenReturn(false);
-    when(pendingTransactions.has(tx.id())).thenReturn(false);
-
-    IngestEngine ingestEngine = this.mockIngestEngineForEntities(
-        new ArrayList<>(List.of(tx)),
-        seenEntities,
-        transactionIds,
-        pendingTransactions,
-        blocks);
-
-    processEntitiesConcurrently(
-        ingestEngine,
-        new ArrayList<>(List.of(tx, tx)));
-
-    // verification
-    verify(seenEntities, times(2)).has(tx.id());
-    verify(transactionIds, times(1)).has(tx.id());
-    verify(pendingTransactions, times(1)).add(tx);
-  }
-
-  /**
    * Evaluates that when a validated transaction which is already in transaction identifiers arrives at ingest engine,
    * the engine discards the transaction.
    */
