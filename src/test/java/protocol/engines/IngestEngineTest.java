@@ -368,11 +368,12 @@ public class IngestEngineTest {
   }
 
   /**
-   * Evaluates that when two validated transactions arrives at ingest engine,
-   * the engine adds the hashes of the transactions into its "transactions" database.
+   * Evaluates that when two validated transactions arrives at ingest engine sequentially,
+   * the engine adds the hashes of the transactions into its pending transactions' database.
    */
   @Test
   public void testValidatedTwoTransactions() {
+    // R
     Identifiers seenEntities = mock(Identifiers.class);
     Identifiers transactionIds = mock(Identifiers.class);
     Transactions pendingTransactions = mock(Transactions.class);
@@ -404,10 +405,11 @@ public class IngestEngineTest {
 
   /**
    * Evaluates that when two validated transactions arrive at ingest engine concurrently,
-   * the engine adds the hashes of the transactions into its "transactions" database.
+   * the engine adds the hashes of the transactions into its pending transactions' database.
    */
   @Test
   public void testConcurrentValidatedTwoTransactions() {
+    // R
     Identifiers seenEntities = mock(Identifiers.class);
     Identifiers transactionIds = mock(Identifiers.class);
     Transactions pendingTransactions = mock(Transactions.class);
@@ -415,9 +417,6 @@ public class IngestEngineTest {
 
     ValidatedTransaction tx1 = ValidatedTransactionFixture.newValidatedTransaction();
     ValidatedTransaction tx2 = ValidatedTransactionFixture.newValidatedTransaction();
-    when(seenEntities.has(any(Identifier.class))).thenReturn(false);
-    when(transactionIds.has(any(Identifier.class))).thenReturn(false);
-    when(pendingTransactions.has(any(Identifier.class))).thenReturn(false);
 
     IngestEngine ingestEngine = this.mockIngestEngineForEntities(
         new ArrayList<>(Arrays.asList(tx1, tx2)),
@@ -439,11 +438,12 @@ public class IngestEngineTest {
 
   /**
    * Evaluates that when two same validated transactions arrive at ingest engine sequentially,
-   * the engine adds the hash of the first transaction into its "transactions" database.
+   * the engine adds the hash of the first transaction into its pending transactions' database.
    * The engine also discards the second transaction right away.
    */
   @Test
   public void testValidatedSameTwoTransactions() {
+    // R
     Identifiers seenEntities = mock(Identifiers.class);
     Identifiers transactionIds = mock(Identifiers.class);
     Transactions pendingTransactions = mock(Transactions.class);
@@ -465,6 +465,7 @@ public class IngestEngineTest {
     ingestEngine.process(tx);
     when(seenEntities.has(tx.id())).thenReturn(true);
     when(pendingTransactions.has(tx.id())).thenReturn(true);
+    // process the same transaction again.
     ingestEngine.process(tx);
 
     // verification
