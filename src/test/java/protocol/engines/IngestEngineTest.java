@@ -633,8 +633,8 @@ public class IngestEngineTest {
    * Evaluates that when a validated block and a validated transaction (which the block contains)
    * arrive at ingest engine (block first), the engine adds the block to its block storage database.
    * The engine also adds hash of all the transactions of block into its "transactions" database.
-   * Hence, when the transaction that also included in the block comes next, it never is added to pending
-   * transactions database.
+   * Hence, when the transaction that also included in the block comes next, it is never added to pending
+   * transactions' database.
    */
   @Test
   public void testProcessBlockAndIncludedTransaction_BlockFirst() {
@@ -674,6 +674,56 @@ public class IngestEngineTest {
     verify(seenEntities, times(1)).add(validatedTx.id());
     verify(transactionIds, times(1)).has(validatedTx.id());
     verify(pendingTransactions, times(0)).add(validatedTx);
+  }
+
+  /**
+   * Evaluates that when a validated block and a validated transaction (which the block contains)
+   * arrive at ingest engine (transaction first), the engine adds the block to its block storage database.
+   * The engine also adds hash of all the transactions of block into its "transactions" database.
+   * Hence, when the transaction that also included in the block comes next, it is never added to pending
+   * transactions' database.
+   */
+  @Test
+  public void testProcessBlockAndIncludedTransaction_TransactionFirst() {
+    // R
+    Identifiers seenEntities = mock(Identifiers.class);
+    Identifiers transactionIds = mock(Identifiers.class);
+    Transactions pendingTransactions = mock(Transactions.class);
+    Blocks blocks = mock(Blocks.class);
+
+    ArrayList<Account> accounts = new ArrayList<>(AccountFixture.newAccounts(10, 10).values());
+    Block block = ValidatedBlockFixture.newValidatedBlock(accounts);
+    ValidatedTransaction validatedTx = block.getTransactions()[0]; // the transaction is in the block
+
+    IngestEngine ingestEngine = this.mockIngestEngineForEntities(
+        new ArrayList<>(Arrays.asList(block, validatedTx)),
+        seenEntities,
+        transactionIds,
+        pendingTransactions,
+        blocks);
+
+    // process transaction first.
+    ingestEngine.process(validatedTx);
+    // as result of processing transaction, the transaction must also be added to transaction ids.
+    when(transactionIds.has(validatedTx.id())).thenReturn(true);
+    // after processing transaction it should be added to pending transaction
+    when(pendingTransactions.has(validatedTx.id())).thenReturn(true);
+    // process block next.
+    ingestEngine.process(block);
+
+    // verification for block
+    verify(blocks, times(1)).add(block);
+    verify(seenEntities, times(1)).add(block.id());
+    for (Transaction tx : block.getTransactions()) {
+      verify(transactionIds, times(1)).add(tx.id());
+    }
+
+    // verification for transaction
+    verify(seenEntities, times(1)).add(validatedTx.id());
+    verify(transactionIds, times(1)).has(validatedTx.id());
+    // transaction must be added to pending ones, and then removed.
+    verify(pendingTransactions, times(1)).add(validatedTx);
+    verify(pendingTransactions, times(1)).remove(validatedTx.id());
   }
 
   /**
