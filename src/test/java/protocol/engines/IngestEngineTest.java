@@ -507,43 +507,11 @@ public class IngestEngineTest {
   }
 
   /**
-   * Evaluates that when a validated transaction which is already in txHash arrives at ingest engine,
+   * Evaluates that when a validated transaction which is already in transaction identifiers arrives at ingest engine,
    * the engine discards the transaction.
    */
   @Test
-  public void testValidatedTransactionAlreadyInTxHash() {
-    Identifiers seenEntities = mock(Identifiers.class);
-    Identifiers transactionIds = mock(Identifiers.class);
-    Transactions pendingTransactions = mock(Transactions.class);
-    Blocks blocks = mock(Blocks.class);
-
-    ValidatedTransaction tx = ValidatedTransactionFixture.newValidatedTransaction();
-    when(seenEntities.has(tx.id())).thenReturn(false);
-    when(transactionIds.has(tx.id())).thenReturn(true);
-    when(pendingTransactions.has(tx.id())).thenReturn(false);
-
-    IngestEngine ingestEngine = this.mockIngestEngineForEntities(
-        new ArrayList<>(List.of(tx)),
-        seenEntities,
-        transactionIds,
-        pendingTransactions,
-        blocks);
-
-    // action
-    ingestEngine.process(tx);
-
-    // verification
-    verify(seenEntities, times(1)).add(tx.id());
-    verify(transactionIds, times(1)).has(tx.id());
-    verify(pendingTransactions, times(0)).add(tx);
-  }
-
-  /**
-   * Evaluates that when a validated transaction which is already in pending transactions arrives at ingest engine,
-   * the engine discards the transaction.
-   */
-  @Test
-  public void testValidatedTransactionAlreadyInPendingTx() {
+  public void testValidatedTransactionAlreadyInTransactionIdStorage() {
     // R
     Identifiers seenEntities = mock(Identifiers.class);
     Identifiers transactionIds = mock(Identifiers.class);
@@ -570,6 +538,7 @@ public class IngestEngineTest {
     // verification
     verify(seenEntities, times(1)).add(tx.id());
     verify(pendingTransactions, times(1)).has(tx.id());
+    verify(transactionIds, times(1)).has(tx.id());
     verify(pendingTransactions, times(0)).add(tx);
   }
 
