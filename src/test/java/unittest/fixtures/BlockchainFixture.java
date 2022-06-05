@@ -43,30 +43,38 @@ public class BlockchainFixture {
     for (int i = 0; i < certificates.length; i++) {
       certificates[i] = SignatureFixture.newSignatureFixture(accounts.get(i).getIdentifier());
     }
-    ValidatedBlock genesisBlock = new ValidatedBlock(null, null, null, null, null);
+    ValidatedTransaction[] emptyTransactions = new ValidatedTransaction[0];
+    Signature[] emptyCertificates = new Signature[0];
+    ValidatedBlock genesisBlock = new ValidatedBlock(null, null, emptyTransactions, null, emptyCertificates);
     chain.add(genesisBlock);
     Identifier prevBlockId = genesisBlock.id();
     TableState tableState = new TableState();
     tableState.addSnapshot(genesisBlock.id(), rootSnapshot);
 
+
     for (int i = 0; i < blockNum; i++) {
       int transactionNumber = rand.nextInt(Parameters.MAX_TRANSACTIONS_NUM - Parameters.MIN_TRANSACTIONS_NUM) + Parameters.MIN_TRANSACTIONS_NUM;
-      ValidatedTransaction[] transactions = new ValidatedTransaction[transactionNumber];
+      Transaction[] transactions = new Transaction[transactionNumber];
+      ValidatedTransaction[] validatedTransactions = new ValidatedTransaction[transactionNumber];
       for (int j = 0; j < transactionNumber; j++) {
-        transactions[j] = ValidatedTransactionFixture.newValidatedTransaction();
+        Identifier sender = accounts.get(rand.nextInt(accounts.size())).getIdentifier();
+        Identifier receiver = accounts.get(rand.nextInt(accounts.size())).getIdentifier();
+        Transaction tx = new Transaction(prevBlockId, sender, receiver, rand.nextDouble()*1000);
         LightChainValidatorAssigner assigner = new LightChainValidatorAssigner();
-        Assignment assignment = assigner.assign(transactions[j].id(), rootSnapshot, (short) Parameters.VALIDATOR_THRESHOLD);
-        // TODO: run the assignment on the transaction as well.
+        Assignment assignment = assigner.assign(tx.id(), rootSnapshot, (short) Parameters.VALIDATOR_THRESHOLD);
+        // TODO: run the assignment on the transactions.
         TransactionValidator transactionValidator = new TransactionValidator(tableState);
-        if(!transactionValidator.isCorrect(transactions[j]) ||
-          !transactionValidator.isSound(transactions[j]) ||
-          !transactionValidator.isAuthenticated(transactions[j]) ||
-          !transactionValidator.senderHasEnoughBalance(transactions[j])) {
+        if(!transactionValidator.isCorrect(tx) ||
+            !transactionValidator.isSound(tx) ||
+            !transactionValidator.isAuthenticated(tx) ||
+            !transactionValidator.senderHasEnoughBalance(tx)) {
           throw new IllegalStateException("Transaction failed validation.");
+        } else {
+          validatedTransactions[j] = new ValidatedTransaction(tx.getReferenceBlockId(), tx.getSender(), tx.getReceiver(), tx.getAmount(), certificates);
         }
       }
       Identifier proposer = IdentifierFixture.newIdentifier();
-      ValidatedBlock block = new ValidatedBlock(prevBlockId, proposer, transactions, null, certificates);
+      ValidatedBlock block = new ValidatedBlock(prevBlockId, proposer, validatedTransactions, null, certificates);
       BlockValidator blockValidator = new BlockValidator(tableState);
       if(!blockValidator.allTransactionsSound(block) ||
         !blockValidator.allTransactionsValidated(block) ||

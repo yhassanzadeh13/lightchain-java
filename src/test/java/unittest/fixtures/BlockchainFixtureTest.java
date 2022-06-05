@@ -2,10 +2,12 @@ package unittest.fixtures;
 
 import java.util.ArrayList;
 
+import model.lightchain.Account;
 import model.lightchain.Identifier;
 import model.lightchain.ValidatedBlock;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import protocol.Parameters;
 import protocol.block.BlockValidator;
 import state.table.TableSnapshot;
 import state.table.TableState;
@@ -22,7 +24,11 @@ public class BlockchainFixtureTest {
     TableSnapshot tableSnapshot = new TableSnapshot(IdentifierFixture.newIdentifier(), 0);
     for (int i = 0; i < 100; i++) {
       Identifier accountIdentifier = IdentifierFixture.newIdentifier();
-      tableSnapshot.addAccount(accountIdentifier, AccountFixture.newAccount(accountIdentifier));
+      tableSnapshot.addAccount(accountIdentifier,
+          new Account(accountIdentifier,
+          KeyGenFixture.newKeyGen().getPublicKey(),
+          tableSnapshot.getReferenceBlockId(),
+          Parameters.MINIMUM_STAKE));
     }
     ArrayList<ValidatedBlock> chain = BlockchainFixture.newValidChain(tableSnapshot, 1000);
     TableState tableState = new TableState();
