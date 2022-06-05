@@ -1,6 +1,5 @@
 package unittest.fixtures;
 
-import java.lang.reflect.Parameter;
 import java.util.ArrayList;
 import java.util.Random;
 
@@ -8,6 +7,7 @@ import model.crypto.Signature;
 import model.lightchain.*;
 import protocol.Parameters;
 import protocol.assigner.LightChainValidatorAssigner;
+import protocol.block.BlockValidator;
 import protocol.transaction.TransactionValidator;
 import state.Snapshot;
 import state.table.TableState;
@@ -17,6 +17,7 @@ import state.table.TableState;
  */
 public class BlockchainFixture {
   private final static Random rand = new Random();
+
   /**
    * It then creates a genesis empty validated block, and keeps extending the chain of blocks with new validated blocks
    * till it creates the specified number of blocks.
@@ -37,12 +38,12 @@ public class BlockchainFixture {
       throws IllegalStateException {
     ArrayList<ValidatedBlock> chain = new ArrayList<>();
     ArrayList<Account> accounts = rootSnapshot.all();
-    Signature[] certificates = new Signature[accounts.size()];
+    Signature[] certificates = new Signature[Parameters.VALIDATOR_THRESHOLD];
 
-    for (int i = 0; i < accounts.size(); i++) {
+    for (int i = 0; i < certificates.length; i++) {
       certificates[i] = SignatureFixture.newSignatureFixture(accounts.get(i).getIdentifier());
     }
-    ValidatedBlock genesisBlock = new ValidatedBlock(null, null, null, null, certificates);
+    ValidatedBlock genesisBlock = new ValidatedBlock(null, null, null, null, null);
     chain.add(genesisBlock);
     Identifier prevBlockId = genesisBlock.id();
     TableState tableState = new TableState();
@@ -55,11 +56,29 @@ public class BlockchainFixture {
         transactions[j] = ValidatedTransactionFixture.newValidatedTransaction();
         LightChainValidatorAssigner assigner = new LightChainValidatorAssigner();
         Assignment assignment = assigner.assign(transactions[j].id(), rootSnapshot, (short) Parameters.VALIDATOR_THRESHOLD);
-        TransactionValidator validator = new TransactionValidator(tableState);
+        // TODO: run the assignment on the transaction as well.
+        TransactionValidator transactionValidator = new TransactionValidator(tableState);
+        if(!transactionValidator.isCorrect(transactions[j]) ||
+          !transactionValidator.isSound(transactions[j]) ||
+          !transactionValidator.isAuthenticated(transactions[j]) ||
+          !transactionValidator.senderHasEnoughBalance(transactions[j])) {
+          throw new IllegalStateException("Transaction failed validation.");
+        }
       }
       Identifier proposer = IdentifierFixture.newIdentifier();
       ValidatedBlock block = new ValidatedBlock(prevBlockId, proposer, transactions, null, certificates);
+      BlockValidator blockValidator = new BlockValidator(tableState);
+      if(!blockValidator.allTransactionsSound(block) ||
+        !blockValidator.allTransactionsValidated(block) ||
+        !blockValidator.isAuthenticated(block) ||
+        !blockValidator.isConsistent(block) ||
+        !blockValidator.isCorrect(block) ||
+        !blockValidator.noDuplicateSender(block) ||
+        !blockValidator.proposerHasEnoughStake(block)) {
+        throw new IllegalStateException("Block failed validation");
+      }
+      chain.add(block);
     }
-    return null;
+    return chain;
   }
 }
