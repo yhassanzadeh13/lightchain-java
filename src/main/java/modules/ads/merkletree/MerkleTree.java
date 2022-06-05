@@ -133,4 +133,17 @@ public class MerkleTree implements AuthenticatedDataStructure {
   public int size() {
     return this.size;
   }
+
+  /**
+   * returns all entities in the merkle tree.
+   *
+   * @return all entities in the merkle tree.
+   */
+  public ArrayList<Entity> all() {
+    ArrayList<Entity> entities = new ArrayList<>();
+    for (Entity e : entityHashTable.values()) {
+      entities.add(e);
+    }
+    return entities;
+  }
 }
