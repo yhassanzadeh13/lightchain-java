@@ -66,41 +66,40 @@ public class ValidatorEngineTest {
   // 19. Unhappy path of receiving an invalid block (one test per each validation criteria, e.g., correctness,
   //     soundness, etc). Invalid block should be discarded without sending back a signature to its proposer.
   private static final Random random = new Random();
-  private ValidatorEngine engine;
 
-  private void setMocks(Snapshot genesisSnapshot,
-                        Block genesis,
+  private void setMocks(Block genesis,
                         Snapshot snapshot1,
-                        Snapshot snapshot2,
                         Block block1,
                         Block block2,
                         State state,
                         ArrayList<Account> accounts1,
                         ArrayList<Account> accounts2) {
+    Snapshot genesisSnapshot = mock(Snapshot.class);
+    Snapshot snapshot2 = mock(Snapshot.class);
     when(genesisSnapshot.getReferenceBlockId()).thenReturn(genesis.id());
-    when(snapshot1.getReferenceBlockId()).thenReturn(block1.id());
-    when(snapshot2.getReferenceBlockId()).thenReturn(block2.id());
+    when(snapshot2.getReferenceBlockId()).thenReturn(block1.id());
+    when(snapshot1.getReferenceBlockId()).thenReturn(block2.id());
 
     when(genesisSnapshot.getReferenceBlockHeight()).thenReturn((long) genesis.getHeight());
-    when(snapshot1.getReferenceBlockHeight()).thenReturn((long) block1.getHeight());
-    when(snapshot2.getReferenceBlockHeight()).thenReturn((long) block2.getHeight());
+    when(snapshot2.getReferenceBlockHeight()).thenReturn((long) block1.getHeight());
+    when(snapshot1.getReferenceBlockHeight()).thenReturn((long) block2.getHeight());
 
     when(state.atBlockId(genesis.id())).thenReturn(genesisSnapshot);
-    when(state.atBlockId(block1.id())).thenReturn(snapshot1);
-    when(state.atBlockId(block2.id())).thenReturn(snapshot2);
+    when(state.atBlockId(block1.id())).thenReturn(snapshot2);
+    when(state.atBlockId(block2.id())).thenReturn(snapshot1);
 
-    when(snapshot1.all()).thenReturn(accounts1);
-    when(snapshot2.all()).thenReturn(accounts2);
+    when(snapshot2.all()).thenReturn(accounts1);
+    when(snapshot1.all()).thenReturn(accounts2);
 
     for (int i = 0; i < accounts1.size(); i++) {
-      when(snapshot1.getAccount(snapshot1.all().get(i).getIdentifier())).thenReturn(accounts1.get(i));
-      when(snapshot2.getAccount(snapshot2.all().get(i).getIdentifier())).thenReturn(accounts2.get(i));
+      when(snapshot2.getAccount(snapshot2.all().get(i).getIdentifier())).thenReturn(accounts1.get(i));
+      when(snapshot1.getAccount(snapshot1.all().get(i).getIdentifier())).thenReturn(accounts2.get(i));
     }
 
-    for (Account account : snapshot2.all()) {
-      when(state.atBlockId(account.getLastBlockId())).thenReturn(snapshot1);
+    for (Account account : snapshot1.all()) {
+      when(state.atBlockId(account.getLastBlockId())).thenReturn(snapshot2);
     }
-    when(state.last()).thenReturn(snapshot2);
+    when(state.last()).thenReturn(snapshot1);
   }
 
   private int setPropId(ArrayList<Account> accounts) {
@@ -111,7 +110,7 @@ public class ValidatorEngineTest {
     return propInd;
   }
 
-  private void concurrentProcess(Entity[] entities) {
+  private void concurrentProcess(ValidatorEngine validatorEngine, Entity[] entities) {
     // Act
     /// Create two threads that will process the transactions concurrently.
     int concurrencyDegree = 2;
@@ -122,7 +121,7 @@ public class ValidatorEngineTest {
       int finalI = i;
       validationThreads[i] = new Thread(() -> {
         try {
-          engine.process(entities[finalI]);
+          validatorEngine.process(entities[finalI]);
         } catch (IllegalArgumentException ex) {
           threadErrorCount.incrementAndGet();
         }
@@ -160,7 +159,6 @@ public class ValidatorEngineTest {
           .getPublicKey()
           .verifySignature(block, block.getSignature())).thenReturn(true);
     }
-
   }
 
   @Test
@@ -181,17 +179,16 @@ public class ValidatorEngineTest {
 
     /// State and Snapshots
     State state = mock(State.class);
-    Snapshot genesisSnapshot = mock(Snapshot.class);
-    Snapshot snapshot1 = mock(Snapshot.class);
-    Snapshot snapshot2 = mock(Snapshot.class);
-    setMocks(genesisSnapshot, genesis, snapshot1, snapshot2, block1, block2, state, accounts1, accounts2);
+    Snapshot snapshot = mock(Snapshot.class);
+
+    setMocks(genesis, snapshot, block1, block2, state, accounts1, accounts2);
 
     int propInd = setPropId(accounts2);
     Identifiers seenEntities = mock(Identifiers.class);
 
     Identifier proposer = accounts2.get(propInd).getIdentifier();
-    Block block = BlockFixture.newBlock(proposer, block2.id(), block2.getHeight() + 1, snapshot2.all());
-    engine = new ValidatorEngine(network, local, state, seenEntities);
+    Block block = BlockFixture.newBlock(proposer, block2.id(), block2.getHeight() + 1, snapshot.all());
+    ValidatorEngine engine = new ValidatorEngine(network, local, state, seenEntities);
 
     for (Transaction transaction : block.getTransactions()) {
       mockSignatureVerification(state, transaction);
@@ -228,20 +225,18 @@ public class ValidatorEngineTest {
 
     /// State and Snapshots
     State state = mock(State.class);
-    Snapshot genesisSnapshot = mock(Snapshot.class);
-    Snapshot snapshot1 = mock(Snapshot.class);
-    Snapshot snapshot2 = mock(Snapshot.class);
+    Snapshot snapshot = mock(Snapshot.class);
 
-    setMocks(genesisSnapshot, genesis, snapshot1, snapshot2, block1, block2, state, accounts1, accounts2);
+    setMocks(genesis, snapshot, block1, block2, state, accounts1, accounts2);
 
     int propInd = setPropId(accounts2);
     Identifier proposer = accounts2.get(propInd).getIdentifier();
     Block[] blocks = new Block[2];
-    blocks[0] = BlockFixture.newBlock(proposer, block2.id(), block2.getHeight() + 1, snapshot2.all());
-    blocks[1] = BlockFixture.newBlock(proposer, block2.id(), block2.getHeight() + 1, snapshot2.all());
+    blocks[0] = BlockFixture.newBlock(proposer, block2.id(), block2.getHeight() + 1, snapshot.all());
+    blocks[1] = BlockFixture.newBlock(proposer, block2.id(), block2.getHeight() + 1, snapshot.all());
     Identifiers seenEntities = mock(Identifiers.class);
 
-    engine = new ValidatorEngine(network, local, state, seenEntities);
+    ValidatorEngine engine = new ValidatorEngine(network, local, state, seenEntities);
     for (int i = 0; i < 2; i++) {
       mockSignatureVerification(state, blocks[i]);
       engine.process(blocks[i]);
@@ -274,26 +269,24 @@ public class ValidatorEngineTest {
 
     /// State and Snapshots
     State state = mock(State.class);
-    Snapshot genesisSnapshot = mock(Snapshot.class);
-    Snapshot snapshot1 = mock(Snapshot.class);
-    Snapshot snapshot2 = mock(Snapshot.class);
+    Snapshot snapshot = mock(Snapshot.class);
 
-    setMocks(genesisSnapshot, genesis, snapshot1, snapshot2, block1, block2, state, accounts1, accounts2);
+    setMocks(genesis, snapshot, block1, block2, state, accounts1, accounts2);
 
     int propInd = setPropId(accounts2);
     Identifier proposer = accounts2.get(propInd).getIdentifier();
     Block[] blocks = new Block[2];
-    blocks[0] = BlockFixture.newBlock(proposer, block2.id(), block2.getHeight() + 1, snapshot2.all());
-    blocks[1] = BlockFixture.newBlock(proposer, block2.id(), block2.getHeight() + 1, snapshot2.all());
+    blocks[0] = BlockFixture.newBlock(proposer, block2.id(), block2.getHeight() + 1, snapshot.all());
+    blocks[1] = BlockFixture.newBlock(proposer, block2.id(), block2.getHeight() + 1, snapshot.all());
     Identifiers seenEntities = mock(Identifiers.class);
 
-    engine = new ValidatorEngine(network, local, state, seenEntities);
+    ValidatorEngine engine = new ValidatorEngine(network, local, state, seenEntities);
 
     for (int i = 0; i < 2; i++) {
       mockSignatureVerification(state, blocks[i]);
     }
 
-    concurrentProcess(blocks);
+    concurrentProcess(engine, blocks);
 
     try {
       for (Entity e : blockConduit.allEntities()) {
@@ -322,21 +315,19 @@ public class ValidatorEngineTest {
 
     /// State and Snapshots
     State state = mock(State.class);
-    Snapshot genesisSnapshot = mock(Snapshot.class);
-    Snapshot snapshot1 = mock(Snapshot.class);
-    Snapshot snapshot2 = mock(Snapshot.class);
+    Snapshot snapshot = mock(Snapshot.class);
 
-    setMocks(genesisSnapshot, genesis, snapshot1, snapshot2, block1, block2, state, accounts1, accounts2);
+    setMocks(genesis, snapshot, block1, block2, state, accounts1, accounts2);
 
     int propInd = setPropId(accounts2);
     Identifiers seenEntities = mock(Identifiers.class);
 
     Identifier proposer = accounts2.get(propInd).getIdentifier();
 
-    engine = new ValidatorEngine(network, local, state, seenEntities);
+    ValidatorEngine engine = new ValidatorEngine(network, local, state, seenEntities);
 
     Block[] blocks = new Block[2];
-    Block b = BlockFixture.newBlock(proposer, block2.id(), block2.getHeight() + 1, snapshot2.all());
+    Block b = BlockFixture.newBlock(proposer, block2.id(), block2.getHeight() + 1, snapshot.all());
     blocks[0] = b;
     blocks[1] = b;
     mockSignatureVerification(state, blocks[0]);
@@ -382,19 +373,17 @@ public class ValidatorEngineTest {
 
     /// State and Snapshots
     State state = mock(State.class);
-    Snapshot genesisSnapshot = mock(Snapshot.class);
-    Snapshot snapshot1 = mock(Snapshot.class);
-    Snapshot snapshot2 = mock(Snapshot.class);
+    Snapshot snapshot = mock(Snapshot.class);
 
-    setMocks(genesisSnapshot, genesis, snapshot1, snapshot2, block1, block2, state, accounts1, accounts2);
+    setMocks(genesis, snapshot, block1, block2, state, accounts1, accounts2);
 
     int propInd = setPropId(accounts2);
     Identifiers seenEntities = mock(Identifiers.class);
     Identifier proposer = accounts2.get(propInd).getIdentifier();
-    engine = new ValidatorEngine(network, local, state, seenEntities);
+    ValidatorEngine engine = new ValidatorEngine(network, local, state, seenEntities);
 
     Block[] blocks = new Block[2];
-    Block b = BlockFixture.newBlock(proposer, block2.id(), block2.getHeight() + 1, snapshot2.all());
+    Block b = BlockFixture.newBlock(proposer, block2.id(), block2.getHeight() + 1, snapshot.all());
     blocks[0] = b;
     blocks[1] = b;
     mockSignatureVerification(state, blocks[0]);
@@ -406,7 +395,7 @@ public class ValidatorEngineTest {
     });
     when(seenEntities.has(blocks[0].id())).thenAnswer((Answer) invocMock -> called[0]);
 
-    concurrentProcess(blocks);
+    concurrentProcess(engine, blocks);
 
     verify(seenEntities, times(1)).add(blocks[0].id());
 
@@ -440,36 +429,34 @@ public class ValidatorEngineTest {
 
     /// State and Snapshots
     State state = mock(State.class);
-    Snapshot genesisSnapshot = mock(Snapshot.class);
-    Snapshot snapshot1 = mock(Snapshot.class);
-    Snapshot snapshot2 = mock(Snapshot.class);
+    Snapshot snapshot = mock(Snapshot.class);
 
-    setMocks(genesisSnapshot, genesis, snapshot1, snapshot2, block1, block2, state, accounts1, accounts2);
+    setMocks(genesis, snapshot, block1, block2, state, accounts1, accounts2);
 
     int propInd = setPropId(accounts2);
 
     ArrayList<Account> accountsNoCurrent = a[2];
-    when(snapshot2.all()).thenReturn(accountsNoCurrent);
+    when(snapshot.all()).thenReturn(accountsNoCurrent);
     Identifiers seenEntities = mock(Identifiers.class);
-    engine = new ValidatorEngine(network, local, state, seenEntities);
+    ValidatorEngine engine = new ValidatorEngine(network, local, state, seenEntities);
     Identifier proposer = accounts2.get(propInd).getIdentifier();
-    Block b = BlockFixture.newBlock(proposer, block2.id(), block2.getHeight() + 1, snapshot2.all());
+    Block b = BlockFixture.newBlock(proposer, block2.id(), block2.getHeight() + 1, snapshot.all());
 
     mockSignatureVerification(state, b);
 
-    Identifier signerId = snapshot2.all().get(random.nextInt(accountsNoCurrent.size())).getIdentifier();
+    Identifier signerId = snapshot.all().get(random.nextInt(accountsNoCurrent.size())).getIdentifier();
     Transaction tx = TransactionFixture.newTransaction(
         block2.id(),
-        snapshot2.all().get(0).getIdentifier(),
-        snapshot2.all().get(1).getIdentifier(),
+        snapshot.all().get(0).getIdentifier(),
+        snapshot.all().get(1).getIdentifier(),
         signerId);
     mockSignatureVerification(state, tx);
-    snapshot2.all().get(0).setBalance(tx.getAmount() * 10 + 1);
+    snapshot.all().get(0).setBalance(tx.getAmount() * 10 + 1);
 
     Entity[] entities = new Entity[2];
     entities[0] = b;
     entities[1] = tx;
-    concurrentProcess(entities);
+    concurrentProcess(engine, entities);
 
     verify(seenEntities, never()).add(any());
 
@@ -500,31 +487,29 @@ public class ValidatorEngineTest {
 
     /// State and Snapshots
     State state = mock(State.class);
-    Snapshot genesisSnapshot = mock(Snapshot.class);
-    Snapshot snapshot1 = mock(Snapshot.class);
-    Snapshot snapshot2 = mock(Snapshot.class);
+    Snapshot snapshot = mock(Snapshot.class);
 
-    setMocks(genesisSnapshot, genesis, snapshot1, snapshot2, block1, block2, state, accounts1, accounts2);
+    setMocks(genesis, snapshot, block1, block2, state, accounts1, accounts2);
 
     int propInd = setPropId(accounts2);
 
     ArrayList<Account> accountsNoCurrent = a[2];
-    when(snapshot2.all()).thenReturn(accountsNoCurrent);
+    when(snapshot.all()).thenReturn(accountsNoCurrent);
     Identifiers seenEntities = mock(Identifiers.class);
-    engine = new ValidatorEngine(network, local, state, seenEntities);
+    ValidatorEngine engine = new ValidatorEngine(network, local, state, seenEntities);
     Identifier proposer = accounts2.get(propInd).getIdentifier();
-    Block b = BlockFixture.newBlock(proposer, block2.id(), block2.getHeight() + 1, snapshot2.all());
+    Block b = BlockFixture.newBlock(proposer, block2.id(), block2.getHeight() + 1, snapshot.all());
 
     mockSignatureVerification(state, b);
 
-    Identifier signerId = snapshot2.all().get(random.nextInt(accountsNoCurrent.size())).getIdentifier();
+    Identifier signerId = snapshot.all().get(random.nextInt(accountsNoCurrent.size())).getIdentifier();
     Transaction tx = TransactionFixture.newTransaction(
         block2.id(),
-        snapshot2.all().get(0).getIdentifier(),
-        snapshot2.all().get(1).getIdentifier(),
+        snapshot.all().get(0).getIdentifier(),
+        snapshot.all().get(1).getIdentifier(),
         signerId);
     mockSignatureVerification(state, tx);
-    snapshot2.all().get(0).setBalance(tx.getAmount() * 10 + 1);
+    snapshot.all().get(0).setBalance(tx.getAmount() * 10 + 1);
 
     try {
       engine.process(b);
@@ -561,11 +546,9 @@ public class ValidatorEngineTest {
 
     /// State and Snapshots
     State state = mock(State.class);
-    Snapshot genesisSnapshot = mock(Snapshot.class);
-    Snapshot snapshot1 = mock(Snapshot.class);
-    Snapshot snapshot2 = mock(Snapshot.class);
+    Snapshot snapshot = mock(Snapshot.class);
 
-    setMocks(genesisSnapshot, genesis, snapshot1, snapshot2, block1, block2, state, accounts1, accounts2);
+    setMocks(genesis, snapshot, block1, block2, state, accounts1, accounts2);
 
     int propInd = setPropId(accounts2);
     Identifiers seenEntities = mock(Identifiers.class);
@@ -575,8 +558,8 @@ public class ValidatorEngineTest {
     while (accounts2.contains(newPreviousBlockId)) {
       newPreviousBlockId = IdentifierFixture.newIdentifier();
     }
-    Block block = BlockFixture.newBlock(proposer, newPreviousBlockId, block2.getHeight() + 1, snapshot2.all());
-    engine = new ValidatorEngine(network, local, state, seenEntities);
+    Block block = BlockFixture.newBlock(proposer, newPreviousBlockId, block2.getHeight() + 1, snapshot.all());
+    ValidatorEngine engine = new ValidatorEngine(network, local, state, seenEntities);
 
     try {
       engine.process(block);
@@ -607,17 +590,15 @@ public class ValidatorEngineTest {
 
     /// State and Snapshots
     State state = mock(State.class);
-    Snapshot genesisSnapshot = mock(Snapshot.class);
-    Snapshot snapshot1 = mock(Snapshot.class);
-    Snapshot snapshot2 = mock(Snapshot.class);
+    Snapshot snapshot = mock(Snapshot.class);
 
-    setMocks(genesisSnapshot, genesis, snapshot1, snapshot2, block1, block2, state, accounts1, accounts2);
+    setMocks(genesis, snapshot, block1, block2, state, accounts1, accounts2);
 
     Identifiers seenEntities = mock(Identifiers.class);
     Identifier invalidProposer = IdentifierFixture.newIdentifier();
-    Block block = BlockFixture.newBlock(invalidProposer, block2.id(), block2.getHeight() + 1, snapshot2.all());
+    Block block = BlockFixture.newBlock(invalidProposer, block2.id(), block2.getHeight() + 1, snapshot.all());
 
-    engine = new ValidatorEngine(network, local, state, seenEntities);
+    ValidatorEngine engine = new ValidatorEngine(network, local, state, seenEntities);
 
     try {
       engine.process(block);
@@ -648,20 +629,18 @@ public class ValidatorEngineTest {
 
     /// State and Snapshots
     State state = mock(State.class);
-    Snapshot genesisSnapshot = mock(Snapshot.class);
-    Snapshot snapshot1 = mock(Snapshot.class);
-    Snapshot snapshot2 = mock(Snapshot.class);
+    Snapshot snapshot = mock(Snapshot.class);
 
-    setMocks(genesisSnapshot, genesis, snapshot1, snapshot2, block1, block2, state, accounts1, accounts2);
+    setMocks(genesis, snapshot, block1, block2, state, accounts1, accounts2);
 
     int propInd = setPropId(accounts2);
     Identifiers seenEntities = mock(Identifiers.class);
     Block block = BlockFixture.newBlock(accounts2.get(propInd).getIdentifier(),
         block2.id(),
         block2.getHeight() + 1,
-        snapshot2.all(),
+        snapshot.all(),
         Parameters.MIN_TRANSACTIONS_NUM - 1);
-    engine = new ValidatorEngine(network, local, state, seenEntities);
+    ValidatorEngine engine = new ValidatorEngine(network, local, state, seenEntities);
     mockSignatureVerification(state, block);
 
     try {
@@ -693,21 +672,19 @@ public class ValidatorEngineTest {
 
     /// State and Snapshots
     State state = mock(State.class);
-    Snapshot genesisSnapshot = mock(Snapshot.class);
-    Snapshot snapshot1 = mock(Snapshot.class);
-    Snapshot snapshot2 = mock(Snapshot.class);
+    Snapshot snapshot = mock(Snapshot.class);
 
-    setMocks(genesisSnapshot, genesis, snapshot1, snapshot2, block1, block2, state, accounts1, accounts2);
+    setMocks(genesis, snapshot, block1, block2, state, accounts1, accounts2);
 
     int propInd = setPropId(accounts2);
     Identifiers seenEntities = mock(Identifiers.class);
     Block block = BlockFixture.newBlock(accounts2.get(propInd).getIdentifier(),
         block2.id(),
         block2.getHeight() + 1,
-        snapshot2.all(),
+        snapshot.all(),
         Parameters.MAX_TRANSACTIONS_NUM + 1);
 
-    engine = new ValidatorEngine(network, local, state, seenEntities);
+    ValidatorEngine engine = new ValidatorEngine(network, local, state, seenEntities);
     mockSignatureVerification(state, block);
     try {
       engine.process(block);
@@ -737,17 +714,15 @@ public class ValidatorEngineTest {
 
     /// State and Snapshots
     State state = mock(State.class);
-    Snapshot genesisSnapshot = mock(Snapshot.class);
-    Snapshot snapshot1 = mock(Snapshot.class);
-    Snapshot snapshot2 = mock(Snapshot.class);
+    Snapshot snapshot = mock(Snapshot.class);
 
-    setMocks(genesisSnapshot, genesis, snapshot1, snapshot2, block1, block2, state, accounts1, accounts2);
+    setMocks(genesis, snapshot, block1, block2, state, accounts1, accounts2);
 
     int propInd = setPropId(accounts2);
     Identifiers seenEntities = mock(Identifiers.class);
     Identifier proposer = accounts2.get(propInd).getIdentifier();
-    Block block = BlockFixture.newBlock(proposer, block1.id(), block2.getHeight() + 1, snapshot2.all());
-    engine = new ValidatorEngine(network, local, state, seenEntities);
+    Block block = BlockFixture.newBlock(proposer, block1.id(), block2.getHeight() + 1, snapshot.all());
+    ValidatorEngine engine = new ValidatorEngine(network, local, state, seenEntities);
 
     mockSignatureVerification(state, block);
 
@@ -779,18 +754,16 @@ public class ValidatorEngineTest {
 
     /// State and Snapshots
     State state = mock(State.class);
-    Snapshot genesisSnapshot = mock(Snapshot.class);
-    Snapshot snapshot1 = mock(Snapshot.class);
-    Snapshot snapshot2 = mock(Snapshot.class);
+    Snapshot snapshot = mock(Snapshot.class);
 
-    setMocks(genesisSnapshot, genesis, snapshot1, snapshot2, block1, block2, state, accounts1, accounts2);
+    setMocks(genesis, snapshot, block1, block2, state, accounts1, accounts2);
 
     int propInd = setPropId(accounts2);
     Identifiers seenEntities = mock(Identifiers.class);
     Identifier proposer = accounts2.get(propInd).getIdentifier();
-    Block block = BlockFixture.newBlock(proposer, block2.id(), block2.getHeight() + 1, snapshot2.all());
+    Block block = BlockFixture.newBlock(proposer, block2.id(), block2.getHeight() + 1, snapshot.all());
 
-    engine = new ValidatorEngine(network, local, state, seenEntities);
+    ValidatorEngine engine = new ValidatorEngine(network, local, state, seenEntities);
 
     try {
       engine.process(block);
@@ -821,20 +794,18 @@ public class ValidatorEngineTest {
 
     /// State and Snapshots
     State state = mock(State.class);
-    Snapshot genesisSnapshot = mock(Snapshot.class);
-    Snapshot snapshot1 = mock(Snapshot.class);
-    Snapshot snapshot2 = mock(Snapshot.class);
+    Snapshot snapshot = mock(Snapshot.class);
 
-    setMocks(genesisSnapshot, genesis, snapshot1, snapshot2, block1, block2, state, accounts1, accounts2);
+    setMocks(genesis, snapshot, block1, block2, state, accounts1, accounts2);
     Identifiers seenEntities = mock(Identifiers.class);
     int propInd = random.nextInt(accounts2.size());
     while (accounts2.get(propInd).getStake() >= Parameters.MINIMUM_STAKE) {
       propInd = random.nextInt(accounts2.size());
     }
     Identifier proposer = accounts2.get(propInd).getIdentifier();
-    Block block = BlockFixture.newBlock(proposer, block2.id(), block2.getHeight() + 1, snapshot2.all());
+    Block block = BlockFixture.newBlock(proposer, block2.id(), block2.getHeight() + 1, snapshot.all());
 
-    engine = new ValidatorEngine(network, local, state, seenEntities);
+    ValidatorEngine engine = new ValidatorEngine(network, local, state, seenEntities);
 
     mockSignatureVerification(state, block);
 
@@ -866,11 +837,9 @@ public class ValidatorEngineTest {
 
     /// State and Snapshots
     State state = mock(State.class);
-    Snapshot genesisSnapshot = mock(Snapshot.class);
-    Snapshot snapshot1 = mock(Snapshot.class);
-    Snapshot snapshot2 = mock(Snapshot.class);
+    Snapshot snapshot = mock(Snapshot.class);
 
-    setMocks(genesisSnapshot, genesis, snapshot1, snapshot2, block1, block2, state, accounts1, accounts2);
+    setMocks(genesis, snapshot, block1, block2, state, accounts1, accounts2);
 
     int propInd = setPropId(accounts2);
     Identifiers seenEntities = mock(Identifiers.class);
@@ -878,9 +847,9 @@ public class ValidatorEngineTest {
     Block block = BlockFixture.newBlockUnvalidatedTransaction(proposer,
         block2.id(),
         block2.getHeight() + 1,
-        snapshot2.all());
+        snapshot.all());
 
-    engine = new ValidatorEngine(network, local, state, seenEntities);
+    ValidatorEngine engine = new ValidatorEngine(network, local, state, seenEntities);
 
     for (Transaction transaction : block.getTransactions()) {
       mockSignatureVerification(state, transaction);
@@ -915,22 +884,20 @@ public class ValidatorEngineTest {
 
     /// State and Snapshots
     State state = mock(State.class);
-    Snapshot genesisSnapshot = mock(Snapshot.class);
-    Snapshot snapshot1 = mock(Snapshot.class);
-    Snapshot snapshot2 = mock(Snapshot.class);
+    Snapshot snapshot = mock(Snapshot.class);
 
-    setMocks(genesisSnapshot, genesis, snapshot1, snapshot2, block1, block2, state, accounts1, accounts2);
+    setMocks(genesis, snapshot, block1, block2, state, accounts1, accounts2);
 
     int propInd = setPropId(accounts2);
     Identifiers seenEntities = mock(Identifiers.class);
     Identifier proposer = accounts2.get(propInd).getIdentifier();
-    Block block = BlockFixture.newBlock(proposer, block2.id(), block2.getHeight() + 1, snapshot2.all());
-    engine = new ValidatorEngine(network, local, state, seenEntities);
+    Block block = BlockFixture.newBlock(proposer, block2.id(), block2.getHeight() + 1, snapshot.all());
+    ValidatorEngine engine = new ValidatorEngine(network, local, state, seenEntities);
 
     for (Transaction transaction : block.getTransactions()) {
       mockSignatureVerification(state, transaction);
     }
-    when(state.atBlockId(snapshot2.getAccount(block.getTransactions()[0].getSender()).getLastBlockId())
+    when(state.atBlockId(snapshot.getAccount(block.getTransactions()[0].getSender()).getLastBlockId())
         .getReferenceBlockHeight()).thenReturn((long) block2.getHeight() * 2 + 10);
     mockSignatureVerification(state, block);
 
@@ -962,17 +929,15 @@ public class ValidatorEngineTest {
 
     /// State and Snapshots
     State state = mock(State.class);
-    Snapshot genesisSnapshot = mock(Snapshot.class);
-    Snapshot snapshot1 = mock(Snapshot.class);
-    Snapshot snapshot2 = mock(Snapshot.class);
+    Snapshot snapshot = mock(Snapshot.class);
 
-    setMocks(genesisSnapshot, genesis, snapshot1, snapshot2, block1, block2, state, accounts1, accounts2);
+    setMocks(genesis, snapshot, block1, block2, state, accounts1, accounts2);
 
     int propInd = setPropId(accounts2);
     Identifiers seenEntities = mock(Identifiers.class);
     Identifier proposer = accounts2.get(propInd).getIdentifier();
-    Block block = BlockFixture.newBlockDuplicateSender(proposer, block2.id(), block2.getHeight() + 1, snapshot2.all());
-    engine = new ValidatorEngine(network, local, state, seenEntities);
+    Block block = BlockFixture.newBlockDuplicateSender(proposer, block2.id(), block2.getHeight() + 1, snapshot.all());
+    ValidatorEngine engine = new ValidatorEngine(network, local, state, seenEntities);
 
     for (Transaction transaction : block.getTransactions()) {
       mockSignatureVerification(state, transaction);
@@ -1008,24 +973,22 @@ public class ValidatorEngineTest {
 
     /// State and Snapshots
     State state = mock(State.class);
-    Snapshot genesisSnapshot = mock(Snapshot.class);
-    Snapshot snapshot1 = mock(Snapshot.class);
-    Snapshot snapshot2 = mock(Snapshot.class);
+    Snapshot snapshot = mock(Snapshot.class);
 
-    setMocks(genesisSnapshot, genesis, snapshot1, snapshot2, block1, block2, state, accounts1, accounts2);
+    setMocks(genesis, snapshot, block1, block2, state, accounts1, accounts2);
 
     Identifiers seenEntities = mock(Identifiers.class);
-    engine = new ValidatorEngine(network, local, state, seenEntities);
+    ValidatorEngine engine = new ValidatorEngine(network, local, state, seenEntities);
 
-    Identifier signerId = snapshot2.all().get(random.nextInt(accounts2.size())).getIdentifier();
+    Identifier signerId = snapshot.all().get(random.nextInt(accounts2.size())).getIdentifier();
     Transaction transaction = TransactionFixture.newTransaction(
         block2.id(),
-        snapshot2.all().get(0).getIdentifier(),
-        snapshot2.all().get(1).getIdentifier(),
+        snapshot.all().get(0).getIdentifier(),
+        snapshot.all().get(1).getIdentifier(),
         signerId);
 
     mockSignatureVerification(state, transaction);
-    snapshot2.all().get(0).setBalance(transaction.getAmount() * 10 + 1);
+    snapshot.all().get(0).setBalance(transaction.getAmount() * 10 + 1);
 
     try {
       engine.process(transaction);
@@ -1062,26 +1025,24 @@ public class ValidatorEngineTest {
 
     /// State and Snapshots
     State state = mock(State.class);
-    Snapshot genesisSnapshot = mock(Snapshot.class);
-    Snapshot snapshot1 = mock(Snapshot.class);
-    Snapshot snapshot2 = mock(Snapshot.class);
+    Snapshot snapshot = mock(Snapshot.class);
 
-    setMocks(genesisSnapshot, genesis, snapshot1, snapshot2, block1, block2, state, accounts1, accounts2);
+    setMocks(genesis, snapshot, block1, block2, state, accounts1, accounts2);
 
     Identifiers seenEntities = mock(Identifiers.class);
-    engine = new ValidatorEngine(network, local, state, seenEntities);
+    ValidatorEngine engine = new ValidatorEngine(network, local, state, seenEntities);
 
-    Identifier signerId = snapshot2.all().get(random.nextInt(accounts2.size())).getIdentifier();
+    Identifier signerId = snapshot.all().get(random.nextInt(accounts2.size())).getIdentifier();
     ArrayList<Transaction> transactions = new ArrayList<>();
     for (int i = 0; i < 2; i++) {
       Transaction transaction = TransactionFixture.newTransaction(
           block2.id(),
-          snapshot2.all().get(i).getIdentifier(),
-          snapshot2.all().get(i + 1).getIdentifier(),
+          snapshot.all().get(i).getIdentifier(),
+          snapshot.all().get(i + 1).getIdentifier(),
           signerId);
       transactions.add(transaction);
       mockSignatureVerification(state, transaction);
-      snapshot2.all().get(i).setBalance(transaction.getAmount() * 10 + 1);
+      snapshot.all().get(i).setBalance(transaction.getAmount() * 10 + 1);
     }
 
     // Act
@@ -1116,32 +1077,30 @@ public class ValidatorEngineTest {
 
     /// State and Snapshots
     State state = mock(State.class);
-    Snapshot genesisSnapshot = mock(Snapshot.class);
-    Snapshot snapshot1 = mock(Snapshot.class);
-    Snapshot snapshot2 = mock(Snapshot.class);
+    Snapshot snapshot = mock(Snapshot.class);
 
-    setMocks(genesisSnapshot, genesis, snapshot1, snapshot2, block1, block2, state, accounts1, accounts2);
+    setMocks(genesis, snapshot, block1, block2, state, accounts1, accounts2);
 
     Identifiers seenEntities = mock(Identifiers.class);
-    engine = new ValidatorEngine(network, local, state, seenEntities);
+    ValidatorEngine engine = new ValidatorEngine(network, local, state, seenEntities);
 
-    Identifier signerId = snapshot2.all().get(random.nextInt(accounts2.size())).getIdentifier();
+    Identifier signerId = snapshot.all().get(random.nextInt(accounts2.size())).getIdentifier();
     ArrayList<Transaction> transactions = new ArrayList<>();
     for (int i = 0; i < 2; i++) {
       Transaction transaction = TransactionFixture.newTransaction(
           block2.id(),
-          snapshot2.all().get(i).getIdentifier(),
-          snapshot2.all().get(i + 1).getIdentifier(),
+          snapshot.all().get(i).getIdentifier(),
+          snapshot.all().get(i + 1).getIdentifier(),
           signerId);
       transactions.add(transaction);
       mockSignatureVerification(state, transaction);
-      snapshot2.all().get(i).setBalance(transaction.getAmount() * 10 + 1);
+      snapshot.all().get(i).setBalance(transaction.getAmount() * 10 + 1);
     }
 
     Entity[] entities = new Entity[2];
     entities[0] = transactions.get(0);
     entities[1] = transactions.get(1);
-    concurrentProcess(entities);
+    concurrentProcess(engine, entities);
 
     try {
       for (Entity e : txConduit.allEntities()) {
@@ -1170,24 +1129,22 @@ public class ValidatorEngineTest {
 
     /// State and Snapshots
     State state = mock(State.class);
-    Snapshot genesisSnapshot = mock(Snapshot.class);
-    Snapshot snapshot1 = mock(Snapshot.class);
-    Snapshot snapshot2 = mock(Snapshot.class);
+    Snapshot snapshot = mock(Snapshot.class);
 
-    setMocks(genesisSnapshot, genesis, snapshot1, snapshot2, block1, block2, state, accounts1, accounts2);
+    setMocks(genesis, snapshot, block1, block2, state, accounts1, accounts2);
 
     Identifiers seenEntities = mock(Identifiers.class);
-    engine = new ValidatorEngine(network, local, state, seenEntities);
+    ValidatorEngine engine = new ValidatorEngine(network, local, state, seenEntities);
 
-    Identifier signerId = snapshot2.all().get(random.nextInt(accounts2.size())).getIdentifier();
+    Identifier signerId = snapshot.all().get(random.nextInt(accounts2.size())).getIdentifier();
     ArrayList<Transaction> transactions = new ArrayList<>();
     Transaction transaction = TransactionFixture.newTransaction(
         block2.id(),
-        snapshot2.all().get(0).getIdentifier(),
-        snapshot2.all().get(1).getIdentifier(),
+        snapshot.all().get(0).getIdentifier(),
+        snapshot.all().get(1).getIdentifier(),
         signerId);
     mockSignatureVerification(state, transaction);
-    snapshot2.all().get(0).setBalance(transaction.getAmount() * 10 + 1);
+    snapshot.all().get(0).setBalance(transaction.getAmount() * 10 + 1);
 
     for (int i = 0; i < 2; i++) {
       transactions.add(transaction);
@@ -1234,24 +1191,22 @@ public class ValidatorEngineTest {
 
     /// State and Snapshots
     State state = mock(State.class);
-    Snapshot genesisSnapshot = mock(Snapshot.class);
-    Snapshot snapshot1 = mock(Snapshot.class);
-    Snapshot snapshot2 = mock(Snapshot.class);
+    Snapshot snapshot = mock(Snapshot.class);
 
-    setMocks(genesisSnapshot, genesis, snapshot1, snapshot2, block1, block2, state, accounts1, accounts2);
+    setMocks(genesis, snapshot, block1, block2, state, accounts1, accounts2);
 
     Identifiers seenEntities = mock(Identifiers.class);
-    engine = new ValidatorEngine(network, local, state, seenEntities);
+    ValidatorEngine engine = new ValidatorEngine(network, local, state, seenEntities);
 
-    Identifier signerId = snapshot2.all().get(random.nextInt(accounts2.size())).getIdentifier();
+    Identifier signerId = snapshot.all().get(random.nextInt(accounts2.size())).getIdentifier();
     ArrayList<Transaction> transactions = new ArrayList<>();
     Transaction transaction = TransactionFixture.newTransaction(
         block2.id(),
-        snapshot2.all().get(0).getIdentifier(),
-        snapshot2.all().get(1).getIdentifier(),
+        snapshot.all().get(0).getIdentifier(),
+        snapshot.all().get(1).getIdentifier(),
         signerId);
     mockSignatureVerification(state, transaction);
-    snapshot2.all().get(0).setBalance(transaction.getAmount() * 10 + 1);
+    snapshot.all().get(0).setBalance(transaction.getAmount() * 10 + 1);
 
     for (int i = 0; i < 2; i++) {
       transactions.add(transaction);
@@ -1266,7 +1221,7 @@ public class ValidatorEngineTest {
     Entity[] entities = new Entity[2];
     entities[0] = transactions.get(0);
     entities[1] = transactions.get(1);
-    concurrentProcess(entities);
+    concurrentProcess(engine, entities);
 
     verify(seenEntities, times(1)).add(transactions.get(0).id());
     try {
@@ -1297,14 +1252,12 @@ public class ValidatorEngineTest {
 
     /// State and Snapshots
     State state = mock(State.class);
-    Snapshot genesisSnapshot = mock(Snapshot.class);
-    Snapshot snapshot1 = mock(Snapshot.class);
-    Snapshot snapshot2 = mock(Snapshot.class);
+    Snapshot snapshot = mock(Snapshot.class);
 
-    setMocks(genesisSnapshot, genesis, snapshot1, snapshot2, block1, block2, state, accounts1, accounts2);
+    setMocks(genesis, snapshot, block1, block2, state, accounts1, accounts2);
 
     Identifiers seenEntities = mock(Identifiers.class);
-    engine = new ValidatorEngine(network, local, state, seenEntities);
+    ValidatorEngine engine = new ValidatorEngine(network, local, state, seenEntities);
 
     // An entity which is neither block nor transaction.
     Entity ent = new EntityFixture();
@@ -1335,14 +1288,12 @@ public class ValidatorEngineTest {
 
     /// State and Snapshots
     State state = mock(State.class);
-    Snapshot genesisSnapshot = mock(Snapshot.class);
-    Snapshot snapshot1 = mock(Snapshot.class);
-    Snapshot snapshot2 = mock(Snapshot.class);
+    Snapshot snapshot = mock(Snapshot.class);
 
-    setMocks(genesisSnapshot, genesis, snapshot1, snapshot2, block1, block2, state, accounts1, accounts2);
+    setMocks(genesis, snapshot, block1, block2, state, accounts1, accounts2);
 
     Identifiers seenEntities = mock(Identifiers.class);
-    engine = new ValidatorEngine(network, local, state, seenEntities);
+    ValidatorEngine engine = new ValidatorEngine(network, local, state, seenEntities);
 
     // An entity which is neither block nor transaction.
     Signature signature = SignatureFixture.newSignatureFixture();
@@ -1373,24 +1324,22 @@ public class ValidatorEngineTest {
 
     /// State and Snapshots
     State state = mock(State.class);
-    Snapshot genesisSnapshot = mock(Snapshot.class);
-    Snapshot snapshot1 = mock(Snapshot.class);
-    Snapshot snapshot2 = mock(Snapshot.class);
+    Snapshot snapshot = mock(Snapshot.class);
 
-    setMocks(genesisSnapshot, genesis, snapshot1, snapshot2, block1, block2, state, accounts1, accounts2);
+    setMocks(genesis, snapshot, block1, block2, state, accounts1, accounts2);
 
     Identifiers seenEntities = mock(Identifiers.class);
-    engine = new ValidatorEngine(network, local, state, seenEntities);
+    ValidatorEngine engine = new ValidatorEngine(network, local, state, seenEntities);
 
-    Identifier signerId = snapshot2.all().get(random.nextInt(accounts1.size())).getIdentifier();
+    Identifier signerId = snapshot.all().get(random.nextInt(accounts1.size())).getIdentifier();
     ArrayList<Transaction> transactions = new ArrayList<>();
     Transaction transaction = TransactionFixture.newTransaction(
         block2.id(),
-        snapshot2.all().get(0).getIdentifier(),
-        snapshot2.all().get(1).getIdentifier(),
+        snapshot.all().get(0).getIdentifier(),
+        snapshot.all().get(1).getIdentifier(),
         signerId);
     mockSignatureVerification(state, transaction);
-    snapshot2.all().get(0).setBalance(transaction.getAmount() * 10 + 1);
+    snapshot.all().get(0).setBalance(transaction.getAmount() * 10 + 1);
 
     for (int i = 0; i < 2; i++) {
       transactions.add(transaction);
@@ -1437,24 +1386,22 @@ public class ValidatorEngineTest {
 
     /// State and Snapshots
     State state = mock(State.class);
-    Snapshot genesisSnapshot = mock(Snapshot.class);
-    Snapshot snapshot1 = mock(Snapshot.class);
-    Snapshot snapshot2 = mock(Snapshot.class);
+    Snapshot snapshot = mock(Snapshot.class);
 
-    setMocks(genesisSnapshot, genesis, snapshot1, snapshot2, block1, block2, state, accounts1, accounts2);
+    setMocks(genesis, snapshot, block1, block2, state, accounts1, accounts2);
 
     Identifiers seenEntities = mock(Identifiers.class);
-    engine = new ValidatorEngine(network, local, state, seenEntities);
+    ValidatorEngine engine = new ValidatorEngine(network, local, state, seenEntities);
 
     Identifier invalidSender = IdentifierFixture.newIdentifier();
     while (accounts2.contains(invalidSender)) {
       invalidSender = IdentifierFixture.newIdentifier();
     }
-    Identifier signerId = snapshot2.all().get(random.nextInt(accounts2.size())).getIdentifier();
+    Identifier signerId = snapshot.all().get(random.nextInt(accounts2.size())).getIdentifier();
     Transaction transaction = TransactionFixture.newTransaction(
         block2.id(),
         invalidSender,
-        snapshot2.all().get(1).getIdentifier(),
+        snapshot.all().get(1).getIdentifier(),
         signerId);
     try {
       engine.process(transaction);
@@ -1485,23 +1432,21 @@ public class ValidatorEngineTest {
 
     /// State and Snapshots
     State state = mock(State.class);
-    Snapshot genesisSnapshot = mock(Snapshot.class);
-    Snapshot snapshot1 = mock(Snapshot.class);
-    Snapshot snapshot2 = mock(Snapshot.class);
+    Snapshot snapshot = mock(Snapshot.class);
 
-    setMocks(genesisSnapshot, genesis, snapshot1, snapshot2, block1, block2, state, accounts1, accounts2);
+    setMocks(genesis, snapshot, block1, block2, state, accounts1, accounts2);
 
     Identifiers seenEntities = mock(Identifiers.class);
-    engine = new ValidatorEngine(network, local, state, seenEntities);
+    ValidatorEngine engine = new ValidatorEngine(network, local, state, seenEntities);
 
     Identifier invalidReceiver = IdentifierFixture.newIdentifier();
     while (accounts2.contains(invalidReceiver)) {
       invalidReceiver = IdentifierFixture.newIdentifier();
     }
-    Identifier signerId = snapshot2.all().get(random.nextInt(accounts2.size())).getIdentifier();
+    Identifier signerId = snapshot.all().get(random.nextInt(accounts2.size())).getIdentifier();
     Transaction transaction = TransactionFixture.newTransaction(
         block2.id(),
-        snapshot2.all().get(0).getIdentifier(),
+        snapshot.all().get(0).getIdentifier(),
         invalidReceiver,
         signerId);
 
@@ -1534,20 +1479,18 @@ public class ValidatorEngineTest {
 
     /// State and Snapshots
     State state = mock(State.class);
-    Snapshot genesisSnapshot = mock(Snapshot.class);
-    Snapshot snapshot1 = mock(Snapshot.class);
-    Snapshot snapshot2 = mock(Snapshot.class);
+    Snapshot snapshot = mock(Snapshot.class);
 
-    setMocks(genesisSnapshot, genesis, snapshot1, snapshot2, block1, block2, state, accounts1, accounts2);
+    setMocks(genesis, snapshot, block1, block2, state, accounts1, accounts2);
 
     Identifiers seenEntities = mock(Identifiers.class);
-    engine = new ValidatorEngine(network, local, state, seenEntities);
+    ValidatorEngine engine = new ValidatorEngine(network, local, state, seenEntities);
 
-    Identifier signerId = snapshot2.all().get(random.nextInt(accounts2.size())).getIdentifier();
+    Identifier signerId = snapshot.all().get(random.nextInt(accounts2.size())).getIdentifier();
     Transaction transaction = TransactionFixture.newTransaction(
         block2.id(),
-        snapshot2.all().get(0).getIdentifier(),
-        snapshot2.all().get(1).getIdentifier(),
+        snapshot.all().get(0).getIdentifier(),
+        snapshot.all().get(1).getIdentifier(),
         signerId,
         -5);
 
@@ -1582,26 +1525,24 @@ public class ValidatorEngineTest {
 
     /// State and Snapshots
     State state = mock(State.class);
-    Snapshot genesisSnapshot = mock(Snapshot.class);
-    Snapshot snapshot1 = mock(Snapshot.class);
-    Snapshot snapshot2 = mock(Snapshot.class);
+    Snapshot snapshot = mock(Snapshot.class);
 
-    setMocks(genesisSnapshot, genesis, snapshot1, snapshot2, block1, block2, state, accounts1, accounts2);
+    setMocks(genesis, snapshot, block1, block2, state, accounts1, accounts2);
 
     Identifiers seenEntities = mock(Identifiers.class);
-    engine = new ValidatorEngine(network, local, state, seenEntities);
+    ValidatorEngine engine = new ValidatorEngine(network, local, state, seenEntities);
 
-    Identifier signerId = snapshot2.all().get(random.nextInt(accounts2.size())).getIdentifier();
+    Identifier signerId = snapshot.all().get(random.nextInt(accounts2.size())).getIdentifier();
     Transaction transaction = TransactionFixture.newTransaction(
         block2.id(),
-        snapshot2.all().get(0).getIdentifier(),
-        snapshot2.all().get(1).getIdentifier(),
+        snapshot.all().get(0).getIdentifier(),
+        snapshot.all().get(1).getIdentifier(),
         signerId);
 
-    snapshot2.getAccount(transaction.getSender()).setBalance(transaction.getAmount() * 5 + 5);
+    snapshot.getAccount(transaction.getSender()).setBalance(transaction.getAmount() * 5 + 5);
     mockSignatureVerification(state, transaction);
 
-    when(state.atBlockId(snapshot2.getAccount(transaction.getSender()).getLastBlockId()).getReferenceBlockHeight())
+    when(state.atBlockId(snapshot.getAccount(transaction.getSender()).getLastBlockId()).getReferenceBlockHeight())
         .thenReturn((long) block2.getHeight() + 5);
 
     try {
@@ -1633,23 +1574,21 @@ public class ValidatorEngineTest {
 
     /// State and Snapshots
     State state = mock(State.class);
-    Snapshot genesisSnapshot = mock(Snapshot.class);
-    Snapshot snapshot1 = mock(Snapshot.class);
-    Snapshot snapshot2 = mock(Snapshot.class);
+    Snapshot snapshot = mock(Snapshot.class);
 
-    setMocks(genesisSnapshot, genesis, snapshot1, snapshot2, block1, block2, state, accounts1, accounts2);
+    setMocks(genesis, snapshot, block1, block2, state, accounts1, accounts2);
 
     Identifiers seenEntities = mock(Identifiers.class);
-    engine = new ValidatorEngine(network, local, state, seenEntities);
+    ValidatorEngine engine = new ValidatorEngine(network, local, state, seenEntities);
 
-    Identifier signerId = snapshot2.all().get(random.nextInt(accounts2.size())).getIdentifier();
+    Identifier signerId = snapshot.all().get(random.nextInt(accounts2.size())).getIdentifier();
     Transaction transaction = TransactionFixture.newTransaction(
         block2.id(),
-        snapshot2.all().get(0).getIdentifier(),
-        snapshot2.all().get(1).getIdentifier(),
+        snapshot.all().get(0).getIdentifier(),
+        snapshot.all().get(1).getIdentifier(),
         signerId);
 
-    snapshot2.getAccount(transaction.getSender()).setBalance(transaction.getAmount() * 5 + 5);
+    snapshot.getAccount(transaction.getSender()).setBalance(transaction.getAmount() * 5 + 5);
 
     try {
       engine.process(transaction);
@@ -1680,23 +1619,21 @@ public class ValidatorEngineTest {
 
     /// State and Snapshots
     State state = mock(State.class);
-    Snapshot genesisSnapshot = mock(Snapshot.class);
-    Snapshot snapshot1 = mock(Snapshot.class);
-    Snapshot snapshot2 = mock(Snapshot.class);
+    Snapshot snapshot = mock(Snapshot.class);
 
-    setMocks(genesisSnapshot, genesis, snapshot1, snapshot2, block1, block2, state, accounts1, accounts2);
+    setMocks(genesis, snapshot, block1, block2, state, accounts1, accounts2);
 
     Identifiers seenEntities = mock(Identifiers.class);
-    engine = new ValidatorEngine(network, local, state, seenEntities);
+    ValidatorEngine engine = new ValidatorEngine(network, local, state, seenEntities);
 
-    Identifier signerId = snapshot2.all().get(random.nextInt(accounts2.size())).getIdentifier();
+    Identifier signerId = snapshot.all().get(random.nextInt(accounts2.size())).getIdentifier();
     Transaction transaction = TransactionFixture.newTransaction(
         block2.id(),
-        snapshot2.all().get(0).getIdentifier(),
-        snapshot2.all().get(1).getIdentifier(),
+        snapshot.all().get(0).getIdentifier(),
+        snapshot.all().get(1).getIdentifier(),
         signerId);
 
-    snapshot2.getAccount(transaction.getSender()).setBalance(transaction.getAmount() - 5);
+    snapshot.getAccount(transaction.getSender()).setBalance(transaction.getAmount() - 5);
     mockSignatureVerification(state, transaction);
 
     try {
