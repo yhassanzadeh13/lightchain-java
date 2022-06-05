@@ -152,13 +152,6 @@ public class ValidatorEngine implements Engine {
     } catch (Exception ex) {
       return false;
     }
-    System.out.println("sound " + verifier.allTransactionsSound(b));
-    System.out.println("valid " + verifier.allTransactionsValidated(b));
-    System.out.println("auth " + verifier.isAuthenticated(b));
-    System.out.println("cons " + verifier.isConsistent(b));
-    System.out.println("correct " + verifier.isCorrect(b));
-    System.out.println("dup " + verifier.noDuplicateSender(b));
-    System.out.println("stake " + verifier.proposerHasEnoughStake(b));
     return verifier.allTransactionsSound(b)
             && verifier.allTransactionsValidated(b)
             && verifier.isAuthenticated(b)
@@ -179,10 +172,6 @@ public class ValidatorEngine implements Engine {
       ex.printStackTrace();
       return false;
     }
-    System.out.println("corrrecttrans " + verifier.isCorrect(t));
-    System.out.println("sound trans " + verifier.isSound(t));
-    System.out.println("auth trans " + verifier.isAuthenticated(t));
-    System.out.println("bal trans " + verifier.senderHasEnoughBalance(t));
     return verifier.isCorrect(t)
             && verifier.isSound(t)
             && verifier.isAuthenticated(t)
