@@ -81,12 +81,6 @@ public class IngestEngineTest {
     Block block1 = ValidatedBlockFixture.newValidatedBlock(accounts);
     Block block2 = ValidatedBlockFixture.newValidatedBlock(accounts);
 
-    // mocks both blocks as new to ingest engine.
-    when(seenEntities.has(block1.id())).thenReturn(false);
-    when(seenEntities.has(block2.id())).thenReturn(false);
-    when(blocks.has(block1.id())).thenReturn(false);
-    when(blocks.has(block2.id())).thenReturn(false);
-
     IngestEngine ingestEngine = this.mockIngestEngineForEntities(
         new ArrayList<>(Arrays.asList(block1, block2)),
         seenEntities,
@@ -112,6 +106,7 @@ public class IngestEngineTest {
    */
   @Test
   public void testValidatedTwoBlocksConcurrently() {
+    // R
     Blocks blocks = mock(Blocks.class);
     Identifiers seenEntities = mock(Identifiers.class);
     Identifiers transactionIds = mock(Identifiers.class);
@@ -120,11 +115,6 @@ public class IngestEngineTest {
     ArrayList<Account> accounts = new ArrayList<>(AccountFixture.newAccounts(10, 10).values());
     Block block1 = ValidatedBlockFixture.newValidatedBlock(accounts);
     Block block2 = ValidatedBlockFixture.newValidatedBlock(accounts);
-
-    when(seenEntities.has(block1.id())).thenReturn(false);
-    when(seenEntities.has(block2.id())).thenReturn(false);
-    when(blocks.has(block1.id())).thenReturn(false);
-    when(blocks.has(block2.id())).thenReturn(false);
 
     IngestEngine ingestEngine = this.mockIngestEngineForEntities(
         new ArrayList<>(Arrays.asList(block1, block2)),
@@ -151,6 +141,7 @@ public class IngestEngineTest {
    */
   @Test
   public void testValidatedSameTwoBlocks() {
+    // R
     Blocks blocks = mock(Blocks.class);
     Identifiers seenEntities = mock(Identifiers.class);
     Identifiers transactionIds = mock(Identifiers.class);
