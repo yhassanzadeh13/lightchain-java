@@ -45,11 +45,9 @@ public class BlockchainFixture {
     }
     ValidatedTransaction[] emptyTransactions = new ValidatedTransaction[0];
     Signature[] emptyCertificates = new Signature[0];
-    ValidatedBlock genesisBlock = new ValidatedBlock(null, null, emptyTransactions, null, emptyCertificates);
-    chain.add(genesisBlock);
-    Identifier prevBlockId = genesisBlock.id();
+    Identifier prevBlockId = rootSnapshot.getReferenceBlockId();
     TableState tableState = new TableState();
-    tableState.addSnapshot(genesisBlock.id(), rootSnapshot);
+    tableState.addSnapshot(prevBlockId, rootSnapshot);
 
 
     for (int i = 0; i < blockNum; i++) {

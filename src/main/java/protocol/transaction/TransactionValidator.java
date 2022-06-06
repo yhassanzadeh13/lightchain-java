@@ -76,7 +76,7 @@ public class TransactionValidator implements InfTransactionValidator {
     Snapshot lastBlockSnapshot = state.atBlockId(lastBlockId);
     long lastBlockHeight = lastBlockSnapshot.getReferenceBlockHeight();
 
-    return referenceBlockHeight > lastBlockHeight;
+    return referenceBlockHeight > lastBlockHeight || lastBlockHeight == 0;
   }
 
   /**

@@ -2,6 +2,9 @@ package unittest.fixtures;
 
 import java.util.ArrayList;
 
+import model.crypto.KeyGen;
+import model.crypto.PrivateKey;
+import model.crypto.PublicKey;
 import model.lightchain.Account;
 import model.lightchain.Identifier;
 import model.lightchain.ValidatedBlock;
@@ -23,14 +26,17 @@ public class BlockchainFixtureTest {
   public void testValidChain() {
     TableSnapshot tableSnapshot = new TableSnapshot(IdentifierFixture.newIdentifier(), 0);
     for (int i = 0; i < 100; i++) {
-      Identifier accountIdentifier = IdentifierFixture.newIdentifier();
+      KeyGen keygen = KeyGenFixture.newKeyGen();
+      PublicKey publicKey = keygen.getPublicKey();
+      PrivateKey privateKey = keygen.getPrivateKey();
+      Identifier accountIdentifier = IdentifierFixture.newIdentifier(); // instead create an array of Local
       tableSnapshot.addAccount(accountIdentifier,
           new Account(accountIdentifier,
-          KeyGenFixture.newKeyGen().getPublicKey(),
+              publicKey,
           tableSnapshot.getReferenceBlockId(),
           Parameters.MINIMUM_STAKE));
     }
-    ArrayList<ValidatedBlock> chain = BlockchainFixture.newValidChain(tableSnapshot, 1000);
+    ArrayList<ValidatedBlock> chain = BlockchainFixture.newValidChain(tableSnapshot, 1);
     TableState tableState = new TableState();
     tableState.addSnapshot(tableSnapshot.getReferenceBlockId(), tableSnapshot);
     BlockValidator blockValidator = new BlockValidator(tableState);
