@@ -185,7 +185,8 @@ public class IngestEngineTest {
    * The engine also removes hash of the transactions of blocks from pendingTransactions.
    */
   @Test
-  public void testValidatedBlockContainingSeenTransaction() {
+  public void testValidatedBlockContainingPendingTransaction() {
+    // R
     Blocks blocks = mock(Blocks.class);
     Identifiers seenEntities = mock(Identifiers.class);
     Identifiers transactionIds = mock(Identifiers.class);
@@ -211,6 +212,7 @@ public class IngestEngineTest {
     // verification
     verifyBlockHappyPathCalled(block, blocks, pendingTransactions, transactionIds, seenEntities);
     for (Transaction tx : block.getTransactions()) {
+      // all transactions included in the block must be removed from pending transactions.
       verify(pendingTransactions, times(1)).remove(tx.id());
     }
   }
