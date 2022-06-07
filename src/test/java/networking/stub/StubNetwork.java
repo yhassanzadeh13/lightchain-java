@@ -1,6 +1,10 @@
 package networking.stub;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import model.Entity;
 import model.exceptions.LightChainDistributedStorageException;
@@ -17,8 +21,11 @@ import unittest.fixtures.IdentifierFixture;
  * A mock implementation of networking layer as a test util.
  */
 public class StubNetwork implements Network, NetworkAdapter {
-  private final ConcurrentHashMap<String, Engine> engines;
+  private final ReentrantReadWriteLock lock;
   private final Hub hub;
+  private final ConcurrentHashMap<String, Engine> engines;
+  private List<Identifier> identifierSet;
+  private final ConcurrentHashMap<String, ConcurrentHashMap<Identifier,Entity>> distributedStorage;
   private final Identifier identifier;
 
   /**
@@ -27,10 +34,17 @@ public class StubNetwork implements Network, NetworkAdapter {
    * @param hub the hub which stubnetwork registered is.
    */
   public StubNetwork(Hub hub) {
+    this.lock = new ReentrantReadWriteLock();
     this.engines = new ConcurrentHashMap<>();
     this.hub = hub;
+    this.identifierSet=new ArrayList<>();
+    this.distributedStorage = new ConcurrentHashMap<>();
     this.identifier = IdentifierFixture.newIdentifier();
-    this.hub.registerNetwork(identifier, this);
+    this.hub.registerNetwork(identifier,this);
+  }
+  public void setNetworksIdentifiers(List<Identifier> identifiers){
+    this.identifierSet=identifiers;
+    sortMaps();
   }
 
   /**
@@ -84,7 +98,8 @@ public class StubNetwork implements Network, NetworkAdapter {
   }
 
   /**
-   * Sends the Entity through the Network to the remote target.
+   * Sends the Entity through the Network to the remote target that has the greatest identifier less than or equal
+   * to entity id  .
    *
    * @param e       the Entity to be sent over the network.
    * @param target  Identifier of the receiver.
@@ -94,7 +109,7 @@ public class StubNetwork implements Network, NetworkAdapter {
   @Override
   public void unicast(Entity e, Identifier target, String channel) throws LightChainNetworkingException {
     try {
-      this.hub.transferEntity(e, target, channel);
+      this.hub.transferEntity(e, target,channel);
     } catch (IllegalStateException ex) {
       throw new LightChainNetworkingException("stub network could not transfer entity", ex);
     }
@@ -110,7 +125,31 @@ public class StubNetwork implements Network, NetworkAdapter {
    */
   @Override
   public void put(Entity e, String namespace) throws LightChainDistributedStorageException {
+    Identifier target = binarySearch(e.id());
+    this.hub.putEntityToChannel(e,target,namespace);
 
+  }
+  public void storeEntity(Entity e, String namespace) throws LightChainDistributedStorageException {
+    try {
+      lock.writeLock().lock();
+      distributedStorage.putIfAbsent(namespace, new ConcurrentHashMap<>());
+      distributedStorage.get(namespace).putIfAbsent(e.id(),e);
+    } catch (Exception ex) {
+      throw new LightChainDistributedStorageException("could not put the entity"+ex);
+    } finally {
+      lock.writeLock().unlock();
+    }
+
+  }
+  public Entity provideEntity(Identifier identifier,String namespace ) throws  LightChainDistributedStorageException{
+    try {
+      lock.readLock().lock();
+      return  distributedStorage.get(namespace).get(identifier);
+    } catch (Exception e) {
+      throw new LightChainDistributedStorageException("could not put the entity"+e);
+    } finally {
+      lock.readLock().unlock();
+    }
   }
 
   /**
@@ -124,6 +163,55 @@ public class StubNetwork implements Network, NetworkAdapter {
    */
   @Override
   public Entity get(Identifier identifier, String namespace) throws LightChainDistributedStorageException {
-    return null;
+   Identifier target = binarySearch(identifier);
+   return this.hub.getEntityFromChannel(identifier,target,namespace);
   }
+
+  /**
+   * Retrieves all entities stored on the underlying DHT of nodes that stored on this channel.
+   *
+   * @param namespace the namespace on which this query is resolved.
+   * @return list of all entities stored on this channel from underlying DHT.
+   * @throws LightChainDistributedStorageException any unhappy path taken on retrieving the Entities.
+   */
+  @Override
+  public ArrayList<Entity> allEntities(String namespace) throws LightChainDistributedStorageException {
+    try {
+      return new ArrayList<>(distributedStorage.get(namespace).values());
+    } catch (Exception e) {
+      throw new LightChainDistributedStorageException("entities could not be taken"+e);
+    }
+  }
+
+  /**
+   * Get the identifier of the network that store the entity.
+   *
+   * @param identifier identifier of the entity to be stored.
+   * @return identifier of the network that store the entity.
+   */
+  public Identifier binarySearch(Identifier identifier) {
+
+    int left = 0;
+    int right = identifierSet.size() - 1;
+    while (left < right) {
+      int mid = left + (right - left) / 2;
+      if (identifierSet.get(mid).compareTo(identifier) == 0) {
+        return identifierSet.get(mid);
+      }
+      if (identifier.compareTo(identifierSet.get(mid)) > 0) {
+        left = mid ;
+      } else {
+        right = mid ;
+      }
+    }
+    return identifierSet.get(left);
+  }
+
+  /**
+   * Sort the identifier of networks.
+   */
+  public void sortMaps() {
+    Collections.sort(identifierSet);
+  }
+
 }

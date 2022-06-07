@@ -1,8 +1,10 @@
 package networking.stub;
 
+import java.util.ArrayList;
 import java.util.concurrent.ConcurrentHashMap;
 
 import model.Entity;
+import model.exceptions.LightChainDistributedStorageException;
 import model.lightchain.Identifier;
 import network.Network;
 
@@ -44,6 +46,28 @@ public class Hub {
       throw new IllegalStateException("target network failed on receiving unicast: " + ex.getMessage());
     }
   }
+public void putEntityToChannel(Entity entity, Identifier target, String channel) throws LightChainDistributedStorageException {
+  StubNetwork net = this.getNetwork(target);
+  try {
+    net.storeEntity(entity,channel);
+  } catch (LightChainDistributedStorageException e) {
+    throw new LightChainDistributedStorageException("could not store"+e);
+  }
+}
+public Entity getEntityFromChannel(Identifier entityIndentifier, Identifier target, String channel) throws LightChainDistributedStorageException {
+    StubNetwork network = this.getNetwork(target);
+    return network.provideEntity(entityIndentifier,channel);
+
+}
+public ArrayList<Entity> getAllEntities(String namespace) throws LightChainDistributedStorageException {
+    ArrayList<Entity> allEntities = new ArrayList<>();
+    for (Network network : networks.values()){
+      StubNetwork stubNetwork = (StubNetwork) network;
+      allEntities.addAll(stubNetwork.allEntities(namespace));
+    }
+    return allEntities;
+}
+
 
   /**
    * Get the network with identifier.
