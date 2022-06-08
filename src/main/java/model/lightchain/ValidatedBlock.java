@@ -1,5 +1,7 @@
 package model.lightchain;
 
+import java.util.Arrays;
+
 import model.codec.EntityType;
 import model.crypto.Signature;
 
@@ -16,19 +18,20 @@ public class ValidatedBlock extends Block {
   /**
    * Constructor of the validated block.
    *
-   * @param previousBlockId   identifier of a finalized block that this block is extending its snapshot.
-   * @param proposer          identifier of the node that proposes this block (i.e., miner).
-   * @param transactions      set of validated transactions that this block carries.
-   * @param proposerSignature signature of the proposer over the hash of this block.
-   * @param certificates      signature of assigned validators to this transaction.
+   * @param previousBlockId identifier of a finalized block that this block is extending its snapshot.
+   * @param proposer        identifier of the node that proposes this block (i.e., miner).
+   * @param transactions    set of validated transactions that this block carries.
+   * @param signature       signature of the proposer over the hash of this block.
+   * @param certificates    signature of assigned validators to this transaction.
+   * @param height          height of the block.
    */
   public ValidatedBlock(Identifier previousBlockId,
                         Identifier proposer,
                         ValidatedTransaction[] transactions,
-                        Signature proposerSignature,
-                        Signature[] certificates) {
-
-    super(previousBlockId, proposer, transactions, proposerSignature);
+                        Signature signature,
+                        Signature[] certificates,
+                        int height) {
+    super(previousBlockId, proposer, height, transactions, signature);
     this.certificates = certificates.clone();
   }
 
@@ -37,8 +40,30 @@ public class ValidatedBlock extends Block {
   }
 
   @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof ValidatedBlock)) {
+      return false;
+    }
+    if (!super.equals(o)) {
+      return false;
+    }
+    ValidatedBlock that = (ValidatedBlock) o;
+    return Arrays.equals(getCertificates(), that.getCertificates());
+  }
+
+  @Override
+  public int hashCode() {
+    int result = super.hashCode();
+    result = 31 * result + Arrays.hashCode(getCertificates());
+    return result;
+  }
+
+  @Override
   public String type() {
-    return EntityType.TYPE_VALIDATED_TRANSACTION;
+    return EntityType.TYPE_VALIDATED_BLOCK;
   }
 
   @Override

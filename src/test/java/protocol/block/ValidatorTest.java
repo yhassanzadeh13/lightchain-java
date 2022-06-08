@@ -354,9 +354,15 @@ public class ValidatorTest {
     // Arrange
     /// Block
     ValidatedTransaction transaction1 = ValidatedTransactionFixture
-        .newValidatedTransaction(Parameters.SIGNATURE_THRESHOLD - 1);
+        .newValidatedTransaction(
+            IdentifierFixture.newIdentifier(),
+            IdentifierFixture.newIdentifier(),
+            Parameters.SIGNATURE_THRESHOLD - 1);
     ValidatedTransaction transaction2 = ValidatedTransactionFixture
-        .newValidatedTransaction(Parameters.SIGNATURE_THRESHOLD);
+        .newValidatedTransaction(
+            IdentifierFixture.newIdentifier(),
+            IdentifierFixture.newIdentifier(),
+            Parameters.SIGNATURE_THRESHOLD);
 
     Block block = BlockFixture.newBlock(new ValidatedTransaction[]{transaction1, transaction2});
 
