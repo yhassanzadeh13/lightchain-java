@@ -21,20 +21,10 @@ public class ValidatedTransactionFixture {
    * @return random ValidatedTransaction object.
    */
   public static ValidatedTransaction newValidatedTransaction() {
-    Identifier referenceBlockId = IdentifierFixture.newIdentifier();
-    Identifier sender = IdentifierFixture.newIdentifier();
-    Identifier receiver = IdentifierFixture.newIdentifier();
-    double amount = 100;
-    int certificatesSize = Parameters.SIGNATURE_THRESHOLD;
-    Signature[] certificates = new Signature[certificatesSize];
-    for (int i = 0; i < certificatesSize; i++) {
-      certificates[i] = SignatureFixture.newSignatureFixture();
-    }
-
-    ValidatedTransaction valTrans = new ValidatedTransaction(referenceBlockId, sender, receiver, amount, certificates);
-    Signature sign = SignatureFixture.newSignatureFixture();
-    valTrans.setSignature(sign);
-    return valTrans;
+    return ValidatedTransactionFixture.newValidatedTransaction(
+        IdentifierFixture.newIdentifier(),
+        IdentifierFixture.newIdentifier(),
+        Parameters.SIGNATURE_THRESHOLD);
   }
 
   /**
