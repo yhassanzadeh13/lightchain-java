@@ -481,7 +481,7 @@ public class IngestEngineTest {
 
     ValidatedTransaction tx = ValidatedTransactionFixture.newValidatedTransaction();
 
-    IngestEngine ingestEngine = this.mockIngestEngineForEntities(
+    final IngestEngine ingestEngine = this.mockIngestEngineForEntities(
         new ArrayList<>(List.of(tx)),
         seenEntities,
         transactionIds,

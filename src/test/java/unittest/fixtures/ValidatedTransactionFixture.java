@@ -164,6 +164,13 @@ public class ValidatedTransactionFixture {
     return valTrans;
   }
 
+  /**
+   * Creates array of validated transactions.
+   *
+   * @param accounts accounts to pick sender and receiver of transactions.
+   * @param count    total transactions to be created.
+   * @return array of validated transactions.
+   */
   public static ValidatedTransaction[] newValidatedTransactions(ArrayList<Account> accounts, int count) {
     ValidatedTransaction[] transactions = new ValidatedTransaction[count];
 
