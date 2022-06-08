@@ -163,4 +163,21 @@ public class ValidatedTransactionFixture {
     valTrans.setSignature(sign);
     return valTrans;
   }
+
+  public static ValidatedTransaction[] newValidatedTransactions(ArrayList<Account> accounts, int count) {
+    ValidatedTransaction[] transactions = new ValidatedTransaction[count];
+
+    for (int i = 0; i < count; i++) {
+      int senderIndex = random.nextInt(accounts.size());
+      int receiverIndex = random.nextInt(accounts.size());
+      while (receiverIndex == senderIndex) {
+        receiverIndex = random.nextInt(accounts.size());
+      }
+      transactions[i] = ValidatedTransactionFixture.newValidatedTransaction(
+          accounts.get(senderIndex).getIdentifier(),
+          accounts.get(receiverIndex).getIdentifier());
+    }
+
+    return transactions;
+  }
 }

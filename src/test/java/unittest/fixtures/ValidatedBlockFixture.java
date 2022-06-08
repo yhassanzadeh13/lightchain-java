@@ -21,19 +21,13 @@ public class ValidatedBlockFixture {
    */
   public static ValidatedBlock newValidatedBlock(ArrayList<Account> accounts) {
     Identifier previousBlockId = IdentifierFixture.newIdentifier();
-    Identifier proposer = IdentifierFixture.newIdentifier();
-    int validatedTransactionsSize = Parameters.MIN_TRANSACTIONS_NUM + 2;
-    ValidatedTransaction[] transactions = new ValidatedTransaction[validatedTransactionsSize];
-    for (int i = 0; i < validatedTransactionsSize; i++) {
-      int senderIndex = random.nextInt(accounts.size());
-      int receiverIndex = random.nextInt(accounts.size());
-      while (receiverIndex == senderIndex) {
-        receiverIndex = random.nextInt(accounts.size());
-      }
-      transactions[i] = ValidatedTransactionFixture.newValidatedTransaction(
-          accounts.get(senderIndex).getIdentifier(),
-          accounts.get(receiverIndex).getIdentifier());
-    }
+    // first account is selected as identifier.
+    Identifier proposer = accounts.get(0).getIdentifier();
+
+    ValidatedTransaction[] transactions = ValidatedTransactionFixture.newValidatedTransactions(
+        accounts,
+        Parameters.MIN_TRANSACTIONS_NUM + 2);
+
     Signature signature = SignatureFixture.newSignatureFixture(proposer);
     int certificatesSize = Parameters.SIGNATURE_THRESHOLD;
     Signature[] certificates = new Signature[certificatesSize];
