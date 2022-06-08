@@ -44,7 +44,11 @@ public class ValidatedTransactionFixture {
    * @param certificatesSize size of the certificates array.
    * @return random ValidatedTransaction object.
    */
-  public static ValidatedTransaction newValidatedTransaction(Identifier sender, Identifier receiver, int certificatesSize) {
+  public static ValidatedTransaction newValidatedTransaction(
+      Identifier sender,
+      Identifier receiver,
+      int certificatesSize) {
+
     Identifier referenceBlockId = IdentifierFixture.newIdentifier();
 
     double amount = 100;
