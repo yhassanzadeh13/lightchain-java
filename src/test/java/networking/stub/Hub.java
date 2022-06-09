@@ -109,15 +109,15 @@ public class Hub {
   public Identifier binarySearch(Identifier identifier) {
     int left = 0;
     int right = identifierSet.size() - 1;
-    while (left < right) {
+    while (left + 1 < right) {
       int mid = left + (right - left) / 2;
       if (identifierSet.get(mid).compareTo(identifier) == 0) {
         return identifierSet.get(mid);
       }
       if (identifier.compareTo(identifierSet.get(mid)) > 0) {
-        left = mid + 1;
+        left = mid;
       } else {
-        right = mid - 1;
+        right = mid;
       }
     }
     return identifierSet.get(left);
