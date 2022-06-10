@@ -66,8 +66,8 @@ public class LightChainValidatorAssigner implements ValidatorAssigner {
       // can be improved later.
       for (int k = accounts.size() - 1; k >= 0; k--) {
         if (validatorHashes.get(j).comparedTo(accounts.get(k).getIdentifier()) >= 0
-            && accounts.get(k).getStake() >= Parameters.MINIMUM_STAKE
-            && !selectedAccounts.contains(accounts.get(k))) {
+                && accounts.get(k).getStake() >= Parameters.MINIMUM_STAKE
+                && !selectedAccounts.contains(accounts.get(k))) {
           assignment.add(accounts.get(k).getIdentifier());
           selectedAccounts.add(accounts.get(k));
           break;
@@ -79,7 +79,7 @@ public class LightChainValidatorAssigner implements ValidatorAssigner {
       if (selectedAccounts.size() != j + 1) {
         for (int k = accounts.size() - 1; k >= 0; k--) {
           if (accounts.get(k).getStake() >= Parameters.MINIMUM_STAKE
-              && !selectedAccounts.contains(accounts.get(k))) {
+                  && !selectedAccounts.contains(accounts.get(k))) {
             assignment.add(accounts.get(k).getIdentifier());
             selectedAccounts.add(accounts.get(k));
             break;
