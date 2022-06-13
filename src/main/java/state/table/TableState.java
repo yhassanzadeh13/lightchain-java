@@ -1,9 +1,12 @@
 package state.table;
 
+import java.util.ArrayList;
 import java.util.Hashtable;
 
+import model.lightchain.Account;
 import model.lightchain.Block;
 import model.lightchain.Identifier;
+import model.lightchain.ValidatedTransaction;
 import state.Snapshot;
 
 /**
@@ -53,7 +56,7 @@ public class TableState implements state.State {
   @Override
   public Snapshot last() {
     Identifier lastBlockId = null;
-    long maxHeight = 0L;
+    long maxHeight = -1L;
     // TODO: this linear search can be optimized further.
     for (Snapshot snapshot : this.table.values()) {
       if (snapshot.getReferenceBlockHeight() > maxHeight) {
@@ -66,6 +69,29 @@ public class TableState implements state.State {
 
   @Override
   public Snapshot execute(Block block) throws IllegalStateException {
-    return null;
+    if (block == null) {
+      throw new IllegalStateException("block is null");
+    }
+    if (block.getHeight()<= this.last().getReferenceBlockHeight()){
+      throw new IllegalStateException("block height is less than or equal to the height of the last snapshot");
+    }
+    ArrayList<Account> accounts = this.last().all();
+    for (ValidatedTransaction tx: block.getTransactions()){
+      try {
+        Account sender = accounts.get(accounts.indexOf(this.last().getAccount(tx.getSender())));
+        sender.setBalance(sender.getBalance() - tx.getAmount());
+        Account receiver = accounts.get(accounts.indexOf(this.last().getAccount(tx.getReceiver())));
+        receiver.setBalance(receiver.getBalance() + tx.getAmount());
+      }catch (IllegalStateException e){
+        e.printStackTrace();
+        throw new IllegalStateException("unexpected error while executing block", e);
+      }
+    }
+    TableSnapshot snapshot = new TableSnapshot(block.id(), block.getHeight());
+    for (Account account : accounts) {
+      snapshot.addAccount(account.getIdentifier(), account);
+    }
+    this.addSnapshot(block.id(), snapshot);
+    return snapshot;
   }
 }

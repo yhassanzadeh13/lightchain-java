@@ -25,7 +25,7 @@ public class Block extends model.Entity {
   /**
    * Signature of the proposer over the hash of this block.
    */
-  private final Signature signature;
+  private Signature signature;
 
   /**
    * Height of the block.
@@ -36,9 +36,9 @@ public class Block extends model.Entity {
    * Constructor of the block.
    *
    * @param previousBlockId identifier of a finalized block that this block is extending its snapshot.
-   * @param proposer identifier of the node that proposes this block (i.e., miner).
-   * @param transactions set of validated transactions that this block carries.
-   * @param signature signature of the proposer over the hash of this block.
+   * @param proposer        identifier of the node that proposes this block (i.e., miner).
+   * @param transactions    set of validated transactions that this block carries.
+   * @param signature       signature of the proposer over the hash of this block.
    */
   public Block(Identifier previousBlockId,
                Identifier proposer,
@@ -55,10 +55,10 @@ public class Block extends model.Entity {
    * Constructor of the block.
    *
    * @param previousBlockId identifier of a finalized block that this block is extending its snapshot.
-   * @param proposer identifier of the node that proposes this block (i.e., miner).
-   * @param height height of the block.
-   * @param transactions set of validated transactions that this block carries.
-   * @param signature signature of the proposer over the hash of this block.
+   * @param proposer        identifier of the node that proposes this block (i.e., miner).
+   * @param height          height of the block.
+   * @param transactions    set of validated transactions that this block carries.
+   * @param signature       signature of the proposer over the hash of this block.
    */
   public Block(Identifier previousBlockId,
                Identifier proposer,
@@ -95,6 +95,10 @@ public class Block extends model.Entity {
 
   public Signature getSignature() {
     return signature;
+  }
+
+  public void setSignature(Signature signature) {
+    this.signature = signature;
   }
 
   public int getHeight() {

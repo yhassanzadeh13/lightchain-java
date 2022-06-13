@@ -9,12 +9,14 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import model.lightchain.Account;
+import model.lightchain.Block;
 import model.lightchain.Identifier;
 import org.apache.commons.lang3.tuple.Pair;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import state.Snapshot;
 import unittest.fixtures.AccountFixture;
+import unittest.fixtures.BlockFixture;
 import unittest.fixtures.IdentifierFixture;
 
 /**
@@ -79,6 +81,35 @@ public class TableStateTest {
 
   }
 
+  public void testExecuteValidBlock() {
+    // Arrange
+    ArrayList<Snapshot> snapshots = mockSnapshots(10);
+    TableState tableState = new TableState();
+    ArrayList<Identifier> refBlockIds = new ArrayList<>();
+    Pair<Identifier, Long> maxHeightSnapshot = Pair.of(null, 0L);
+    /// Creates 10 snapshots each with 10 staked and 10 unstaked accounts
+    for (int i = 0; i < 10; i++) {
+      Identifier referenceBlockId = IdentifierFixture.newIdentifier();
+      long blockHeight = (long) (random.nextDouble() * 100L);
+      if (blockHeight > maxHeightSnapshot.getRight()) {
+        maxHeightSnapshot = Pair.of(referenceBlockId, blockHeight);
+      }
+
+      when(snapshots.get(i).getReferenceBlockId()).thenReturn(referenceBlockId);
+      when(snapshots.get(i).getReferenceBlockHeight()).thenReturn(blockHeight);
+
+      HashMap<Identifier, Account> accounts = AccountFixture.newAccounts(10, 10);
+      for (Map.Entry<Identifier, Account> set : accounts.entrySet()) {
+        when(snapshots.get(i).getAccount(set.getKey())).thenReturn(set.getValue());
+      }
+      when(snapshots.get(i).all()).thenReturn(new ArrayList<>(accounts.values()));
+      tableState.addSnapshot(referenceBlockId, snapshots.get(i));
+      refBlockIds.add(referenceBlockId);
+    }
+
+    Block block = BlockFixture.newBlock();
+
+  }
   /**
    * Creates and returns an arraylist of mock snapshots.
    *
