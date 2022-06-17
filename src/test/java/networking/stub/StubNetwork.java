@@ -125,8 +125,20 @@ public class StubNetwork implements Network, NetworkAdapter {
    */
   @Override
   public void put(Entity e, String namespace) throws LightChainDistributedStorageException {
-    Identifier target = binarySearch(e.id());
-    this.hub.putEntityToChannel(e,target,namespace);
+
+    Identifier target = null;
+    try {
+      lock.writeLock().lock();
+      target = binarySearch(e.id());
+      this.hub.putEntityToChannel(e,target,namespace);
+    } catch (Exception ex) {
+      ex.printStackTrace();
+    } finally {
+      lo
+
+    }
+
+
 
   }
   public void storeEntity(Entity e, String namespace) throws LightChainDistributedStorageException {
@@ -176,11 +188,28 @@ public class StubNetwork implements Network, NetworkAdapter {
    */
   @Override
   public ArrayList<Entity> allEntities(String namespace) throws LightChainDistributedStorageException {
+    System.out.println(this.hub.getAllEntities(namespace).size());
+    return this.hub.getAllEntities(namespace);
+  }
+
+  /**
+   * Retrieves all entities stored on the underlying DHT of nodes that stored on this node.
+   *
+   * @param namespace the namespace on which this query is resolved.
+   * @return list of all entities stored on this channel from underlying DHT.
+   * @throws LightChainDistributedStorageException any unhappy path taken on retrieving the Entities.
+   */
+  public ArrayList<Entity> allEntitiesNode(String namespace) throws LightChainDistributedStorageException {
     try {
-      return new ArrayList<>(distributedStorage.get(namespace).values());
+
+        System.out.println(distributedStorage.get(namespace).values().size()+"sdf");
+        ArrayList<Entity> entities = new ArrayList<>(distributedStorage.get(namespace).values());
+        System.out.println(entities.size()+"fddf");
+      return entities;
     } catch (Exception e) {
       throw new LightChainDistributedStorageException("entities could not be taken"+e);
     }
+
   }
 
   /**
@@ -193,7 +222,7 @@ public class StubNetwork implements Network, NetworkAdapter {
 
     int left = 0;
     int right = identifierSet.size() - 1;
-    while (left < right) {
+    while (left +1  < right) {
       int mid = left + (right - left) / 2;
       if (identifierSet.get(mid).compareTo(identifier) == 0) {
         return identifierSet.get(mid);

@@ -1,7 +1,9 @@
 package networking.stub;
 
 import java.util.ArrayList;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import model.Entity;
 import model.exceptions.LightChainDistributedStorageException;
@@ -12,6 +14,7 @@ import network.Network;
  * Models the core communication part of the networking layer that allows stub network instances to talk to each other.
  */
 public class Hub {
+  private final ReentrantReadWriteLock lock;
   private final ConcurrentHashMap<Identifier, Network> networks;
 
   /**
@@ -19,6 +22,7 @@ public class Hub {
    */
   public Hub() {
     this.networks = new ConcurrentHashMap<>();
+    this.lock = new ReentrantReadWriteLock();
   }
 
   /**
@@ -60,12 +64,26 @@ public Entity getEntityFromChannel(Identifier entityIndentifier, Identifier targ
 
 }
 public ArrayList<Entity> getAllEntities(String namespace) throws LightChainDistributedStorageException {
-    ArrayList<Entity> allEntities = new ArrayList<>();
-    for (Network network : networks.values()){
-      StubNetwork stubNetwork = (StubNetwork) network;
-      allEntities.addAll(stubNetwork.allEntities(namespace));
+
+  ArrayList<Entity> allEntities = null;
+  try {
+    lock.readLock().lock();
+    allEntities = new ArrayList<>();
+    for (Identifier identifier : networks.keySet() ){
+      StubNetwork stubNetwork = (StubNetwork) networks.get(identifier);
+
+      allEntities.addAll(stubNetwork.allEntitiesNode(namespace));
+
     }
     return allEntities;
+  } catch (LightChainDistributedStorageException e) {
+    throw new LightChainDistributedStorageException("exception"+e);
+  } finally {
+    lock.readLock().unlock();
+  }
+
+
+
 }
 
 

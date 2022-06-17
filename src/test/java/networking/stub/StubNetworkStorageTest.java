@@ -1,7 +1,6 @@
 package networking.stub;
 
 
-
 import java.util.ArrayList;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -53,6 +52,8 @@ public class StubNetworkStorageTest {
     cb2 = stubNetwork2.register(b2, channel2);
     networks.add(stubNetwork1);
     networks.add(stubNetwork2);
+    System.out.println(stubNetwork1.id());
+    System.out.println(stubNetwork2.id());
     networkIdentifiers.add(stubNetwork1.id());
     networkIdentifiers.add(stubNetwork2.id());
     stubNetwork1.setNetworksIdentifiers(networkIdentifiers);
@@ -64,17 +65,14 @@ public class StubNetworkStorageTest {
    * same channel1 successfully, while Engine B2 on another channel2 can't get it successfully.
    */
   @Test
-  void testPutOneEntity() {
-
+  void testPutOneEntity() throws LightChainDistributedStorageException {
     Entity entity = new EntityFixture();
-    try {
-      ca1.put(entity);
-      if (!cb1.get(entity.id()).equals(entity) || cb2.get(entity.id()) != null) {
-        Assertions.fail();
-      }
-    } catch (LightChainDistributedStorageException e) {
+    ca1.put(entity);
+    if (!cb1.get(entity.id()).equals(entity)) {
       Assertions.fail();
     }
+    Assertions.assertThrows(LightChainDistributedStorageException.class, () -> cb2.get(entity.id()));
+
   }
 
   /**
@@ -114,11 +112,18 @@ public class StubNetworkStorageTest {
       entityThreads[i] = new Thread(() -> {
         try {
           if (finalI == 0) {
+            System.out.println("here");
             firstChannelEntities = cb1.allEntities();
+            System.out.println("HEY");
+
           } else {
+            System.out.println("here2");
             secondChannelEntities = cb2.allEntities();
+            System.out.println(secondChannelEntities.size());
+
           }
           allDone.countDown();
+
         } catch (LightChainDistributedStorageException e) {
           threadError.getAndIncrement();
         }
@@ -185,9 +190,11 @@ public class StubNetworkStorageTest {
       entityThreads[i] = new Thread(() -> {
         Entity entity = allEntities.get(finalI);
         try {
-          if (!cb1.get(entity.id()).equals(entity) || cb2.get(entity.id()) != null) {
+          if (!cb1.get(entity.id()).equals(entity)) {
             threadError.getAndIncrement();
           }
+
+          Assertions.assertThrows(LightChainDistributedStorageException.class, () -> cb2.get(entity.id()));
           getDone.countDown();
         } catch (LightChainDistributedStorageException e) {
           threadError.getAndIncrement();
@@ -198,7 +205,7 @@ public class StubNetworkStorageTest {
       t.start();
     }
     try {
-      boolean doneOneTime = getDone.await(60, TimeUnit.SECONDS);
+      boolean doneOneTime = getDone.await(120, TimeUnit.SECONDS);
       Assertions.assertTrue(doneOneTime);
     } catch (InterruptedException e) {
       Assertions.fail();
