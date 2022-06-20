@@ -19,6 +19,7 @@ import network.Channels;
 import network.Conduit;
 import network.Network;
 import network.p2p.P2pNetwork;
+import org.apache.log4j.Logger;
 import protocol.Engine;
 import protocol.NewBlockSubscriber;
 import protocol.Parameters;
@@ -33,6 +34,7 @@ import storage.Transactions;
  * Proposer engine encapsulates the logic of creating new blocks.
  */
 public class ProposerEngine implements NewBlockSubscriber, Engine {
+  private final Logger logger;
   private final ReentrantLock lock = new ReentrantLock();
   private final Local local;
   private final Blocks blocks;
@@ -69,6 +71,7 @@ public class ProposerEngine implements NewBlockSubscriber, Engine {
     this.approvals = new ArrayList<>();
     this.network = network;
     this.assigner = assigner;
+    this.logger = Logger.getLogger(ProposerEngine.class.getName());
 
     proposerCon = network.register(this, Channels.ProposedBlocks);
     validatedCon = network.register(this, Channels.ValidatedBlocks);
@@ -96,8 +99,17 @@ public class ProposerEngine implements NewBlockSubscriber, Engine {
       int blockHeight,
       Identifier blockId) throws IllegalStateException, IllegalArgumentException {
 
-    if (!blocks.has(blockId) && !blocks.atHeight(blockHeight).id().equals(blockId)) {
+    this.logger.debug("new validated block arrived, block_id: " + blockId.toString());
+
+    if (!blocks.has(blockId)) {
+      this.logger.error("validated block is not in database");
       throw new IllegalArgumentException("block is not in database");
+    }
+
+    Identifier retrievedBlockId = blocks.atHeight(blockHeight).id();
+    if (!retrievedBlockId.equals(blockId)) {
+      this.logger.error("block mismatch on data base retrieval, expected: " + blockId + " got: " + retrievedBlockId);
+      throw new IllegalStateException("block mismatch on data base retrieval, expected: " + blockId + " got: " + retrievedBlockId);
     }
 
     try {
@@ -105,13 +117,16 @@ public class ProposerEngine implements NewBlockSubscriber, Engine {
 
       if (!this.nextBlockProposer(blockId)) {
         // this node is not proposer of the next block.
+        this.logger.debug("this node is not the proposer of next block, current_block_id: " + blockId);
         return;
       }
 
-
+      // TODO: put this in a new function
       while (pendingTransactions.size() < Parameters.MIN_TRANSACTIONS_NUM) {
+        // TODO: optimize busy wating
         // Waits until there are enough pending transactions.
-        System.out.println("waiting for minimum validated transactions to propose next block");
+        this.logger.warn("waiting for enough (" + Parameters.MIN_TRANSACTIONS_NUM
+            + ") pending transactions, pending_transactions_size: " + pendingTransactions.size());
         try {
           Thread.sleep(5000);
         } catch (InterruptedException ex) {
@@ -120,9 +135,10 @@ public class ProposerEngine implements NewBlockSubscriber, Engine {
       }
 
       // loads validated transactions to put in the next new block.
+      ArrayList<Transaction> pendingTx = pendingTransactions.all();
       ValidatedTransaction[] transactions = new ValidatedTransaction[Parameters.MIN_TRANSACTIONS_NUM];
       for (int i = 0; i < Parameters.MIN_TRANSACTIONS_NUM; i++) {
-        Transaction tx = pendingTransactions.all().get(i);
+        Transaction tx = pendingTx.get(i);
         transactions[i] = ((ValidatedTransaction) tx);
         pendingTransactions.remove(tx.id());
       }
@@ -163,6 +179,9 @@ public class ProposerEngine implements NewBlockSubscriber, Engine {
    */
   @Override
   public void process(Entity e) throws IllegalArgumentException {
+    if (!e.type().equals(EntityType.TYPE_BLOCK_APPROVAL)) {
+      throw new IllegalArgumentException("unexpected input at process engine: " + e.type());
+    }
     if (Objects.equals(e.type(), EntityType.TYPE_BLOCK_APPROVAL) || ((BlockApproval) e).getBlockId() == null) {
       approvals.add((BlockApproval) e);
       if (approvals.size() >= Parameters.VALIDATOR_THRESHOLD) {
@@ -171,12 +190,12 @@ public class ProposerEngine implements NewBlockSubscriber, Engine {
           signs[i] = approvals.get(i).getSignature();
         }
         ValidatedBlock validatedBlock = new ValidatedBlock(
-            newB.getPreviousBlockId(),
-            newB.getProposer(),
-            newB.getTransactions(),
-            local.signEntity(newB),
+            lastProposedBlock.getPreviousBlockId(),
+            lastProposedBlock.getProposer(),
+            lastProposedBlock.getTransactions(),
+            local.signEntity(lastProposedBlock),
             signs,
-            newB.getHeight());
+            lastProposedBlock.getHeight());
         for (Map.Entry<Identifier, String> pair : ((P2pNetwork) network).getIdToAddressMap().entrySet()) {
           if (pair.getValue().equals(Channels.ValidatedBlocks)) {
             try {
@@ -187,7 +206,7 @@ public class ProposerEngine implements NewBlockSubscriber, Engine {
           }
         }
         approvals.clear();
-        newB = null;
+        lastProposedBlock = null;
       }
 
     } else {
