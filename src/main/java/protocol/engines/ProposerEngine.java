@@ -9,6 +9,7 @@ import java.util.Objects;
 import java.util.concurrent.locks.ReentrantLock;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import model.Convert;
 import model.Entity;
 import model.codec.EntityType;
 import model.crypto.Signature;
@@ -103,7 +104,7 @@ public class ProposerEngine implements NewBlockSubscriber, Engine {
 
     if (!blocks.has(blockId)) {
       this.logger.error("validated block is not in database");
-      throw new IllegalArgumentException("block is not in database");
+        throw new IllegalArgumentException("block is not in database");
     }
 
     Identifier retrievedBlockId = blocks.atHeight(blockHeight).id();
@@ -121,38 +122,25 @@ public class ProposerEngine implements NewBlockSubscriber, Engine {
         return;
       }
 
-      // TODO: put this in a new function
-      while (pendingTransactions.size() < Parameters.MIN_TRANSACTIONS_NUM) {
-        // TODO: optimize busy wating
-        // Waits until there are enough pending transactions.
-        this.logger.warn("waiting for enough (" + Parameters.MIN_TRANSACTIONS_NUM
-            + ") pending transactions, pending_transactions_size: " + pendingTransactions.size());
-        try {
-          Thread.sleep(5000);
-        } catch (InterruptedException ex) {
-          throw new IllegalStateException("thread sleep interrupted", ex);
-        }
+      while(checkPendingTransactionsWithBackoff(Parameters.MIN_TRANSACTIONS_NUM, 5000)) {
+        this.logger.debug("busy waiting for enough pending transactions");
       }
 
-      // loads validated transactions to put in the next new block.
-      ArrayList<Transaction> pendingTx = pendingTransactions.all();
-      ValidatedTransaction[] transactions = new ValidatedTransaction[Parameters.MIN_TRANSACTIONS_NUM];
-      for (int i = 0; i < Parameters.MIN_TRANSACTIONS_NUM; i++) {
-        Transaction tx = pendingTx.get(i);
-        transactions[i] = ((ValidatedTransaction) tx);
-        pendingTransactions.remove(tx.id());
-      }
+      ValidatedTransaction[] transactions = this.collectTransactionsForBlock(Parameters.MIN_TRANSACTIONS_NUM);
+      this.logger.debug("pending validated transactions collected for the next block, total: " + transactions.length
+          + " ids: " + Convert.IdentifierOf(transactions));
 
       Block nextProposedBlock = new Block(blockId, local.myId(), blockHeight + 1, transactions);
       Signature sign = local.signEntity(nextProposedBlock);
       nextProposedBlock.setSignature(sign);
 
+      // TODO: add validator tag to assigner.
       Assignment validators = LightchainAssignment.getValidators(
           nextProposedBlock.id(),
           assigner,
           this.state.atBlockId(blockId));
 
-      // Adds the Block Proposer tag to the assigner.
+      // Sends block to validators.
       for (Identifier id : validators.all()) {
         try {
           this.proposerCon.unicast(nextProposedBlock, id);
@@ -212,6 +200,49 @@ public class ProposerEngine implements NewBlockSubscriber, Engine {
     } else {
       throw new IllegalArgumentException("entity is not of type BlockApproval");
     }
+  }
+
+  private ValidatedTransaction[] collectTransactionsForBlock(int count) {
+    ValidatedTransaction[] transactions = new ValidatedTransaction[count];
+
+    // loads validated transactions to put in the next new block.
+    ArrayList<Transaction> pendingTx = pendingTransactions.all();
+
+    for (int i = 0; i < count; i++) {
+      // TODO: pending transactions must return a ValidatedTransaction.
+      Transaction tx = pendingTx.get(i);
+      transactions[i] = (ValidatedTransaction) tx;
+      pendingTransactions.remove(tx.id());
+    }
+
+    return transactions;
+  }
+
+  /**
+   * Checks pending transaction storage to see if it has at least count-many transactions. It waits "millis" milliseconds
+   * prior to returning a false, to account for a retry backoff.
+   *
+   * @param count  number of desired pending transactions to exist.
+   * @param millis delay in milliseconds before returning false.
+   * @return true if at least count-many transactions exist in pending transactions storage, and false otherwise. A true is returned immediately,
+   * while a false is returned with a "millis" milliseconds delay.
+   */
+  private boolean checkPendingTransactionsWithBackoff(int count, long millis) throws IllegalStateException {
+    // TODO: put this in a new function
+    if (pendingTransactions.size() < Parameters.MIN_TRANSACTIONS_NUM) {
+      // TODO: optimize busy wating
+      // Waits until there are enough pending transactions.
+      this.logger.warn("waiting for enough (" + Parameters.MIN_TRANSACTIONS_NUM
+          + ") pending transactions, pending_transactions_size: " + pendingTransactions.size());
+      try {
+        Thread.sleep(millis);
+      } catch (InterruptedException ex) {
+        throw new IllegalStateException("thread sleep interrupted", ex);
+      }
+
+      return false;
+    }
+    return true;
   }
 
   /**
