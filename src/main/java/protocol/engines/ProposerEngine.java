@@ -1,8 +1,5 @@
 package protocol.engines;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.Objects;
@@ -24,8 +21,10 @@ import org.apache.log4j.Logger;
 import protocol.Engine;
 import protocol.NewBlockSubscriber;
 import protocol.Parameters;
-import protocol.Tags;
+import protocol.assigner.LightChainBlockProposerAssigner;
 import protocol.assigner.LightChainValidatorAssigner;
+import protocol.assigner.ProposerAssigner;
+import protocol.assigner.ValidatorAssigner;
 import protocol.engines.common.LightchainAssignment;
 import state.State;
 import storage.Blocks;
@@ -44,7 +43,8 @@ public class ProposerEngine implements NewBlockSubscriber, Engine {
   private final Conduit proposerCon;
   private final Conduit validatedCon;
   private final Network network;
-  private final LightChainValidatorAssigner assigner;
+  private final ProposerAssigner proposerAssigner;
+  private final ValidatorAssigner validatorAssigner;
   private final ArrayList<BlockApproval> approvals;
   private Block lastProposedBlock; // last proposed block that is pending validation.
 
@@ -64,14 +64,16 @@ public class ProposerEngine implements NewBlockSubscriber, Engine {
                         State state,
                         Local local,
                         Network network,
-                        LightChainValidatorAssigner assigner) {
+                        LightChainValidatorAssigner validatorAssigner,
+                        LightChainBlockProposerAssigner proposerAssigner) {
     this.local = local;
     this.blocks = blocks;
     this.pendingTransactions = pendingTransactions;
     this.state = state;
     this.approvals = new ArrayList<>();
     this.network = network;
-    this.assigner = assigner;
+    this.proposerAssigner = proposerAssigner;
+    this.validatorAssigner = validatorAssigner;
     this.logger = Logger.getLogger(ProposerEngine.class.getName());
 
     proposerCon = network.register(this, Channels.ProposedBlocks);
@@ -104,7 +106,7 @@ public class ProposerEngine implements NewBlockSubscriber, Engine {
 
     if (!blocks.has(blockId)) {
       this.logger.error("validated block is not in database");
-        throw new IllegalArgumentException("block is not in database");
+      throw new IllegalArgumentException("block is not in database");
     }
 
     Identifier retrievedBlockId = blocks.atHeight(blockHeight).id();
@@ -116,13 +118,13 @@ public class ProposerEngine implements NewBlockSubscriber, Engine {
     try {
       lock.lock();
 
-      if (!this.nextBlockProposer(blockId)) {
+      if (this.proposerAssigner.nextBlockProposer(blockId, state.atBlockId(blockId)).equals(this.local.myId())) {
         // this node is not proposer of the next block.
         this.logger.debug("this node is not the proposer of next block, current_block_id: " + blockId);
         return;
       }
 
-      while(checkPendingTransactionsWithBackoff(Parameters.MIN_TRANSACTIONS_NUM, 5000)) {
+      while (checkPendingTransactionsWithBackoff(Parameters.MIN_TRANSACTIONS_NUM, 5000)) {
         this.logger.debug("busy waiting for enough pending transactions");
       }
 
@@ -137,7 +139,7 @@ public class ProposerEngine implements NewBlockSubscriber, Engine {
       // TODO: add validator tag to assigner.
       Assignment validators = LightchainAssignment.getValidators(
           nextProposedBlock.id(),
-          assigner,
+          validatorAssigner,
           this.state.atBlockId(blockId));
 
       // Sends block to validators.
@@ -243,30 +245,5 @@ public class ProposerEngine implements NewBlockSubscriber, Engine {
       return false;
     }
     return true;
-  }
-
-  /**
-   * Given a block id, checks whether this node is the proposer of the next block.
-   *
-   * @param blockId current block id.
-   * @return true if this node is the proposer of the next block, false otherwise.
-   * @throws IllegalStateException on the unhappy path of performing proposer assignment.
-   */
-  private boolean nextBlockProposer(Identifier blockId) throws IllegalStateException {
-    // Adds the Block Proposer tag to the assigner.
-    byte[] bytesId = blockId.getBytes();
-    byte[] bytesTag = Tags.BlockProposerTag.getBytes(StandardCharsets.UTF_8);
-    ByteArrayOutputStream output = new ByteArrayOutputStream();
-    try {
-      output.write(bytesId, 0, bytesId.length);
-      output.write(bytesTag);
-    } catch (IOException e) {
-      throw new IllegalStateException("could not write to bytes to ByteArrayOutputStream", e);
-    }
-    Identifier taggedId = new Identifier(output.toByteArray());
-
-    // TODO: needs test cases to ensure correctness of choosing exactly one (at validator side).
-    Assignment assignment = assigner.assign(taggedId, state.atBlockId(blockId), (short) 1);
-    return assignment.has(local.myId());
   }
 }
