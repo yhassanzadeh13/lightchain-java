@@ -8,14 +8,16 @@ import model.lightchain.Assignment;
 import model.lightchain.Identifier;
 import protocol.Parameters;
 import protocol.Tags;
+import protocol.assigner.AssignerInf;
+import protocol.assigner.ValidatorAssignerInf;
 import state.Snapshot;
 
 // TODO: this class should be covered with testing.
-public class LcValidatorAssigner implements protocol.assigner.ValidatorAssigner {
-  private final protocol.assigner.Assigner assigner;
+public class ValidatorAssigner implements ValidatorAssignerInf {
+  private final AssignerInf assigner;
 
-  public LcValidatorAssigner() {
-    this.assigner = new LcAssigner();
+  public ValidatorAssigner() {
+    this.assigner = new Assigner();
   }
 
   /**

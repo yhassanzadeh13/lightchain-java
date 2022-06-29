@@ -9,7 +9,7 @@ import model.crypto.Signature;
 import model.lightchain.*;
 import protocol.Engine;
 import protocol.Parameters;
-import protocol.assigner.ValidatorAssigner;
+import protocol.assigner.AssignerInf;
 import state.Snapshot;
 import state.State;
 import storage.Blocks;
@@ -27,7 +27,7 @@ public class IngestEngine implements Engine {
   private final Transactions pendingTransactions;
   private final Identifiers seenEntities; //TODO: Add the seen entities
   private final ReentrantLock lock = new ReentrantLock();
-  private final ValidatorAssigner assigner;
+  private final AssignerInf assigner;
 
   /**
    * Constructor of a IngestEngine.
@@ -38,7 +38,7 @@ public class IngestEngine implements Engine {
                       Identifiers transactionIds,
                       Transactions pendingTransactions,
                       Identifiers seenEntities,
-                      ValidatorAssigner assigner) {
+                      AssignerInf assigner) {
     this.state = state;
     this.blocks = blocks;
     this.transactionIds = transactionIds;

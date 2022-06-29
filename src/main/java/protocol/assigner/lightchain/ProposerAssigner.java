@@ -7,14 +7,16 @@ import java.nio.charset.StandardCharsets;
 import model.lightchain.Assignment;
 import model.lightchain.Identifier;
 import protocol.Tags;
+import protocol.assigner.AssignerInf;
+import protocol.assigner.ProposerAssignerInf;
 import state.Snapshot;
 
 // TODO: develop tests for this class.
-public class LcProposerAssigner implements protocol.assigner.ProposerAssigner {
-  private final protocol.assigner.Assigner assigner;
+public class ProposerAssigner implements ProposerAssignerInf {
+  private final AssignerInf assigner;
 
-  public LcProposerAssigner() {
-    this.assigner = new LcAssigner();
+  public ProposerAssigner() {
+    this.assigner = new Assigner();
   }
 
   @Override

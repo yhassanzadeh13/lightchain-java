@@ -3,7 +3,7 @@ package protocol.assigner;
 import model.lightchain.Identifier;
 import state.Snapshot;
 
-public interface ProposerAssigner {
+public interface ProposerAssignerInf {
   /**
    * Picks identifier of the proposer of the next block.
    *

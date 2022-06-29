@@ -8,7 +8,7 @@ import state.Snapshot;
  * Represents the abstraction of assignment for an entity.
  */
 // TODO: rename to Selector?
-public interface Assigner {
+public interface AssignerInf {
   /**
    * Picks identifiers from the given snapshot to the entity with given identifier.
    * Identifier of the ith selected identifier is chosen as the staked account with the greatest identifier that
