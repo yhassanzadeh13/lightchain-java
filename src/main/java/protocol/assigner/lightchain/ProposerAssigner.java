@@ -1,4 +1,4 @@
-package protocol.assigner;
+package protocol.assigner.lightchain;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -10,11 +10,11 @@ import protocol.Tags;
 import state.Snapshot;
 
 // TODO: develop tests for this class.
-public class LightChainBlockProposerAssigner implements ProposerAssigner {
-  private final ValidatorAssigner assigner;
+public class LcProposerAssigner implements protocol.assigner.ProposerAssigner {
+  private final protocol.assigner.Assigner assigner;
 
-  public LightChainBlockProposerAssigner() {
-    this.assigner = new LightChainValidatorAssigner();
+  public LcProposerAssigner() {
+    this.assigner = new LcAssigner();
   }
 
   @Override

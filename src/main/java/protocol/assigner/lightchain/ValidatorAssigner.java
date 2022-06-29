@@ -1,4 +1,4 @@
-package protocol.engines.common;
+package protocol.assigner.lightchain;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -8,26 +8,27 @@ import model.lightchain.Assignment;
 import model.lightchain.Identifier;
 import protocol.Parameters;
 import protocol.Tags;
-import protocol.assigner.ValidatorAssigner;
 import state.Snapshot;
 
-public class LightchainAssignment {
+// TODO: this class should be covered with testing.
+public class LcValidatorAssigner implements protocol.assigner.ValidatorAssigner {
+  private final protocol.assigner.Assigner assigner;
+
+  public LcValidatorAssigner() {
+    this.assigner = new LcAssigner();
+  }
 
   /**
-   * Performs Lightchain validator assigner on the given identifier and returns validator assignment.
+   * Returns the validators of the given entity.
    *
-   * @param id identifier of entity that urges validator assignment.
-   * @param assigner the validator assignment logic.
-   * @param snapshot snapshot of protocol state from which validators are picked.
+   * @param identifier identifier of entity that urges validator assignment.
+   * @param snapshot   snapshot of protocol state from which validators are picked.
    * @return list of validators assigned to this entity.
-   * @throws IllegalStateException
+   * @throws IllegalStateException any unhappy path taken on computing validators.
    */
-  public static Assignment getValidators(
-      Identifier id,
-      ValidatorAssigner assigner,
-      Snapshot snapshot) throws IllegalStateException {
-
-    byte[] bytesId = id.getBytes();
+  @Override
+  public Assignment getValidatorsAtSnapshot(Identifier identifier, Snapshot snapshot) throws IllegalStateException {
+    byte[] bytesId = identifier.getBytes();
     byte[] bytesTag = Tags.ValidatorTag.getBytes(StandardCharsets.UTF_8);
     ByteArrayOutputStream output = new ByteArrayOutputStream();
     try {

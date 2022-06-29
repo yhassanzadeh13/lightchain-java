@@ -1,4 +1,4 @@
-package protocol.assigner;
+package protocol.assigner.lightchain;
 
 import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
@@ -15,7 +15,8 @@ import state.Snapshot;
 /**
  * Represents the assignment of validators to an entity.
  */
-public class LightChainValidatorAssigner implements ValidatorAssigner {
+// TODO: clean up traces of validators. Should be generalized.
+public class LcAssigner implements protocol.assigner.Assigner {
   public static final String NOT_ENOUGH_ACCOUNTS = "not enough accounts in the snapshot";
   public static final String SNAPSHOT_CANNOT_BE_NULL = "snapshot cannot be null";
   public static final String IDENTIFIER_CANNOT_BE_NULL = "identifier cannot be null";
