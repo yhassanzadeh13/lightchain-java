@@ -18,12 +18,14 @@ import network.Channels;
 import network.Conduit;
 import network.Network;
 import network.p2p.P2pNetwork;
+import org.apache.commons.compress.utils.Lists;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import protocol.Engine;
 import protocol.Parameters;
-import protocol.assigner.LightChainValidatorAssigner;
-import protocol.assigner.ProposerAssigner;
+import protocol.assigner.lightchain.Assigner;
+import protocol.assigner.ProposerAssignerInf;
+import protocol.assigner.ValidatorAssignerInf;
 import protocol.block.BlockValidator;
 import state.Snapshot;
 import state.State;
@@ -42,38 +44,23 @@ public class ProposerEngineTest {
    */
   @Test
   public void blockValidationTest() {
-//    when(assignment.has(any(Identifier.class))).thenReturn(true); // returns true for all identifiers
-//    when(assignment.has(local.myId())).thenReturn(true);
-//    when(assignment.all()).thenReturn(IdentifierFixture.newIdentifiers(Parameters.VALIDATOR_THRESHOLD));
-//    when(assigner.assign(any(Identifier.class), any(Snapshot.class), any(short.class))).thenReturn(assignment);
-//    when(pendingTransactions.size()).thenReturn(Parameters.MIN_TRANSACTIONS_NUM + 1);
-//    when(pendingTransactions.all()).thenReturn(new ArrayList<>(Arrays.asList(block.getTransactions())));
-
-//    when(snapshot.all()).thenReturn(accounts);
-//    when(snapshot.getAccount(local.myId())).thenReturn(accounts.get(0));
-//    when(state.atBlockId(block.id())).thenReturn(snapshot);
-
-
     Local local = LocalFixture.newLocal();
-    Block block = BlockFixture.newBlock(Parameters.MIN_TRANSACTIONS_NUM + 1);
-    Blocks blocks = mockBlockStorageForBlock(block);
+    Block currentBlock = BlockFixture.newBlock(Parameters.MIN_TRANSACTIONS_NUM + 1);
+    Blocks blocks = mockBlockStorageForBlock(currentBlock);
+
     State state = mock(State.class);
+    Snapshot snapshot = mock(Snapshot.class);
+    when(state.atBlockId(any(Identifier.class))).thenReturn(snapshot);
+    ArrayList<Identifier> validators = IdentifierFixture.newIdentifiers(Parameters.VALIDATOR_THRESHOLD);
 
     // mocks this node as the proposer of the next block.
-    ProposerAssigner proposerAssigner = mockIdAsNextBlockProposer(local.myId(), state, block);
+    ProposerAssignerInf proposerAssigner = mockIdAsNextBlockProposer(local.myId(), state, currentBlock);
+    ValidatorAssignerInf validatorAssigner = mockValidatorAssigner(snapshot, validators);
+
+    Transactions pendingTransactions = mockValidatedTransactions(1);
 
 
-    ArrayList<Account> accounts = AccountFixture.newAccounts(11);
-
-
-    Assignment assignment = mock(Assignment.class);
-    LightChainValidatorAssigner assigner = mock(LightChainValidatorAssigner.class);
-    Transactions pendingTransactions = mock(Transactions.class);
-
-    Snapshot snapshot = mock(Snapshot.class);
-
-    mockAssignment(assignment, assigner, pendingTransactions, local, blocks, block, accounts, snapshot, state);
-
+    // TODO: develop mock conduit
     Conduit proposedCon = mock(Conduit.class);
     Conduit validatedCon = mock(Conduit.class);
 
@@ -82,7 +69,7 @@ public class ProposerEngineTest {
 
     // action
     ProposerEngine proposerEngine = new ProposerEngine(blocks, pendingTransactions, state, local, network, assigner);
-    proposerEngine.onNewValidatedBlock(block.getHeight(), block.id());
+    proposerEngine.onNewValidatedBlock(currentBlock.getHeight(), currentBlock.id());
     BlockValidator blockValidator = new BlockValidator(state);
 
     // verification
@@ -96,13 +83,39 @@ public class ProposerEngineTest {
     return blocks;
   }
 
-  public ProposerAssigner mockIdAsNextBlockProposer(Identifier id, State state, Block currentBlock) {
-    ProposerAssigner assigner = mock(ProposerAssigner.class);
+  public ProposerAssignerInf mockIdAsNextBlockProposer(Identifier id, State state, Block currentBlock) {
+    ProposerAssignerInf assigner = mock(ProposerAssignerInf.class);
     Snapshot snapshot = mock(Snapshot.class);
     when(state.atBlockId(currentBlock.id())).thenReturn(snapshot);
     when(assigner.nextBlockProposer(currentBlock.id(), snapshot)).thenReturn(id);
     return assigner;
   }
+
+  public ValidatorAssignerInf mockValidatorAssigner(Snapshot snapshot, ArrayList<Identifier> validators) {
+    ValidatorAssignerInf assigner = mock(ValidatorAssignerInf.class);
+    Assignment assignment = new Assignment();
+    for(Identifier validator : validators) {
+      assignment.add(validator);
+    }
+    when(assigner.getValidatorsAtSnapshot(any(model.lightchain.Identifier.class), snapshot)).thenReturn(assignment);
+    return assigner;
+  }
+
+  /**
+   * Generates validated transaction fixtures and mock a Transactions storage with it.
+   *
+   * @param count total validated transactions to be created.
+   * @return a Transactions storage which mocked with validated transactions.
+   */
+  public Transactions mockValidatedTransactions(int count) {
+      ValidatedTransaction[] transactions = ValidatedTransactionFixture.newValidatedTransactions(count);
+      Transactions transactionsStorage = mock(Transactions.class);
+      when(transactionsStorage.size()).thenReturn(transactions.length);
+      when(transactionsStorage.all()).thenReturn(Lists.newArrayList(Arrays.stream(transactions).iterator()));
+      return transactionsStorage;
+  }
+
+
 
   /**
    * Evaluates that when a new block without enough validated transactions arrives at the proposer engine,
@@ -168,7 +181,7 @@ public class ProposerEngineTest {
     Block block = BlockFixture.newBlock(Parameters.MIN_TRANSACTIONS_NUM + 1);
 
     // Initialize mocked components.
-    LightChainValidatorAssigner assigner = mock(LightChainValidatorAssigner.class);
+    Assigner assigner = mock(Assigner.class);
     Transactions pendingTransactions = mock(Transactions.class);
     State state = mock(State.class);
     Network network = mock(Network.class);
@@ -308,7 +321,7 @@ public class ProposerEngineTest {
   private ProposerEngine mockProposerEngine(Local local, ArrayList<Account> accounts, Block block, Network network,
                                             Transactions pendingTransactions, State state) {
     Assignment assignment = mock(Assignment.class);
-    LightChainValidatorAssigner assigner = mock(LightChainValidatorAssigner.class);
+    Assigner assigner = mock(Assigner.class);
     Blocks blocks = mock(Blocks.class);
     Snapshot snapshot = mock(Snapshot.class);
 
@@ -319,7 +332,7 @@ public class ProposerEngineTest {
   /**
    * Sets the assignment.
    */
-  public void mockAssignment(Assignment assignment, LightChainValidatorAssigner assigner,
+  public void mockAssignment(Assignment assignment, Assigner assigner,
                              Transactions pendingTransactions, Local local, Blocks blocks, Block block,
                              ArrayList<Account> accounts, Snapshot snapshot, State state) {
 

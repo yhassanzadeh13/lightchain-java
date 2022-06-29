@@ -21,11 +21,8 @@ import org.apache.log4j.Logger;
 import protocol.Engine;
 import protocol.NewBlockSubscriber;
 import protocol.Parameters;
-import protocol.assigner.LightChainBlockProposerAssigner;
-import protocol.assigner.LightChainValidatorAssigner;
-import protocol.assigner.ProposerAssigner;
-import protocol.assigner.ValidatorAssigner;
-import protocol.engines.common.LightchainAssignment;
+import protocol.assigner.ProposerAssignerInf;
+import protocol.assigner.ValidatorAssignerInf;
 import state.State;
 import storage.Blocks;
 import storage.Transactions;
@@ -43,8 +40,8 @@ public class ProposerEngine implements NewBlockSubscriber, Engine {
   private final Conduit proposerCon;
   private final Conduit validatedCon;
   private final Network network;
-  private final ProposerAssigner proposerAssigner;
-  private final ValidatorAssigner validatorAssigner;
+  private final ProposerAssignerInf proposerAssigner;
+  private final ValidatorAssignerInf validatorAssigner;
   private final ArrayList<BlockApproval> approvals;
   private Block lastProposedBlock; // last proposed block that is pending validation.
 
@@ -64,8 +61,8 @@ public class ProposerEngine implements NewBlockSubscriber, Engine {
                         State state,
                         Local local,
                         Network network,
-                        LightChainValidatorAssigner validatorAssigner,
-                        LightChainBlockProposerAssigner proposerAssigner) {
+                        ValidatorAssignerInf validatorAssigner,
+                        ProposerAssignerInf proposerAssigner) {
     this.local = local;
     this.blocks = blocks;
     this.pendingTransactions = pendingTransactions;
@@ -136,11 +133,8 @@ public class ProposerEngine implements NewBlockSubscriber, Engine {
       Signature sign = local.signEntity(nextProposedBlock);
       nextProposedBlock.setSignature(sign);
 
-      // TODO: add validator tag to assigner.
-      Assignment validators = LightchainAssignment.getValidators(
-          nextProposedBlock.id(),
-          validatorAssigner,
-          this.state.atBlockId(blockId));
+
+      Assignment validators = this.validatorAssigner.getValidatorsAtSnapshot(nextProposedBlock.id(), this.state.atBlockId(blockId));
 
       // Sends block to validators.
       for (Identifier id : validators.all()) {
