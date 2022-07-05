@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -21,6 +23,9 @@ import network.p2p.P2pNetwork;
 import org.apache.commons.compress.utils.Lists;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
 import protocol.Engine;
 import protocol.Parameters;
 import protocol.assigner.ProposerAssignerInf;
@@ -55,22 +60,45 @@ public class ProposerEngineTest {
 
     // mocks this node as the proposer of the next block.
     ProposerAssignerInf proposerAssigner = mockIdAsNextBlockProposer(local.myId(), state, currentBlock);
-    ValidatorAssignerInf validatorAssigner = mockValidatorAssigner(snapshot, validators);
+    ValidatorAssignerInf validatorAssigner = mockValidatorAssigner(validators);
 
     Transactions pendingTransactions = mockValidatedTransactions(1);
 
     Network network = mock(Network.class);
-    Conduit proposedCon = new MockConduit();
+    Conduit proposedCon = mock(Conduit.class);
     when(network.register(any(ProposerEngine.class), eq(Channels.ProposedBlocks))).thenReturn(proposedCon);
 
     // action
     ProposerEngine proposerEngine = new ProposerEngine(blocks, pendingTransactions, state, local, network, validatorAssigner, proposerAssigner);
     proposerEngine.onNewValidatedBlock(currentBlock.getHeight(), currentBlock.id());
 
-    // BlockValidator blockValidator = new BlockValidator(state);
+    BlockValidator validator = new BlockValidator(state);
+    CountDownLatch blockSentForValidation = new CountDownLatch(Parameters.VALIDATOR_THRESHOLD);
+    try {
+      doAnswer((Answer<Object>) invocationOnMock -> {
+        Block block = invocationOnMock.getArgument(0, Block.class);
+        validator.isCorrect(block);
 
-    // verification
-    // Assertions.assertTrue(blockValidator.isCorrect(proposerEngine.newB));
+        blockSentForValidation.countDown();
+        System.out.println("mock is called");
+        return null;
+      }).when(proposedCon).unicast(any(Block.class), any(Identifier.class));
+
+    } catch (LightChainNetworkingException e) {
+      Assertions.fail();
+    }
+
+    try {
+      boolean doneOnTime = blockSentForValidation.await(1000, TimeUnit.MILLISECONDS);
+      Assertions.assertTrue(doneOnTime);
+    } catch (InterruptedException e) {
+      Assertions.fail();
+    }
+
+//    BlockValidator blockValidator = new BlockValidator(state);
+//
+//    // verification
+//    Assertions.assertTrue(blockValidator.isCorrect(proposerEngine.));
   }
 
   public Blocks mockBlockStorageForBlock(Block block) {
@@ -88,13 +116,13 @@ public class ProposerEngineTest {
     return assigner;
   }
 
-  public ValidatorAssignerInf mockValidatorAssigner(Snapshot snapshot, ArrayList<Identifier> validators) {
+  public ValidatorAssignerInf mockValidatorAssigner(ArrayList<Identifier> validators) {
     ValidatorAssignerInf assigner = mock(ValidatorAssignerInf.class);
     Assignment assignment = new Assignment();
     for (Identifier validator : validators) {
       assignment.add(validator);
     }
-    when(assigner.getValidatorsAtSnapshot(any(Identifier.class), eq(snapshot))).thenReturn(assignment);
+    when(assigner.getValidatorsAtSnapshot(any(Identifier.class), any(Snapshot.class))).thenReturn(assignment);
     return assigner;
   }
 
