@@ -68,25 +68,25 @@ public class ProposerEngineTest {
     Conduit proposedCon = mock(Conduit.class);
     when(network.register(any(ProposerEngine.class), eq(Channels.ProposedBlocks))).thenReturn(proposedCon);
 
-    // action
-    ProposerEngine proposerEngine = new ProposerEngine(blocks, pendingTransactions, state, local, network, validatorAssigner, proposerAssigner);
-    proposerEngine.onNewValidatedBlock(currentBlock.getHeight(), currentBlock.id());
 
     BlockValidator validator = new BlockValidator(state);
     CountDownLatch blockSentForValidation = new CountDownLatch(Parameters.VALIDATOR_THRESHOLD);
     try {
-      doAnswer((Answer<Object>) invocationOnMock -> {
+      doAnswer(invocationOnMock -> {
         Block block = invocationOnMock.getArgument(0, Block.class);
         validator.isCorrect(block);
 
         blockSentForValidation.countDown();
-        System.out.println("mock is called");
         return null;
       }).when(proposedCon).unicast(any(Block.class), any(Identifier.class));
-
     } catch (LightChainNetworkingException e) {
       Assertions.fail();
     }
+
+
+    // action
+    ProposerEngine proposerEngine = new ProposerEngine(blocks, pendingTransactions, state, local, network, validatorAssigner, proposerAssigner);
+    proposerEngine.onNewValidatedBlock(currentBlock.getHeight(), currentBlock.id());
 
     try {
       boolean doneOnTime = blockSentForValidation.await(1000, TimeUnit.MILLISECONDS);
