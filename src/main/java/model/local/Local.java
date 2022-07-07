@@ -2,6 +2,7 @@ package model.local;
 
 import model.Entity;
 import model.crypto.PrivateKey;
+import model.crypto.PublicKey;
 import model.crypto.Signature;
 import model.crypto.ecdsa.EcdsaSignature;
 import model.lightchain.Identifier;
@@ -11,10 +12,12 @@ import model.lightchain.Identifier;
  */
 public class Local {
   private final Identifier id;
-  private final PrivateKey pk;
+  private final PrivateKey sk;
+  private final PublicKey pk;
 
-  public Local(Identifier id, PrivateKey pk) {
+  public Local(Identifier id, PrivateKey sk, PublicKey pk) {
     this.id = id;
+    this.sk = sk;
     this.pk = pk;
   }
 
@@ -25,7 +28,7 @@ public class Local {
    * @return a signature over entity e using private key.
    */
   public Signature signEntity(Entity e) throws IllegalStateException {
-    return new EcdsaSignature(pk.signEntity(e).getBytes(), e.id());
+    return new EcdsaSignature(sk.signEntity(e).getBytes(), e.id());
   }
 
   /**
@@ -35,5 +38,9 @@ public class Local {
    */
   public Identifier myId() {
     return this.id;
+  }
+
+  public PublicKey myPublicKey() {
+    return this.pk;
   }
 }

@@ -1,5 +1,6 @@
 package unittest.fixtures;
 
+import model.crypto.KeyGen;
 import model.crypto.PrivateKey;
 import model.lightchain.Identifier;
 import model.local.Local;
@@ -15,7 +16,7 @@ public class LocalFixture {
    */
   public static Local newLocal() {
     Identifier localId = IdentifierFixture.newIdentifier();
-    PrivateKey localPrivateKey = KeyGenFixture.newKeyGen().getPrivateKey();
-    return new Local(localId, localPrivateKey);
+    KeyGen keyGen = KeyGenFixture.newKeyGen();
+    return new Local(localId, keyGen.getPrivateKey(), keyGen.getPublicKey());
   }
 }
