@@ -3,6 +3,7 @@ package protocol.block;
 import java.util.ArrayList;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import model.crypto.PublicKey;
 import model.crypto.Signature;
 import model.lightchain.Account;
 import model.lightchain.Block;
@@ -81,10 +82,15 @@ public class BlockValidator implements InfBlockValidator {
    */
   @Override
   public boolean isAuthenticated(Block block) {
-    return state.atBlockId(block.getPreviousBlockId())
-        .getAccount(block.getProposer())
-        .getPublicKey()
-        .verifySignature(block, block.getSignature());
+    Snapshot snapshot = state.atBlockId(block.getPreviousBlockId());
+    Account account = snapshot.getAccount(block.getProposer());
+    PublicKey publicKey = account.getPublicKey();
+    return publicKey.verifySignature(
+        // Note: casting block into a new block that includes all fields EXCEPT signature, hence the block identifier
+        // is correctly computed as the identifier at the signature time.
+        // TODO: decoupling block into body + signature.
+        new Block(block.getPreviousBlockId(), block.getProposer(), block.getHeight(), block.getTransactions()),
+        block.getSignature());
   }
 
   /**
