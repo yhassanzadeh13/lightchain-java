@@ -156,6 +156,32 @@ public class BlocksMapDb implements Blocks {
   }
 
   /**
+   * Retrieves a block by a given tag, e.g., last finalized block.
+   *
+   * @param tag the tag by which the block is queried.
+   * @return the block corresponding to the tag (if exists), NULL otherwise.
+   */
+  @Override
+  public Block byTag(String tag) {
+    // TODO: Good first issue, implement + test.
+    // Note: tag must be hashed first!
+    return null;
+  }
+
+  /**
+   * Updates the block associated with the tag in database, if a block exists associated with the tag, it overriden by
+   * new block, otherwise, the new block is added for the tag.
+   *
+   * @param tag the tag by which the block is stored.
+   * @param block the block corresponding to the tag.
+   */
+  @Override
+  public void updateTag(String tag, Block block) {
+    // TODO: Good first issue, implement + test.
+    // Note: tag must be hashed first!
+  }
+
+  /**
    * Returns all blocks stored in database.
    *
    * @return all stored blocks in database.

@@ -43,6 +43,7 @@ public class ProposerEngine implements NewBlockSubscriber, Engine {
   private final ProposerAssignerInf proposerAssigner;
   private final ValidatorAssignerInf validatorAssigner;
   private final ArrayList<BlockApproval> approvals;
+  // TODO: make this persistent.
   private Block lastProposedBlock; // last proposed block that is pending validation.
 
   /**

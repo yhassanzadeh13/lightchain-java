@@ -5,11 +5,14 @@ import java.util.ArrayList;
 import model.lightchain.Block;
 import model.lightchain.Identifier;
 
+
 /**
  * Persistent module for storing blocks on the disk.
  */
 public interface Blocks {
   // TODO: refactor blocks to keep validated blocks.
+  public static final String TAG_LAST_FINALIZED_BLOCK = "tag-last-finalized-block";
+  public static final String TAG_LAST_PROPOSED_BLOCK = "tag-last-proposed-block";
 
   /**
    * Checks existence of block on the database.
@@ -52,6 +55,23 @@ public interface Blocks {
    * @return the block itself if exists and null otherwise.
    */
   Block atHeight(int height);
+
+  /**
+   * Retrieves a block by a given tag, e.g., last finalized block.
+   *
+   * @param tag the tag by which the block is queried.
+   * @return the block corresponding to the tag (if exists), NULL otherwise.
+   */
+  Block byTag(String tag);
+
+  /**
+   * Updates the block associated with the tag in database, if a block exists associated with the tag, it overriden by
+   * new block, otherwise, the new block is added for the tag.
+   *
+   * @param tag the tag by which the block is stored.
+   * @param block the block corresponding to the tag.
+   */
+  void updateTag(String tag, Block block);
 
   /**
    * Returns all blocks stored in database.
