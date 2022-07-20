@@ -70,8 +70,12 @@ public class ProposerEngineTest {
         Block block = invocationOnMock.getArgument(0, Block.class);
         // checks whether block is correct and authenticated.
         BlockValidator validator = new BlockValidator(state);
-        validator.isCorrect(block);
-        validator.isAuthenticated(block);
+        Assertions.assertTrue(validator.isCorrect(block));
+        Assertions.assertTrue(validator.isAuthenticated(block));
+
+        // block should be sent to an assigned validator for validation.
+        Identifier validatorId = invocationOnMock.getArgument(1, Identifier.class);
+        Assertions.assertTrue(validators.contains(validatorId));
 
         blockSentForValidation.countDown();
         return null;
