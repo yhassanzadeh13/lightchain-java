@@ -1,6 +1,7 @@
 package protocol.engines;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Map;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -208,12 +209,13 @@ public class ProposerEngine implements NewBlockSubscriber, Engine {
           if (pair.getValue().equals(Channels.ValidatedBlocks)) {
             try {
               validatedCon.unicast(validatedBlock, pair.getKey());
-            } catch (LightChainNetworkingException e1) {
-              e1.printStackTrace();
+            } catch (LightChainNetworkingException ex) {
+              this.logger.fatal("could not send new block to other node: " + Arrays.toString(ex.getStackTrace()));
             }
           }
         }
         approvals.clear();
+        blocks.clearTag(Blocks.TAG_LAST_PROPOSED_BLOCK);
       }
     } finally {
       this.lock.unlock();
