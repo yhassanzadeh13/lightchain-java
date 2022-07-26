@@ -155,7 +155,7 @@ public class ProposerEngine implements NewBlockSubscriber, Engine {
         }
       }
 
-      this.blocks.updateTag(Blocks.TAG_LAST_PROPOSED_BLOCK, nextProposedBlock);
+      this.blocks.writeTag(Blocks.TAG_LAST_PROPOSED_BLOCK, nextProposedBlock);
     } finally {
       lock.unlock();
     }
