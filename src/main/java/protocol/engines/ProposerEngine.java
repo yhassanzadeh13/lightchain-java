@@ -2,7 +2,6 @@ package protocol.engines;
 
 import java.util.ArrayList;
 import java.util.Map;
-import java.util.Objects;
 import java.util.concurrent.locks.ReentrantLock;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
@@ -43,8 +42,7 @@ public class ProposerEngine implements NewBlockSubscriber, Engine {
   private final ProposerAssignerInf proposerAssigner;
   private final ValidatorAssignerInf validatorAssigner;
   private final ArrayList<BlockApproval> approvals;
-  // TODO: make this persistent.
-  private Block lastProposedBlock; // last proposed block that is pending validation.
+
 
   /**
    * Constructor.
@@ -115,6 +113,12 @@ public class ProposerEngine implements NewBlockSubscriber, Engine {
     try {
       lock.lock();
 
+      // sanity checks that there is no pending last proposed block at this node
+      Block lastProposedBlock = this.blocks.byTag(Blocks.TAG_LAST_PROPOSED_BLOCK);
+      if (lastProposedBlock != null) {
+        throw new IllegalStateException("received validated block while having a pending proposed block: " + blockId + " pending: " + lastProposedBlock.id());
+      }
+
       Identifier nextBlockBlockProposerId = this.proposerAssigner.nextBlockProposer(blockId, state.atBlockId(blockId));
       if (!nextBlockBlockProposerId.equals(this.local.myId())) {
         // this node is not proposer of the next block.
@@ -150,7 +154,7 @@ public class ProposerEngine implements NewBlockSubscriber, Engine {
         }
       }
 
-      lastProposedBlock = nextProposedBlock;
+      this.blocks.updateTag(Blocks.TAG_LAST_PROPOSED_BLOCK, nextProposedBlock);
     } finally {
       lock.unlock();
     }
@@ -171,8 +175,23 @@ public class ProposerEngine implements NewBlockSubscriber, Engine {
     if (!e.type().equals(EntityType.TYPE_BLOCK_APPROVAL)) {
       throw new IllegalArgumentException("unexpected input at process engine: " + e.type());
     }
-    if (Objects.equals(e.type(), EntityType.TYPE_BLOCK_APPROVAL) || ((BlockApproval) e).getBlockId() == null) {
-      approvals.add((BlockApproval) e);
+
+    BlockApproval approval = (BlockApproval) e;
+
+    try {
+      this.lock.lock();
+      // sanity checks that there is no pending last proposed block at this node
+      Block lastProposedBlock = this.blocks.byTag(Blocks.TAG_LAST_PROPOSED_BLOCK);
+      if (lastProposedBlock == null) {
+        throw new IllegalStateException("received block approval while there is no last proposed block, approval id: " + approval.blockId);
+      }
+
+      if (lastProposedBlock.id() != approval.blockId) {
+        throw new IllegalStateException("conflicting block approval id, last proposed block: " + lastProposedBlock.id()
+            + " approval id: " + approval.blockId);
+      }
+
+      approvals.add(approval);
       if (approvals.size() >= Parameters.VALIDATOR_THRESHOLD) {
         Signature[] signs = new Signature[Parameters.VALIDATOR_THRESHOLD];
         for (int i = 0; i < approvals.size(); i++) {
@@ -195,11 +214,9 @@ public class ProposerEngine implements NewBlockSubscriber, Engine {
           }
         }
         approvals.clear();
-        lastProposedBlock = null;
       }
-
-    } else {
-      throw new IllegalArgumentException("entity is not of type BlockApproval");
+    } finally {
+      this.lock.unlock();
     }
   }
 
@@ -244,9 +261,5 @@ public class ProposerEngine implements NewBlockSubscriber, Engine {
       return false;
     }
     return true;
-  }
-
-  public Block getLastProposedBlock() {
-    return lastProposedBlock;
   }
 }

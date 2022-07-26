@@ -22,6 +22,7 @@ import network.p2p.P2pNetwork;
 import org.apache.commons.compress.utils.Lists;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.testcontainers.shaded.com.fasterxml.jackson.databind.annotation.JsonAppend;
 import protocol.Engine;
 import protocol.Parameters;
 import protocol.assigner.ProposerAssignerInf;
@@ -61,8 +62,8 @@ public class ProposerEngineTest {
 
     // mocks networking layer and conduit registration.
     Network network = mock(Network.class);
-    Conduit proposedCon = mock(Conduit.class);
-    when(network.register(any(ProposerEngine.class), eq(Channels.ProposedBlocks))).thenReturn(proposedCon);
+    Conduit proposedConduit = mock(Conduit.class);
+    when(network.register(any(ProposerEngine.class), eq(Channels.ProposedBlocks))).thenReturn(proposedConduit);
 
     CountDownLatch blockSentForValidation = new CountDownLatch(Parameters.VALIDATOR_THRESHOLD);
     try {
@@ -79,7 +80,7 @@ public class ProposerEngineTest {
 
         blockSentForValidation.countDown();
         return null;
-      }).when(proposedCon).unicast(any(Block.class), any(Identifier.class));
+      }).when(proposedConduit).unicast(any(Block.class), any(Identifier.class));
     } catch (LightChainNetworkingException e) {
       Assertions.fail();
     }
@@ -139,50 +140,35 @@ public class ProposerEngineTest {
     return transactionsStorage;
   }
 
-//  private Conduit mockProposerConduit(ArrayList<Identifier> validators, Network network) {
-//
-//
-//    try {
-//      when(proposedCon.unicast(any(Block.class), any(Identifier.class))).thenAnswer(invocationOnMock -> {
-//        // Block block = invocationOnMock.getArgument(0);
-//        Identifier validator = invocationOnMock.getArgument(1);
-//
-//        // block should be sent to the right validators.
-//        Assertions.assertTrue(validators.contains(validator));
-//
-//        return null;
-//      });
-//    } catch (Exception e) {
-//      Assertions.fail("should not have exceptions upon unicasting");
-//    }
-//
-//    return proposedCon;
-//  }
-
   /**
    * Evaluates that when a new block is received while it is pending
    * for its previously proposed block to get validated. It should throw an IllegalStateException.
    */
   @Test
   public void newValidatedBlockWhilePendingValidation() {
-    Identifier localId = IdentifierFixture.newIdentifier();
-    KeyGen keyGen = KeyGenFixture.newKeyGen();
-    Local local = new Local(localId, keyGen.getPrivateKey(), keyGen.getPublicKey());
-    ArrayList<Account> accounts = AccountFixture.newAccounts(11);
+    Local local = LocalFixture.newLocal();
     Block block = BlockFixture.newBlock(Parameters.MIN_TRANSACTIONS_NUM + 1);
 
+    Blocks blocks = mockBlockStorageForBlock(block);
+    when(blocks.byTag(Blocks.TAG_LAST_PROPOSED_BLOCK)).thenReturn(BlockFixture.newBlock());
+
     State state = mock(State.class);
-    Transactions pendingTransactions = mock(Transactions.class);
+    Transactions transactions = mock(Transactions.class);
+    ValidatorAssignerInf validatorAssigner = mock(ValidatorAssignerInf.class);
+    ProposerAssignerInf proposerAssigner = mock(ProposerAssignerInf.class);
+
+    // mocks network and conduits.
+    Network network = mock(Network.class);
     Conduit proposedCon = mock(Conduit.class);
     Conduit validatedCon = mock(Conduit.class);
+    when(network.register(any(Engine.class), eq(Channels.ProposedBlocks))).thenReturn(proposedCon);
+    when(network.register(any(Engine.class), eq(Channels.ValidatedBlocks))).thenReturn(validatedCon);
 
-    Network network = mock(Network.class);
-    mockNetwork(network, proposedCon, validatedCon);
 
-    // Verification.
-    ProposerEngine proposerEngine = mockProposerEngine(local, accounts, block, network, pendingTransactions, state);
-    newValidatedBlock(proposerEngine, block, pendingTransactions);
-
+    ProposerEngine engine = new ProposerEngine(blocks, transactions, state, local, network, validatorAssigner, proposerAssigner);
+    Assertions.assertThrows(IllegalStateException.class, () -> {
+      engine.onNewValidatedBlock(block.getHeight(), block.id());
+    });
   }
 
   /**
@@ -311,18 +297,6 @@ public class ProposerEngineTest {
     doNothing().when(validatedCon).unicast(any(Block.class), any(Identifier.class));
     doNothing().when(validatedCon).unicast(any(Block.class), any(Identifier.class));
     when(network.getIdToAddressMap()).thenReturn(idToAddressMap);
-    when(network.register(any(Engine.class), eq(Channels.ProposedBlocks))).thenReturn(proposedCon);
-    when(network.register(any(Engine.class), eq(Channels.ValidatedBlocks))).thenReturn(validatedCon);
-  }
-
-  /**
-   * Mock the network.
-   *
-   * @param network      network of nodes.
-   * @param proposedCon  conduits for proposed ones.
-   * @param validatedCon conduits for validated ones.
-   */
-  public void mockNetwork(Network network, Conduit proposedCon, Conduit validatedCon) {
     when(network.register(any(Engine.class), eq(Channels.ProposedBlocks))).thenReturn(proposedCon);
     when(network.register(any(Engine.class), eq(Channels.ValidatedBlocks))).thenReturn(validatedCon);
   }
