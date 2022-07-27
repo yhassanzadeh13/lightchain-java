@@ -53,17 +53,11 @@ public class ProposerEngineTest {
     params.mockIdAsNextBlockProposer(currentBlock);
     // mocks enough validated pending transactions.
     params.mockValidatedTransactions(1);
-
+    // mocks validators
     ArrayList<Identifier> validators = IdentifierFixture.newIdentifiers(Parameters.VALIDATOR_THRESHOLD);
     params.mockValidatorAssigner(validators);
 
-//    Snapshot snapshot = mock(Snapshot.class);
-//    when(state.atBlockId(any(Identifier.class))).thenReturn(snapshot);
-
-
-
     // mocks networking layer and conduit registration.
-
     CountDownLatch blockSentForValidation = new CountDownLatch(Parameters.VALIDATOR_THRESHOLD);
     try {
       doAnswer(invocationOnMock -> {
@@ -98,36 +92,24 @@ public class ProposerEngineTest {
 
 
 
-//  /**
-//   * Evaluates that when a new block is received while it is pending
-//   * for its previously proposed block to get validated. It should throw an IllegalStateException.
-//   */
-//  @Test
-//  public void newValidatedBlockWhilePendingValidation() {
-//    Local local = LocalFixture.newLocal();
-//    Block block = BlockFixture.newBlock(Parameters.MIN_TRANSACTIONS_NUM + 1);
-//
-//    Blocks blocks = mockBlockStorageForBlock(block);
-//    when(blocks.byTag(Blocks.TAG_LAST_PROPOSED_BLOCK)).thenReturn(BlockFixture.newBlock());
-//
-//    State state = mock(State.class);
-//    Transactions transactions = mock(Transactions.class);
-//    ValidatorAssignerInf validatorAssigner = mock(ValidatorAssignerInf.class);
-//    ProposerAssignerInf proposerAssigner = mock(ProposerAssignerInf.class);
-//
-//    // mocks network and conduits.
-//    Network network = mock(Network.class);
-//    Conduit proposedCon = mock(Conduit.class);
-//    Conduit validatedCon = mock(Conduit.class);
-//    when(network.register(any(Engine.class), eq(Channels.ProposedBlocks))).thenReturn(proposedCon);
-//    when(network.register(any(Engine.class), eq(Channels.ValidatedBlocks))).thenReturn(validatedCon);
-//
-//
-//    ProposerEngine engine = new ProposerEngine(blocks, transactions, state, local, network, validatorAssigner, proposerAssigner);
-//    Assertions.assertThrows(IllegalStateException.class, () -> {
-//      engine.onNewValidatedBlock(block.getHeight(), block.id());
-//    });
-//  }
+  /**
+   * Evaluates that when a new block is received while it is pending
+   * for its previously proposed block to get validated, the engine throws an IllegalStateException.
+   */
+  @Test
+  public void newValidatedBlockWhilePendingValidation() {
+    Block block = BlockFixture.newBlock(Parameters.MIN_TRANSACTIONS_NUM + 1);
+
+    ProposerParameterFixture params = new ProposerParameterFixture();
+    params.mockBlocksStorageForBlock(block);
+    // mocks an existing proposed block.
+    when(params.blocks.byTag(Blocks.TAG_LAST_PROPOSED_BLOCK)).thenReturn(BlockFixture.newBlock());
+
+    ProposerEngine engine = new ProposerEngine(params);
+    Assertions.assertThrows(IllegalStateException.class, () -> {
+      engine.onNewValidatedBlock(block.getHeight(), block.id());
+    });
+  }
 
   /**
    * Evaluates that when a new block is received but the block cannot be found on its storage.
