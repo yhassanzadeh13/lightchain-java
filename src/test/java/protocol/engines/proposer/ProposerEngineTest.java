@@ -10,6 +10,7 @@ import java.util.concurrent.TimeUnit;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
+import model.Entity;
 import model.crypto.KeyGen;
 import model.crypto.PrivateKey;
 import model.exceptions.LightChainNetworkingException;
@@ -44,7 +45,7 @@ public class ProposerEngineTest {
    * Evaluates happy path of ProposerEngine, i.e., proposing a new block to the validators when it is assigned as the proposer.
    */
   @Test
-  public void testHappyPath() {
+  public void happyPath() {
     Block currentBlock = BlockFixture.newBlock(Parameters.MIN_TRANSACTIONS_NUM + 1);
 
     ProposerParameterFixture params = new ProposerParameterFixture();
@@ -113,31 +114,53 @@ public class ProposerEngineTest {
 
   /**
    * Evaluates that when a new block is received but the block cannot be found on its storage.
-   * It should throw an IllegalStateException.
+   * It should throw an IllegalArgumentException.
    */
   @Test
   public void blockNotInDatabase() {
-    Identifier localId = IdentifierFixture.newIdentifier();
-    PrivateKey localPrivateKey = KeyGenFixture.newKeyGen().getPrivateKey();
-    KeyGen keyGen = KeyGenFixture.newKeyGen();
-    Local local = new Local(localId, keyGen.getPrivateKey(), keyGen.getPublicKey());
-    ArrayList<Account> accounts = AccountFixture.newAccounts(11);
     Block block = BlockFixture.newBlock(Parameters.MIN_TRANSACTIONS_NUM + 1);
 
-    // Initialize mocked components.
-    Assigner assigner = mock(Assigner.class);
-    Transactions pendingTransactions = mock(Transactions.class);
-    State state = mock(State.class);
-    Network network = mock(Network.class);
+    ProposerParameterFixture params = new ProposerParameterFixture();
+    // mocks an existing proposed block.
+    when(params.blocks.has(block.id())).thenReturn(false);
 
-    Blocks blocks = mock(Blocks.class);
-    when(blocks.atHeight(block.getHeight())).thenReturn(BlockFixture.newBlock()); // another block
+    ProposerEngine proposerEngine = new ProposerEngine(params);
+    Assertions.assertThrows(IllegalArgumentException.class, () -> {
+      proposerEngine.onNewValidatedBlock(block.getHeight(), block.id());
+    });
+  }
 
-    // Verification.
-//    ProposerEngine proposerEngine = new ProposerEngine(blocks, pendingTransactions, state, local, network, assigner);
-//    Assertions.assertThrows(IllegalArgumentException.class, () -> {
-//      proposerEngine.onNewValidatedBlock(block.getHeight(), block.id());
-//    });
+  /**
+   * Evaluates when unicasting next proposed block to any of the validators fails. The proposed block should never male persistent.
+   */
+  @Test
+  public void failedUnicast() throws LightChainNetworkingException {
+    Block currentBlock = BlockFixture.newBlock(Parameters.MIN_TRANSACTIONS_NUM + 1);
+
+    ProposerParameterFixture params = new ProposerParameterFixture();
+    params.mockBlocksStorageForBlock(currentBlock);
+    // mocks this node as the proposer of the next block.
+    params.mockIdAsNextBlockProposer(currentBlock);
+    // mocks enough validated pending transactions.
+    params.mockValidatedTransactions(1);
+    // mocks validators
+    ArrayList<Identifier> validators = IdentifierFixture.newIdentifiers(Parameters.VALIDATOR_THRESHOLD);
+    params.mockValidatorAssigner(validators);
+
+    // mocks unicasting faces an exception
+    doThrow(new LightChainNetworkingException("exception", new Throwable())).when(params.proposedConduit)
+        .unicast(any(Entity.class), any(Identifier.class));
+
+
+
+    ProposerEngine proposerEngine = new ProposerEngine(params);
+
+    Assertions.assertThrows(IllegalStateException.class, () -> {
+      proposerEngine.onNewValidatedBlock(currentBlock.getHeight(), currentBlock.id());
+    });
+
+    // proposed block should never make persistent
+    verify(params.blocks, never()).writeTag(eq(Blocks.TAG_LAST_PROPOSED_BLOCK), any(Block.class));
   }
 
   /**

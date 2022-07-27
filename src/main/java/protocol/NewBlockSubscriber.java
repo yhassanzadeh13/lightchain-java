@@ -12,5 +12,6 @@ public interface NewBlockSubscriber {
    * @param blockHeight block height.
    * @param blockId     identifier of block.
    */
+  // TODO: remove block height.
   void onNewValidatedBlock(int blockHeight, Identifier blockId);
 }
