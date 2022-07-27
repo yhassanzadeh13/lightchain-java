@@ -1,4 +1,4 @@
-package protocol.engines;
+package protocol.engines.proposer;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -48,28 +48,19 @@ public class ProposerEngine implements NewBlockSubscriber, Engine {
   /**
    * Constructor.
    *
-   * @param blocks              the blocks storage database.
-   * @param pendingTransactions the pending transactions storage database.
-   * @param state               the protocol state.
-   * @param local               the local module of the node.
-   * @param network             the network module of the node.
+   * @param parameters the parameters object for building proposer engine.
    */
   @SuppressFBWarnings(value = "EI_EXPOSE_REP2", justification = "fields are intentionally mutable externally")
-  public ProposerEngine(Blocks blocks,
-                        Transactions pendingTransactions,
-                        State state,
-                        Local local,
-                        Network network,
-                        ValidatorAssignerInf validatorAssigner,
-                        ProposerAssignerInf proposerAssigner) {
-    this.local = local;
-    this.blocks = blocks;
-    this.pendingTransactions = pendingTransactions;
-    this.state = state;
+  public ProposerEngine(ProposerParameters parameters) {
+    this.local = parameters.local;
+    this.blocks = parameters.blocks;
+    this.pendingTransactions = parameters.pendingTransactions;
+    this.state = parameters.state;
+    this.network = parameters.network;
+    this.proposerAssigner = parameters.proposerAssigner;
+    this.validatorAssigner = parameters.validatorAssigner;
+
     this.approvals = new ArrayList<>();
-    this.network = network;
-    this.proposerAssigner = proposerAssigner;
-    this.validatorAssigner = validatorAssigner;
     this.logger = Logger.getLogger(ProposerEngine.class.getName());
 
     proposerCon = network.register(this, Channels.ProposedBlocks);
