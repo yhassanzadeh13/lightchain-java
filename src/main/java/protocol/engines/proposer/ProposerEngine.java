@@ -2,7 +2,6 @@ package protocol.engines.proposer;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Map;
 import java.util.concurrent.locks.ReentrantLock;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
@@ -16,13 +15,13 @@ import model.local.Local;
 import network.Channels;
 import network.Conduit;
 import network.Network;
-import network.p2p.P2pNetwork;
 import org.apache.log4j.Logger;
 import protocol.Engine;
 import protocol.NewBlockSubscriber;
 import protocol.Parameters;
 import protocol.assigner.ProposerAssignerInf;
 import protocol.assigner.ValidatorAssignerInf;
+import state.Snapshot;
 import state.State;
 import storage.Blocks;
 import storage.Transactions;
@@ -178,7 +177,7 @@ public class ProposerEngine implements NewBlockSubscriber, Engine {
         throw new IllegalStateException("received block approval while there is no last proposed block, approval id: " + approval.blockId);
       }
 
-      if (lastProposedBlock.id() != approval.blockId) {
+      if (!lastProposedBlock.id().equals(approval.blockId)) {
         throw new IllegalStateException("conflicting block approval id, last proposed block: " + lastProposedBlock.id()
             + " approval id: " + approval.blockId);
       }
@@ -196,13 +195,14 @@ public class ProposerEngine implements NewBlockSubscriber, Engine {
             local.signEntity(lastProposedBlock),
             signs,
             lastProposedBlock.getHeight());
-        for (Map.Entry<Identifier, String> pair : ((P2pNetwork) network).getIdToAddressMap().entrySet()) {
-          if (pair.getValue().equals(Channels.ValidatedBlocks)) {
-            try {
-              validatedCon.unicast(validatedBlock, pair.getKey());
-            } catch (LightChainNetworkingException ex) {
-              this.logger.fatal("could not send new block to other node: " + Arrays.toString(ex.getStackTrace()));
-            }
+
+        Snapshot snapshot = state.atBlockId(lastProposedBlock.getPreviousBlockId());
+
+        for (Account account : snapshot.all()) {
+          try {
+            validatedCon.unicast(validatedBlock, account.getIdentifier());
+          } catch (LightChainNetworkingException ex) {
+            this.logger.fatal("could not send new block to other node: " + Arrays.toString(ex.getStackTrace()));
           }
         }
         approvals.clear();

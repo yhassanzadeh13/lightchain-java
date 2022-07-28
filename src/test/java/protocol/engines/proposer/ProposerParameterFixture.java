@@ -70,6 +70,16 @@ public class ProposerParameterFixture extends ProposerParameters {
     when(this.validatorAssigner.getValidatorsAtSnapshot(any(Identifier.class), any(Snapshot.class))).thenReturn(assignment);
   }
 
+  public void mockProposedBlock(Block block) {
+    when(this.blocks.byTag(Blocks.TAG_LAST_PROPOSED_BLOCK)).thenReturn(block);
+  }
+
+  public void mockSnapshotAtBlock(ArrayList<Account> accounts, Identifier blockId) {
+    Snapshot snapshot = mock(Snapshot.class);
+    when(this.state.atBlockId(blockId)).thenReturn(snapshot);
+    when(snapshot.all()).thenReturn(accounts);
+  }
+
   /**
    * Generates validated transaction fixtures and mock a Transactions storage with it.
    *

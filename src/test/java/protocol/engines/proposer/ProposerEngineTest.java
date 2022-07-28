@@ -165,32 +165,53 @@ public class ProposerEngineTest {
 
   /**
    * Evaluates that when enough block approvals are received,
-   * a validated block is created and sent to the network (including itself).
+   * a validated block is created and sent to the network.
    */
   @Test
   public void enoughBlockApproval() throws LightChainNetworkingException {
-    Identifier localId = IdentifierFixture.newIdentifier();
-    PrivateKey localPrivateKey = KeyGenFixture.newKeyGen().getPrivateKey();
-    KeyGen keyGen = KeyGenFixture.newKeyGen();
-    Local local = new Local(localId, keyGen.getPrivateKey(), keyGen.getPublicKey());
-    ArrayList<Account> accounts = AccountFixture.newAccounts(11);
-    Block block = BlockFixture.newBlock(Parameters.MIN_TRANSACTIONS_NUM + 1);
-    State state = mock(State.class);
-    Transactions pendingTransactions = mock(Transactions.class);
-    ConcurrentMap<Identifier, String> idToAddressMap = new ConcurrentHashMap<>();
-    Conduit validatedCon = mock(Conduit.class);
-    Conduit proposedCon = mock(Conduit.class);
-    P2pNetwork network = mock(P2pNetwork.class);
-    blockApproval(idToAddressMap, validatedCon, proposedCon, network);
+
+
+    ProposerParameterFixture params = new ProposerParameterFixture();
+    Block proposedBlock = new Block(
+        IdentifierFixture.newIdentifier(),
+        params.local.myId(),
+        100,
+        ValidatedTransactionFixture.newValidatedTransactions(10));
+    params.mockProposedBlock(proposedBlock);
+    ArrayList<Account> accounts = AccountFixture.newAccounts(10);
+    params.mockSnapshotAtBlock(accounts, proposedBlock.getPreviousBlockId());
+
 
     // Verification.
-    ProposerEngine proposerEngine = mockProposerEngine(local, accounts, block, network, pendingTransactions, state);
-    proposerEngine.onNewValidatedBlock(block.getHeight(), block.id());
+    ProposerEngine proposerEngine = new ProposerEngine(params);
+
     for (int i = 0; i < Parameters.VALIDATOR_THRESHOLD; i++) {
-      BlockApproval blockApproval = new BlockApproval(SignatureFixture.newSignatureFixture(), block.id());
+      BlockApproval blockApproval = new BlockApproval(SignatureFixture.newSignatureFixture(), proposedBlock.id());
       proposerEngine.process(blockApproval);
     }
-    verify(validatedCon, times(1)).unicast(any(Block.class), any(Identifier.class));
+
+    try {
+      doAnswer(invocationOnMock -> {
+        ValidatedBlock block = invocationOnMock.getArgument(0, ValidatedBlock.class);
+
+        // checks whether block is correct and authenticated.
+        Assertions.assertTrue(params.local.myPublicKey().verifySignature(proposedBlock, block.getSignature()));
+        // checks all fields of validated block matches with proposed block
+        // TODO: also check for certificaties.
+        Assertions.assertEquals(proposedBlock.getPreviousBlockId(), block.getPreviousBlockId());
+        Assertions.assertEquals(proposedBlock.getProposer(), params.local.myId());
+        Assertions.assertEquals(proposedBlock.getTransactions(), block.getTransactions());
+        Assertions.assertEquals(proposedBlock.getHeight(), block.getHeight());
+
+        return null;
+      }).when(params.validatedConduit).unicast(any(ValidatedBlock.class), any(Identifier.class));
+    } catch (LightChainNetworkingException e) {
+      Assertions.fail();
+    }
+
+    // validated block must be sent to all nodes.
+    verify(params.validatedConduit, times(10)).unicast(any(ValidatedBlock.class), any(Identifier.class));
+
   }
 
   /**
@@ -199,6 +220,18 @@ public class ProposerEngineTest {
    */
   @Test
   public void enoughBlockApprovalConcurrently() throws LightChainNetworkingException, InterruptedException {
+    Block currentBlock = BlockFixture.newBlock(Parameters.MIN_TRANSACTIONS_NUM + 1);
+
+    ProposerParameterFixture params = new ProposerParameterFixture();
+    params.mockBlocksStorageForBlock(currentBlock);
+    // mocks this node as the proposer of the next block.
+    params.mockIdAsNextBlockProposer(currentBlock);
+    // mocks enough validated pending transactions.
+    params.mockValidatedTransactions(1);
+    // mocks validators
+    ArrayList<Identifier> validators = IdentifierFixture.newIdentifiers(Parameters.VALIDATOR_THRESHOLD);
+    params.mockValidatorAssigner(validators);
+
     Identifier localId = IdentifierFixture.newIdentifier();
     PrivateKey localPrivateKey = KeyGenFixture.newKeyGen().getPrivateKey();
     KeyGen keyGen = KeyGenFixture.newKeyGen();
