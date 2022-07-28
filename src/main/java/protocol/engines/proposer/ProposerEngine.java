@@ -15,7 +15,8 @@ import model.local.Local;
 import network.Channels;
 import network.Conduit;
 import network.Network;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import protocol.Engine;
 import protocol.NewBlockSubscriber;
 import protocol.Parameters;
@@ -60,7 +61,7 @@ public class ProposerEngine implements NewBlockSubscriber, Engine {
     this.validatorAssigner = parameters.validatorAssigner;
 
     this.approvals = new ArrayList<>();
-    this.logger = Logger.getLogger(ProposerEngine.class.getName());
+    this.logger = LogManager.getLogger(ProposerEngine.class.getName());
 
     proposerCon = network.register(this, Channels.ProposedBlocks);
     validatedCon = network.register(this, Channels.ValidatedBlocks);
@@ -97,7 +98,7 @@ public class ProposerEngine implements NewBlockSubscriber, Engine {
 
     Identifier retrievedBlockId = blocks.atHeight(blockHeight).id();
     if (!retrievedBlockId.equals(blockId)) {
-      this.logger.error("block mismatch on data base retrieval, expected: " + blockId + " got: " + retrievedBlockId);
+      this.logger.error("block mismatch on data base retrieval, expected: {} got: {} ", blockId, retrievedBlockId);
       throw new IllegalStateException("block mismatch on data base retrieval, expected: " + blockId + " got: " + retrievedBlockId);
     }
 
@@ -113,24 +114,23 @@ public class ProposerEngine implements NewBlockSubscriber, Engine {
       Identifier nextBlockBlockProposerId = this.proposerAssigner.nextBlockProposer(blockId, state.atBlockId(blockId));
       if (!nextBlockBlockProposerId.equals(this.local.myId())) {
         // this node is not proposer of the next block.
-        this.logger.debug("this node (" + this.local.myId() + ") + is not the proposer of next block, current_block_id: " + blockId
-            + " next block proposer Id: " + nextBlockBlockProposerId);
+        this.logger.debug("this node {} is not the proposer of next block {} current_block_id: {} ", this.local.myId(), blockId, nextBlockBlockProposerId);
         return;
       }
 
-      this.logger.debug("this node (" + this.local.myId() + ") + is the proposer of next block, current_block_id: " + blockId);
+      this.logger.debug("this node {} is the proposer of next block, current_block_id {} ", this.local.myId(), blockId);
       while (!checkPendingTransactionsWithBackoff(Parameters.MIN_TRANSACTIONS_NUM, 5000)) {
         this.logger.debug("busy waiting for enough pending transactions");
       }
 
       ValidatedTransaction[] transactions = this.collectTransactionsForBlock(Parameters.MIN_TRANSACTIONS_NUM);
-      this.logger.debug("pending validated transactions collected for the next block, total: " + transactions.length
-          + " ids: " + Convert.IdentifierOf(transactions));
+      this.logger.debug("pending validated transactions collected for the next block, total {} ids {} ",
+          transactions.length, Convert.IdentifierOf(transactions));
 
       Block nextProposedBlock = new Block(blockId, local.myId(), blockHeight + 1, transactions);
       Signature sign = local.signEntity(nextProposedBlock);
       nextProposedBlock.setSignature(sign);
-      this.logger.info("next block is proposed: " + nextProposedBlock.id());
+      this.logger.info("next block processed, block_id {} ", nextProposedBlock.id());
 
 
       Assignment validators = this.validatorAssigner.getValidatorsAtSnapshot(nextProposedBlock.id(), this.state.atBlockId(blockId));
@@ -139,7 +139,7 @@ public class ProposerEngine implements NewBlockSubscriber, Engine {
       for (Identifier id : validators.all()) {
         try {
           this.proposerCon.unicast(nextProposedBlock, id);
-          this.logger.debug("next proposed block (" + nextProposedBlock.id() + ") sent for validation to " + id);
+          this.logger.debug("block_id {}, validator_id {}, block sent for validation", nextProposedBlock.id(), id);
         } catch (LightChainNetworkingException e) {
           throw new IllegalStateException("could not unicast new block for validation", e);
         }
@@ -202,7 +202,8 @@ public class ProposerEngine implements NewBlockSubscriber, Engine {
           try {
             validatedCon.unicast(validatedBlock, account.getIdentifier());
           } catch (LightChainNetworkingException ex) {
-            this.logger.fatal("could not send new block to other node: " + Arrays.toString(ex.getStackTrace()));
+            this.logger.fatal("target_id {}, exception {}, could not send block to target",
+                account.getIdentifier(), Arrays.toString(ex.getStackTrace()));
           }
         }
         approvals.clear();
@@ -243,8 +244,8 @@ public class ProposerEngine implements NewBlockSubscriber, Engine {
     if (pendingTransactions.size() < count) {
       // TODO: optimize busy wating
       // Waits until there are enough pending transactions.
-      this.logger.warn("waiting for enough (" + Parameters.MIN_TRANSACTIONS_NUM
-          + ") pending transactions, pending_transactions_size: " + pendingTransactions.size());
+      this.logger.warn("minimum_required_transactions {}, total_pending_transactions {}, waiting for enough pending transactions",
+          Parameters.MIN_TRANSACTIONS_NUM, pendingTransactions.size());
       try {
         Thread.sleep(millis);
       } catch (InterruptedException ex) {
