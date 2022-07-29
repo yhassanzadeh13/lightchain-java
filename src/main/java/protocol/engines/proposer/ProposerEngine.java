@@ -85,11 +85,8 @@ public class ProposerEngine implements NewBlockSubscriber, Engine {
    * @throws IllegalArgumentException when its parameters do not match a validated block from database.
    */
   @Override
-  public void onNewValidatedBlock(
-      int blockHeight,
-      Identifier blockId) throws IllegalStateException, IllegalArgumentException {
-
-    this.logger.debug("new validated block arrived, block_id: " + blockId.toString());
+  public void onNewValidatedBlock(int blockHeight, Identifier blockId) throws IllegalStateException, IllegalArgumentException {
+    this.logger.info("block_id: {}, new validated block arrived", blockId.toString());
 
     if (!blocks.has(blockId)) {
       this.logger.error("validated block is not in database");
@@ -98,7 +95,7 @@ public class ProposerEngine implements NewBlockSubscriber, Engine {
 
     Identifier retrievedBlockId = blocks.atHeight(blockHeight).id();
     if (!retrievedBlockId.equals(blockId)) {
-      this.logger.error("block mismatch on data base retrieval, expected: {} got: {} ", blockId, retrievedBlockId);
+      this.logger.error("received_block_id: {}, retrieved_block_id: {}, block mismatch on database retrieval", blockId, retrievedBlockId);
       throw new IllegalStateException("block mismatch on data base retrieval, expected: " + blockId + " got: " + retrievedBlockId);
     }
 
@@ -114,23 +111,25 @@ public class ProposerEngine implements NewBlockSubscriber, Engine {
       Identifier nextBlockBlockProposerId = this.proposerAssigner.nextBlockProposer(blockId, state.atBlockId(blockId));
       if (!nextBlockBlockProposerId.equals(this.local.myId())) {
         // this node is not proposer of the next block.
-        this.logger.debug("this node {} is not the proposer of next block {} current_block_id: {} ", this.local.myId(), blockId, nextBlockBlockProposerId);
+        this.logger.debug("node_id: {}, current_block_id: {}, next_block_proposer_id: {}, node is not the proposer of next block",
+            this.local.myId(), blockId, nextBlockBlockProposerId);
         return;
       }
 
-      this.logger.debug("this node {} is the proposer of next block, current_block_id {} ", this.local.myId(), blockId);
+      this.logger.debug("node_id: {}, current_block_id: {}, node is the proposer of next block",
+          this.local.myId(), blockId);
       while (!checkPendingTransactionsWithBackoff(Parameters.MIN_TRANSACTIONS_NUM, 5000)) {
         this.logger.debug("busy waiting for enough pending transactions");
       }
 
       ValidatedTransaction[] transactions = this.collectTransactionsForBlock(Parameters.MIN_TRANSACTIONS_NUM);
-      this.logger.debug("pending validated transactions collected for the next block, total {} ids {} ",
+      this.logger.debug("total_transactions: {}, transactions_ids {}, pending validated transactions collected for the next block",
           transactions.length, Convert.IdentifierOf(transactions));
 
       Block nextProposedBlock = new Block(blockId, local.myId(), blockHeight + 1, transactions);
       Signature sign = local.signEntity(nextProposedBlock);
       nextProposedBlock.setSignature(sign);
-      this.logger.info("next block processed, block_id {} ", nextProposedBlock.id());
+      this.logger.info("block_id: {}, processed next block successfully", nextProposedBlock.id());
 
 
       Assignment validators = this.validatorAssigner.getValidatorsAtSnapshot(nextProposedBlock.id(), this.state.atBlockId(blockId));
@@ -166,8 +165,8 @@ public class ProposerEngine implements NewBlockSubscriber, Engine {
     if (!e.type().equals(EntityType.TYPE_BLOCK_APPROVAL)) {
       throw new IllegalArgumentException("unexpected input at process engine: " + e.type());
     }
-
     BlockApproval approval = (BlockApproval) e;
+    this.logger.info("block_id: {}, signer_id: {}, block approval arrived", approval.blockId, approval.getSignature().getSignerId());
 
     try {
       this.lock.lock();
@@ -208,6 +207,7 @@ public class ProposerEngine implements NewBlockSubscriber, Engine {
         }
         approvals.clear();
         blocks.clearTag(Blocks.TAG_LAST_PROPOSED_BLOCK);
+        this.logger.info("block_id: {}, next proposed and validated block has been sent to all nodes", validatedBlock.id());
       }
     } finally {
       this.lock.unlock();
