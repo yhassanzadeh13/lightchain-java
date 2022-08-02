@@ -48,8 +48,7 @@ public class ProposerParameterFixture extends ProposerParameters {
 
 
   public void mockBlocksStorageForBlock(Block block) {
-    when(blocks.has(block.id())).thenReturn(true);
-    when(blocks.atHeight(block.getHeight())).thenReturn(block); // block to be proposed
+    when(blocks.byId(block.id())).thenReturn(block);
   }
 
   public void mockIdAsNextBlockProposer(Block currentBlock) {
@@ -60,6 +59,16 @@ public class ProposerParameterFixture extends ProposerParameters {
     when(snapshot.getAccount(this.local.myId())).thenReturn(
         new Account(this.local.myId(), this.local.myPublicKey(), IdentifierFixture.newIdentifier(), Parameters.MINIMUM_STAKE));
     when(this.proposerAssigner.nextBlockProposer(currentBlock.id(), snapshot)).thenReturn(this.local.myId());
+  }
+
+  public void mockDifferentNodeAsNextBlockProposer(Block currentBlock) {
+    Snapshot snapshot = mock(Snapshot.class);
+    when(this.state.atBlockId(currentBlock.id())).thenReturn(snapshot);
+
+    // mocking account of this node at snapshot for later verifying its signature on the block.
+    when(snapshot.getAccount(this.local.myId())).thenReturn(
+        new Account(this.local.myId(), this.local.myPublicKey(), IdentifierFixture.newIdentifier(), Parameters.MINIMUM_STAKE));
+    when(this.proposerAssigner.nextBlockProposer(currentBlock.id(), snapshot)).thenReturn(IdentifierFixture.newIdentifier());
   }
 
   public void mockValidatorAssigner(ArrayList<Identifier> validators) {

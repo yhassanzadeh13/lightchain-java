@@ -78,25 +78,19 @@ public class ProposerEngine implements NewBlockSubscriber, Engine {
    * sends it to the validators. If it does not have minimum number of validated transactions, it waits till it
    * the minimum number is satisfied.
    *
-   * @param blockHeight block height.
    * @param blockId     identifier of block.
    * @throws IllegalStateException    when it receives a new validated block while it is pending for its previously
    *                                  proposed block to get validated.
    * @throws IllegalArgumentException when its parameters do not match a validated block from database.
    */
   @Override
-  public void onNewValidatedBlock(int blockHeight, Identifier blockId) throws IllegalStateException, IllegalArgumentException {
+  public void onNewValidatedBlock(Identifier blockId) throws IllegalStateException, IllegalArgumentException {
     this.logger.info("block_id: {}, new validated block arrived", blockId.toString());
 
-    if (!blocks.has(blockId)) {
+    Block retrievedBlock = blocks.byId(blockId);
+    if (retrievedBlock == null) {
       this.logger.error("validated block is not in database");
       throw new IllegalArgumentException("block is not in database");
-    }
-
-    Identifier retrievedBlockId = blocks.atHeight(blockHeight).id();
-    if (!retrievedBlockId.equals(blockId)) {
-      this.logger.error("received_block_id: {}, retrieved_block_id: {}, block mismatch on database retrieval", blockId, retrievedBlockId);
-      throw new IllegalStateException("block mismatch on data base retrieval, expected: " + blockId + " got: " + retrievedBlockId);
     }
 
     try {
@@ -126,7 +120,7 @@ public class ProposerEngine implements NewBlockSubscriber, Engine {
       this.logger.debug("total_transactions: {}, transactions_ids {}, pending validated transactions collected for the next block",
           transactions.length, Convert.IdentifierOf(transactions));
 
-      Block nextProposedBlock = new Block(blockId, local.myId(), blockHeight + 1, transactions);
+      Block nextProposedBlock = new Block(blockId, local.myId(), retrievedBlock.getHeight() + 1, transactions);
       Signature sign = local.signEntity(nextProposedBlock);
       nextProposedBlock.setSignature(sign);
       this.logger.info("block_id: {}, processed next block successfully", nextProposedBlock.id());

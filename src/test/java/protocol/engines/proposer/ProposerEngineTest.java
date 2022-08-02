@@ -14,6 +14,8 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import protocol.Parameters;
 import protocol.block.BlockValidator;
+import state.Snapshot;
+import state.State;
 import storage.Blocks;
 import unittest.fixtures.*;
 
@@ -62,7 +64,7 @@ public class ProposerEngineTest {
 
 
     ProposerEngine proposerEngine = new ProposerEngine(params);
-    proposerEngine.onNewValidatedBlock(currentBlock.getHeight(), currentBlock.id());
+    proposerEngine.onNewValidatedBlock(currentBlock.id());
 
     try {
       boolean doneOnTime = blockSentForValidation.await(1000, TimeUnit.MILLISECONDS);
@@ -87,7 +89,7 @@ public class ProposerEngineTest {
 
     ProposerEngine engine = new ProposerEngine(params);
     Assertions.assertThrows(IllegalStateException.class, () -> {
-      engine.onNewValidatedBlock(block.getHeight(), block.id());
+      engine.onNewValidatedBlock(block.id());
     });
   }
 
@@ -101,12 +103,51 @@ public class ProposerEngineTest {
 
     ProposerParameterFixture params = new ProposerParameterFixture();
     // mocks an existing proposed block.
-    when(params.blocks.has(block.id())).thenReturn(false);
+    when(params.blocks.byId(block.id())).thenReturn(null);
 
     ProposerEngine proposerEngine = new ProposerEngine(params);
     Assertions.assertThrows(IllegalArgumentException.class, () -> {
-      proposerEngine.onNewValidatedBlock(block.getHeight(), block.id());
+      proposerEngine.onNewValidatedBlock(block.id());
     });
+  }
+
+  /**
+   * Evaluates that when a new block is received while the proposer engine is pending for its last proposed block. The
+   * proposer engine should throw an IllegalStateException.
+   */
+  @Test
+  public void existingLastProposedBlock() {
+    Block block = BlockFixture.newBlock(Parameters.MIN_TRANSACTIONS_NUM + 1);
+
+    ProposerParameterFixture params = new ProposerParameterFixture();
+    // mocks proposer engine has an existing block
+    params.mockProposedBlock(BlockFixture.newBlock());
+    params.mockBlocksStorageForBlock(block);
+
+    ProposerEngine proposerEngine = new ProposerEngine(params);
+    Assertions.assertThrows(IllegalStateException.class, () -> {
+      proposerEngine.onNewValidatedBlock(block.id());
+    });
+  }
+
+  /**
+   * Evaluates that when a new block is received and this node is not the proposer of the next block.
+   * It should not propose any block.
+   */
+  @Test
+  public void notProposerOfNextBlock() throws LightChainNetworkingException {
+    Block block = BlockFixture.newBlock(Parameters.MIN_TRANSACTIONS_NUM + 1);
+
+    ProposerParameterFixture params = new ProposerParameterFixture();
+    params.mockBlocksStorageForBlock(block);
+    // mocks a random node as the next block proposer.
+    params.mockDifferentNodeAsNextBlockProposer(block);
+
+    ProposerEngine proposerEngine = new ProposerEngine(params);
+    proposerEngine.onNewValidatedBlock(block.id());
+    // no proposed block should be generated.
+    verify(params.validatorAssigner, never()).getValidatorsAtSnapshot(any(Identifier.class), any(Snapshot.class));
+    verify(params.proposedConduit, never()).unicast(any(Block.class), any(Identifier.class));
   }
 
   /**
@@ -134,7 +175,7 @@ public class ProposerEngineTest {
     ProposerEngine proposerEngine = new ProposerEngine(params);
 
     Assertions.assertThrows(IllegalStateException.class, () -> {
-      proposerEngine.onNewValidatedBlock(currentBlock.getHeight(), currentBlock.id());
+      proposerEngine.onNewValidatedBlock(currentBlock.id());
     });
 
     // proposed block should never make persistent
@@ -250,7 +291,7 @@ public class ProposerEngineTest {
     ProposerParameterFixture params = new ProposerParameterFixture();
     ProposerEngine engine = new ProposerEngine(params);
 
-    Assertions.assertThrows(IllegalArgumentException.class, ()->{
+    Assertions.assertThrows(IllegalArgumentException.class, () -> {
       engine.process(new EntityFixture());
     });
   }
@@ -263,7 +304,7 @@ public class ProposerEngineTest {
     ProposerParameterFixture params = new ProposerParameterFixture();
     ProposerEngine engine = new ProposerEngine(params);
 
-    Assertions.assertThrows(IllegalStateException.class, ()->{
+    Assertions.assertThrows(IllegalStateException.class, () -> {
       engine.process(BlockApprovalFixture.newBlockApproval());
     });
   }
@@ -277,7 +318,7 @@ public class ProposerEngineTest {
     params.mockProposedBlock(BlockFixture.newBlock());
     ProposerEngine engine = new ProposerEngine(params);
 
-    Assertions.assertThrows(IllegalStateException.class, ()->{
+    Assertions.assertThrows(IllegalStateException.class, () -> {
       engine.process(BlockApprovalFixture.newBlockApproval());
     });
   }
