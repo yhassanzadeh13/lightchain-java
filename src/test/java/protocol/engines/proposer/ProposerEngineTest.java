@@ -242,4 +242,17 @@ public class ProposerEngineTest {
     verify(params.validatedConduit, times(10)).unicast(any(ValidatedBlock.class), any(Identifier.class));
   }
 
+  /**
+   * Evaluates that any illegal input on a ProposerEngine results in an IllegalArgumentException.
+   */
+  @Test
+  public void illegalArgumentException() {
+    ProposerParameterFixture params = new ProposerParameterFixture();
+    ProposerEngine engine = new ProposerEngine(params);
+
+    Assertions.assertThrows(IllegalArgumentException.class, ()->{
+      engine.process(new EntityFixture());
+    });
+  }
+
 }
