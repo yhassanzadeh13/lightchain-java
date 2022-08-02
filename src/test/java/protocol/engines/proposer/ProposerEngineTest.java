@@ -26,7 +26,7 @@ public class ProposerEngineTest {
    * Evaluates happy path of ProposerEngine, i.e., proposing a new block to the validators when it is assigned as the proposer.
    */
   @Test
-  public void happyPath() {
+  public void blockProposalHappyPath() {
     Block currentBlock = BlockFixture.newBlock(Parameters.MIN_TRANSACTIONS_NUM + 1);
 
     ProposerParameterFixture params = new ProposerParameterFixture();
@@ -113,7 +113,7 @@ public class ProposerEngineTest {
    * Evaluates when unicasting next proposed block to any of the validators fails. The proposed block should never male persistent.
    */
   @Test
-  public void failedUnicast() throws LightChainNetworkingException {
+  public void failedUnicastBlockProposal() throws LightChainNetworkingException {
     Block currentBlock = BlockFixture.newBlock(Parameters.MIN_TRANSACTIONS_NUM + 1);
 
     ProposerParameterFixture params = new ProposerParameterFixture();
@@ -255,4 +255,30 @@ public class ProposerEngineTest {
     });
   }
 
+  /**
+   * Evaluates that when approval arrives while there is no proposed block yet, the proposer engine is throwing an IllegalStateException.
+   */
+  @Test
+  public void approvalOnNoProposedBlock() {
+    ProposerParameterFixture params = new ProposerParameterFixture();
+    ProposerEngine engine = new ProposerEngine(params);
+
+    Assertions.assertThrows(IllegalStateException.class, ()->{
+      engine.process(BlockApprovalFixture.newBlockApproval());
+    });
+  }
+
+  /**
+   * Evaluates that when approval arrives that mismatches the last proposed block, the proposer engine is throwing an  IllegalStateException.
+   */
+  @Test
+  public void approvalMismatchesProposedBlock() {
+    ProposerParameterFixture params = new ProposerParameterFixture();
+    params.mockProposedBlock(BlockFixture.newBlock());
+    ProposerEngine engine = new ProposerEngine(params);
+
+    Assertions.assertThrows(IllegalStateException.class, ()->{
+      engine.process(BlockApprovalFixture.newBlockApproval());
+    });
+  }
 }

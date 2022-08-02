@@ -137,6 +137,7 @@ public class ProposerEngine implements NewBlockSubscriber, Engine {
       // Sends block to validators.
       for (Identifier id : validators.all()) {
         try {
+          // TODO: replace with multicast.
           this.proposerCon.unicast(nextProposedBlock, id);
           this.logger.debug("block_id {}, validator_id {}, block sent for validation", nextProposedBlock.id(), id);
         } catch (LightChainNetworkingException e) {
@@ -180,7 +181,7 @@ public class ProposerEngine implements NewBlockSubscriber, Engine {
         throw new IllegalStateException("conflicting block approval id, last proposed block: " + lastProposedBlock.id()
             + " approval id: " + approval.blockId);
       }
-
+      // TODO: verify signature of the approval and the fact that it is coming from an assigned validator before adding to database.
       approvals.add(approval);
       if (approvals.size() >= Parameters.VALIDATOR_THRESHOLD) {
         Signature[] signs = new Signature[Parameters.VALIDATOR_THRESHOLD];
@@ -199,6 +200,7 @@ public class ProposerEngine implements NewBlockSubscriber, Engine {
 
         for (Account account : snapshot.all()) {
           try {
+            // TODO: replace with broadcast.
             validatedCon.unicast(validatedBlock, account.getIdentifier());
           } catch (LightChainNetworkingException ex) {
             this.logger.fatal("target_id {}, exception {}, could not send block to target",
