@@ -11,13 +11,13 @@ import protocol.assigner.AssignerInf;
 import state.Snapshot;
 
 /**
- * Implements assigner logic for the next block proposer.
+ * Implements finalita paper assigner logic for the next block proposer.
  */
 // TODO: develop tests for this class.
-public class ProposerAssigner implements protocol.assigner.ProposerAssigner {
+public class FinalitaProposerAssigner implements protocol.assigner.ProposerAssigner {
   private final AssignerInf assigner;
 
-  public ProposerAssigner() {
+  public FinalitaProposerAssigner() {
     this.assigner = new Assigner();
   }
 

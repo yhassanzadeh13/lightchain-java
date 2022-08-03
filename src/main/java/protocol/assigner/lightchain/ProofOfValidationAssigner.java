@@ -15,10 +15,10 @@ import state.Snapshot;
  * Implements assigner logic for the validators of an entity.
  */
 // TODO: this class should be covered with testing.
-public class ValidatorAssigner implements protocol.assigner.ValidatorAssigner {
+public class ProofOfValidationAssigner implements protocol.assigner.ValidatorAssigner {
   private final AssignerInf assigner;
 
-  public ValidatorAssigner() {
+  public ProofOfValidationAssigner() {
     this.assigner = new Assigner();
   }
 
