@@ -67,4 +67,8 @@ public class Assignment {
   public String toString() {
     return this.validators.toString();
   }
+
+  public ArrayList<Identifier> all() {
+    return this.validators.all();
+  }
 }

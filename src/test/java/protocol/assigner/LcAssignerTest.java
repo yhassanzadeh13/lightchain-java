@@ -10,6 +10,7 @@ import model.lightchain.Assignment;
 import model.lightchain.Identifier;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import protocol.assigner.lightchain.Assigner;
 import state.Snapshot;
 import unittest.fixtures.AccountFixture;
 import unittest.fixtures.IdentifierFixture;
@@ -18,7 +19,7 @@ import unittest.fixtures.IdentifierFixture;
  * Encapsulates tests for validator assignment.
  * All tests consider a snapshot of 10 staked accounts and 10 unstaked accounts as well as a mock identifier
  */
-public class AssignerTest {
+public class LcAssignerTest {
   /**
    * Tests the assigner to choose one of the staked accounts and confirms it always picks the same account by
    * running the test 100 times.
@@ -32,7 +33,7 @@ public class AssignerTest {
     when(snapshot.all()).thenReturn(accounts);
 
     // Act
-    LightChainValidatorAssigner assigner = new LightChainValidatorAssigner();
+    Assigner assigner = new Assigner();
     Assignment assignment = assigner.assign(entityId, snapshot, (short) 1);
     Assertions.assertEquals(1, assignment.size());
 
@@ -62,7 +63,7 @@ public class AssignerTest {
     when(snapshot.all()).thenReturn(accounts);
 
     // Act
-    LightChainValidatorAssigner assigner = new LightChainValidatorAssigner();
+    Assigner assigner = new Assigner();
     Assignment assignment = assigner.assign(entityId, snapshot, (short) 2);
     Assertions.assertEquals(2, assignment.size());
 
@@ -93,7 +94,7 @@ public class AssignerTest {
     when(snapshot.all()).thenReturn(accounts);
 
     // Act
-    LightChainValidatorAssigner assigner = new LightChainValidatorAssigner();
+    Assigner assigner = new Assigner();
     Assignment assignment = assigner.assign(entityId, snapshot, (short) 5);
     Assertions.assertEquals(5, assignment.size());
 
@@ -124,7 +125,7 @@ public class AssignerTest {
     when(snapshot.all()).thenReturn(accounts);
 
     // Act
-    LightChainValidatorAssigner assigner = new LightChainValidatorAssigner();
+    Assigner assigner = new Assigner();
     Assignment assignment = assigner.assign(entityId, snapshot, (short) 10);
     Assertions.assertEquals(10, assignment.size());
 
@@ -154,12 +155,12 @@ public class AssignerTest {
     when(snapshot.all()).thenReturn(accounts);
 
     // Act
-    LightChainValidatorAssigner assigner = new LightChainValidatorAssigner();
+    Assigner assigner = new Assigner();
     try {
       assigner.assign(entityId, snapshot, (short) 11); // picking more validators than exists on snapshot.
       Assertions.fail();
     } catch (IllegalArgumentException e) {
-      Assertions.assertEquals(LightChainValidatorAssigner.NOT_ENOUGH_ACCOUNTS, e.getMessage());
+      Assertions.assertEquals(Assigner.NOT_ENOUGH_ACCOUNTS, e.getMessage());
     }
   }
 
@@ -175,12 +176,12 @@ public class AssignerTest {
     when(snapshot.all()).thenReturn(new ArrayList<>());
 
     // Act
-    LightChainValidatorAssigner assigner = new LightChainValidatorAssigner();
+    Assigner assigner = new Assigner();
     try {
       assigner.assign(entityId, snapshot, (short) 1);
       Assertions.fail();
     } catch (IllegalArgumentException e) {
-      Assertions.assertEquals(LightChainValidatorAssigner.NOT_ENOUGH_ACCOUNTS, e.getMessage());
+      Assertions.assertEquals(Assigner.NOT_ENOUGH_ACCOUNTS, e.getMessage());
     }
   }
 
@@ -195,12 +196,12 @@ public class AssignerTest {
     when(snapshot.all()).thenReturn(accounts);
 
     // Act
-    LightChainValidatorAssigner assigner = new LightChainValidatorAssigner();
+    Assigner assigner = new Assigner();
     try {
       assigner.assign(null, snapshot, (short) 1);
       Assertions.fail();
     } catch (IllegalArgumentException e) {
-      Assertions.assertEquals(LightChainValidatorAssigner.IDENTIFIER_CANNOT_BE_NULL, e.getMessage());
+      Assertions.assertEquals(Assigner.IDENTIFIER_CANNOT_BE_NULL, e.getMessage());
     }
 
   }
@@ -214,12 +215,12 @@ public class AssignerTest {
     Identifier entityId = IdentifierFixture.newIdentifier();
 
     // Act
-    LightChainValidatorAssigner assigner = new LightChainValidatorAssigner();
+    Assigner assigner = new Assigner();
     try {
       assigner.assign(entityId, null, (short) 1);
       Assertions.fail();
     } catch (IllegalArgumentException e) {
-      Assertions.assertEquals(LightChainValidatorAssigner.SNAPSHOT_CANNOT_BE_NULL, e.getMessage());
+      Assertions.assertEquals(Assigner.SNAPSHOT_CANNOT_BE_NULL, e.getMessage());
     }
 
   }
@@ -236,7 +237,7 @@ public class AssignerTest {
     when(snapshot.all()).thenReturn(accounts);
 
     // Act
-    LightChainValidatorAssigner assigner = new LightChainValidatorAssigner();
+    Assigner assigner = new Assigner();
     Assignment assignment = assigner.assign(entityId, snapshot, (short) 0);
 
     // Assert

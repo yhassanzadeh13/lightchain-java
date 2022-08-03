@@ -17,7 +17,7 @@ import model.lightchain.*;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import protocol.Parameters;
-import protocol.assigner.ValidatorAssigner;
+import protocol.assigner.AssignerInf;
 import state.Snapshot;
 import state.State;
 import storage.Blocks;
@@ -511,7 +511,7 @@ public class IngestEngineTest {
   public void testNeitherBlockNorTransaction() {
     // R
     Transactions pendingTransactions = mock(Transactions.class);
-    ValidatorAssigner assigner = mock(ValidatorAssigner.class);
+    AssignerInf assigner = mock(AssignerInf.class);
     Identifiers transactionIds = mock(Identifiers.class);
     Blocks blocks = mock(Blocks.class);
     State state = mock(State.class);
@@ -728,7 +728,7 @@ public class IngestEngineTest {
       Blocks blocks) {
 
     Snapshot snapshot = mock(Snapshot.class);
-    ValidatorAssigner assigner = mock(ValidatorAssigner.class);
+    AssignerInf assigner = mock(AssignerInf.class);
     State state = mock(State.class);
 
     for (Entity e : entities) {
@@ -810,7 +810,7 @@ public class IngestEngineTest {
    * @param e        the entity to be assigned.
    * @param snapshot the snapshot.
    */
-  private void mockAssignment(ValidatorAssigner assigner, Entity e, Snapshot snapshot) {
+  private void mockAssignment(AssignerInf assigner, Entity e, Snapshot snapshot) {
     Assignment assignment = mock(Assignment.class);
     when(assigner.assign(e.id(), snapshot, Parameters.VALIDATOR_THRESHOLD)).thenReturn(assignment);
     when(assignment.has(any(Identifier.class))).thenReturn(true); // returns true for all identifiers
