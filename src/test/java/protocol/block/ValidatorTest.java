@@ -1,5 +1,7 @@
 package protocol.block;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -277,7 +279,8 @@ public class ValidatorTest {
         .thenReturn(proposerAccount);
     when(mockSnapshot.getAccount(proposer)
         .getPublicKey()
-        .verifySignature(block, block.getSignature()))
+        // TODO: change to exact block once we have header and body decoupled. 
+        .verifySignature(any(Block.class), eq(block.getSignature())))
         .thenReturn(true);
 
     /// Verifier
