@@ -15,7 +15,6 @@ import org.junit.jupiter.api.Test;
 import protocol.Parameters;
 import protocol.block.BlockValidator;
 import state.Snapshot;
-import state.State;
 import storage.Blocks;
 import unittest.fixtures.*;
 
@@ -61,7 +60,6 @@ public class ProposerEngineTest {
     } catch (LightChainNetworkingException e) {
       Assertions.fail();
     }
-
 
     ProposerEngine proposerEngine = new ProposerEngine(params);
     proposerEngine.onNewValidatedBlock(currentBlock.id());
@@ -171,7 +169,6 @@ public class ProposerEngineTest {
     doThrow(new LightChainNetworkingException("exception", new Throwable())).when(params.proposedConduit)
         .unicast(any(Entity.class), any(Identifier.class));
 
-
     ProposerEngine proposerEngine = new ProposerEngine(params);
 
     Assertions.assertThrows(IllegalStateException.class, () -> {
@@ -198,8 +195,6 @@ public class ProposerEngineTest {
     ArrayList<Account> accounts = AccountFixture.newAccounts(10);
     params.mockSnapshotAtBlock(accounts, proposedBlock.getPreviousBlockId());
 
-
-    // Verification.
     ProposerEngine proposerEngine = new ProposerEngine(params);
 
     try {
@@ -246,8 +241,6 @@ public class ProposerEngineTest {
     ArrayList<Account> accounts = AccountFixture.newAccounts(10);
     params.mockSnapshotAtBlock(accounts, proposedBlock.getPreviousBlockId());
 
-
-    // Verification.
     ProposerEngine proposerEngine = new ProposerEngine(params);
 
     try {

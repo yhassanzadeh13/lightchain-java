@@ -15,8 +15,8 @@ import network.Network;
 import org.apache.commons.compress.utils.Lists;
 import protocol.Engine;
 import protocol.Parameters;
-import protocol.assigner.ProposerAssignerInf;
-import protocol.assigner.ValidatorAssignerInf;
+import protocol.assigner.ProposerAssigner;
+import protocol.assigner.ValidatorAssigner;
 import state.Snapshot;
 import state.State;
 import storage.Blocks;
@@ -25,10 +25,16 @@ import unittest.fixtures.IdentifierFixture;
 import unittest.fixtures.LocalFixture;
 import unittest.fixtures.ValidatedTransactionFixture;
 
+/**
+ * Encapsulates mocked version of the proposer parameters for testing.
+ */
 public class ProposerParameterFixture extends ProposerParameters {
   public Conduit proposedConduit;
   public Conduit validatedConduit;
 
+  /**
+   * Default constructor of this fixture, sets everything to mock.
+   */
   public ProposerParameterFixture() {
     super();
 
@@ -37,8 +43,8 @@ public class ProposerParameterFixture extends ProposerParameters {
     this.state = mock(State.class);
     this.local = LocalFixture.newLocal();
     this.network = mock(Network.class);
-    this.validatorAssigner = mock(ValidatorAssignerInf.class);
-    this.proposerAssigner = mock(ProposerAssignerInf.class);
+    this.validatorAssigner = mock(ValidatorAssigner.class);
+    this.proposerAssigner = mock(ProposerAssigner.class);
 
     this.proposedConduit = mock(Conduit.class);
     this.validatedConduit = mock(Conduit.class);
@@ -46,11 +52,20 @@ public class ProposerParameterFixture extends ProposerParameters {
     when(network.register(any(Engine.class), eq(Channels.ValidatedBlocks))).thenReturn(this.validatedConduit);
   }
 
-
+  /**
+   * Mocks existence of the given block in the blocks storage of this fixture.
+   *
+   * @param block block to be mocked for existence.
+   */
   public void mockBlocksStorageForBlock(Block block) {
     when(blocks.byId(block.id())).thenReturn(block);
   }
 
+  /**
+   * Mocks the current node of this fixture as the proposer of the next block, given the current block.
+   *
+   * @param currentBlock the current block for which the next block is proposed.
+   */
   public void mockIdAsNextBlockProposer(Block currentBlock) {
     Snapshot snapshot = mock(Snapshot.class);
     when(this.state.atBlockId(currentBlock.id())).thenReturn(snapshot);
@@ -61,6 +76,11 @@ public class ProposerParameterFixture extends ProposerParameters {
     when(this.proposerAssigner.nextBlockProposer(currentBlock.id(), snapshot)).thenReturn(this.local.myId());
   }
 
+  /**
+   * Mocks a different random node (than the current node of this fixture) as the proposer of the next block, given the current block.
+   *
+   * @param currentBlock the current block for which the next block is proposed.
+   */
   public void mockDifferentNodeAsNextBlockProposer(Block currentBlock) {
     Snapshot snapshot = mock(Snapshot.class);
     when(this.state.atBlockId(currentBlock.id())).thenReturn(snapshot);
@@ -71,6 +91,11 @@ public class ProposerParameterFixture extends ProposerParameters {
     when(this.proposerAssigner.nextBlockProposer(currentBlock.id(), snapshot)).thenReturn(IdentifierFixture.newIdentifier());
   }
 
+  /**
+   * Mocks given identifiers as the result of any validator assignment on the validator assigner of this fixture.
+   *
+   * @param validators list of validators identifiers.
+   */
   public void mockValidatorAssigner(ArrayList<Identifier> validators) {
     Assignment assignment = new Assignment();
     for (Identifier validator : validators) {
@@ -79,10 +104,21 @@ public class ProposerParameterFixture extends ProposerParameters {
     when(this.validatorAssigner.getValidatorsAtSnapshot(any(Identifier.class), any(Snapshot.class))).thenReturn(assignment);
   }
 
+  /**
+   * Mocks blocks storage of this fixture with given block as the "last proposed block".
+   *
+   * @param block given block to be mocked as the last proposed block.
+   */
   public void mockProposedBlock(Block block) {
     when(this.blocks.byTag(Blocks.TAG_LAST_PROPOSED_BLOCK)).thenReturn(block);
   }
 
+  /**
+   * Mocks state of this fixture with the given accounts at the given block id.
+   *
+   * @param accounts accounts to mock the state with.
+   * @param blockId block id corresponding to the state snapshot for these accounts.
+   */
   public void mockSnapshotAtBlock(ArrayList<Account> accounts, Identifier blockId) {
     Snapshot snapshot = mock(Snapshot.class);
     when(this.state.atBlockId(blockId)).thenReturn(snapshot);
@@ -93,7 +129,6 @@ public class ProposerParameterFixture extends ProposerParameters {
    * Generates validated transaction fixtures and mock a Transactions storage with it.
    *
    * @param count total validated transactions to be created.
-   * @return a Transactions storage which mocked with validated transactions.
    */
   public void mockValidatedTransactions(int count) {
     ValidatedTransaction[] transactions = ValidatedTransactionFixture.newValidatedTransactions(count);

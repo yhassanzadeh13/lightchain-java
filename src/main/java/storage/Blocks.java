@@ -5,7 +5,6 @@ import java.util.ArrayList;
 import model.lightchain.Block;
 import model.lightchain.Identifier;
 
-
 /**
  * Persistent module for storing blocks on the disk.
  */

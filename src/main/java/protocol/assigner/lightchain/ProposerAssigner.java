@@ -8,11 +8,13 @@ import model.lightchain.Assignment;
 import model.lightchain.Identifier;
 import protocol.Tags;
 import protocol.assigner.AssignerInf;
-import protocol.assigner.ProposerAssignerInf;
 import state.Snapshot;
 
+/**
+ * Implements assigner logic for the next block proposer.
+ */
 // TODO: develop tests for this class.
-public class ProposerAssigner implements ProposerAssignerInf {
+public class ProposerAssigner implements protocol.assigner.ProposerAssigner {
   private final AssignerInf assigner;
 
   public ProposerAssigner() {

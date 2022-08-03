@@ -9,11 +9,13 @@ import model.lightchain.Identifier;
 import protocol.Parameters;
 import protocol.Tags;
 import protocol.assigner.AssignerInf;
-import protocol.assigner.ValidatorAssignerInf;
 import state.Snapshot;
 
+/**
+ * Implements assigner logic for the validators of an entity.
+ */
 // TODO: this class should be covered with testing.
-public class ValidatorAssigner implements ValidatorAssignerInf {
+public class ValidatorAssigner implements protocol.assigner.ValidatorAssigner {
   private final AssignerInf assigner;
 
   public ValidatorAssigner() {

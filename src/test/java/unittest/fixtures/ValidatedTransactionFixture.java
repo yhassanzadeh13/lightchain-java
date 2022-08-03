@@ -90,12 +90,12 @@ public class ValidatedTransactionFixture {
   /**
    * Creates array of validated transactions.
    *
-   * @param count    total transactions to be created.
+   * @param count total transactions to be created.
    * @return array of validated transactions.
    */
   public static ValidatedTransaction[] newValidatedTransactions(int count) {
     ValidatedTransaction[] transactions = new ValidatedTransaction[count];
-    for(int i = 0; i < count; i++) {
+    for (int i = 0; i < count; i++) {
       transactions[i] = newValidatedTransaction();
     }
 

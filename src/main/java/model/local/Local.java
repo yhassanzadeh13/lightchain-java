@@ -15,6 +15,13 @@ public class Local {
   private final PrivateKey sk;
   private final PublicKey pk;
 
+  /**
+   * Constructor.
+   *
+   * @param id identifier of the node.
+   * @param sk private key (i.e., secret key of the node).
+   * @param pk public key of the node.
+   */
   public Local(Identifier id, PrivateKey sk, PublicKey pk) {
     this.id = id;
     this.sk = sk;

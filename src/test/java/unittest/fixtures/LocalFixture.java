@@ -1,7 +1,6 @@
 package unittest.fixtures;
 
 import model.crypto.KeyGen;
-import model.crypto.PrivateKey;
 import model.lightchain.Identifier;
 import model.local.Local;
 

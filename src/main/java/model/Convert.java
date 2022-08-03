@@ -14,7 +14,7 @@ public class Convert {
    * @param entities array of entities.
    * @return list of their identifiers.
    */
-  public static Identifiers IdentifierOf(Entity[] entities) {
+  public static Identifiers identifierOf(Entity[] entities) {
     Identifiers ids = new Identifiers();
 
     for (Entity e : entities) {
@@ -30,7 +30,7 @@ public class Convert {
    * @param entities array of entities.
    * @return list of their identifiers.
    */
-  public static Identifiers IdentifierOf(ArrayList<Entity> entities) {
+  public static Identifiers identifierOf(ArrayList<Entity> entities) {
     Identifiers ids = new Identifiers();
 
     for (Entity e : entities) {

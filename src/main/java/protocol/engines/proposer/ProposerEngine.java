@@ -20,8 +20,8 @@ import org.apache.logging.log4j.Logger;
 import protocol.Engine;
 import protocol.NewBlockSubscriber;
 import protocol.Parameters;
-import protocol.assigner.ProposerAssignerInf;
-import protocol.assigner.ValidatorAssignerInf;
+import protocol.assigner.ProposerAssigner;
+import protocol.assigner.ValidatorAssigner;
 import state.Snapshot;
 import state.State;
 import storage.Blocks;
@@ -40,8 +40,8 @@ public class ProposerEngine implements NewBlockSubscriber, Engine {
   private final Conduit proposerCon;
   private final Conduit validatedCon;
   private final Network network;
-  private final ProposerAssignerInf proposerAssigner;
-  private final ValidatorAssignerInf validatorAssigner;
+  private final ProposerAssigner proposerAssigner;
+  private final ValidatorAssigner validatorAssigner;
   private final ArrayList<BlockApproval> approvals;
 
 
@@ -99,7 +99,9 @@ public class ProposerEngine implements NewBlockSubscriber, Engine {
       // sanity checks that there is no pending last proposed block at this node
       Block lastProposedBlock = this.blocks.byTag(Blocks.TAG_LAST_PROPOSED_BLOCK);
       if (lastProposedBlock != null) {
-        throw new IllegalStateException("received validated block while having a pending proposed block: " + blockId + " pending: " + lastProposedBlock.id());
+        throw new IllegalStateException("received validated block while having a pending proposed one, "
+            + " received_block_id: " + blockId
+            + " pending_block_id: " + lastProposedBlock.id());
       }
 
       Identifier nextBlockBlockProposerId = this.proposerAssigner.nextBlockProposer(blockId, state.atBlockId(blockId));
@@ -118,13 +120,12 @@ public class ProposerEngine implements NewBlockSubscriber, Engine {
 
       ValidatedTransaction[] transactions = this.collectTransactionsForBlock(Parameters.MIN_TRANSACTIONS_NUM);
       this.logger.debug("total_transactions: {}, transactions_ids {}, pending validated transactions collected for the next block",
-          transactions.length, Convert.IdentifierOf(transactions));
+          transactions.length, Convert.identifierOf(transactions));
 
       Block nextProposedBlock = new Block(blockId, local.myId(), retrievedBlock.getHeight() + 1, transactions);
       Signature sign = local.signEntity(nextProposedBlock);
       nextProposedBlock.setSignature(sign);
       this.logger.info("block_id: {}, processed next block successfully", nextProposedBlock.id());
-
 
       Assignment validators = this.validatorAssigner.getValidatorsAtSnapshot(nextProposedBlock.id(), this.state.atBlockId(blockId));
 
