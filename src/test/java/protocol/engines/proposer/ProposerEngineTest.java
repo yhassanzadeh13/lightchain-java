@@ -119,7 +119,7 @@ public class ProposerEngineTest {
 
     ProposerParameterFixture params = new ProposerParameterFixture();
     // mocks proposer engine has an existing block
-    params.mockProposedBlock(BlockFixture.newBlock());
+    params.mockBlockProposal(BlockFixture.newBlock());
     params.mockBlocksStorageForBlock(block);
 
     ProposerEngine proposerEngine = new ProposerEngine(params);
@@ -191,7 +191,7 @@ public class ProposerEngineTest {
         params.local.myId(),
         100,
         ValidatedTransactionFixture.newValidatedTransactions(10));
-    params.mockProposedBlock(proposedBlock);
+    params.mockBlockProposal(proposedBlock);
     ArrayList<Account> accounts = AccountFixture.newAccounts(10);
     params.mockSnapshotAtBlock(accounts, proposedBlock.getPreviousBlockId());
 
@@ -202,7 +202,7 @@ public class ProposerEngineTest {
         ValidatedBlock block = invocationOnMock.getArgument(0, ValidatedBlock.class);
 
         // checks whether block is correct and authenticated.
-        Assertions.assertTrue(params.local.myPublicKey().verifySignature(proposedBlock, block.getSignature()));
+        Assertions.assertTrue(params.local.myPublicKey().verifySignature(proposedBlock, block.getProposerSignature()));
         // checks all fields of validated block matches with proposed block
         // TODO: also check for certificaties.
         Assertions.assertEquals(proposedBlock.getPreviousBlockId(), block.getPreviousBlockId());
@@ -237,7 +237,7 @@ public class ProposerEngineTest {
         params.local.myId(),
         100,
         ValidatedTransactionFixture.newValidatedTransactions(10));
-    params.mockProposedBlock(proposedBlock);
+    params.mockBlockProposal(proposedBlock);
     ArrayList<Account> accounts = AccountFixture.newAccounts(10);
     params.mockSnapshotAtBlock(accounts, proposedBlock.getPreviousBlockId());
 
@@ -248,7 +248,7 @@ public class ProposerEngineTest {
         ValidatedBlock block = invocationOnMock.getArgument(0, ValidatedBlock.class);
 
         // checks whether block is correct and authenticated.
-        Assertions.assertTrue(params.local.myPublicKey().verifySignature(proposedBlock, block.getSignature()));
+        Assertions.assertTrue(params.local.myPublicKey().verifySignature(proposedBlock, block.getProposerSignature()));
         // checks all fields of validated block matches with proposed block
         // TODO: also check for certificaties.
         Assertions.assertEquals(proposedBlock.getPreviousBlockId(), block.getPreviousBlockId());
@@ -308,7 +308,7 @@ public class ProposerEngineTest {
   @Test
   public void approvalMismatchesProposedBlock() {
     ProposerParameterFixture params = new ProposerParameterFixture();
-    params.mockProposedBlock(BlockFixture.newBlock());
+    params.mockBlockProposal(BlockFixture.newBlock());
     ProposerEngine engine = new ProposerEngine(params);
 
     Assertions.assertThrows(IllegalStateException.class, () -> {

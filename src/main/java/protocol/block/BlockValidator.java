@@ -49,7 +49,7 @@ public class BlockValidator implements InfBlockValidator {
       // no valid snapshot exists for the parent block.
       return false;
     }
-    Identifier proposer = block.getProposer();
+    Identifier proposer = block.getProposerId();
     if (snapshot.getAccount(proposer) == null) {
       // proposer of this block is not a valid account.
       return false;
@@ -83,14 +83,14 @@ public class BlockValidator implements InfBlockValidator {
   @Override
   public boolean isAuthenticated(Block block) {
     Snapshot snapshot = state.atBlockId(block.getPreviousBlockId());
-    Account account = snapshot.getAccount(block.getProposer());
+    Account account = snapshot.getAccount(block.getProposerId());
     PublicKey publicKey = account.getPublicKey();
     return publicKey.verifySignature(
         // Note: casting block into a new block that includes all fields EXCEPT signature, hence the block identifier
         // is correctly computed as the identifier at the signature time.
         // TODO: decoupling block into body + signature.
-        new Block(block.getPreviousBlockId(), block.getProposer(), block.getHeight(), block.getTransactions()),
-        block.getSignature());
+        block.getProposal(),
+        block.getProposerSignature());
   }
 
   /**
@@ -104,7 +104,7 @@ public class BlockValidator implements InfBlockValidator {
   @Override
   public boolean proposerHasEnoughStake(Block block) {
     return state.atBlockId(block.getPreviousBlockId())
-        .getAccount(block.getProposer())
+        .getAccount(block.getProposerId())
         .getStake() >= Parameters.MINIMUM_STAKE;
   }
 

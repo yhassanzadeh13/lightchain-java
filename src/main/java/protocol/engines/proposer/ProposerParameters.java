@@ -5,6 +5,7 @@ import network.Network;
 import protocol.assigner.ProposerAssigner;
 import protocol.assigner.ValidatorAssigner;
 import state.State;
+import storage.BlockProposals;
 import storage.Blocks;
 import storage.Transactions;
 
@@ -19,6 +20,7 @@ public class ProposerParameters {
   public Network network;
   public ValidatorAssigner validatorAssigner;
   public ProposerAssigner proposerAssigner;
+  public BlockProposals blockProposals;
 
   public ProposerParameters() {
   }

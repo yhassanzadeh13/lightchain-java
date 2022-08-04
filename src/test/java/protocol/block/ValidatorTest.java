@@ -247,7 +247,7 @@ public class ValidatorTest {
         .thenReturn(proposerAccount);
     when(mockSnapshot.getAccount(proposer)
         .getPublicKey()
-        .verifySignature(block, block.getSignature())).thenReturn(false);
+        .verifySignature(block, block.getProposerSignature())).thenReturn(false);
 
     /// Verifier
     InfBlockValidator validator = new BlockValidator(mockState);
@@ -279,8 +279,8 @@ public class ValidatorTest {
         .thenReturn(proposerAccount);
     when(mockSnapshot.getAccount(proposer)
         .getPublicKey()
-        // TODO: change to exact block once we have header and body decoupled. 
-        .verifySignature(any(Block.class), eq(block.getSignature())))
+        // TODO: change to exact block once we have header and body decoupled.
+        .verifySignature(any(Block.class), eq(block.getProposerSignature())))
         .thenReturn(true);
 
     /// Verifier

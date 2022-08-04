@@ -19,6 +19,7 @@ import protocol.assigner.ProposerAssigner;
 import protocol.assigner.ValidatorAssigner;
 import state.Snapshot;
 import state.State;
+import storage.BlockProposals;
 import storage.Blocks;
 import storage.Transactions;
 import unittest.fixtures.IdentifierFixture;
@@ -45,6 +46,7 @@ public class ProposerParameterFixture extends ProposerParameters {
     this.network = mock(Network.class);
     this.validatorAssigner = mock(ValidatorAssigner.class);
     this.proposerAssigner = mock(ProposerAssigner.class);
+    this.blockProposals = mock(BlockProposals.class);
 
     this.proposedConduit = mock(Conduit.class);
     this.validatedConduit = mock(Conduit.class);
@@ -105,12 +107,12 @@ public class ProposerParameterFixture extends ProposerParameters {
   }
 
   /**
-   * Mocks blocks storage of this fixture with given block as the "last proposed block".
+   * Mocks BlockProposal storage of this fixture with given BlockProposal as the "last proposed block".
    *
-   * @param block given block to be mocked as the last proposed block.
+   * @param proposal given BlockProposal to be mocked as the last proposed block.
    */
-  public void mockProposedBlock(Block block) {
-    when(this.blocks.byTag(Blocks.TAG_LAST_PROPOSED_BLOCK)).thenReturn(block);
+  public void mockBlockProposal(BlockProposal proposal) {
+    when(this.blockProposals.GetLastProposal()).thenReturn(proposal);
   }
 
   /**

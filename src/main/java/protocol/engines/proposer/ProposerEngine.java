@@ -14,7 +14,6 @@ import model.lightchain.*;
 import model.local.Local;
 import network.Channels;
 import network.Conduit;
-import network.Network;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import protocol.Engine;
@@ -24,6 +23,7 @@ import protocol.assigner.ProposerAssigner;
 import protocol.assigner.ValidatorAssigner;
 import state.Snapshot;
 import state.State;
+import storage.BlockProposals;
 import storage.Blocks;
 import storage.Transactions;
 
@@ -39,11 +39,10 @@ public class ProposerEngine implements NewBlockSubscriber, Engine {
   private final State state;
   private final Conduit proposerCon;
   private final Conduit validatedCon;
-  private final Network network;
   private final ProposerAssigner proposerAssigner;
   private final ValidatorAssigner validatorAssigner;
   private final ArrayList<BlockApproval> approvals;
-
+  private final BlockProposals blockProposals;
 
   /**
    * Constructor.
@@ -56,15 +55,15 @@ public class ProposerEngine implements NewBlockSubscriber, Engine {
     this.blocks = parameters.blocks;
     this.pendingTransactions = parameters.pendingTransactions;
     this.state = parameters.state;
-    this.network = parameters.network;
     this.proposerAssigner = parameters.proposerAssigner;
     this.validatorAssigner = parameters.validatorAssigner;
+    this.blockProposals = parameters.blockProposals;
 
     this.approvals = new ArrayList<>();
     this.logger = LogManager.getLogger(ProposerEngine.class.getName());
 
-    proposerCon = network.register(this, Channels.ProposedBlocks);
-    validatedCon = network.register(this, Channels.ValidatedBlocks);
+    proposerCon = parameters.network.register(this, Channels.ProposedBlocks);
+    validatedCon = parameters.network.register(this, Channels.ValidatedBlocks);
   }
 
   /**
@@ -78,7 +77,7 @@ public class ProposerEngine implements NewBlockSubscriber, Engine {
    * sends it to the validators. If it does not have minimum number of validated transactions, it waits till it
    * the minimum number is satisfied.
    *
-   * @param blockId     identifier of block.
+   * @param blockId identifier of block.
    * @throws IllegalStateException    when it receives a new validated block while it is pending for its previously
    *                                  proposed block to get validated.
    * @throws IllegalArgumentException when its parameters do not match a validated block from database.
@@ -97,7 +96,7 @@ public class ProposerEngine implements NewBlockSubscriber, Engine {
       lock.lock();
 
       // sanity checks that there is no pending last proposed block at this node
-      Block lastProposedBlock = this.blocks.byTag(Blocks.TAG_LAST_PROPOSED_BLOCK);
+      BlockProposal lastProposedBlock = this.blockProposals.GetLastProposal();
       if (lastProposedBlock != null) {
         throw new IllegalStateException("received validated block while having a pending proposed one, "
             + " received_block_id: " + blockId
@@ -122,9 +121,14 @@ public class ProposerEngine implements NewBlockSubscriber, Engine {
       this.logger.debug("total_transactions: {}, transactions_ids {}, pending validated transactions collected for the next block",
           transactions.length, Convert.identifierOf(transactions));
 
-      Block nextProposedBlock = new Block(blockId, local.myId(), retrievedBlock.getHeight() + 1, transactions);
-      Signature sign = local.signEntity(nextProposedBlock);
-      nextProposedBlock.setSignature(sign);
+      BlockPayload nextBlockPayload = new BlockPayload(transactions);
+      BlockHeader nextBlockHeader = new BlockHeader(
+          retrievedBlock.getHeight() + 1,
+          retrievedBlock.id(),
+          local.myId(),
+          nextBlockPayload.id());
+      Signature proposerSignature = local.signEntity(nextBlockHeader);
+      BlockProposal nextProposedBlock = new BlockProposal(nextBlockHeader, nextBlockPayload, proposerSignature);
       this.logger.info("block_id: {}, processed next block successfully", nextProposedBlock.id());
 
       Assignment validators = this.validatorAssigner.getValidatorsAtSnapshot(nextProposedBlock.id(), this.state.atBlockId(blockId));
@@ -140,7 +144,7 @@ public class ProposerEngine implements NewBlockSubscriber, Engine {
         }
       }
 
-      this.blocks.writeTag(Blocks.TAG_LAST_PROPOSED_BLOCK, nextProposedBlock);
+      this.blockProposals.SetLastProposal(nextProposedBlock);
     } finally {
       lock.unlock();
     }
@@ -167,44 +171,39 @@ public class ProposerEngine implements NewBlockSubscriber, Engine {
     try {
       this.lock.lock();
       // sanity checks that there is no pending last proposed block at this node
-      Block lastProposedBlock = this.blocks.byTag(Blocks.TAG_LAST_PROPOSED_BLOCK);
-      if (lastProposedBlock == null) {
+      BlockProposal lastBlockProposal = this.blockProposals.GetLastProposal();
+      if (lastBlockProposal == null) {
         throw new IllegalStateException("received block approval while there is no last proposed block, approval id: " + approval.blockId);
       }
 
-      if (!lastProposedBlock.id().equals(approval.blockId)) {
-        throw new IllegalStateException("conflicting block approval id, last proposed block: " + lastProposedBlock.id()
+      if (!lastBlockProposal.id().equals(approval.blockId)) {
+        throw new IllegalStateException("conflicting block approval id, last proposed block: " + lastBlockProposal.id()
             + " approval id: " + approval.blockId);
       }
       // TODO: verify signature of the approval and the fact that it is coming from an assigned validator before adding to database.
       approvals.add(approval);
       if (approvals.size() >= Parameters.VALIDATOR_THRESHOLD) {
-        Signature[] signs = new Signature[Parameters.VALIDATOR_THRESHOLD];
+        Signature[] certificates = new Signature[Parameters.VALIDATOR_THRESHOLD];
         for (int i = 0; i < approvals.size(); i++) {
-          signs[i] = approvals.get(i).getSignature();
+          certificates[i] = approvals.get(i).getSignature();
         }
-        ValidatedBlock validatedBlock = new ValidatedBlock(
-            lastProposedBlock.getPreviousBlockId(),
-            lastProposedBlock.getProposer(),
-            lastProposedBlock.getTransactions(),
-            local.signEntity(lastProposedBlock),
-            signs,
-            lastProposedBlock.getHeight());
+        Block nextBlock = new Block(lastBlockProposal, certificates);
 
-        Snapshot snapshot = state.atBlockId(lastProposedBlock.getPreviousBlockId());
+
+        Snapshot snapshot = state.atBlockId(lastBlockProposal.getPreviousBlockId());
 
         for (Account account : snapshot.all()) {
           try {
             // TODO: replace with broadcast.
-            validatedCon.unicast(validatedBlock, account.getIdentifier());
+            validatedCon.unicast(nextBlock, account.getIdentifier());
           } catch (LightChainNetworkingException ex) {
             this.logger.fatal("target_id {}, exception {}, could not send block to target",
                 account.getIdentifier(), Arrays.toString(ex.getStackTrace()));
           }
         }
         approvals.clear();
-        blocks.clearTag(Blocks.TAG_LAST_PROPOSED_BLOCK);
-        this.logger.info("block_id: {}, next proposed and validated block has been sent to all nodes", validatedBlock.id());
+        this.blockProposals.ClearLastProposal();
+        this.logger.info("block_id: {}, next proposed and validated block has been sent to all nodes", nextBlock.id());
       }
     } finally {
       this.lock.unlock();
