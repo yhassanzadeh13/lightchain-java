@@ -37,11 +37,21 @@ public class BlockFixture {
    * @return a new random block header.
    */
   public static BlockHeader newBlockHeader() {
+    return newBlockHeader(IdentifierFixture.newIdentifier());
+  }
+
+  /**
+   * Creates a new random block header.
+   *
+   * @param proposerId identifier of proposer.
+   * @return a new random block header.
+   */
+  public static BlockHeader newBlockHeader(Identifier proposerId) {
     int height = Math.abs(random.nextInt(1_000_000));
     return new BlockHeader(
         height,
         IdentifierFixture.newIdentifier(),
-        IdentifierFixture.newIdentifier(),
+        proposerId,
         IdentifierFixture.newIdentifier());
   }
 
@@ -51,7 +61,17 @@ public class BlockFixture {
    * @return a new block proposal with random header and payload.
    */
   public static BlockProposal newBlockProposal() {
-    return new BlockProposal(newBlockHeader(), newBlockPayload(), SignatureFixture.newSignatureFixture());
+    return newBlockProposal(IdentifierFixture.newIdentifier());
+  }
+
+  /**
+   * Creates a new block proposal with random header and payload.
+   *
+   * @param proposerId identifier of proposer.
+   * @return a new block proposal with random header and payload.
+   */
+  public static BlockProposal newBlockProposal(Identifier proposerId) {
+    return new BlockProposal(newBlockHeader(proposerId), newBlockPayload(), SignatureFixture.newSignatureFixture());
   }
 
   /**
@@ -93,7 +113,7 @@ public class BlockFixture {
   /**
    * Returns a block with randomly generated values and given validated transactions.
    *
-   * @param transactions validated transactions to be included in the block. 
+   * @param transactions validated transactions to be included in the block.
    * @return a block with randomly generated values.
    */
   public static Block newBlock(ValidatedTransaction[] transactions) {

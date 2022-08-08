@@ -15,7 +15,6 @@ import org.junit.jupiter.api.Test;
 import protocol.Parameters;
 import protocol.block.BlockValidator;
 import state.Snapshot;
-import storage.Blocks;
 import unittest.fixtures.*;
 
 /**
@@ -83,7 +82,7 @@ public class ProposerEngineTest {
     ProposerParameterFixture params = new ProposerParameterFixture();
     params.mockBlocksStorageForBlock(block);
     // mocks an existing proposed block.
-    when(params.blocks.byTag(Blocks.TAG_LAST_PROPOSED_BLOCK)).thenReturn(BlockFixture.newBlock());
+    when(params.blockProposals.GetLastProposal()).thenReturn(BlockFixture.newBlockProposal());
 
     ProposerEngine engine = new ProposerEngine(params);
     Assertions.assertThrows(IllegalStateException.class, () -> {
@@ -119,7 +118,7 @@ public class ProposerEngineTest {
 
     ProposerParameterFixture params = new ProposerParameterFixture();
     // mocks proposer engine has an existing block
-    params.mockBlockProposal(BlockFixture.newBlock());
+    params.mockBlockProposal(BlockFixture.newBlockProposal());
     params.mockBlocksStorageForBlock(block);
 
     ProposerEngine proposerEngine = new ProposerEngine(params);
@@ -175,8 +174,8 @@ public class ProposerEngineTest {
       proposerEngine.onNewValidatedBlock(currentBlock.id());
     });
 
-    // proposed block should never make persistent
-    verify(params.blocks, never()).writeTag(eq(Blocks.TAG_LAST_PROPOSED_BLOCK), any(Block.class));
+    // block proposal should never make persistent
+    verify(params.blockProposals, never()).SetLastProposal(any(BlockProposal.class));
   }
 
   /**
@@ -186,14 +185,10 @@ public class ProposerEngineTest {
   @Test
   public void enoughBlockApproval() throws LightChainNetworkingException {
     ProposerParameterFixture params = new ProposerParameterFixture();
-    Block proposedBlock = new Block(
-        IdentifierFixture.newIdentifier(),
-        params.local.myId(),
-        100,
-        ValidatedTransactionFixture.newValidatedTransactions(10));
-    params.mockBlockProposal(proposedBlock);
+    BlockProposal proposal = BlockFixture.newBlockProposal(params.local.myId());
+    params.mockBlockProposal(proposal);
     ArrayList<Account> accounts = AccountFixture.newAccounts(10);
-    params.mockSnapshotAtBlock(accounts, proposedBlock.getPreviousBlockId());
+    params.mockSnapshotAtBlock(accounts, proposal.getPreviousBlockId());
 
     ProposerEngine proposerEngine = new ProposerEngine(params);
 
@@ -202,13 +197,13 @@ public class ProposerEngineTest {
         ValidatedBlock block = invocationOnMock.getArgument(0, ValidatedBlock.class);
 
         // checks whether block is correct and authenticated.
-        Assertions.assertTrue(params.local.myPublicKey().verifySignature(proposedBlock, block.getProposerSignature()));
-        // checks all fields of validated block matches with proposed block
+        Assertions.assertTrue(params.local.myPublicKey().verifySignature(proposal, block.getProposerSignature()));
+        // checks all fields of validated block matches with block proposal.
         // TODO: also check for certificaties.
-        Assertions.assertEquals(proposedBlock.getPreviousBlockId(), block.getPreviousBlockId());
-        Assertions.assertEquals(proposedBlock.getProposer(), params.local.myId());
-        Assertions.assertArrayEquals(proposedBlock.getTransactions(), block.getTransactions());
-        Assertions.assertEquals(proposedBlock.getHeight(), block.getHeight());
+        Assertions.assertEquals(proposal.getPreviousBlockId(), block.getPreviousBlockId());
+        Assertions.assertEquals(proposal.getProposerId(), params.local.myId());
+        Assertions.assertArrayEquals(proposal.getTransactions(), block.getTransactions());
+        Assertions.assertEquals(proposal.getHeight(), block.getHeight());
 
         return null;
       }).when(params.validatedConduit).unicast(any(ValidatedBlock.class), any(Identifier.class));
@@ -217,7 +212,7 @@ public class ProposerEngineTest {
     }
 
     for (int i = 0; i < Parameters.VALIDATOR_THRESHOLD; i++) {
-      BlockApproval blockApproval = new BlockApproval(SignatureFixture.newSignatureFixture(), proposedBlock.id());
+      BlockApproval blockApproval = new BlockApproval(SignatureFixture.newSignatureFixture(), proposal.id());
       proposerEngine.process(blockApproval);
     }
 
@@ -232,14 +227,11 @@ public class ProposerEngineTest {
   @Test
   public void enoughBlockApprovalConcurrently() throws LightChainNetworkingException, InterruptedException {
     ProposerParameterFixture params = new ProposerParameterFixture();
-    Block proposedBlock = new Block(
-        IdentifierFixture.newIdentifier(),
-        params.local.myId(),
-        100,
-        ValidatedTransactionFixture.newValidatedTransactions(10));
-    params.mockBlockProposal(proposedBlock);
+    BlockProposal proposal = BlockFixture.newBlockProposal(params.local.myId());
+
+    params.mockBlockProposal(proposal);
     ArrayList<Account> accounts = AccountFixture.newAccounts(10);
-    params.mockSnapshotAtBlock(accounts, proposedBlock.getPreviousBlockId());
+    params.mockSnapshotAtBlock(accounts, proposal.getPreviousBlockId());
 
     ProposerEngine proposerEngine = new ProposerEngine(params);
 
@@ -247,14 +239,14 @@ public class ProposerEngineTest {
       doAnswer(invocationOnMock -> {
         ValidatedBlock block = invocationOnMock.getArgument(0, ValidatedBlock.class);
 
-        // checks whether block is correct and authenticated.
-        Assertions.assertTrue(params.local.myPublicKey().verifySignature(proposedBlock, block.getProposerSignature()));
-        // checks all fields of validated block matches with proposed block
+        // checks whether block proposal is correct and authenticated.
+        Assertions.assertTrue(params.local.myPublicKey().verifySignature(proposal, block.getProposerSignature()));
+        // checks all fields of validated block matches with block proposal.
         // TODO: also check for certificaties.
-        Assertions.assertEquals(proposedBlock.getPreviousBlockId(), block.getPreviousBlockId());
-        Assertions.assertEquals(proposedBlock.getProposer(), params.local.myId());
-        Assertions.assertArrayEquals(proposedBlock.getTransactions(), block.getTransactions());
-        Assertions.assertEquals(proposedBlock.getHeight(), block.getHeight());
+        Assertions.assertEquals(proposal.getPreviousBlockId(), block.getPreviousBlockId());
+        Assertions.assertEquals(proposal.getProposerId(), params.local.myId());
+        Assertions.assertArrayEquals(proposal.getTransactions(), block.getTransactions());
+        Assertions.assertEquals(proposal.getHeight(), block.getHeight());
 
         return null;
       }).when(params.validatedConduit).unicast(any(ValidatedBlock.class), any(Identifier.class));
@@ -265,7 +257,7 @@ public class ProposerEngineTest {
     CountDownLatch processApprovalCd = new CountDownLatch(10);
     for (int i = 0; i < Parameters.VALIDATOR_THRESHOLD; i++) {
       new Thread(() -> {
-        final BlockApproval blockApproval = new BlockApproval(SignatureFixture.newSignatureFixture(), proposedBlock.id());
+        final BlockApproval blockApproval = new BlockApproval(SignatureFixture.newSignatureFixture(), proposal.id());
         proposerEngine.process(blockApproval);
         processApprovalCd.countDown();
       }).start();
@@ -303,12 +295,12 @@ public class ProposerEngineTest {
   }
 
   /**
-   * Evaluates that when approval arrives that mismatches the last proposed block, the proposer engine is throwing an  IllegalStateException.
+   * Evaluates that when approval arrives that mismatches the last proposed block, the proposer engine is throwing an IllegalStateException.
    */
   @Test
   public void approvalMismatchesProposedBlock() {
     ProposerParameterFixture params = new ProposerParameterFixture();
-    params.mockBlockProposal(BlockFixture.newBlock());
+    params.mockBlockProposal(BlockFixture.newBlockProposal());
     ProposerEngine engine = new ProposerEngine(params);
 
     Assertions.assertThrows(IllegalStateException.class, () -> {
