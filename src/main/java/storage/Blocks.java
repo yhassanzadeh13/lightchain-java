@@ -49,7 +49,7 @@ public interface Blocks {
    * @param height height of the block.
    * @return the block itself if exists and null otherwise.
    */
-  Block atHeight(int height);
+  Block atHeight(long height);
 
   /**
    * Returns all blocks stored in database.

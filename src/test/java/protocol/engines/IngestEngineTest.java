@@ -24,8 +24,8 @@ import storage.Blocks;
 import storage.Identifiers;
 import storage.Transactions;
 import unittest.fixtures.AccountFixture;
+import unittest.fixtures.BlockFixture;
 import unittest.fixtures.EntityFixture;
-import unittest.fixtures.ValidatedBlockFixture;
 import unittest.fixtures.ValidatedTransactionFixture;
 
 /**
@@ -44,8 +44,7 @@ public class IngestEngineTest {
     Identifiers transactionIds = mock(Identifiers.class);
     Transactions pendingTransactions = mock(Transactions.class);
 
-    ArrayList<Account> accounts = new ArrayList<>(AccountFixture.newAccounts(10, 10).values());
-    Block block = ValidatedBlockFixture.newValidatedBlock(accounts);
+    Block block = BlockFixture.newBlock();
 
     // mocks block as new to ingest engine.
     when(seenEntities.has(block.id())).thenReturn(false);
@@ -77,9 +76,8 @@ public class IngestEngineTest {
     Identifiers transactionIds = mock(Identifiers.class);
     Transactions pendingTransactions = mock(Transactions.class);
 
-    ArrayList<Account> accounts = new ArrayList<>(AccountFixture.newAccounts(10, 10).values());
-    Block block1 = ValidatedBlockFixture.newValidatedBlock(accounts);
-    Block block2 = ValidatedBlockFixture.newValidatedBlock(accounts);
+    Block block1 = BlockFixture.newBlock();
+    Block block2 = BlockFixture.newBlock();
 
     IngestEngine ingestEngine = this.mockIngestEngineForEntities(
         new ArrayList<>(Arrays.asList(block1, block2)),
@@ -106,15 +104,13 @@ public class IngestEngineTest {
    */
   @Test
   public void testValidatedTwoBlocksConcurrently() {
-    // R
     Blocks blocks = mock(Blocks.class);
     Identifiers seenEntities = mock(Identifiers.class);
     Identifiers transactionIds = mock(Identifiers.class);
     Transactions pendingTransactions = mock(Transactions.class);
 
-    ArrayList<Account> accounts = new ArrayList<>(AccountFixture.newAccounts(10, 10).values());
-    Block block1 = ValidatedBlockFixture.newValidatedBlock(accounts);
-    Block block2 = ValidatedBlockFixture.newValidatedBlock(accounts);
+    Block block1 = BlockFixture.newBlock();
+    Block block2 = BlockFixture.newBlock();
 
     IngestEngine ingestEngine = this.mockIngestEngineForEntities(
         new ArrayList<>(Arrays.asList(block1, block2)),
@@ -141,14 +137,12 @@ public class IngestEngineTest {
    */
   @Test
   public void testValidatedSameTwoBlocks() {
-    // R
     Blocks blocks = mock(Blocks.class);
     Identifiers seenEntities = mock(Identifiers.class);
     Identifiers transactionIds = mock(Identifiers.class);
     Transactions pendingTransactions = mock(Transactions.class);
 
-    ArrayList<Account> accounts = new ArrayList<>(AccountFixture.newAccounts(10, 10).values());
-    Block block = ValidatedBlockFixture.newValidatedBlock(accounts);
+    Block block = BlockFixture.newBlock();
 
     when(seenEntities.has(block.id())).thenReturn(false);
     when(blocks.has(block.id())).thenReturn(false);
@@ -177,14 +171,11 @@ public class IngestEngineTest {
    */
   @Test
   public void testValidatedBlockContainingPendingTransaction() {
-    // R
     Blocks blocks = mock(Blocks.class);
     Identifiers seenEntities = mock(Identifiers.class);
     Identifiers transactionIds = mock(Identifiers.class);
     Transactions pendingTransactions = mock(Transactions.class);
-
-    ArrayList<Account> accounts = new ArrayList<>(AccountFixture.newAccounts(10, 10).values());
-    Block block = ValidatedBlockFixture.newValidatedBlock(accounts);
+    Block block = BlockFixture.newBlock();
 
     IngestEngine ingestEngine = this.mockIngestEngineForEntities(
         new ArrayList<>(List.of(block)),
@@ -222,8 +213,8 @@ public class IngestEngineTest {
     Transactions pendingTransactions = mock(Transactions.class);
 
     ArrayList<Account> accounts = new ArrayList<>(AccountFixture.newAccounts(10, 10).values());
-    Block block1 = ValidatedBlockFixture.newValidatedBlock(accounts);
-    Block block2 = ValidatedBlockFixture.newValidatedBlock(accounts);
+    Block block1 = BlockFixture.newBlock();
+    Block block2 = BlockFixture.newBlock();
 
     IngestEngine ingestEngine = this.mockIngestEngineForEntities(
         new ArrayList<>(Arrays.asList(block1, block2)),
@@ -258,15 +249,12 @@ public class IngestEngineTest {
    */
   @Test
   public void testConcurrentBlockIngestionContainingSeenTransactionOverlappingSet() {
-    // R
     Blocks blocks = mock(Blocks.class);
     Identifiers seenEntities = mock(Identifiers.class);
     Identifiers transactionIds = mock(Identifiers.class);
     Transactions pendingTransactions = mock(Transactions.class);
-
-    ArrayList<Account> accounts = new ArrayList<>(AccountFixture.newAccounts(10, 10).values());
-    Block block1 = ValidatedBlockFixture.newValidatedBlock(accounts);
-    Block block2 = ValidatedBlockFixture.newValidatedBlock(accounts);
+    Block block1 = BlockFixture.newBlock();
+    Block block2 = BlockFixture.newBlock();
 
     IngestEngine ingestEngine = this.mockIngestEngineForEntities(
         new ArrayList<>(Arrays.asList(block1, block2)),
@@ -301,14 +289,12 @@ public class IngestEngineTest {
    */
   @Test
   public void testValidatedAlreadyIngestedBlock() {
-    // R
     Blocks blocks = mock(Blocks.class);
     Identifiers seenEntities = mock(Identifiers.class);
     Identifiers transactionIds = mock(Identifiers.class);
     Transactions pendingTransactions = mock(Transactions.class);
 
-    ArrayList<Account> accounts = new ArrayList<>(AccountFixture.newAccounts(10, 10).values());
-    Block block = ValidatedBlockFixture.newValidatedBlock(accounts);
+    Block block = BlockFixture.newBlock();
 
     IngestEngine ingestEngine = this.mockIngestEngineForEntities(
         new ArrayList<>(List.of(block)),
@@ -543,8 +529,7 @@ public class IngestEngineTest {
     Blocks blocks = mock(Blocks.class);
 
     ValidatedTransaction validatedTx = ValidatedTransactionFixture.newValidatedTransaction();
-    ArrayList<Account> accounts = new ArrayList<>(AccountFixture.newAccounts(10, 10).values());
-    Block block = ValidatedBlockFixture.newValidatedBlock(accounts);
+    Block block = BlockFixture.newBlock();
 
     IngestEngine ingestEngine = this.mockIngestEngineForEntities(
         new ArrayList<>(Arrays.asList(block, validatedTx)),
@@ -575,14 +560,12 @@ public class IngestEngineTest {
    */
   @Test
   public void testProcessBlockAndIncludedTransaction_BlockFirst() {
-    // R
     Identifiers seenEntities = mock(Identifiers.class);
     Identifiers transactionIds = mock(Identifiers.class);
     Transactions pendingTransactions = mock(Transactions.class);
     Blocks blocks = mock(Blocks.class);
 
-    ArrayList<Account> accounts = new ArrayList<>(AccountFixture.newAccounts(10, 10).values());
-    Block block = ValidatedBlockFixture.newValidatedBlock(accounts);
+    Block block = BlockFixture.newBlock();
     ValidatedTransaction validatedTx = block.getTransactions()[0]; // the transaction is in the block
 
     IngestEngine ingestEngine = this.mockIngestEngineForEntities(
@@ -628,8 +611,7 @@ public class IngestEngineTest {
     Transactions pendingTransactions = mock(Transactions.class);
     Blocks blocks = mock(Blocks.class);
 
-    ArrayList<Account> accounts = new ArrayList<>(AccountFixture.newAccounts(10, 10).values());
-    Block block = ValidatedBlockFixture.newValidatedBlock(accounts);
+    Block block = BlockFixture.newBlock();
     ValidatedTransaction validatedTx = block.getTransactions()[0]; // the transaction is in the block
 
     IngestEngine ingestEngine = this.mockIngestEngineForEntities(
@@ -744,7 +726,7 @@ public class IngestEngineTest {
 
       } else if (e.type().equals(EntityType.TYPE_VALIDATED_BLOCK)) {
 
-        ValidatedBlock block = (ValidatedBlock) e;
+       Block block = (Block) e;
         when(state.atBlockId(block.getPreviousBlockId())).thenReturn(snapshot);
         when(blocks.has(block.id())).thenReturn(false);
         for (Transaction tx : block.getTransactions()) {

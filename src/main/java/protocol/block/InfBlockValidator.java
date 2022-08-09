@@ -1,21 +1,22 @@
 package protocol.block;
 
 import model.lightchain.Block;
+import model.lightchain.BlockProposal;
 
 /**
  * Validator encapsulates the logic of a block validator in LightChain.
  */
 public interface InfBlockValidator {
   /**
-   * Validates block parameters.
+   * Validates block proposal parameters.
    *
-   * @param block the block under validation.
-   * @return true if all block fields have a valid value, and false otherwise. A transaction is valid if the
+   * @param proposal the block under validation.
+   * @return true if all proposal fields have a valid value, and false otherwise. A proposal is valid if the
    * previous block id is a valid and finalized block, the proposer refers to a valid identity at
    * snapshot of the previous block id, and the number of transactions are within the permissible range of LightChain
    * parameters.
    */
-  boolean isCorrect(Block block);
+  boolean isCorrect(BlockProposal proposal);
 
   /**
    * Validates the consistency of block based on LightChain protocol.

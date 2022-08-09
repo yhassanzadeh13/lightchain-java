@@ -75,6 +75,16 @@ public class BlockFixture {
   }
 
   /**
+   * Creates a new block proposal with random header and payload.
+   *
+   * @param txCount total number of transactions.
+   * @return a new block proposal with random header and payload.
+   */
+  public static BlockProposal newBlockProposal(int txCount) {
+    return new BlockProposal(newBlockHeader(), newBlockPayload(txCount), SignatureFixture.newSignatureFixture());
+  }
+
+  /**
    * Returns a block with randomly generated values.
    *
    * @return a block with randomly generated values.

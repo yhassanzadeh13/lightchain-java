@@ -141,11 +141,12 @@ public class BlocksMapDb implements Blocks {
    * @return the block itself if exists and null otherwise.
    */
   @Override
-  public Block atHeight(int height) {
+  public Block atHeight(long height) {
     Block block = null;
     try {
       lock.readLock().lock();
-      ArrayList<Identifier> identifierArrayList = blocksHeightMap.get(height);
+      // TODO: fix the height for long.
+      ArrayList<Identifier> identifierArrayList = blocksHeightMap.get((int) height);
       if (identifierArrayList != null) {
         Identifier identifier = identifierArrayList.get(0);
         block = byId(identifier);

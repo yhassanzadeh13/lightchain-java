@@ -43,16 +43,17 @@ public class ProposerEngineTest {
     CountDownLatch blockSentForValidation = new CountDownLatch(Parameters.VALIDATOR_THRESHOLD);
     try {
       doAnswer(invocationOnMock -> {
-        Block block = invocationOnMock.getArgument(0, Block.class);
+        BlockProposal proposal = invocationOnMock.getArgument(0, BlockProposal.class);
         // checks whether block is correct and authenticated.
         BlockValidator validator = new BlockValidator(params.state);
-        Assertions.assertTrue(validator.isCorrect(block));
-        Assertions.assertTrue(validator.isAuthenticated(block));
+        Assertions.assertTrue(validator.isCorrect(proposal));
+        Assertions.assertTrue(validator.isAuthenticated(proposal));
 
         // block should be sent to an assigned validator for validation.
         Identifier validatorId = invocationOnMock.getArgument(1, Identifier.class);
         Assertions.assertTrue(validators.contains(validatorId));
 
+        System.out.println("count down");
         blockSentForValidation.countDown();
         return null;
       }).when(params.proposedConduit).unicast(any(Block.class), any(Identifier.class));
@@ -194,7 +195,7 @@ public class ProposerEngineTest {
 
     try {
       doAnswer(invocationOnMock -> {
-        ValidatedBlock block = invocationOnMock.getArgument(0, ValidatedBlock.class);
+        Block block = invocationOnMock.getArgument(0, Block.class);
 
         // checks whether block is correct and authenticated.
         Assertions.assertTrue(params.local.myPublicKey().verifySignature(proposal, block.getProposerSignature()));
@@ -206,7 +207,7 @@ public class ProposerEngineTest {
         Assertions.assertEquals(proposal.getHeight(), block.getHeight());
 
         return null;
-      }).when(params.validatedConduit).unicast(any(ValidatedBlock.class), any(Identifier.class));
+      }).when(params.validatedConduit).unicast(any(Block.class), any(Identifier.class));
     } catch (LightChainNetworkingException e) {
       Assertions.fail();
     }
@@ -217,7 +218,7 @@ public class ProposerEngineTest {
     }
 
     // validated block must be sent to all nodes.
-    verify(params.validatedConduit, times(10)).unicast(any(ValidatedBlock.class), any(Identifier.class));
+    verify(params.validatedConduit, times(10)).unicast(any(Block.class), any(Identifier.class));
   }
 
   /**
@@ -237,7 +238,7 @@ public class ProposerEngineTest {
 
     try {
       doAnswer(invocationOnMock -> {
-        ValidatedBlock block = invocationOnMock.getArgument(0, ValidatedBlock.class);
+        Block block = invocationOnMock.getArgument(0, Block.class);
 
         // checks whether block proposal is correct and authenticated.
         Assertions.assertTrue(params.local.myPublicKey().verifySignature(proposal, block.getProposerSignature()));
@@ -249,7 +250,7 @@ public class ProposerEngineTest {
         Assertions.assertEquals(proposal.getHeight(), block.getHeight());
 
         return null;
-      }).when(params.validatedConduit).unicast(any(ValidatedBlock.class), any(Identifier.class));
+      }).when(params.validatedConduit).unicast(any(Block.class), any(Identifier.class));
     } catch (LightChainNetworkingException e) {
       Assertions.fail();
     }
@@ -265,7 +266,7 @@ public class ProposerEngineTest {
 
     Assertions.assertTrue(processApprovalCd.await(10, TimeUnit.SECONDS));
     // validated block must be sent to all nodes.
-    verify(params.validatedConduit, times(10)).unicast(any(ValidatedBlock.class), any(Identifier.class));
+    verify(params.validatedConduit, times(10)).unicast(any(Block.class), any(Identifier.class));
   }
 
   /**

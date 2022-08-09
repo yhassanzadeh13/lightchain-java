@@ -5,10 +5,7 @@ import java.util.ArrayList;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import model.crypto.PublicKey;
 import model.crypto.Signature;
-import model.lightchain.Account;
-import model.lightchain.Block;
-import model.lightchain.Identifier;
-import model.lightchain.ValidatedTransaction;
+import model.lightchain.*;
 import protocol.Parameters;
 import protocol.transaction.InfTransactionValidator;
 import protocol.transaction.TransactionValidator;
@@ -33,29 +30,29 @@ public class BlockValidator implements InfBlockValidator {
   }
 
   /**
-   * Validates block parameters.
+   * Validates block proposal parameters.
    *
-   * @param block the block under validation.
-   * @return true if all block fields have a valid value, and false otherwise. A transaction is valid if the
+   * @param proposal the block under validation.
+   * @return true if all proposal fields have a valid value, and false otherwise. A proposal is valid if the
    * previous block id is a valid and finalized block, the proposer refers to a valid identity at
    * snapshot of the previous block id, and the number of transactions are within the permissible range of LightChain
    * parameters.
    */
   @Override
-  public boolean isCorrect(Block block) {
-    Identifier previousBlockId = block.getPreviousBlockId();
+  public boolean isCorrect(BlockProposal proposal) {
+    Identifier previousBlockId = proposal.getPreviousBlockId();
     Snapshot snapshot = state.atBlockId(previousBlockId);
     if (snapshot == null) {
       // no valid snapshot exists for the parent block.
       return false;
     }
-    Identifier proposer = block.getProposerId();
+    Identifier proposer = proposal.getProposerId();
     if (snapshot.getAccount(proposer) == null) {
       // proposer of this block is not a valid account.
       return false;
     }
     // for a block to be correct, its number of transactions must be within a permissible range.
-    int transactions = block.getTransactions().length;
+    int transactions = proposal.getTransactions().length;
     return transactions >= Parameters.MIN_TRANSACTIONS_NUM && transactions <= Parameters.MAX_TRANSACTIONS_NUM;
   }
 
