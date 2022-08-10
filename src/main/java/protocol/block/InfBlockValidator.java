@@ -39,12 +39,12 @@ public interface InfBlockValidator {
   /**
    * Validates proposer has enough stake.
    *
-   * @param block the block under validation.
+   * @param proposal the block proposal under validation.
    * @return true if proposer has a greater than or equal stake than the amount of the minimum required one based on
    * LightChain parameters, and false otherwise.
-   * The stake of proposer must be checked at the snapshot of the reference block of the block.
+   * The stake of proposer must be checked at the snapshot of the reference block of the block proposal.
    */
-  boolean proposerHasEnoughStake(Block block);
+  boolean proposerHasEnoughStake(BlockProposal proposal);
 
   /**
    * Checks all transactions included in the block are validated.

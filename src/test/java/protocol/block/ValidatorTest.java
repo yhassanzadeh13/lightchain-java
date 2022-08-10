@@ -270,23 +270,21 @@ public class ValidatorTest {
    */
   @Test
   public void testProposerHasNotEnoughStake() {
-    // Arrange
-    /// Block
-    Block block = BlockFixture.newBlock();
+    BlockProposal proposal = BlockFixture.newBlockProposal();
 
     /// State & Snapshot Mocking
     State mockState = mock(State.class);
     Snapshot mockSnapshot = mock(Snapshot.class);
-    Identifier proposer = block.getProposerId();
+    Identifier proposer = proposal.getProposerId();
     Account proposerAccount = AccountFixture.newAccount(proposer, Parameters.MINIMUM_STAKE - 2);
-    when(mockState.atBlockId(block.getPreviousBlockId())).thenReturn(mockSnapshot);
+    when(mockState.atBlockId(proposal.getPreviousBlockId())).thenReturn(mockSnapshot);
     when(mockSnapshot.getAccount(proposer)).thenReturn(proposerAccount);
 
     /// Verifier
     InfBlockValidator validator = new BlockValidator(mockState);
 
     // Act
-    boolean result = validator.proposerHasEnoughStake(block);
+    boolean result = validator.proposerHasEnoughStake(proposal);
 
     // Assert
     Assertions.assertFalse(result);
@@ -298,23 +296,21 @@ public class ValidatorTest {
    */
   @Test
   public void testProposerHasEnoughStake() {
-    // Arrange
-    /// Block
-    Block block = BlockFixture.newBlock();
+    BlockProposal proposal = BlockFixture.newBlockProposal();
 
     /// State & Snapshot Mocking
     State mockState = mock(State.class);
     Snapshot mockSnapshot = mock(Snapshot.class);
-    Identifier proposer = block.getProposerId();
+    Identifier proposer = proposal.getProposerId();
     Account proposerAccount = AccountFixture.newAccount(proposer);
-    when(mockState.atBlockId(block.getPreviousBlockId())).thenReturn(mockSnapshot);
+    when(mockState.atBlockId(proposal.getPreviousBlockId())).thenReturn(mockSnapshot);
     when(mockSnapshot.getAccount(proposer)).thenReturn(proposerAccount);
 
     /// Verifier
     InfBlockValidator validator = new BlockValidator(mockState);
 
     // Act
-    boolean result = validator.proposerHasEnoughStake(block);
+    boolean result = validator.proposerHasEnoughStake(proposal);
 
     // Assert
     Assertions.assertTrue(result);
