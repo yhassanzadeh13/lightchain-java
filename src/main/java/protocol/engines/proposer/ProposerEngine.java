@@ -138,7 +138,7 @@ public class ProposerEngine implements NewBlockSubscriber, Engine {
         try {
           // TODO: replace with multicast.
           this.proposerCon.unicast(nextProposedBlock, id);
-          this.logger.debug("block_id {}, validator_id {}, block sent for validation", nextProposedBlock.id(), id);
+          this.logger.debug("block_id {}, validator_id {}, proposal sent for validation", nextProposedBlock.id(), id);
         } catch (LightChainNetworkingException e) {
           throw new IllegalStateException("could not unicast new block for validation", e);
         }

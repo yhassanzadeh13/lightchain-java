@@ -53,10 +53,9 @@ public class ProposerEngineTest {
         Identifier validatorId = invocationOnMock.getArgument(1, Identifier.class);
         Assertions.assertTrue(validators.contains(validatorId));
 
-        System.out.println("count down");
         blockSentForValidation.countDown();
         return null;
-      }).when(params.proposedConduit).unicast(any(Block.class), any(Identifier.class));
+      }).when(params.proposedConduit).unicast(any(BlockProposal.class), any(Identifier.class));
     } catch (LightChainNetworkingException e) {
       Assertions.fail();
     }
@@ -186,7 +185,7 @@ public class ProposerEngineTest {
   @Test
   public void enoughBlockApproval() throws LightChainNetworkingException {
     ProposerParameterFixture params = new ProposerParameterFixture();
-    BlockProposal proposal = BlockFixture.newBlockProposal(params.local.myId());
+    BlockProposal proposal = BlockFixture.newBlockProposal(params.local);
     params.mockBlockProposal(proposal);
     ArrayList<Account> accounts = AccountFixture.newAccounts(10);
     params.mockSnapshotAtBlock(accounts, proposal.getPreviousBlockId());
@@ -198,7 +197,7 @@ public class ProposerEngineTest {
         Block block = invocationOnMock.getArgument(0, Block.class);
 
         // checks whether block is correct and authenticated.
-        Assertions.assertTrue(params.local.myPublicKey().verifySignature(proposal, block.getProposerSignature()));
+        Assertions.assertTrue(params.local.myPublicKey().verifySignature(proposal.getHeader(), block.getProposerSignature()));
         // checks all fields of validated block matches with block proposal.
         // TODO: also check for certificaties.
         Assertions.assertEquals(proposal.getPreviousBlockId(), block.getPreviousBlockId());
@@ -228,7 +227,7 @@ public class ProposerEngineTest {
   @Test
   public void enoughBlockApprovalConcurrently() throws LightChainNetworkingException, InterruptedException {
     ProposerParameterFixture params = new ProposerParameterFixture();
-    BlockProposal proposal = BlockFixture.newBlockProposal(params.local.myId());
+    BlockProposal proposal = BlockFixture.newBlockProposal(params.local);
 
     params.mockBlockProposal(proposal);
     ArrayList<Account> accounts = AccountFixture.newAccounts(10);
@@ -241,7 +240,7 @@ public class ProposerEngineTest {
         Block block = invocationOnMock.getArgument(0, Block.class);
 
         // checks whether block proposal is correct and authenticated.
-        Assertions.assertTrue(params.local.myPublicKey().verifySignature(proposal, block.getProposerSignature()));
+        Assertions.assertTrue(params.local.myPublicKey().verifySignature(proposal.getHeader(), block.getProposerSignature()));
         // checks all fields of validated block matches with block proposal.
         // TODO: also check for certificaties.
         Assertions.assertEquals(proposal.getPreviousBlockId(), block.getPreviousBlockId());

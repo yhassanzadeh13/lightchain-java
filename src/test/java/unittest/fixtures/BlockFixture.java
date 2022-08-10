@@ -4,6 +4,7 @@ import java.util.Random;
 
 import model.crypto.Signature;
 import model.lightchain.*;
+import model.local.Local;
 import protocol.Parameters;
 
 /**
@@ -72,6 +73,17 @@ public class BlockFixture {
    */
   public static BlockProposal newBlockProposal(Identifier proposerId) {
     return new BlockProposal(newBlockHeader(proposerId), newBlockPayload(), SignatureFixture.newSignatureFixture());
+  }
+
+  /**
+   * Creates a new block proposal with random header and payload.
+   *
+   * @param me local module of the node for signing the proposer signature.
+   * @return a new block proposal with random header and payload.
+   */
+  public static BlockProposal newBlockProposal(Local me) {
+    BlockHeader header = newBlockHeader(me.myId());
+    return new BlockProposal(header, newBlockPayload(), me.signEntity(header));
   }
 
   /**
