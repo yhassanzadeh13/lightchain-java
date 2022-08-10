@@ -160,9 +160,7 @@ public class ValidatorTest {
    */
   @Test
   public void testBlockIsNotConsistent_InvalidPreviousBlockId() {
-    // Arrange
-    /// Block
-    Block block = BlockFixture.newBlock();
+    BlockProposal proposal = BlockFixture.newBlockProposal();
 
     /// State & Snapshot Mocking
     State mockState = mock(State.class);
@@ -175,7 +173,7 @@ public class ValidatorTest {
     InfBlockValidator validator = new BlockValidator(mockState);
 
     // Act
-    boolean result = validator.isConsistent(block);
+    boolean result = validator.isConsistent(proposal);
 
     // Assert
     Assertions.assertFalse(result);
@@ -186,22 +184,20 @@ public class ValidatorTest {
    */
   @Test
   public void testBlockIsConsistent() {
-    //Arrange
-    /// Block
-    Block block = BlockFixture.newBlock();
+    BlockProposal proposal = BlockFixture.newBlockProposal();
 
     /// State & Snapshot Mocking
     State mockState = mock(State.class);
     Snapshot mockSnapshot = mock(Snapshot.class);
-    when(mockState.atBlockId(block.getPreviousBlockId())).thenReturn(mockSnapshot);
+    when(mockState.atBlockId(proposal.getPreviousBlockId())).thenReturn(mockSnapshot);
     when(mockState.last()).thenReturn(mockSnapshot);
-    when(mockSnapshot.getReferenceBlockId()).thenReturn(block.getPreviousBlockId());
+    when(mockSnapshot.getReferenceBlockId()).thenReturn(proposal.getPreviousBlockId());
 
     ///Verifier
     InfBlockValidator validator = new BlockValidator(mockState);
 
     //Act
-    boolean result = validator.isConsistent(block);
+    boolean result = validator.isConsistent(proposal);
 
     //Assert
     Assertions.assertTrue(result);

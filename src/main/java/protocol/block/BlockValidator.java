@@ -57,17 +57,17 @@ public class BlockValidator implements InfBlockValidator {
   }
 
   /**
-   * Validates the consistency of block based on LightChain protocol.
+   * Validates the consistency of block proposal based on LightChain protocol.
    *
-   * @param block the block under validation.
-   * @return true only if the previous block id this block refers to corresponds to the last snapshot on the
+   * @param proposal the block proposal under validation.
+   * @return true only if the previous block id this block proposal refers to corresponds to the last snapshot on the
    * node's state. False otherwise.
    */
   @Override
-  public boolean isConsistent(Block block) {
+  public boolean isConsistent(BlockProposal proposal) {
     return state.last()
         .getReferenceBlockId()
-        .equals(block.getPreviousBlockId());
+        .equals(proposal.getPreviousBlockId());
   }
 
   /**
