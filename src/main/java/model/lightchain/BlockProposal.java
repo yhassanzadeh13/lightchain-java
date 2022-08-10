@@ -54,4 +54,12 @@ public class BlockProposal extends Entity {
   public long getHeight() {
     return this.header.getHeight();
   }
+
+  public BlockHeader getHeader() {
+    return header;
+  }
+
+  public BlockPayload getPayload() {
+    return payload;
+  }
 }

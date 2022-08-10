@@ -28,13 +28,13 @@ public interface InfBlockValidator {
   boolean isConsistent(Block block);
 
   /**
-   * Validates that the block is indeed issued by the proposer.
+   * Validates that the block proposal is indeed issued by the proposer.
    *
-   * @param block the block under validation.
-   * @return true if the block has a valid signature that is verifiable by the public key of its proposer,
+   * @param proposal the block proposal under validation.
+   * @return true if the block proposal has a valid signature that is verifiable by the public key of its proposer,
    * false otherwise.
    */
-  boolean isAuthenticated(Block block);
+  boolean isAuthenticated(BlockProposal proposal);
 
   /**
    * Validates proposer has enough stake.

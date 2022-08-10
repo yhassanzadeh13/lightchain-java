@@ -212,29 +212,27 @@ public class ValidatorTest {
    */
   @Test
   public void testBlockIsNotAuthenticated() {
-    // Arrange
-    /// Block
-    Block block = BlockFixture.newBlock();
+    BlockProposal proposal = BlockFixture.newBlockProposal();
 
     /// State & Snapshot Mocking
     State mockState = mock(State.class);
     Snapshot mockSnapshot = mock(Snapshot.class);
-    Identifier proposer = block.getProposerId();
+    Identifier proposer = proposal.getProposerId();
     Account proposerAccount = AccountFixture.newAccount(proposer);
-    when(mockState.atBlockId(block.getPreviousBlockId()))
+    when(mockState.atBlockId(proposal.getPreviousBlockId()))
         .thenReturn(mockSnapshot);
     when(mockSnapshot
         .getAccount(proposer))
         .thenReturn(proposerAccount);
     when(mockSnapshot.getAccount(proposer)
         .getPublicKey()
-        .verifySignature(block, block.getProposerSignature())).thenReturn(false);
+        .verifySignature(proposal.getHeader(), proposal.getSignature())).thenReturn(false);
 
     /// Verifier
     InfBlockValidator validator = new BlockValidator(mockState);
 
     // Act
-    boolean result = validator.isAuthenticated(block);
+    boolean result = validator.isAuthenticated(proposal);
 
     // Assert
     Assertions.assertFalse(result);
@@ -245,30 +243,27 @@ public class ValidatorTest {
    */
   @Test
   public void testBlockIsAuthenticated() {
-    // Arrange
-    /// Block
-    Block block = BlockFixture.newBlock();
+    BlockProposal proposal = BlockFixture.newBlockProposal();
 
     /// State & Snapshot Mocking
     State mockState = mock(State.class);
     Snapshot mockSnapshot = mock(Snapshot.class);
-    Identifier proposer = block.getProposerId();
+    Identifier proposer = proposal.getProposerId();
     Account proposerAccount = AccountFixture.newAccount(proposer);
-    when(mockState.atBlockId(block.getPreviousBlockId()))
+    when(mockState.atBlockId(proposal.getPreviousBlockId()))
         .thenReturn(mockSnapshot);
     when(mockSnapshot.getAccount(proposer))
         .thenReturn(proposerAccount);
     when(mockSnapshot.getAccount(proposer)
         .getPublicKey()
-        // TODO: change to exact block once we have header and body decoupled.
-        .verifySignature(any(Block.class), eq(block.getProposerSignature())))
+        .verifySignature(any(BlockHeader.class), eq(proposal.getSignature())))
         .thenReturn(true);
 
     /// Verifier
     InfBlockValidator verifier = new BlockValidator(mockState);
 
     // Act
-    boolean result = verifier.isAuthenticated(block);
+    boolean result = verifier.isAuthenticated(proposal);
 
     // Assert
     Assertions.assertTrue(result);
