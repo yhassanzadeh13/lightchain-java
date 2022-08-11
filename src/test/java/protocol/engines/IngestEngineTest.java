@@ -724,18 +724,22 @@ public class IngestEngineTest {
         when(pendingTx.has(tx.id())).thenReturn(false);
         when(txIds.has(tx.id())).thenReturn(false);
 
-      } else if (e.type().equals(EntityType.TYPE_VALIDATED_BLOCK)) {
+        // mocks assignment
+        mockAssignment(assigner, tx, snapshot);
 
-       Block block = (Block) e;
+      } else if (e.type().equals(EntityType.TYPE_BLOCK)) {
+
+        Block block = (Block) e;
         when(state.atBlockId(block.getPreviousBlockId())).thenReturn(snapshot);
         when(blocks.has(block.id())).thenReturn(false);
         for (Transaction tx : block.getTransactions()) {
           when(pendingTx.has(tx.id())).thenReturn(false);
         }
+
+        // mocks assignment
+        mockAssignment(assigner, block.getProposal(), snapshot);
       }
 
-      // mocks assignment
-      mockAssignment(assigner, e, snapshot);
     }
 
     return new IngestEngine(
@@ -801,7 +805,7 @@ public class IngestEngineTest {
     when(account.getPublicKey()).thenReturn(pubKey); // returns the mocked public key for all accounts
 
     // returns true for all signatures
-    when(pubKey.verifySignature(any(Block.class), any(Signature.class))).thenReturn(true);
+    when(pubKey.verifySignature(any(BlockProposal.class), any(Signature.class))).thenReturn(true);
     when(pubKey.verifySignature(any(Transaction.class), any(Signature.class))).thenReturn(true);
     // returns the mock account for all identifiers
     when(snapshot.getAccount(any(Identifier.class))).thenReturn(account);

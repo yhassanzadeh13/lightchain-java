@@ -96,7 +96,7 @@ public class ProposerEngine implements NewBlockSubscriber, Engine {
       lock.lock();
 
       // sanity checks that there is no pending last proposed block at this node
-      BlockProposal lastProposedBlock = this.blockProposals.GetLastProposal();
+      BlockProposal lastProposedBlock = this.blockProposals.getLastProposal();
       if (lastProposedBlock != null) {
         throw new IllegalStateException("received validated block while having a pending proposed one, "
             + " received_block_id: " + blockId
@@ -144,7 +144,7 @@ public class ProposerEngine implements NewBlockSubscriber, Engine {
         }
       }
 
-      this.blockProposals.SetLastProposal(nextProposedBlock);
+      this.blockProposals.setLastProposal(nextProposedBlock);
     } finally {
       lock.unlock();
     }
@@ -171,7 +171,7 @@ public class ProposerEngine implements NewBlockSubscriber, Engine {
     try {
       this.lock.lock();
       // sanity checks that there is no pending last proposed block at this node
-      BlockProposal lastBlockProposal = this.blockProposals.GetLastProposal();
+      BlockProposal lastBlockProposal = this.blockProposals.getLastProposal();
       if (lastBlockProposal == null) {
         throw new IllegalStateException("received block approval while there is no last proposed block, approval id: " + approval.blockId);
       }
@@ -188,8 +188,6 @@ public class ProposerEngine implements NewBlockSubscriber, Engine {
           certificates[i] = approvals.get(i).getSignature();
         }
         Block nextBlock = new Block(lastBlockProposal, certificates);
-
-
         Snapshot snapshot = state.atBlockId(lastBlockProposal.getPreviousBlockId());
 
         for (Account account : snapshot.all()) {
@@ -202,7 +200,7 @@ public class ProposerEngine implements NewBlockSubscriber, Engine {
           }
         }
         approvals.clear();
-        this.blockProposals.ClearLastProposal();
+        this.blockProposals.clearLastProposal();
         this.logger.info("block_id: {}, next proposed and validated block has been sent to all nodes", nextBlock.id());
       }
     } finally {

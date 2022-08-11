@@ -3,6 +3,9 @@ package model.lightchain;
 import model.Entity;
 import model.codec.EntityType;
 
+/**
+ * Models the header of LightChain blocks.
+ */
 public class BlockHeader extends Entity {
   /**
    * Reference to the hash value of another block as its parent.
@@ -25,9 +28,9 @@ public class BlockHeader extends Entity {
    */
   private final Identifier payloadId;
 
-
   /**
    * Constructor of the block header.
+   *
    * @param height height of this block header (height of genesis is 0, and height of a block is 1 + height of previous block).
    * @param previousBlockId identifier of a finalized block that this block is extending its snapshot.
    * @param proposer        identifier of the node that proposes this block (i.e., miner).

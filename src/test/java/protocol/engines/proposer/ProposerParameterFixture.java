@@ -112,7 +112,7 @@ public class ProposerParameterFixture extends ProposerParameters {
    * @param proposal given BlockProposal to be mocked as the last proposed block.
    */
   public void mockBlockProposal(BlockProposal proposal) {
-    when(this.blockProposals.GetLastProposal()).thenReturn(proposal);
+    when(this.blockProposals.getLastProposal()).thenReturn(proposal);
   }
 
   /**

@@ -82,7 +82,7 @@ public class ProposerEngineTest {
     ProposerParameterFixture params = new ProposerParameterFixture();
     params.mockBlocksStorageForBlock(block);
     // mocks an existing proposed block.
-    when(params.blockProposals.GetLastProposal()).thenReturn(BlockFixture.newBlockProposal());
+    when(params.blockProposals.getLastProposal()).thenReturn(BlockFixture.newBlockProposal());
 
     ProposerEngine engine = new ProposerEngine(params);
     Assertions.assertThrows(IllegalStateException.class, () -> {
@@ -175,7 +175,7 @@ public class ProposerEngineTest {
     });
 
     // block proposal should never make persistent
-    verify(params.blockProposals, never()).SetLastProposal(any(BlockProposal.class));
+    verify(params.blockProposals, never()).setLastProposal(any(BlockProposal.class));
   }
 
   /**

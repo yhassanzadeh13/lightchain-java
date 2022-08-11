@@ -3,6 +3,9 @@ package model.lightchain;
 import model.Entity;
 import model.codec.EntityType;
 
+/**
+ * Models payload of the blocks in LightChain.
+ */
 public class BlockPayload extends Entity {
   /**
    * Set of validated transactions that this block carries.

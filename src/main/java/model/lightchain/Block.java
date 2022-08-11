@@ -78,7 +78,6 @@ public class Block extends model.Entity implements Serializable {
     return this.getProposal().getSignature();
   }
 
-
   public long getHeight() {
     return this.getProposal().getHeight();
   }
