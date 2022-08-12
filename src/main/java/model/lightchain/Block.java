@@ -24,7 +24,7 @@ public class Block extends model.Entity implements Serializable {
    */
   public Block(BlockProposal proposal, Signature[] certificates) {
     this.proposal = proposal;
-    this.certificates = certificates;
+    this.certificates = certificates.clone();
   }
 
   public BlockProposal getProposal() {
@@ -32,7 +32,7 @@ public class Block extends model.Entity implements Serializable {
   }
 
   public Signature[] getCertificates() {
-    return certificates;
+    return certificates.clone();
   }
 
   @Override
