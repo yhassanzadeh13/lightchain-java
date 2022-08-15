@@ -17,7 +17,7 @@ public class Bootstrap {
   /**
    * Main method.
    *
-   * @param args Arguments.
+   * @param args command-line arguments.
    */
   public static void main(String[] args) {
     int nodeCount = 10;
