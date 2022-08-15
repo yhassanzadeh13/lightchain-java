@@ -9,69 +9,30 @@ import model.crypto.Signature;
  * Represents a LightChain Block that encapsulates set of ValidatedTransaction(s).
  */
 public class Block extends model.Entity implements Serializable {
-  /**
-   * Reference to the hash value of another block as its parent.
-   */
-  private final Identifier previousBlockId;
+  private final BlockProposal proposal;
 
   /**
-   * Identifier of the node that proposes this block (i.e., miner).
+   * Represents the signatures of assigned validators on the proposal of this block.
    */
-  private final Identifier proposer;
-
-  /**
-   * Set of validated transactions that this block carries.
-   */
-  private final ValidatedTransaction[] transactions;
-
-  /**
-   * Signature of the proposer over the hash of this block.
-   */
-  private final Signature signature;
-
-  /**
-   * Height of the block.
-   */
-  private final int height;
+  private final Signature[] certificates;
 
   /**
    * Constructor of the block.
    *
-   * @param previousBlockId identifier of a finalized block that this block is extending its snapshot.
-   * @param proposer identifier of the node that proposes this block (i.e., miner).
-   * @param transactions set of validated transactions that this block carries.
-   * @param signature signature of the proposer over the hash of this block.
+   * @param proposal     the block proposal.
+   * @param certificates signature of validators on this block.
    */
-  public Block(Identifier previousBlockId,
-               Identifier proposer,
-               ValidatedTransaction[] transactions,
-               Signature signature) {
-    this.previousBlockId = previousBlockId;
-    this.proposer = proposer;
-    this.transactions = transactions.clone();
-    this.signature = signature;
-    this.height = 0;
+  public Block(BlockProposal proposal, Signature[] certificates) {
+    this.proposal = proposal;
+    this.certificates = certificates.clone();
   }
 
-  /**
-   * Constructor of the block.
-   *
-   * @param previousBlockId identifier of a finalized block that this block is extending its snapshot.
-   * @param proposer identifier of the node that proposes this block (i.e., miner).
-   * @param height height of the block.
-   * @param transactions set of validated transactions that this block carries.
-   * @param signature signature of the proposer over the hash of this block.
-   */
-  public Block(Identifier previousBlockId,
-               Identifier proposer,
-               int height,
-               ValidatedTransaction[] transactions,
-               Signature signature) {
-    this.previousBlockId = previousBlockId;
-    this.proposer = proposer;
-    this.transactions = transactions.clone();
-    this.signature = signature;
-    this.height = height;
+  public BlockProposal getProposal() {
+    return proposal;
+  }
+
+  public Signature[] getCertificates() {
+    return certificates.clone();
   }
 
   @Override
@@ -84,7 +45,7 @@ public class Block extends model.Entity implements Serializable {
     if (this == o) {
       return true;
     }
-    if (!(o instanceof Block))  {
+    if (!(o instanceof Block)) {
       return false;
     }
     Block that = (Block) o;
@@ -102,22 +63,22 @@ public class Block extends model.Entity implements Serializable {
   }
 
   public Identifier getPreviousBlockId() {
-    return previousBlockId;
+    return this.proposal.getPreviousBlockId();
   }
 
-  public Identifier getProposer() {
-    return proposer;
+  public Identifier getProposerId() {
+    return this.proposal.getProposerId();
   }
 
   public ValidatedTransaction[] getTransactions() {
-    return transactions.clone();
+    return this.getProposal().getTransactions().clone();
   }
 
-  public Signature getSignature() {
-    return signature;
+  public Signature getProposerSignature() {
+    return this.getProposal().getSignature();
   }
 
-  public int getHeight() {
-    return height;
+  public long getHeight() {
+    return this.getProposal().getHeight();
   }
 }

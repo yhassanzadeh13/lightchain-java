@@ -9,7 +9,7 @@ import model.crypto.Signature;
 import model.lightchain.*;
 import protocol.Engine;
 import protocol.Parameters;
-import protocol.assigner.ValidatorAssigner;
+import protocol.assigner.AssignerInf;
 import state.Snapshot;
 import state.State;
 import storage.Blocks;
@@ -27,7 +27,7 @@ public class IngestEngine implements Engine {
   private final Transactions pendingTransactions;
   private final Identifiers seenEntities; //TODO: Add the seen entities
   private final ReentrantLock lock = new ReentrantLock();
-  private final ValidatorAssigner assigner;
+  private final AssignerInf assigner;
 
   /**
    * Constructor of a IngestEngine.
@@ -38,7 +38,7 @@ public class IngestEngine implements Engine {
                       Identifiers transactionIds,
                       Transactions pendingTransactions,
                       Identifiers seenEntities,
-                      ValidatorAssigner assigner) {
+                      AssignerInf assigner) {
     this.state = state;
     this.blocks = blocks;
     this.transactionIds = transactionIds;
@@ -74,7 +74,7 @@ public class IngestEngine implements Engine {
   public void process(Entity e) throws IllegalArgumentException {
     try {
       lock.lock();
-      if (!e.type().equals(EntityType.TYPE_VALIDATED_BLOCK)
+      if (!e.type().equals(EntityType.TYPE_BLOCK)
           && !e.type().equals(EntityType.TYPE_VALIDATED_TRANSACTION)) {
         throw new IllegalArgumentException("entity is neither a validated transaction nor a validated block");
       }
@@ -83,10 +83,8 @@ public class IngestEngine implements Engine {
         return; // entity already ingested.
       }
 
-      if (e.type().equals(EntityType.TYPE_VALIDATED_BLOCK)) {
-        Block block = ((Block) e); // skims off the non-block attributes (e.g., certificates).
-        Signature[] certificates = ((ValidatedBlock) e).getCertificates();
-        this.handleValidatedBlock(block, certificates);
+      if (e.type().equals(EntityType.TYPE_BLOCK)) {
+        this.handleBlock((Block) e);
 
       } else if (e.type().equals(EntityType.TYPE_VALIDATED_TRANSACTION)) {
         Transaction tx = ((Transaction) e); // skims off the non-transaction attributes (e.g., certificates).
@@ -126,15 +124,14 @@ public class IngestEngine implements Engine {
   }
 
   /**
-   * Handles a supposedly validated block given its set of certificates.
+   * Handles a supposedly block given its set of certificates.
    *
    * @param block        incoming block.
-   * @param certificates set of block certificates.
    */
-  private void handleValidatedBlock(Block block, Signature[] certificates) {
+  private void handleBlock(Block block) {
     // performs validator assignment.
     Snapshot snapshot = this.state.atBlockId(block.getPreviousBlockId());
-    if (!this.validateCertificatesForEntity(block, snapshot, certificates)) {
+    if (!this.validateCertificatesForEntity(block.getProposal(), snapshot, block.getCertificates())) {
       return;
     }
 

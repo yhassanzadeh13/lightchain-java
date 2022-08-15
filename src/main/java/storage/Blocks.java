@@ -9,8 +9,6 @@ import model.lightchain.Identifier;
  * Persistent module for storing blocks on the disk.
  */
 public interface Blocks {
-  // TODO: refactor blocks to keep validated blocks.
-
   /**
    * Checks existence of block on the database.
    *
@@ -51,7 +49,7 @@ public interface Blocks {
    * @param height height of the block.
    * @return the block itself if exists and null otherwise.
    */
-  Block atHeight(int height);
+  Block atHeight(long height);
 
   /**
    * Returns all blocks stored in database.

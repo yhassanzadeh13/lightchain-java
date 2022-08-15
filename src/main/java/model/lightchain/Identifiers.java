@@ -51,8 +51,11 @@ public class Identifiers implements Serializable {
 
   @Override
   public String toString() {
-    return "Identifiers{"
-            + "identifiers=" + identifiers
-            + '}';
+    return "Identifiers{" + "identifiers=" + identifiers + '}';
+  }
+
+  @SuppressFBWarnings(value = "EI_EXPOSE_REP", justification = "internal representation is intentionally returned")
+  public ArrayList<Identifier> all() {
+    return this.identifiers;
   }
 }
