@@ -12,10 +12,10 @@ import model.crypto.Signature;
 import model.exceptions.LightChainNetworkingException;
 import model.lightchain.*;
 import model.local.Local;
+import modules.logger.LightchainLogger;
 import network.Channels;
 import network.Conduit;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.Logger;
 import protocol.Engine;
 import protocol.NewBlockSubscriber;
 import protocol.Parameters;
@@ -60,7 +60,7 @@ public class ProposerEngine implements NewBlockSubscriber, Engine {
     this.blockProposals = parameters.blockProposals;
 
     this.approvals = new ArrayList<>();
-    this.logger = LogManager.getLogger(ProposerEngine.class.getName());
+    this.logger = LightchainLogger.getLogger(ProposerEngine.class.getCanonicalName());
 
     proposerCon = parameters.network.register(this, Channels.ProposedBlocks);
     validatedCon = parameters.network.register(this, Channels.ValidatedBlocks);
@@ -195,7 +195,8 @@ public class ProposerEngine implements NewBlockSubscriber, Engine {
             // TODO: replace with broadcast.
             validatedCon.unicast(nextBlock, account.getIdentifier());
           } catch (LightChainNetworkingException ex) {
-            this.logger.fatal("target_id {}, exception {}, could not send block to target",
+            // TODO: switch to FATAL.
+            this.logger.error("target_id {}, exception {}, could not send block to target",
                 account.getIdentifier(), Arrays.toString(ex.getStackTrace()));
           }
         }
