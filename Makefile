@@ -10,8 +10,11 @@ lint:
 	@mvn checkstyle:checkstyle
 lint-verbose:
 	@mvn -e checkstyle:checkstyle
-check:
+spotbug-check:
 	@mvn spotbugs:check
 test: proto generate
 	@mvn test
+check:
+	@ mvn org.apache.maven.plugins:maven-help-plugin:2.1.1:evaluate -Dexpression=project.version -Dlog4j.debug
+
 
