@@ -51,7 +51,7 @@ public class IngestEngineTest {
    * The engine also adds hash of all the transactions of block into its "transactions" database.
    */
   @Test
-  public void testValidatedSingleBlockMockBlocks() {
+  public void testValidatedSingleBlockMockedStorage() {
     Blocks blocks = mock(Blocks.class);
     runTestValidatedSingleBlock(blocks);
   }
@@ -62,7 +62,7 @@ public class IngestEngineTest {
    * The engine also adds hash of all the transactions of block into its "transactions" database.
    */
   @Test
-  public void testValidatedSingleBlockRealBlocks() throws IOException {
+  public void testValidatedSingleBlockRealStorage() throws IOException {
     Path currentRelativePath = Paths.get("");
     tempdir = Files.createTempDirectory(currentRelativePath, TEMP_DIR);
     db = new BlocksMapDb(tempdir.toAbsolutePath() + "/" + TEMP_FILE_ID,
@@ -79,7 +79,7 @@ public class IngestEngineTest {
    * The engine also adds hash of all the transactions of blocks into its "transactions" database.
    */
   @Test
-  public void testValidatedTwoBlocksMockBlocks() {
+  public void testValidatedTwoBlocksMockedStorage() {
     Blocks blocks = mock(Blocks.class);
     runTestValidatedTwoBlocks(blocks);
   }
@@ -90,7 +90,7 @@ public class IngestEngineTest {
    * The engine also adds hash of all the transactions of blocks into its "transactions" database.
    */
   @Test
-  public void testValidatedTwoBlocksRealBlocks() throws IOException {
+  public void testValidatedTwoBlocksRealStorage() throws IOException {
     Path currentRelativePath = Paths.get("");
     tempdir = Files.createTempDirectory(currentRelativePath, TEMP_DIR);
     db = new BlocksMapDb(tempdir.toAbsolutePath() + "/" + TEMP_FILE_ID,
@@ -133,12 +133,36 @@ public class IngestEngineTest {
 
   /**
    * Evaluates that when two validated blocks arrive at ingest engine concurrently,
-   * the engine adds the blocks to its block storage database.
+   * the engine adds the blocks to its mocked block storage database.
    * The engine also adds hash of all the transactions of blocks into its "transactions" database.
    */
   @Test
-  public void testValidatedTwoBlocksConcurrently() {
+  public void testValidatedTwoBlocksConcurrentlyMockedBlocks() {
     Blocks blocks = mock(Blocks.class);
+    runTestValidatedTwoBlocksConcurrently(blocks);
+  }
+  /**
+   * Evaluates that when two validated blocks arrive at ingest engine concurrently,
+   * the engine adds the blocks to its real block storage database.
+   * The engine also adds hash of all the transactions of blocks into its "transactions" database.
+   */
+  @Test
+  public void testValidatedTwoBlocksConcurrentlyRealBlocks() throws IOException {
+    Path currentRelativePath = Paths.get("");
+    tempdir = Files.createTempDirectory(currentRelativePath, TEMP_DIR);
+    db = new BlocksMapDb(tempdir.toAbsolutePath() + "/" + TEMP_FILE_ID,
+        tempdir.toAbsolutePath() + "/" + TEMP_FILE_HEIGHT);
+    Blocks blocks = db;
+    runTestValidatedTwoBlocksConcurrently(blocks);
+    db.closeDb();
+    FileUtils.deleteDirectory(new File(tempdir.toString()));
+  }
+
+  /**
+   * The method called by test validated two blocks for mocked and real versions concurrently.
+   * @param blocks mocked or real block.
+   */
+  public void runTestValidatedTwoBlocksConcurrently(Blocks blocks){
     Identifiers seenEntities = mock(Identifiers.class);
     Identifiers transactionIds = mock(Identifiers.class);
     Transactions pendingTransactions = mock(Transactions.class);
@@ -166,12 +190,36 @@ public class IngestEngineTest {
 
   /**
    * Evaluates that when two same validated blocks arrive at ingest engine (second one should be ignored),
-   * the engine adds the blocks to its block storage database.
+   * the engine adds the blocks to its mocked block storage database.
    * The engine also adds hash of all the transactions of blocks into its "transactions" database.
    */
   @Test
-  public void testValidatedSameTwoBlocks() {
+  public void testValidatedSameTwoBlocksMockedStorage() {
     Blocks blocks = mock(Blocks.class);
+    runTestValidatedSameTwoBlocks(blocks);
+  }
+  /**
+   * Evaluates that when two same validated blocks arrive at ingest engine (second one should be ignored),
+   * the engine adds the blocks to its real block storage database.
+   * The engine also adds hash of all the transactions of blocks into its "transactions" database.
+   */
+  @Test
+  public void testValidatedSameTwoBlocksRealStorage() throws IOException {
+    Path currentRelativePath = Paths.get("");
+    tempdir = Files.createTempDirectory(currentRelativePath, TEMP_DIR);
+    db = new BlocksMapDb(tempdir.toAbsolutePath() + "/" + TEMP_FILE_ID,
+        tempdir.toAbsolutePath() + "/" + TEMP_FILE_HEIGHT);
+    Blocks blocks = db;
+    runTestValidatedSameTwoBlocks(blocks);
+    db.closeDb();
+    FileUtils.deleteDirectory(new File(tempdir.toString()));
+  }
+
+  /**
+   * The method called by test validated two blocks for mocked and real versions concurrently.
+   * @param blocks mocked or real block.
+   */
+  public void runTestValidatedSameTwoBlocks(Blocks blocks){
     Identifiers seenEntities = mock(Identifiers.class);
     Identifiers transactionIds = mock(Identifiers.class);
     Transactions pendingTransactions = mock(Transactions.class);
@@ -179,8 +227,9 @@ public class IngestEngineTest {
     Block block = BlockFixture.newBlock();
 
     when(seenEntities.has(block.id())).thenReturn(false);
-    when(blocks.has(block.id())).thenReturn(false);
-
+    if (MockUtil.isMock(blocks)){
+      when(blocks.has(block.id())).thenReturn(false);
+    }
     IngestEngine ingestEngine = this.mockIngestEngineForEntities(
         new ArrayList<>(List.of(block)),
         seenEntities,
