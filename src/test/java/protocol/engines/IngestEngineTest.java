@@ -217,7 +217,7 @@ public class IngestEngineTest {
 
   /**
    * The method called by test validated two blocks for mocked and real versions concurrently.
-   * @param blocks mocked or real block.
+   * @param blocks mocked or real blocks.
    */
   public void runTestValidatedSameTwoBlocks(Blocks blocks){
     Identifiers seenEntities = mock(Identifiers.class);
@@ -227,9 +227,7 @@ public class IngestEngineTest {
     Block block = BlockFixture.newBlock();
 
     when(seenEntities.has(block.id())).thenReturn(false);
-    if (MockUtil.isMock(blocks)){
-      when(blocks.has(block.id())).thenReturn(false);
-    }
+
     IngestEngine ingestEngine = this.mockIngestEngineForEntities(
         new ArrayList<>(List.of(block)),
         seenEntities,
@@ -249,12 +247,37 @@ public class IngestEngineTest {
 
   /**
    * Evaluates that when a new validated block (with shared transactions in pendingTx) arrive at ingest engine,
-   * the engine adds the blocks to its block storage database.
+   * the engine adds the blocks to its real block storage database.
    * The engine also removes hash of the transactions of blocks from pendingTransactions.
    */
   @Test
-  public void testValidatedBlockContainingPendingTransaction() {
+  public void testValidatedBlockContainingPendingTransactionMockedStorage() throws IOException {
     Blocks blocks = mock(Blocks.class);
+    runTestValidatedBlockContainingPendingTransaction(blocks);
+  }
+
+  /**
+   * Evaluates that when a new validated block (with shared transactions in pendingTx) arrive at ingest engine,
+   * the engine adds the blocks to its real block storage database.
+   * The engine also removes hash of the transactions of blocks from pendingTransactions.
+   */
+  @Test
+  public void testValidatedBlockContainingPendingTransactionRealStorage() throws IOException {
+    Path currentRelativePath = Paths.get("");
+    tempdir = Files.createTempDirectory(currentRelativePath, TEMP_DIR);
+    db = new BlocksMapDb(tempdir.toAbsolutePath() + "/" + TEMP_FILE_ID,
+        tempdir.toAbsolutePath() + "/" + TEMP_FILE_HEIGHT);
+    Blocks blocks = db;
+    runTestValidatedBlockContainingPendingTransaction(blocks);
+    db.closeDb();
+    FileUtils.deleteDirectory(new File(tempdir.toString()));
+  }
+
+  /**
+   * The method called by test validated blocks containing pending transactions for mocked and real versions concurrently.
+   * @param blocks mocked or real block.
+   */
+  public void runTestValidatedBlockContainingPendingTransaction(Blocks blocks){
     Identifiers seenEntities = mock(Identifiers.class);
     Identifiers transactionIds = mock(Identifiers.class);
     Transactions pendingTransactions = mock(Transactions.class);
@@ -281,16 +304,41 @@ public class IngestEngineTest {
       verify(pendingTransactions, times(1)).remove(tx.id());
     }
   }
-
   /**
    * Evaluates that when two new validated blocks (with a shared transactions in pendingTx, disjoint set)
-   * arrive at ingest engine, the engine adds the blocks to its block storage database.
+   * arrive at ingest engine, the engine adds the blocks to its real block storage database.
    * The engine also removes the hash of the single shared transaction among blocks from pending transactions.
    */
   @Test
-  public void testConcurrentBlockIngestionContainingSeenTransactionDisjointSet() {
+  public void testConcurrentBlockIngestionContainingSeenTransactionDisjointSetMockedStorage() throws IOException {
     // R
     Blocks blocks = mock(Blocks.class);
+    runTestConcurrentBlockIngestionContainingSeenTransactionDisjointSet(blocks);
+  }
+  /**
+   * Evaluates that when two new validated blocks (with a shared transactions in pendingTx, disjoint set)
+   * arrive at ingest engine, the engine adds the blocks to its real block storage database.
+   * The engine also removes the hash of the single shared transaction among blocks from pending transactions.
+   */
+  @Test
+  public void testConcurrentBlockIngestionContainingSeenTransactionDisjointSetRealStorage() throws IOException {
+    // R
+    Path currentRelativePath = Paths.get("");
+    tempdir = Files.createTempDirectory(currentRelativePath, TEMP_DIR);
+    db = new BlocksMapDb(tempdir.toAbsolutePath() + "/" + TEMP_FILE_ID,
+        tempdir.toAbsolutePath() + "/" + TEMP_FILE_HEIGHT);
+    Blocks blocks = db;
+    runTestConcurrentBlockIngestionContainingSeenTransactionDisjointSet(blocks);
+    db.closeDb();
+    FileUtils.deleteDirectory(new File(tempdir.toString()));
+
+  }
+
+  /**
+   * The method called by test concurrent block ingestion containing seen transaction disjoint set mocked and real versions.
+   * @param blocks mocked or real block.
+   */
+  private void runTestConcurrentBlockIngestionContainingSeenTransactionDisjointSet(Blocks blocks){
     Identifiers seenEntities = mock(Identifiers.class);
     Identifiers transactionIds = mock(Identifiers.class);
     Transactions pendingTransactions = mock(Transactions.class);
@@ -326,13 +374,10 @@ public class IngestEngineTest {
   }
 
   /**
-   * Evaluates that when two new validated blocks (with shared transactions in pendingTx, overlapping set)
-   * arrive at ingest engine, the engine adds the blocks to its block storage database.
-   * The engine also removes hash of the transactions of blocks from pendingTransactions.
+   * The method called by test concurrent block ingestion containing seen transaction overlapping set mocked and real versions.
+   * @param blocks mocked or real block.
    */
-  @Test
-  public void testConcurrentBlockIngestionContainingSeenTransactionOverlappingSet() {
-    Blocks blocks = mock(Blocks.class);
+  private void runTestConcurrentBlockIngestionContainingSeenTransactionOverlappingSet(Blocks blocks){
     Identifiers seenEntities = mock(Identifiers.class);
     Identifiers transactionIds = mock(Identifiers.class);
     Transactions pendingTransactions = mock(Transactions.class);
@@ -365,54 +410,100 @@ public class IngestEngineTest {
       verify(pendingTransactions, times(1)).remove(tx.id());
     }
   }
+  /**
+   * Evaluates that when two new validated blocks (with shared transactions in pendingTx, overlapping set)
+   * arrive at ingest engine, the engine adds the blocks to its mocked block storage database.
+   * The engine also removes hash of the transactions of blocks from pendingTransactions.
+   */
+  @Test
+  public void testConcurrentBlockIngestionContainingSeenTransactionOverlappingSetMockedStorage() {
+    Blocks blocks = mock(Blocks.class);
+    runTestConcurrentBlockIngestionContainingSeenTransactionOverlappingSet(blocks);
+  }
+
+  /**
+   * Evaluates that when two new validated blocks (with shared transactions in pendingTx, overlapping set)
+   * arrive at ingest engine, the engine adds the blocks to its real block storage database.
+   * The engine also removes hash of the transactions of blocks from pendingTransactions.
+   */
+  @Test
+  public void testConcurrentBlockIngestionContainingSeenTransactionOverlappingSetRealStorage() throws IOException {
+    Path currentRelativePath = Paths.get("");
+    tempdir = Files.createTempDirectory(currentRelativePath, TEMP_DIR);
+    db = new BlocksMapDb(tempdir.toAbsolutePath() + "/" + TEMP_FILE_ID,
+        tempdir.toAbsolutePath() + "/" + TEMP_FILE_HEIGHT);
+    Blocks blocks = db;
+    runTestConcurrentBlockIngestionContainingSeenTransactionOverlappingSet(blocks);
+    db.closeDb();
+    FileUtils.deleteDirectory(new File(tempdir.toString()));
+  }
+private void runTestValidatedAlreadyIngestedBlock(Blocks blocks){
+  Identifiers seenEntities = mock(Identifiers.class);
+  Identifiers transactionIds = mock(Identifiers.class);
+  Transactions pendingTransactions = mock(Transactions.class);
+
+  Block block = BlockFixture.newBlock();
+
+  IngestEngine ingestEngine = this.mockIngestEngineForEntities(
+      new ArrayList<>(List.of(block)),
+      seenEntities,
+      transactionIds,
+      pendingTransactions,
+      blocks);
+
+  when(seenEntities.has(block.id())).thenReturn(true); // block is already ingested
+  if (MockUtil.isMock(blocks)){
+    when(blocks.has(block.id())).thenReturn(false);
+  } // block is already ingested
+
+  // action
+  ingestEngine.process(block);
+
+  // verification
+
+  verify(seenEntities, times(0)).add(block.id());
+  verify(seenEntities, times(1)).has(block.id());
+  for (Transaction tx : block.getTransactions()) {
+    verify(pendingTransactions, times(0)).has(tx.id());
+    verify(transactionIds, times(0)).add(tx.id());
+  }
+}
+  /**
+   * Evaluates that when an already ingested validated block arrives at ingest engine,
+   * the engine discards the block right away.
+   */
+  @Test
+  public void testValidatedAlreadyIngestedBlockMockedStorage() {
+    Blocks blocks = mock(Blocks.class);
+    runTestValidatedAlreadyIngestedBlock(blocks);
+  }
 
   /**
    * Evaluates that when an already ingested validated block arrives at ingest engine,
    * the engine discards the block right away.
    */
   @Test
-  public void testValidatedAlreadyIngestedBlock() {
-    Blocks blocks = mock(Blocks.class);
-    Identifiers seenEntities = mock(Identifiers.class);
-    Identifiers transactionIds = mock(Identifiers.class);
-    Transactions pendingTransactions = mock(Transactions.class);
+  public void testValidatedAlreadyIngestedBlockRealStorage() throws IOException {
+    Path currentRelativePath = Paths.get("");
+    tempdir = Files.createTempDirectory(currentRelativePath, TEMP_DIR);
+    db = new BlocksMapDb(tempdir.toAbsolutePath() + "/" + TEMP_FILE_ID,
+        tempdir.toAbsolutePath() + "/" + TEMP_FILE_HEIGHT);
+    Blocks blocks = db;
+    runTestValidatedAlreadyIngestedBlock(blocks);
+    db.closeDb();
+    FileUtils.deleteDirectory(new File(tempdir.toString()));
 
-    Block block = BlockFixture.newBlock();
-
-    IngestEngine ingestEngine = this.mockIngestEngineForEntities(
-        new ArrayList<>(List.of(block)),
-        seenEntities,
-        transactionIds,
-        pendingTransactions,
-        blocks);
-
-    when(seenEntities.has(block.id())).thenReturn(true); // block is already ingested
-    when(blocks.has(block.id())).thenReturn(true); // block is already ingested
-
-    // action
-    ingestEngine.process(block);
-
-    // verification
-    verify(blocks, times(0)).add(block);
-    verify(seenEntities, times(0)).add(block.id());
-    verify(seenEntities, times(1)).has(block.id());
-    for (Transaction tx : block.getTransactions()) {
-      verify(pendingTransactions, times(0)).has(tx.id());
-      verify(transactionIds, times(0)).add(tx.id());
-    }
   }
 
   /**
-   * Evaluates that when a new validated transaction arrives at ingest engine,
-   * the engine adds hash of the transaction into its pending transactions' database.
+   * The method called by test validated transaction for mocked and real blokcs storage.
+   * @param blocks mocked or real block.
    */
-  @Test
-  public void testValidatedTransaction() {
-    // R
+  private void runTestValidatedTransaction(Blocks blocks){
     Identifiers seenEntities = mock(Identifiers.class);
     Identifiers transactionIds = mock(Identifiers.class);
     Transactions pendingTransactions = mock(Transactions.class);
-    Blocks blocks = mock(Blocks.class);
+
 
     ValidatedTransaction tx = ValidatedTransactionFixture.newValidatedTransaction();
 
@@ -431,52 +522,101 @@ public class IngestEngineTest {
   }
 
   /**
+   * Evaluates that when a new validated transaction arrives at ingest engine, with mocked blocks storage,
+   * the engine adds hash of the transaction into its pending transactions' database.
+   */
+  @Test
+  public void testValidatedTransactionMockedStorage() {
+    // R
+    Blocks blocks = mock(Blocks.class);
+    runTestValidatedTransaction(blocks);
+  }
+  /**
+   * Evaluates that when a new validated transaction arrives at ingest engine, with real blocks storage,
+   * the engine adds hash of the transaction into its pending transactions' database.
+   */
+  @Test
+  public void testValidatedTransactionRealStorage() throws IOException {
+    // R
+    Path currentRelativePath = Paths.get("");
+    tempdir = Files.createTempDirectory(currentRelativePath, TEMP_DIR);
+    db = new BlocksMapDb(tempdir.toAbsolutePath() + "/" + TEMP_FILE_ID,
+        tempdir.toAbsolutePath() + "/" + TEMP_FILE_HEIGHT);
+    Blocks blocks = db;
+    runTestValidatedTransaction(blocks);
+    db.closeDb();
+    FileUtils.deleteDirectory(new File(tempdir.toString()));
+  }
+
+  /**
+   * The method called by test validated two transactions for mocked and real blocks storage.
+   * @param blocks mocked or real block.
+   */
+private void runTestValidatedTwoTransactions(Blocks blocks){
+  Identifiers seenEntities = mock(Identifiers.class);
+  Identifiers transactionIds = mock(Identifiers.class);
+  Transactions pendingTransactions = mock(Transactions.class);
+
+
+  ValidatedTransaction tx1 = ValidatedTransactionFixture.newValidatedTransaction();
+  ValidatedTransaction tx2 = ValidatedTransactionFixture.newValidatedTransaction();
+  when(seenEntities.has(any(Identifier.class))).thenReturn(false);
+  when(transactionIds.has(any(Identifier.class))).thenReturn(false);
+  when(pendingTransactions.has(any(Identifier.class))).thenReturn(false);
+
+  IngestEngine ingestEngine = this.mockIngestEngineForEntities(
+      new ArrayList<>(Arrays.asList(tx1, tx2)),
+      seenEntities,
+      transactionIds,
+      pendingTransactions,
+      blocks);
+
+  // action
+  ingestEngine.process(tx1);
+  ingestEngine.process(tx2);
+
+  // verification of tx1
+  verifyTransactionHappyPathCalled(tx1, seenEntities, transactionIds, pendingTransactions);
+
+  // verification of tx2
+  verifyTransactionHappyPathCalled(tx2, seenEntities, transactionIds, pendingTransactions);
+}
+  /**
    * Evaluates that when two validated transactions arrives at ingest engine sequentially,
    * the engine adds the hashes of the transactions into its pending transactions' database.
    */
   @Test
-  public void testValidatedTwoTransactions() {
+  public void testValidatedTwoTransactionsMockedBlocksStorage() {
     // R
-    Identifiers seenEntities = mock(Identifiers.class);
-    Identifiers transactionIds = mock(Identifiers.class);
-    Transactions pendingTransactions = mock(Transactions.class);
     Blocks blocks = mock(Blocks.class);
-
-    ValidatedTransaction tx1 = ValidatedTransactionFixture.newValidatedTransaction();
-    ValidatedTransaction tx2 = ValidatedTransactionFixture.newValidatedTransaction();
-    when(seenEntities.has(any(Identifier.class))).thenReturn(false);
-    when(transactionIds.has(any(Identifier.class))).thenReturn(false);
-    when(pendingTransactions.has(any(Identifier.class))).thenReturn(false);
-
-    IngestEngine ingestEngine = this.mockIngestEngineForEntities(
-        new ArrayList<>(Arrays.asList(tx1, tx2)),
-        seenEntities,
-        transactionIds,
-        pendingTransactions,
-        blocks);
-
-    // action
-    ingestEngine.process(tx1);
-    ingestEngine.process(tx2);
-
-    // verification of tx1
-    verifyTransactionHappyPathCalled(tx1, seenEntities, transactionIds, pendingTransactions);
-
-    // verification of tx2
-    verifyTransactionHappyPathCalled(tx2, seenEntities, transactionIds, pendingTransactions);
+    runTestValidatedTwoTransactions(blocks);
   }
-
   /**
-   * Evaluates that when two validated transactions arrive at ingest engine concurrently,
+   * Evaluates that when two validated transactions arrives at ingest engine sequentially,
    * the engine adds the hashes of the transactions into its pending transactions' database.
    */
   @Test
-  public void testConcurrentValidatedTwoTransactions() {
+  public void testValidatedTwoTransactionsRealBlocksStorage() throws IOException {
     // R
+    Path currentRelativePath = Paths.get("");
+    tempdir = Files.createTempDirectory(currentRelativePath, TEMP_DIR);
+    db = new BlocksMapDb(tempdir.toAbsolutePath() + "/" + TEMP_FILE_ID,
+        tempdir.toAbsolutePath() + "/" + TEMP_FILE_HEIGHT);
+    Blocks blocks = db;
+    runTestValidatedTwoTransactions(blocks);
+    db.closeDb();
+    FileUtils.deleteDirectory(new File(tempdir.toString()));
+  }
+
+  /**
+   * The method called by test validated two transactions concurrently for mocked and real blocks storage.
+   * @param blocks mocked or real block.
+   */
+  private void runTestConcurrentValidatedTwoTransactions(Blocks blocks){
     Identifiers seenEntities = mock(Identifiers.class);
     Identifiers transactionIds = mock(Identifiers.class);
     Transactions pendingTransactions = mock(Transactions.class);
-    Blocks blocks = mock(Blocks.class);
+
 
     ValidatedTransaction tx1 = ValidatedTransactionFixture.newValidatedTransaction();
     ValidatedTransaction tx2 = ValidatedTransactionFixture.newValidatedTransaction();
@@ -498,19 +638,43 @@ public class IngestEngineTest {
     // verification of tx2
     verifyTransactionHappyPathCalled(tx2, seenEntities, transactionIds, pendingTransactions);
   }
-
   /**
-   * Evaluates that when two same validated transactions arrive at ingest engine sequentially,
-   * the engine adds the hash of the first transaction into its pending transactions' database.
-   * The engine also discards the second transaction right away.
+   * Evaluates that when two validated transactions arrive at ingest engine concurrently, with mocked blocks storage,
+   * the engine adds the hashes of the transactions into its pending transactions' database.
    */
   @Test
-  public void testValidatedSameTwoTransactions() {
+  public void testConcurrentValidatedTwoTransactionsMockedBlockStorage() {
     // R
+    Blocks blocks = mock(Blocks.class);
+    runTestConcurrentValidatedTwoTransactions(blocks);
+
+  }
+
+  /**
+   * Evaluates that when two validated transactions arrive at ingest engine concurrently, with real blocks storage,
+   * the engine adds the hashes of the transactions into its pending transactions' database.
+   */
+  @Test
+  public void testConcurrentValidatedTwoTransactionsRealBlockStorage() throws IOException {
+    // R
+    Path currentRelativePath = Paths.get("");
+    tempdir = Files.createTempDirectory(currentRelativePath, TEMP_DIR);
+    db = new BlocksMapDb(tempdir.toAbsolutePath() + "/" + TEMP_FILE_ID,
+        tempdir.toAbsolutePath() + "/" + TEMP_FILE_HEIGHT);
+    Blocks blocks = db;
+    runTestConcurrentValidatedTwoTransactions(blocks);
+    db.closeDb();
+    FileUtils.deleteDirectory(new File(tempdir.toString()));
+  }
+
+  /**
+   * The method called by test validated same two transactions for mocked and real blocks storage.
+   * @param blocks mocked or real blocks
+   */
+  private void runTestValidatedSameTwoTransactions(Blocks blocks){
     Identifiers seenEntities = mock(Identifiers.class);
     Identifiers transactionIds = mock(Identifiers.class);
     Transactions pendingTransactions = mock(Transactions.class);
-    Blocks blocks = mock(Blocks.class);
 
     ValidatedTransaction tx = ValidatedTransactionFixture.newValidatedTransaction();
     when(seenEntities.has(tx.id())).thenReturn(false);
@@ -535,18 +699,44 @@ public class IngestEngineTest {
     verifyTransactionHappyPathCalled(tx, seenEntities, transactionIds, pendingTransactions);
     verify(seenEntities, times(2)).has(tx.id());
   }
-
   /**
-   * Evaluates that when a validated transaction which is already in transaction identifiers arrives at ingest engine,
-   * the engine discards the transaction.
+   * Evaluates that when two same validated transactions arrive at ingest engine sequentially, with mocked blocks,
+   * the engine adds the hash of the first transaction into its pending transactions' database.
+   * The engine also discards the second transaction right away.
    */
   @Test
-  public void testValidatedTransactionAlreadyInTransactionIdStorage() {
+  public void testValidatedSameTwoTransactionsMockedBlocks() {
     // R
+    Blocks blocks = mock(Blocks.class);
+    runTestValidatedSameTwoTransactions(blocks);
+  }
+
+  /**
+   * Evaluates that when two same validated transactions arrive at ingest engine sequentially, with real blocks,
+   * the engine adds the hash of the first transaction into its pending transactions' database.
+   * The engine also discards the second transaction right away.
+   */
+  @Test
+  public void testValidatedSameTwoTransactionsRealBlocks() throws IOException {
+    // R
+    Path currentRelativePath = Paths.get("");
+    tempdir = Files.createTempDirectory(currentRelativePath, TEMP_DIR);
+    db = new BlocksMapDb(tempdir.toAbsolutePath() + "/" + TEMP_FILE_ID,
+        tempdir.toAbsolutePath() + "/" + TEMP_FILE_HEIGHT);
+    Blocks blocks = db;
+    runTestValidatedSameTwoTransactions(blocks);
+    db.closeDb();
+    FileUtils.deleteDirectory(new File(tempdir.toString()));
+  }
+
+  /**
+   * The method called by test validated transactions already in transaction id storage for mocked and real blocks
+   * @param blocks mocked or real blocks
+   */
+  private void runTestValidatedTransactionAlreadyInTransactionIdStorage(Blocks blocks){
     Identifiers seenEntities = mock(Identifiers.class);
     Identifiers transactionIds = mock(Identifiers.class);
     Transactions pendingTransactions = mock(Transactions.class);
-    Blocks blocks = mock(Blocks.class);
 
     ValidatedTransaction tx = ValidatedTransactionFixture.newValidatedTransaction();
 
@@ -570,6 +760,34 @@ public class IngestEngineTest {
     verify(pendingTransactions, times(1)).has(tx.id());
     verify(transactionIds, times(1)).has(tx.id());
     verify(pendingTransactions, times(0)).add(tx);
+  }
+
+  /**
+   * Evaluates that when a validated transaction which is already in transaction identifiers arrives at ingest engine,
+   * with mocked blocks storage, the engine discards the transaction.
+   */
+  @Test
+  public void testValidatedTransactionAlreadyInTransactionIdStorageMockedBlocks() {
+    // R
+    Blocks blocks = mock(Blocks.class);
+    runTestValidatedTransactionAlreadyInTransactionIdStorage(blocks);
+  }
+
+  /**
+   * Evaluates that when a validated transaction which is already in transaction identifiers arrives at ingest engine,
+   * with real blocks storage, the engine discards the transaction.
+   */
+  @Test
+  public void testValidatedTransactionAlreadyInTransactionIdStorageRealBlocks() throws IOException {
+    // R
+    Path currentRelativePath = Paths.get("");
+    tempdir = Files.createTempDirectory(currentRelativePath, TEMP_DIR);
+    db = new BlocksMapDb(tempdir.toAbsolutePath() + "/" + TEMP_FILE_ID,
+        tempdir.toAbsolutePath() + "/" + TEMP_FILE_HEIGHT);
+    Blocks blocks = db;
+    runTestValidatedTransactionAlreadyInTransactionIdStorage(blocks);
+    db.closeDb();
+    FileUtils.deleteDirectory(new File(tempdir.toString()));
   }
 
   /**
@@ -598,18 +816,13 @@ public class IngestEngineTest {
   }
 
   /**
-   * Evaluates that when a validated block and a validated transaction arrives at ingest engine concurrently,
-   * the engine adds the block to its block storage database.
-   * The engine also adds hash of all the transactions of block
-   * and the hash of the validated transaction into its "transactions" database.
+   * the method called by test concurrent validated transaction and block nonoverlapping for mocked and real versions.
+   * @param blocks mocked or real blocks
    */
-  @Test
-  public void testConcurrentValidatedTransactionAndBlockNonOverlapping() {
-    // R
+  private void runTestConcurrentValidatedTransactionAndBlockNonOverlapping(Blocks blocks){
     Identifiers seenEntities = mock(Identifiers.class);
     Identifiers transactionIds = mock(Identifiers.class);
     Transactions pendingTransactions = mock(Transactions.class);
-    Blocks blocks = mock(Blocks.class);
 
     ValidatedTransaction validatedTx = ValidatedTransactionFixture.newValidatedTransaction();
     Block block = BlockFixture.newBlock();
@@ -633,20 +846,47 @@ public class IngestEngineTest {
     // no transaction should be removed from pending ones
     verify(pendingTransactions, times(0)).remove(any(Identifier.class));
   }
-
   /**
-   * Evaluates that when a validated block and a validated transaction (which the block contains)
-   * arrive at ingest engine (block first), the engine adds the block to its block storage database.
-   * The engine also adds hash of all the transactions of block into its "transactions" database.
-   * Hence, when the transaction that also included in the block comes next, it is never added to pending
-   * transactions' database.
+   * Evaluates that when a validated block and a validated transaction arrives at ingest engine concurrently,
+   * the engine adds the block to its block storage database.
+   * The engine also adds hash of all the transactions of block
+   * and the hash of the validated transaction into its "transactions" database.
    */
   @Test
-  public void testProcessBlockAndIncludedTransaction_BlockFirst() {
+  public void testConcurrentValidatedTransactionAndBlockNonOverlappingMockedBlocks() {
+    // R
+    Blocks blocks = mock(Blocks.class);
+    runTestConcurrentValidatedTransactionAndBlockNonOverlapping(blocks);
+  }
+
+  /**
+   * Evaluates that when a validated block and a validated transaction arrives at ingest engine concurrently,
+   * the engine adds the block to its block storage database.
+   * The engine also adds hash of all the transactions of block
+   * and the hash of the validated transaction into its "transactions" database.
+   */
+  @Test
+  public void testConcurrentValidatedTransactionAndBlockNonOverlappingRealBlocks() throws IOException {
+    // R
+    Path currentRelativePath = Paths.get("");
+    tempdir = Files.createTempDirectory(currentRelativePath, TEMP_DIR);
+    db = new BlocksMapDb(tempdir.toAbsolutePath() + "/" + TEMP_FILE_ID,
+        tempdir.toAbsolutePath() + "/" + TEMP_FILE_HEIGHT);
+    Blocks blocks = db;
+    runTestConcurrentValidatedTransactionAndBlockNonOverlapping(blocks);
+    db.closeDb();
+    FileUtils.deleteDirectory(new File(tempdir.toString()));
+  }
+
+  /**
+   * The method called by tests processBlockAndIncludedTransaction_BlockFirst for mocked and real block storages.
+   * @param blocks mocked or real blocks.
+   */
+  private void runTestProcessBlockAndIncludedTransaction_BlockFirst(Blocks blocks){
     Identifiers seenEntities = mock(Identifiers.class);
     Identifiers transactionIds = mock(Identifiers.class);
     Transactions pendingTransactions = mock(Transactions.class);
-    Blocks blocks = mock(Blocks.class);
+
 
     Block block = BlockFixture.newBlock();
     ValidatedTransaction validatedTx = block.getTransactions()[0]; // the transaction is in the block
@@ -667,7 +907,9 @@ public class IngestEngineTest {
     ingestEngine.process(validatedTx);
 
     // verification for block
-    verify(blocks, times(1)).add(block);
+    if (MockUtil.isMock(blocks)){
+      verify(blocks, times(1)).add(block);
+    }
     verify(seenEntities, times(1)).add(block.id());
     for (Transaction tx : block.getTransactions()) {
       verify(transactionIds, times(1)).add(tx.id());
@@ -678,21 +920,46 @@ public class IngestEngineTest {
     verify(transactionIds, times(1)).has(validatedTx.id());
     verify(pendingTransactions, times(0)).add(validatedTx);
   }
-
   /**
    * Evaluates that when a validated block and a validated transaction (which the block contains)
-   * arrive at ingest engine (transaction first), the engine adds the block to its block storage database.
+   * arrive at ingest engine (block first), the engine adds the block to its mocked block storage database.
    * The engine also adds hash of all the transactions of block into its "transactions" database.
    * Hence, when the transaction that also included in the block comes next, it is never added to pending
    * transactions' database.
    */
   @Test
-  public void testProcessBlockAndIncludedTransaction_TransactionFirst() {
-    // R
+  public void testProcessBlockAndIncludedTransaction_BlockFirstMockedBlocks() {
+    Blocks blocks = mock(Blocks.class);
+    runTestProcessBlockAndIncludedTransaction_BlockFirst(blocks);
+  }
+
+  /**
+   * Evaluates that when a validated block and a validated transaction (which the block contains)
+   * arrive at ingest engine (block first), the engine adds the block to its real block storage database.
+   * The engine also adds hash of all the transactions of block into its "transactions" database.
+   * Hence, when the transaction that also included in the block comes next, it is never added to pending
+   * transactions' database.
+   */
+  @Test
+  public void testProcessBlockAndIncludedTransaction_BlockFirstRealBlocks() throws IOException {
+    Path currentRelativePath = Paths.get("");
+    tempdir = Files.createTempDirectory(currentRelativePath, TEMP_DIR);
+    db = new BlocksMapDb(tempdir.toAbsolutePath() + "/" + TEMP_FILE_ID,
+        tempdir.toAbsolutePath() + "/" + TEMP_FILE_HEIGHT);
+    Blocks blocks = db;
+    runTestProcessBlockAndIncludedTransaction_BlockFirst(blocks);
+    db.closeDb();
+    FileUtils.deleteDirectory(new File(tempdir.toString()));
+  }
+
+  /**
+   * The method called by tests process block and included transaction and transaction first for mocked and real blocks.
+   * @param blocks real or mocked blocks.
+   */
+  private void runTestProcessBlockAndIncludedTransaction_TransactionFirst(Blocks blocks){
     Identifiers seenEntities = mock(Identifiers.class);
     Identifiers transactionIds = mock(Identifiers.class);
     Transactions pendingTransactions = mock(Transactions.class);
-    Blocks blocks = mock(Blocks.class);
 
     Block block = BlockFixture.newBlock();
     ValidatedTransaction validatedTx = block.getTransactions()[0]; // the transaction is in the block
@@ -714,7 +981,9 @@ public class IngestEngineTest {
     ingestEngine.process(block);
 
     // verification for block
-    verify(blocks, times(1)).add(block);
+    if (MockUtil.isMock(blocks)){
+      verify(blocks, times(1)).add(block);
+    }
     verify(seenEntities, times(1)).add(block.id());
     for (Transaction tx : block.getTransactions()) {
       verify(transactionIds, times(1)).add(tx.id());
@@ -726,6 +995,40 @@ public class IngestEngineTest {
     // transaction must be added to pending ones, and then removed.
     verify(pendingTransactions, times(1)).add(validatedTx);
     verify(pendingTransactions, times(1)).remove(validatedTx.id());
+  }
+
+  /**
+   * Evaluates that when a validated block and a validated transaction (which the block contains)
+   * arrive at ingest engine (transaction first), the engine adds the block to its mocked block storage database.
+   * The engine also adds hash of all the transactions of block into its "transactions" database.
+   * Hence, when the transaction that also included in the block comes next, it is never added to pending
+   * transactions' database.
+   */
+  @Test
+  public void testProcessBlockAndIncludedTransaction_TransactionFirstMockedBlocks() {
+    // R
+    Blocks blocks = mock(Blocks.class);
+    runTestProcessBlockAndIncludedTransaction_TransactionFirst(blocks);
+  }
+
+  /**
+   * Evaluates that when a validated block and a validated transaction (which the block contains)
+   * arrive at ingest engine (transaction first), the engine adds the block to its real block storage database.
+   * The engine also adds hash of all the transactions of block into its "transactions" database.
+   * Hence, when the transaction that also included in the block comes next, it is never added to pending
+   * transactions' database.
+   */
+  @Test
+  public void testProcessBlockAndIncludedTransaction_TransactionFirstRealBlocks() throws IOException {
+    // R
+    Path currentRelativePath = Paths.get("");
+    tempdir = Files.createTempDirectory(currentRelativePath, TEMP_DIR);
+    db = new BlocksMapDb(tempdir.toAbsolutePath() + "/" + TEMP_FILE_ID,
+        tempdir.toAbsolutePath() + "/" + TEMP_FILE_HEIGHT);
+    Blocks blocks = db;
+    runTestProcessBlockAndIncludedTransaction_TransactionFirst(blocks);
+    db.closeDb();
+    FileUtils.deleteDirectory(new File(tempdir.toString()));
   }
 
   /**
