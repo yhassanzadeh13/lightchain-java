@@ -14,12 +14,12 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.mockito.Mockito.*;
 
-import org.mockito.internal.util.MockUtil;
 import model.Entity;
 import model.codec.EntityType;
 import model.crypto.PublicKey;
 import model.crypto.Signature;
 import model.lightchain.*;
+import org.mockito.internal.util.MockUtil;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.testcontainers.shaded.org.apache.commons.io.FileUtils;
@@ -45,6 +45,7 @@ public class IngestEngineTest {
   private static final String TEMP_FILE_HEIGHT = "tempfileHEIGHT.db";
   private Path tempdir;
   private BlocksMapDb db;
+
   /**
    * Evaluates that when a new validated block arrives at ingest engine,
    * the engine adds the block to its mocked block storage database.
@@ -100,11 +101,13 @@ public class IngestEngineTest {
     db.closeDb();
     FileUtils.deleteDirectory(new File(tempdir.toString()));
   }
+
   /**
    * The method called by test validated single block for mocked and real versions.
+   *
    * @param blocks mocked or real block.
    */
-  public void runTestValidatedTwoBlocks(Blocks blocks){
+  public void runTestValidatedTwoBlocks(Blocks blocks) {
     Identifiers seenEntities = mock(Identifiers.class);
     Identifiers transactionIds = mock(Identifiers.class);
     Transactions pendingTransactions = mock(Transactions.class);
@@ -141,6 +144,7 @@ public class IngestEngineTest {
     Blocks blocks = mock(Blocks.class);
     runTestValidatedTwoBlocksConcurrently(blocks);
   }
+
   /**
    * Evaluates that when two validated blocks arrive at ingest engine concurrently,
    * the engine adds the blocks to its real block storage database.
@@ -160,9 +164,10 @@ public class IngestEngineTest {
 
   /**
    * The method called by test validated two blocks for mocked and real versions concurrently.
+   *
    * @param blocks mocked or real block.
    */
-  public void runTestValidatedTwoBlocksConcurrently(Blocks blocks){
+  public void runTestValidatedTwoBlocksConcurrently(Blocks blocks) {
     Identifiers seenEntities = mock(Identifiers.class);
     Identifiers transactionIds = mock(Identifiers.class);
     Transactions pendingTransactions = mock(Transactions.class);
@@ -198,6 +203,7 @@ public class IngestEngineTest {
     Blocks blocks = mock(Blocks.class);
     runTestValidatedSameTwoBlocks(blocks);
   }
+
   /**
    * Evaluates that when two same validated blocks arrive at ingest engine (second one should be ignored),
    * the engine adds the blocks to its real block storage database.
@@ -217,9 +223,10 @@ public class IngestEngineTest {
 
   /**
    * The method called by test validated two blocks for mocked and real versions concurrently.
+   *
    * @param blocks mocked or real blocks.
    */
-  public void runTestValidatedSameTwoBlocks(Blocks blocks){
+  public void runTestValidatedSameTwoBlocks(Blocks blocks) {
     Identifiers seenEntities = mock(Identifiers.class);
     Identifiers transactionIds = mock(Identifiers.class);
     Transactions pendingTransactions = mock(Transactions.class);
@@ -275,9 +282,10 @@ public class IngestEngineTest {
 
   /**
    * The method called by test validated blocks containing pending transactions for mocked and real versions concurrently.
+   *
    * @param blocks mocked or real block.
    */
-  public void runTestValidatedBlockContainingPendingTransaction(Blocks blocks){
+  public void runTestValidatedBlockContainingPendingTransaction(Blocks blocks) {
     Identifiers seenEntities = mock(Identifiers.class);
     Identifiers transactionIds = mock(Identifiers.class);
     Transactions pendingTransactions = mock(Transactions.class);
@@ -304,6 +312,7 @@ public class IngestEngineTest {
       verify(pendingTransactions, times(1)).remove(tx.id());
     }
   }
+
   /**
    * Evaluates that when two new validated blocks (with a shared transactions in pendingTx, disjoint set)
    * arrive at ingest engine, the engine adds the blocks to its real block storage database.
@@ -315,6 +324,7 @@ public class IngestEngineTest {
     Blocks blocks = mock(Blocks.class);
     runTestConcurrentBlockIngestionContainingSeenTransactionDisjointSet(blocks);
   }
+
   /**
    * Evaluates that when two new validated blocks (with a shared transactions in pendingTx, disjoint set)
    * arrive at ingest engine, the engine adds the blocks to its real block storage database.
@@ -336,9 +346,10 @@ public class IngestEngineTest {
 
   /**
    * The method called by test concurrent block ingestion containing seen transaction disjoint set mocked and real versions.
+   *
    * @param blocks mocked or real block.
    */
-  private void runTestConcurrentBlockIngestionContainingSeenTransactionDisjointSet(Blocks blocks){
+  private void runTestConcurrentBlockIngestionContainingSeenTransactionDisjointSet(Blocks blocks) {
     Identifiers seenEntities = mock(Identifiers.class);
     Identifiers transactionIds = mock(Identifiers.class);
     Transactions pendingTransactions = mock(Transactions.class);
@@ -375,9 +386,10 @@ public class IngestEngineTest {
 
   /**
    * The method called by test concurrent block ingestion containing seen transaction overlapping set mocked and real versions.
+   *
    * @param blocks mocked or real block.
    */
-  private void runTestConcurrentBlockIngestionContainingSeenTransactionOverlappingSet(Blocks blocks){
+  private void runTestConcurrentBlockIngestionContainingSeenTransactionOverlappingSet(Blocks blocks) {
     Identifiers seenEntities = mock(Identifiers.class);
     Identifiers transactionIds = mock(Identifiers.class);
     Transactions pendingTransactions = mock(Transactions.class);
@@ -410,6 +422,7 @@ public class IngestEngineTest {
       verify(pendingTransactions, times(1)).remove(tx.id());
     }
   }
+
   /**
    * Evaluates that when two new validated blocks (with shared transactions in pendingTx, overlapping set)
    * arrive at ingest engine, the engine adds the blocks to its mocked block storage database.
@@ -437,37 +450,39 @@ public class IngestEngineTest {
     db.closeDb();
     FileUtils.deleteDirectory(new File(tempdir.toString()));
   }
-private void runTestValidatedAlreadyIngestedBlock(Blocks blocks){
-  Identifiers seenEntities = mock(Identifiers.class);
-  Identifiers transactionIds = mock(Identifiers.class);
-  Transactions pendingTransactions = mock(Transactions.class);
 
-  Block block = BlockFixture.newBlock();
+  private void runTestValidatedAlreadyIngestedBlock(Blocks blocks) {
+    Identifiers seenEntities = mock(Identifiers.class);
+    Identifiers transactionIds = mock(Identifiers.class);
+    Transactions pendingTransactions = mock(Transactions.class);
 
-  IngestEngine ingestEngine = this.mockIngestEngineForEntities(
-      new ArrayList<>(List.of(block)),
-      seenEntities,
-      transactionIds,
-      pendingTransactions,
-      blocks);
+    Block block = BlockFixture.newBlock();
 
-  when(seenEntities.has(block.id())).thenReturn(true); // block is already ingested
-  if (MockUtil.isMock(blocks)){
-    when(blocks.has(block.id())).thenReturn(false);
-  } // block is already ingested
+    IngestEngine ingestEngine = this.mockIngestEngineForEntities(
+        new ArrayList<>(List.of(block)),
+        seenEntities,
+        transactionIds,
+        pendingTransactions,
+        blocks);
 
-  // action
-  ingestEngine.process(block);
+    when(seenEntities.has(block.id())).thenReturn(true); // block is already ingested
+    if (MockUtil.isMock(blocks)) {
+      when(blocks.has(block.id())).thenReturn(false);
+    } // block is already ingested
 
-  // verification
+    // action
+    ingestEngine.process(block);
 
-  verify(seenEntities, times(0)).add(block.id());
-  verify(seenEntities, times(1)).has(block.id());
-  for (Transaction tx : block.getTransactions()) {
-    verify(pendingTransactions, times(0)).has(tx.id());
-    verify(transactionIds, times(0)).add(tx.id());
+    // verification
+
+    verify(seenEntities, times(0)).add(block.id());
+    verify(seenEntities, times(1)).has(block.id());
+    for (Transaction tx : block.getTransactions()) {
+      verify(pendingTransactions, times(0)).has(tx.id());
+      verify(transactionIds, times(0)).add(tx.id());
+    }
   }
-}
+
   /**
    * Evaluates that when an already ingested validated block arrives at ingest engine,
    * the engine discards the block right away.
@@ -497,9 +512,10 @@ private void runTestValidatedAlreadyIngestedBlock(Blocks blocks){
 
   /**
    * The method called by test validated transaction for mocked and real blokcs storage.
+   *
    * @param blocks mocked or real block.
    */
-  private void runTestValidatedTransaction(Blocks blocks){
+  private void runTestValidatedTransaction(Blocks blocks) {
     Identifiers seenEntities = mock(Identifiers.class);
     Identifiers transactionIds = mock(Identifiers.class);
     Transactions pendingTransactions = mock(Transactions.class);
@@ -531,6 +547,7 @@ private void runTestValidatedAlreadyIngestedBlock(Blocks blocks){
     Blocks blocks = mock(Blocks.class);
     runTestValidatedTransaction(blocks);
   }
+
   /**
    * Evaluates that when a new validated transaction arrives at ingest engine, with real blocks storage,
    * the engine adds hash of the transaction into its pending transactions' database.
@@ -550,37 +567,39 @@ private void runTestValidatedAlreadyIngestedBlock(Blocks blocks){
 
   /**
    * The method called by test validated two transactions for mocked and real blocks storage.
+   *
    * @param blocks mocked or real block.
    */
-private void runTestValidatedTwoTransactions(Blocks blocks){
-  Identifiers seenEntities = mock(Identifiers.class);
-  Identifiers transactionIds = mock(Identifiers.class);
-  Transactions pendingTransactions = mock(Transactions.class);
+  private void runTestValidatedTwoTransactions(Blocks blocks) {
+    Identifiers seenEntities = mock(Identifiers.class);
+    Identifiers transactionIds = mock(Identifiers.class);
+    Transactions pendingTransactions = mock(Transactions.class);
 
 
-  ValidatedTransaction tx1 = ValidatedTransactionFixture.newValidatedTransaction();
-  ValidatedTransaction tx2 = ValidatedTransactionFixture.newValidatedTransaction();
-  when(seenEntities.has(any(Identifier.class))).thenReturn(false);
-  when(transactionIds.has(any(Identifier.class))).thenReturn(false);
-  when(pendingTransactions.has(any(Identifier.class))).thenReturn(false);
+    ValidatedTransaction tx1 = ValidatedTransactionFixture.newValidatedTransaction();
+    ValidatedTransaction tx2 = ValidatedTransactionFixture.newValidatedTransaction();
+    when(seenEntities.has(any(Identifier.class))).thenReturn(false);
+    when(transactionIds.has(any(Identifier.class))).thenReturn(false);
+    when(pendingTransactions.has(any(Identifier.class))).thenReturn(false);
 
-  IngestEngine ingestEngine = this.mockIngestEngineForEntities(
-      new ArrayList<>(Arrays.asList(tx1, tx2)),
-      seenEntities,
-      transactionIds,
-      pendingTransactions,
-      blocks);
+    IngestEngine ingestEngine = this.mockIngestEngineForEntities(
+        new ArrayList<>(Arrays.asList(tx1, tx2)),
+        seenEntities,
+        transactionIds,
+        pendingTransactions,
+        blocks);
 
-  // action
-  ingestEngine.process(tx1);
-  ingestEngine.process(tx2);
+    // action
+    ingestEngine.process(tx1);
+    ingestEngine.process(tx2);
 
-  // verification of tx1
-  verifyTransactionHappyPathCalled(tx1, seenEntities, transactionIds, pendingTransactions);
+    // verification of tx1
+    verifyTransactionHappyPathCalled(tx1, seenEntities, transactionIds, pendingTransactions);
 
-  // verification of tx2
-  verifyTransactionHappyPathCalled(tx2, seenEntities, transactionIds, pendingTransactions);
-}
+    // verification of tx2
+    verifyTransactionHappyPathCalled(tx2, seenEntities, transactionIds, pendingTransactions);
+  }
+
   /**
    * Evaluates that when two validated transactions arrives at ingest engine sequentially,
    * the engine adds the hashes of the transactions into its pending transactions' database.
@@ -591,6 +610,7 @@ private void runTestValidatedTwoTransactions(Blocks blocks){
     Blocks blocks = mock(Blocks.class);
     runTestValidatedTwoTransactions(blocks);
   }
+
   /**
    * Evaluates that when two validated transactions arrives at ingest engine sequentially,
    * the engine adds the hashes of the transactions into its pending transactions' database.
@@ -610,9 +630,10 @@ private void runTestValidatedTwoTransactions(Blocks blocks){
 
   /**
    * The method called by test validated two transactions concurrently for mocked and real blocks storage.
+   *
    * @param blocks mocked or real block.
    */
-  private void runTestConcurrentValidatedTwoTransactions(Blocks blocks){
+  private void runTestConcurrentValidatedTwoTransactions(Blocks blocks) {
     Identifiers seenEntities = mock(Identifiers.class);
     Identifiers transactionIds = mock(Identifiers.class);
     Transactions pendingTransactions = mock(Transactions.class);
@@ -638,6 +659,7 @@ private void runTestValidatedTwoTransactions(Blocks blocks){
     // verification of tx2
     verifyTransactionHappyPathCalled(tx2, seenEntities, transactionIds, pendingTransactions);
   }
+
   /**
    * Evaluates that when two validated transactions arrive at ingest engine concurrently, with mocked blocks storage,
    * the engine adds the hashes of the transactions into its pending transactions' database.
@@ -669,9 +691,10 @@ private void runTestValidatedTwoTransactions(Blocks blocks){
 
   /**
    * The method called by test validated same two transactions for mocked and real blocks storage.
+   *
    * @param blocks mocked or real blocks
    */
-  private void runTestValidatedSameTwoTransactions(Blocks blocks){
+  private void runTestValidatedSameTwoTransactions(Blocks blocks) {
     Identifiers seenEntities = mock(Identifiers.class);
     Identifiers transactionIds = mock(Identifiers.class);
     Transactions pendingTransactions = mock(Transactions.class);
@@ -699,6 +722,7 @@ private void runTestValidatedTwoTransactions(Blocks blocks){
     verifyTransactionHappyPathCalled(tx, seenEntities, transactionIds, pendingTransactions);
     verify(seenEntities, times(2)).has(tx.id());
   }
+
   /**
    * Evaluates that when two same validated transactions arrive at ingest engine sequentially, with mocked blocks,
    * the engine adds the hash of the first transaction into its pending transactions' database.
@@ -731,9 +755,10 @@ private void runTestValidatedTwoTransactions(Blocks blocks){
 
   /**
    * The method called by test validated transactions already in transaction id storage for mocked and real blocks
+   *
    * @param blocks mocked or real blocks
    */
-  private void runTestValidatedTransactionAlreadyInTransactionIdStorage(Blocks blocks){
+  private void runTestValidatedTransactionAlreadyInTransactionIdStorage(Blocks blocks) {
     Identifiers seenEntities = mock(Identifiers.class);
     Identifiers transactionIds = mock(Identifiers.class);
     Transactions pendingTransactions = mock(Transactions.class);
@@ -817,9 +842,10 @@ private void runTestValidatedTwoTransactions(Blocks blocks){
 
   /**
    * the method called by test concurrent validated transaction and block nonoverlapping for mocked and real versions.
+   *
    * @param blocks mocked or real blocks
    */
-  private void runTestConcurrentValidatedTransactionAndBlockNonOverlapping(Blocks blocks){
+  private void runTestConcurrentValidatedTransactionAndBlockNonOverlapping(Blocks blocks) {
     Identifiers seenEntities = mock(Identifiers.class);
     Identifiers transactionIds = mock(Identifiers.class);
     Transactions pendingTransactions = mock(Transactions.class);
@@ -846,6 +872,7 @@ private void runTestValidatedTwoTransactions(Blocks blocks){
     // no transaction should be removed from pending ones
     verify(pendingTransactions, times(0)).remove(any(Identifier.class));
   }
+
   /**
    * Evaluates that when a validated block and a validated transaction arrives at ingest engine concurrently,
    * the engine adds the block to its block storage database.
@@ -880,9 +907,10 @@ private void runTestValidatedTwoTransactions(Blocks blocks){
 
   /**
    * The method called by tests processBlockAndIncludedTransaction_BlockFirst for mocked and real block storages.
+   *
    * @param blocks mocked or real blocks.
    */
-  private void runTestProcessBlockAndIncludedTransaction_BlockFirst(Blocks blocks){
+  private void runTestProcessBlockAndIncludedTransaction_BlockFirst(Blocks blocks) {
     Identifiers seenEntities = mock(Identifiers.class);
     Identifiers transactionIds = mock(Identifiers.class);
     Transactions pendingTransactions = mock(Transactions.class);
@@ -907,7 +935,7 @@ private void runTestValidatedTwoTransactions(Blocks blocks){
     ingestEngine.process(validatedTx);
 
     // verification for block
-    if (MockUtil.isMock(blocks)){
+    if (MockUtil.isMock(blocks)) {
       verify(blocks, times(1)).add(block);
     }
     verify(seenEntities, times(1)).add(block.id());
@@ -920,6 +948,7 @@ private void runTestValidatedTwoTransactions(Blocks blocks){
     verify(transactionIds, times(1)).has(validatedTx.id());
     verify(pendingTransactions, times(0)).add(validatedTx);
   }
+
   /**
    * Evaluates that when a validated block and a validated transaction (which the block contains)
    * arrive at ingest engine (block first), the engine adds the block to its mocked block storage database.
@@ -954,9 +983,10 @@ private void runTestValidatedTwoTransactions(Blocks blocks){
 
   /**
    * The method called by tests process block and included transaction and transaction first for mocked and real blocks.
+   *
    * @param blocks real or mocked blocks.
    */
-  private void runTestProcessBlockAndIncludedTransaction_TransactionFirst(Blocks blocks){
+  private void runTestProcessBlockAndIncludedTransaction_TransactionFirst(Blocks blocks) {
     Identifiers seenEntities = mock(Identifiers.class);
     Identifiers transactionIds = mock(Identifiers.class);
     Transactions pendingTransactions = mock(Transactions.class);
@@ -981,7 +1011,7 @@ private void runTestValidatedTwoTransactions(Blocks blocks){
     ingestEngine.process(block);
 
     // verification for block
-    if (MockUtil.isMock(blocks)){
+    if (MockUtil.isMock(blocks)) {
       verify(blocks, times(1)).add(block);
     }
     verify(seenEntities, times(1)).add(block.id());
@@ -1049,7 +1079,7 @@ private void runTestValidatedTwoTransactions(Blocks blocks){
       Transactions pendingTx,
       Identifiers txIds,
       Identifiers seenEntities) {
-    if (MockUtil.isMock(blocks)){
+    if (MockUtil.isMock(blocks)) {
       verify(blocks, times(1)).add(block);
     }
 
@@ -1119,7 +1149,7 @@ private void runTestValidatedTwoTransactions(Blocks blocks){
 
         Block block = (Block) e;
         when(state.atBlockId(block.getPreviousBlockId())).thenReturn(snapshot);
-        if (MockUtil.isMock(blocks)){
+        if (MockUtil.isMock(blocks)) {
           when(blocks.has(block.id())).thenReturn(false);
         }
         for (Transaction tx : block.getTransactions()) {
@@ -1203,15 +1233,16 @@ private void runTestValidatedTwoTransactions(Blocks blocks){
 
   /**
    * The method called by test validated single block for mocked and real versions.
+   *
    * @param blocks mocked or real block.
    */
-  private void runTestValidatedSingleBlock(Blocks blocks){
+  private void runTestValidatedSingleBlock(Blocks blocks) {
     Identifiers seenEntities = mock(Identifiers.class);
     Identifiers transactionIds = mock(Identifiers.class);
     Transactions pendingTransactions = mock(Transactions.class);
     Block block = BlockFixture.newBlock();
     when(seenEntities.has(block.id())).thenReturn(false);
-    if (MockUtil.isMock(blocks)){
+    if (MockUtil.isMock(blocks)) {
       when(blocks.has(block.id())).thenReturn(false);
     }
     IngestEngine ingestEngine = this.mockIngestEngineForEntities(
