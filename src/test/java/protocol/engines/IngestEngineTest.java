@@ -751,7 +751,7 @@ public class IngestEngineTest {
   }
 
   /**
-   * The method called by test validated transactions already in transaction id storage for mocked and real blocks
+   * The method called by test validated transactions already in transaction id storage for mocked and real blocks.
    *
    * @param blocks mocked or real blocks.
    */
