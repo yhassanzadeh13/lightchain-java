@@ -1,5 +1,10 @@
 package protocol.engines;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -9,6 +14,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.mockito.Mockito.*;
 
+import org.mockito.internal.util.MockUtil;
 import model.Entity;
 import model.codec.EntityType;
 import model.crypto.PublicKey;
@@ -16,6 +22,7 @@ import model.crypto.Signature;
 import model.lightchain.*;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.testcontainers.shaded.org.apache.commons.io.FileUtils;
 import protocol.Parameters;
 import protocol.assigner.AssignerInf;
 import state.Snapshot;
@@ -23,6 +30,7 @@ import state.State;
 import storage.Blocks;
 import storage.Identifiers;
 import storage.Transactions;
+import storage.mapdb.BlocksMapDb;
 import unittest.fixtures.AccountFixture;
 import unittest.fixtures.BlockFixture;
 import unittest.fixtures.EntityFixture;
@@ -32,46 +40,71 @@ import unittest.fixtures.ValidatedTransactionFixture;
  * Encapsulates tests for ingest engine implementation.
  */
 public class IngestEngineTest {
+  private static final String TEMP_DIR = "tempdir";
+  private static final String TEMP_FILE_ID = "tempfileID.db";
+  private static final String TEMP_FILE_HEIGHT = "tempfileHEIGHT.db";
+  private Path tempdir;
+  private BlocksMapDb db;
   /**
    * Evaluates that when a new validated block arrives at ingest engine,
-   * the engine adds the block to its block storage database.
+   * the engine adds the block to its mocked block storage database.
    * The engine also adds hash of all the transactions of block into its "transactions" database.
    */
   @Test
-  public void testValidatedSingleBlock() {
+  public void testValidatedSingleBlockMockBlocks() {
     Blocks blocks = mock(Blocks.class);
-    Identifiers seenEntities = mock(Identifiers.class);
-    Identifiers transactionIds = mock(Identifiers.class);
-    Transactions pendingTransactions = mock(Transactions.class);
+    runTestValidatedSingleBlock(blocks);
+  }
 
-    Block block = BlockFixture.newBlock();
-
-    // mocks block as new to ingest engine.
-    when(seenEntities.has(block.id())).thenReturn(false);
-    when(blocks.has(block.id())).thenReturn(false);
-
-    IngestEngine ingestEngine = this.mockIngestEngineForEntities(
-        new ArrayList<>(List.of(block)),
-        seenEntities,
-        transactionIds,
-        pendingTransactions,
-        blocks);
-
-    // action
-    ingestEngine.process(block);
-
-    // verify
-    verifyBlockHappyPathCalled(block, blocks, pendingTransactions, transactionIds, seenEntities);
+  /**
+   * Evaluates that when a new validated block arrives at ingest engine,
+   * the engine adds the block to its real block storage database.
+   * The engine also adds hash of all the transactions of block into its "transactions" database.
+   */
+  @Test
+  public void testValidatedSingleBlockRealBlocks() throws IOException {
+    Path currentRelativePath = Paths.get("");
+    tempdir = Files.createTempDirectory(currentRelativePath, TEMP_DIR);
+    db = new BlocksMapDb(tempdir.toAbsolutePath() + "/" + TEMP_FILE_ID,
+        tempdir.toAbsolutePath() + "/" + TEMP_FILE_HEIGHT);
+    Blocks blocks = db;
+    runTestValidatedSingleBlock(blocks);
+    db.closeDb();
+    FileUtils.deleteDirectory(new File(tempdir.toString()));
   }
 
   /**
    * Evaluates that when two validated blocks arrive at ingest engine SEQUENTIALLY,
-   * the engine adds the blocks to its block storage database.
+   * the engine adds the blocks to its mocked block storage database.
    * The engine also adds hash of all the transactions of blocks into its "transactions" database.
    */
   @Test
-  public void testValidatedTwoBlocks() {
+  public void testValidatedTwoBlocksMockBlocks() {
     Blocks blocks = mock(Blocks.class);
+    runTestValidatedTwoBlocks(blocks);
+  }
+
+  /**
+   * Evaluates that when two validated blocks arrive at ingest engine SEQUENTIALLY,
+   * the engine adds the blocks to its real block storage database.
+   * The engine also adds hash of all the transactions of blocks into its "transactions" database.
+   */
+  @Test
+  public void testValidatedTwoBlocksRealBlocks() throws IOException {
+    Path currentRelativePath = Paths.get("");
+    tempdir = Files.createTempDirectory(currentRelativePath, TEMP_DIR);
+    db = new BlocksMapDb(tempdir.toAbsolutePath() + "/" + TEMP_FILE_ID,
+        tempdir.toAbsolutePath() + "/" + TEMP_FILE_HEIGHT);
+    Blocks blocks = db;
+    runTestValidatedTwoBlocks(blocks);
+    db.closeDb();
+    FileUtils.deleteDirectory(new File(tempdir.toString()));
+  }
+  /**
+   * The method called by test validated single block for mocked and real versions.
+   * @param blocks mocked or real block.
+   */
+  public void runTestValidatedTwoBlocks(Blocks blocks){
     Identifiers seenEntities = mock(Identifiers.class);
     Identifiers transactionIds = mock(Identifiers.class);
     Transactions pendingTransactions = mock(Transactions.class);
@@ -95,6 +128,7 @@ public class IngestEngineTest {
 
     // verification for block 2
     verifyBlockHappyPathCalled(block2, blocks, pendingTransactions, transactionIds, seenEntities);
+
   }
 
   /**
@@ -663,8 +697,10 @@ public class IngestEngineTest {
       Transactions pendingTx,
       Identifiers txIds,
       Identifiers seenEntities) {
+    if (MockUtil.isMock(blocks)){
+      verify(blocks, times(1)).add(block);
+    }
 
-    verify(blocks, times(1)).add(block);
     verify(seenEntities, times(1)).add(block.id());
     for (Transaction tx : block.getTransactions()) {
       verify(pendingTx, times(1)).has(tx.id());
@@ -731,7 +767,9 @@ public class IngestEngineTest {
 
         Block block = (Block) e;
         when(state.atBlockId(block.getPreviousBlockId())).thenReturn(snapshot);
-        when(blocks.has(block.id())).thenReturn(false);
+        if (MockUtil.isMock(blocks)){
+          when(blocks.has(block.id())).thenReturn(false);
+        }
         for (Transaction tx : block.getTransactions()) {
           when(pendingTx.has(tx.id())).thenReturn(false);
         }
@@ -809,5 +847,30 @@ public class IngestEngineTest {
     when(pubKey.verifySignature(any(Transaction.class), any(Signature.class))).thenReturn(true);
     // returns the mock account for all identifiers
     when(snapshot.getAccount(any(Identifier.class))).thenReturn(account);
+  }
+
+  /**
+   * The method called by test validated single block for mocked and real versions.
+   * @param blocks mocked or real block.
+   */
+  private void runTestValidatedSingleBlock(Blocks blocks){
+    Identifiers seenEntities = mock(Identifiers.class);
+    Identifiers transactionIds = mock(Identifiers.class);
+    Transactions pendingTransactions = mock(Transactions.class);
+    Block block = BlockFixture.newBlock();
+    when(seenEntities.has(block.id())).thenReturn(false);
+    if (MockUtil.isMock(blocks)){
+      when(blocks.has(block.id())).thenReturn(false);
+    }
+    IngestEngine ingestEngine = this.mockIngestEngineForEntities(
+        new ArrayList<>(List.of(block)),
+        seenEntities,
+        transactionIds,
+        pendingTransactions,
+        blocks);
+    // action
+    ingestEngine.process(block);
+    // verify
+    verifyBlockHappyPathCalled(block, blocks, pendingTransactions, transactionIds, seenEntities);
   }
 }
