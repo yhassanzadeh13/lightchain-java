@@ -19,9 +19,9 @@ import model.codec.EntityType;
 import model.crypto.PublicKey;
 import model.crypto.Signature;
 import model.lightchain.*;
-import org.mockito.internal.util.MockUtil;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.mockito.internal.util.MockUtil;
 import org.testcontainers.shaded.org.apache.commons.io.FileUtils;
 import protocol.Parameters;
 import protocol.assigner.AssignerInf;
@@ -520,7 +520,6 @@ public class IngestEngineTest {
     Identifiers transactionIds = mock(Identifiers.class);
     Transactions pendingTransactions = mock(Transactions.class);
 
-
     ValidatedTransaction tx = ValidatedTransactionFixture.newValidatedTransaction();
 
     IngestEngine ingestEngine = this.mockIngestEngineForEntities(
@@ -574,7 +573,6 @@ public class IngestEngineTest {
     Identifiers seenEntities = mock(Identifiers.class);
     Identifiers transactionIds = mock(Identifiers.class);
     Transactions pendingTransactions = mock(Transactions.class);
-
 
     ValidatedTransaction tx1 = ValidatedTransactionFixture.newValidatedTransaction();
     ValidatedTransaction tx2 = ValidatedTransactionFixture.newValidatedTransaction();
@@ -637,7 +635,6 @@ public class IngestEngineTest {
     Identifiers seenEntities = mock(Identifiers.class);
     Identifiers transactionIds = mock(Identifiers.class);
     Transactions pendingTransactions = mock(Transactions.class);
-
 
     ValidatedTransaction tx1 = ValidatedTransactionFixture.newValidatedTransaction();
     ValidatedTransaction tx2 = ValidatedTransactionFixture.newValidatedTransaction();
@@ -756,7 +753,7 @@ public class IngestEngineTest {
   /**
    * The method called by test validated transactions already in transaction id storage for mocked and real blocks
    *
-   * @param blocks mocked or real blocks
+   * @param blocks mocked or real blocks.
    */
   private void runTestValidatedTransactionAlreadyInTransactionIdStorage(Blocks blocks) {
     Identifiers seenEntities = mock(Identifiers.class);
@@ -841,7 +838,7 @@ public class IngestEngineTest {
   }
 
   /**
-   * the method called by test concurrent validated transaction and block nonoverlapping for mocked and real versions.
+   * The method called by test concurrent validated transaction and block nonoverlapping for mocked and real versions.
    *
    * @param blocks mocked or real blocks
    */
@@ -914,7 +911,6 @@ public class IngestEngineTest {
     Identifiers seenEntities = mock(Identifiers.class);
     Identifiers transactionIds = mock(Identifiers.class);
     Transactions pendingTransactions = mock(Transactions.class);
-
 
     Block block = BlockFixture.newBlock();
     ValidatedTransaction validatedTx = block.getTransactions()[0]; // the transaction is in the block
