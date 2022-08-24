@@ -16,6 +16,7 @@ import com.github.dockerjava.core.DockerClientConfig;
 import com.github.dockerjava.core.DockerClientImpl;
 import com.github.dockerjava.httpclient5.ApacheDockerHttpClient;
 import com.github.dockerjava.transport.DockerHttpClient;
+import integration.localnet.ContainerLogger;
 
 /**
  * Creates a metrics collection network that is composed of a grafana and a prometheus containers.
@@ -51,14 +52,17 @@ public class MetricsTestNet {
   private static final String GRAFANA_DATA_SOURCE_BINDING =
       "/grafana/provisioning/datasources:/etc/grafana/provisioning/datasources";
   protected final DockerClient dockerClient;
+  protected final ContainerLogger containerLogger;
 
   /**
    * Default constructor.
    */
   public MetricsTestNet() {
-    DockerClientConfig config = DefaultDockerClientConfig.createDefaultConfigBuilder().build();
+    DockerClientConfig config = DefaultDockerClientConfig
+        .createDefaultConfigBuilder()
+        .build();
 
-    DockerHttpClient httpClient = new ApacheDockerHttpClient.Builder()
+    DockerHttpClient client = new ApacheDockerHttpClient.Builder()
         .dockerHost(config.getDockerHost())
         .sslConfig(config.getSSLConfig())
         .maxConnections(100)
@@ -66,7 +70,9 @@ public class MetricsTestNet {
         .responseTimeout(Duration.ofSeconds(45))
         .build();
 
-    this.dockerClient = DockerClientImpl.getInstance(config, httpClient);
+
+    this.dockerClient = DockerClientImpl.getInstance(config, client);
+    this.containerLogger = new ContainerLogger(dockerClient);
   }
 
   /**

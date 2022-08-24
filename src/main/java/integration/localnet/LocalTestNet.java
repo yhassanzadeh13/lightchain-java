@@ -8,12 +8,15 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import com.github.dockerjava.api.command.BuildImageResultCallback;
 import com.github.dockerjava.api.command.CreateContainerResponse;
 import com.github.dockerjava.api.model.Bind;
+import com.github.dockerjava.api.model.Frame;
 import com.github.dockerjava.api.model.HostConfig;
+import com.github.dockerjava.core.command.LogContainerResultCallback;
 import metrics.integration.MetricsTestNet;
 import model.lightchain.Identifier;
 
@@ -52,24 +55,24 @@ public class LocalTestNet extends MetricsTestNet {
 
     // HTTP Server Container
     String imageId = dockerClient.buildImageCmd()
-            .withDockerfile(new File(DOCKER_FILE))
-            .withPull(true)
-            .exec(new BuildImageResultCallback())
-            .awaitImageId();
+        .withDockerfile(new File(DOCKER_FILE))
+        .withPull(true)
+        .exec(new BuildImageResultCallback())
+        .awaitImageId();
 
     List<Bind> serverBinds = new ArrayList<>();
     serverBinds.add(Bind.parse(SERVER_VOLUME_BINDING));
 
     HostConfig hostConfig = new HostConfig()
-            .withBinds(serverBinds)
-            .withNetworkMode(NETWORK_NAME);
+        .withBinds(serverBinds)
+        .withNetworkMode(NETWORK_NAME);
 
     return this.dockerClient
-            .createContainerCmd(imageId)
-            .withName(SERVER)
-            .withTty(true)
-            .withHostConfig(hostConfig)
-            .exec();
+        .createContainerCmd(imageId)
+        .withName(SERVER)
+        .withTty(true)
+        .withHostConfig(hostConfig)
+        .exec();
   }
 
   /**
@@ -82,8 +85,8 @@ public class LocalTestNet extends MetricsTestNet {
 
     CreateContainerResponse httpServer = this.createServerContainer();
     dockerClient
-            .startContainerCmd(httpServer.getId())
-            .exec();
+        .startContainerCmd(httpServer.getId())
+        .exec();
 
     System.out.println("local testnet is up and running!");
   }
@@ -95,18 +98,18 @@ public class LocalTestNet extends MetricsTestNet {
 
     // Node Container
     String imageId = dockerClient.buildImageCmd()
-            .withTags(new HashSet<>(Arrays.asList("image")))
-            .withDockerfile(new File(NODE_DOCKER_FILE))
-            .withPull(true)
-            .exec(new BuildImageResultCallback())
-            .awaitImageId();
+        .withTags(new HashSet<>(Arrays.asList("image")))
+        .withDockerfile(new File(NODE_DOCKER_FILE))
+        .withPull(true)
+        .exec(new BuildImageResultCallback())
+        .awaitImageId();
 
     List<Bind> serverBinds = new ArrayList<>();
     serverBinds.add(Bind.parse(NODE_VOLUME_BINDING));
 
     HostConfig hostConfig = new HostConfig()
-            .withBinds(serverBinds)
-            .withNetworkMode(NETWORK_NAME);
+        .withBinds(serverBinds)
+        .withNetworkMode(NETWORK_NAME);
 
     ArrayList<CreateContainerResponse> containers = new ArrayList<>();
 
@@ -117,12 +120,12 @@ public class LocalTestNet extends MetricsTestNet {
       System.out.println("building local node " + i + " , please wait ....");
 
       CreateContainerResponse nodeServer = this.dockerClient
-              .createContainerCmd(imageId)
-              .withName("NODE" + i)
-              .withTty(true)
-              .withHostConfig(hostConfig)
-              .withCmd("NODE" + i, "bootstrap.txt")
-              .exec();
+          .createContainerCmd(imageId)
+          .withName("NODE" + i)
+          .withTty(true)
+          .withHostConfig(hostConfig)
+          .withCmd("NODE" + i, "bootstrap.txt")
+          .exec();
       containers.add(nodeServer);
     }
 
@@ -133,11 +136,32 @@ public class LocalTestNet extends MetricsTestNet {
       int finalI = i;
       containerThreads[i] = new Thread(() -> {
         dockerClient
-                .startContainerCmd(containers.get(finalI).getId())
-                .exec();
+            .startContainerCmd(containers.get(finalI).getId())
+            .exec();
+        this.containerLogger.registerLogger(containers.get(finalI).getId());
         System.out.println("Node " + finalI + " is up and running!");
       });
     }
+
+
+
+//    Thread[] containerLoggerThreads = new Thread[nodeCount];
+//    for (int i = 0; i < nodeCount; i++) {
+//      int finalI = i;
+//      containerLoggerThreads[i] = new Thread(() -> {
+//        dockerClient
+//            .logContainerCmd(containers.get(finalI).getId())
+//            .withStdOut(true)
+//            .withStdOut(true)
+//            .withTimestamps(true)
+//            .exec(new LogContainerResultCallback() {
+//              @Override
+//              public void onNext(Frame item) {
+//                System.out.println("[Container] " + item.toString());
+//              }
+//            });
+//      });
+//    }
 
     for (Thread t : containerThreads) {
       try {
@@ -147,6 +171,23 @@ public class LocalTestNet extends MetricsTestNet {
       }
       t.start();
     }
+
+    Thread loggerWorker = new Thread(()->{
+      while (true) {
+        this.containerLogger.runContainerLoggerWorker();
+      }
+    });
+    loggerWorker.setDaemon(true);
+    loggerWorker.start();
+
+//    for (Thread t : containerLoggerThreads) {
+//      try {
+//        TimeUnit.MILLISECONDS.sleep(100);
+//      } catch (InterruptedException e) {
+//        System.err.println("thread logger operation interrupted: " + e);
+//      }
+//      t.start();
+//    }
   }
 
   /**

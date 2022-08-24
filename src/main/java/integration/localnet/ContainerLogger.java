@@ -1,52 +1,52 @@
 package integration.localnet;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 import com.github.dockerjava.api.DockerClient;
 import com.github.dockerjava.api.command.LogContainerCmd;
 import com.github.dockerjava.api.model.Frame;
 import com.github.dockerjava.core.command.LogContainerResultCallback;
-import org.slf4j.Logger;
 
-public class GetContainerLog {
-//  private DockerClient dockerClient;
-//  private String containerId;
-//  private int lastLogTime;
-//
-//  private static String nameOfLogger = "dockertest.PrintContainerLog";
-//  private static Logger myLogger = Logger.getLogger(nameOfLogger);
-//
-//  public GetContainerLog(DockerClient dockerClient, String containerId) {
-//    this.dockerClient = dockerClient;
-//    this.containerId = containerId;
-//    this.lastLogTime = (int) (System.currentTimeMillis() / 1000);
-//  }
-//
-//  public List<String> getDockerLogs() {
-//
-//    final List<String> logs = new ArrayList<>();
-//
-//    LogContainerCmd logContainerCmd = ;
-//    logContainerCmd.withStdOut(true).withStdErr(true);
-//    logContainerCmd.withSince(lastLogTime);  // UNIX timestamp (integer) to filter logs. Specifying a timestamp will only output log-entries since that timestamp.
-//    // logContainerCmd.withTail(4);  // get only the last 4 log entries
-//
-//    logContainerCmd.withTimestamps(true);
-//
-//    try {
-//      logContainerCmd.exec(new LogContainerResultCallback() {
-//        @Override
-//        public void onNext(Frame item) {
-//          logs.add(item.toString());
-//        }
-//      }).awaitCompletion();
-//    } catch (InterruptedException e) {
-//      myLogger.severe("Interrupted Exception!" + e.getMessage());
-//    }
-//
-//    lastLogTime = (int) (System.currentTimeMillis() / 1000) + 5;  // assumes at least a 5 second wait between calls to getDockerLogs
-//
-//    return logs;
-//  }
+public class ContainerLogger {
+  private static final int DEFAULT_LAST_LOG_TIME = 0;
+  DockerClient dockerClient;
+  private final HashMap<String, Integer> lastLogTime;
+
+  public ContainerLogger(DockerClient dockerClient) {
+    this.dockerClient = dockerClient;
+    this.lastLogTime = new HashMap<>();
+  }
+
+  public void registerLogger(String containerId) {
+    if (this.lastLogTime.containsKey(containerId)) {
+      return;
+    }
+    this.lastLogTime.put(containerId, DEFAULT_LAST_LOG_TIME);
+  }
+
+  private LogContainerCmd createLogCommand(String containerId, int since) {
+    LogContainerCmd logContainerCmd = this.dockerClient
+        .logContainerCmd(containerId)
+        .withStdOut(true)
+        .withStdErr(true)
+        .withSince(since)
+        .withTail(1);
+    logContainerCmd.withStdOut(true).withStdErr(true);
+
+    return logContainerCmd;
+  }
+
+  public void runContainerLoggerWorker() {
+    for(Map.Entry<String, Integer> c : this.lastLogTime.entrySet()) {
+      LogContainerCmd lg = createLogCommand(c.getKey(), c.getValue());
+      this.lastLogTime.put(c.getKey(), (int) (System.currentTimeMillis() / 1000));
+
+      lg.exec(new LogContainerResultCallback() {
+        @Override
+        public void onNext(Frame item) {
+          System.out.println("[Container] " + item.toString());
+        }
+      });
+    }
+  }
 }
