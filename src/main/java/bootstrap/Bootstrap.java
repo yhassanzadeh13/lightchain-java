@@ -7,13 +7,16 @@ import java.util.concurrent.ConcurrentMap;
 
 import integration.localnet.LocalTestNet;
 import model.lightchain.Identifier;
+import modules.logger.LightchainLogger;
+import org.slf4j.Logger;
+import protocol.engines.proposer.ProposerEngine;
 
 /**
  * Bootstrap class to facilitate the generation of LightChain Nodes running on different Docker containers.
  */
 public class Bootstrap {
   static final String OUTPUT_PATH = "bootstrap.txt";
-
+  private static final Logger logger = LightchainLogger.getLogger(ProposerEngine .class.getCanonicalName());
   /**
    * Main method.
    *
