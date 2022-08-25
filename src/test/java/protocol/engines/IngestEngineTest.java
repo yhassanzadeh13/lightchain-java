@@ -21,7 +21,6 @@ import model.crypto.Signature;
 import model.lightchain.*;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-import org.mockito.internal.util.MockUtil;
 import org.testcontainers.shaded.org.apache.commons.io.FileUtils;
 import protocol.Parameters;
 import protocol.assigner.AssignerInf;
@@ -54,7 +53,10 @@ public class IngestEngineTest {
   @Test
   public void testValidatedSingleBlockMockedStorage() {
     Blocks blocks = mock(Blocks.class);
-    runTestValidatedSingleBlock(blocks);
+    Block block = BlockFixture.newBlock();
+    when(blocks.has(block.id())).thenReturn(false);
+    runTestValidatedSingleBlock(blocks,block);
+    verify(blocks, times(1)).add(block);
   }
 
   /**
@@ -69,7 +71,9 @@ public class IngestEngineTest {
     db = new BlocksMapDb(tempdir.toAbsolutePath() + "/" + TEMP_FILE_ID,
         tempdir.toAbsolutePath() + "/" + TEMP_FILE_HEIGHT);
     Blocks blocks = db;
-    runTestValidatedSingleBlock(blocks);
+    Block block = BlockFixture.newBlock();
+    runTestValidatedSingleBlock(blocks,block);
+    Assertions.assertTrue(blocks.has(block.id()));
     db.closeDb();
     FileUtils.deleteDirectory(new File(tempdir.toString()));
   }
@@ -82,7 +86,17 @@ public class IngestEngineTest {
   @Test
   public void testValidatedTwoBlocksMockedStorage() {
     Blocks blocks = mock(Blocks.class);
-    runTestValidatedTwoBlocks(blocks);
+
+    Block block1 = BlockFixture.newBlock();
+    Block block2 = BlockFixture.newBlock();
+
+    when(blocks.has(block1.id())).thenReturn(false);
+    when(blocks.has(block2.id())).thenReturn(false);
+
+    runTestValidatedTwoBlocks(blocks,block1,block2);
+
+    verify(blocks, times(1)).add(block1);
+    verify(blocks, times(1)).add(block2);
   }
 
   /**
@@ -97,7 +111,12 @@ public class IngestEngineTest {
     db = new BlocksMapDb(tempdir.toAbsolutePath() + "/" + TEMP_FILE_ID,
         tempdir.toAbsolutePath() + "/" + TEMP_FILE_HEIGHT);
     Blocks blocks = db;
-    runTestValidatedTwoBlocks(blocks);
+    Block block1 = BlockFixture.newBlock();
+    Block block2 = BlockFixture.newBlock();
+    runTestValidatedTwoBlocks(blocks,block1,block2);
+
+    Assertions.assertTrue(blocks.has(block1.id()));
+    Assertions.assertTrue(blocks.has(block2.id()));
     db.closeDb();
     FileUtils.deleteDirectory(new File(tempdir.toString()));
   }
@@ -107,13 +126,10 @@ public class IngestEngineTest {
    *
    * @param blocks mocked or real block.
    */
-  public void runTestValidatedTwoBlocks(Blocks blocks) {
+  public void runTestValidatedTwoBlocks(Blocks blocks,Block block1,Block block2) {
     Identifiers seenEntities = mock(Identifiers.class);
     Identifiers transactionIds = mock(Identifiers.class);
     Transactions pendingTransactions = mock(Transactions.class);
-
-    Block block1 = BlockFixture.newBlock();
-    Block block2 = BlockFixture.newBlock();
 
     IngestEngine ingestEngine = this.mockIngestEngineForEntities(
         new ArrayList<>(Arrays.asList(block1, block2)),
@@ -142,7 +158,15 @@ public class IngestEngineTest {
   @Test
   public void testValidatedTwoBlocksConcurrentlyMockedBlocks() {
     Blocks blocks = mock(Blocks.class);
-    runTestValidatedTwoBlocksConcurrently(blocks);
+    Block block1 = BlockFixture.newBlock();
+    Block block2 = BlockFixture.newBlock();
+    when(blocks.has(block1.id())).thenReturn(false);
+    when(blocks.has(block2.id())).thenReturn(false);
+    runTestValidatedTwoBlocksConcurrently(blocks,block1,block2);
+
+    verify(blocks, times(1)).add(block1);
+    verify(blocks, times(1)).add(block2);
+
   }
 
   /**
@@ -157,7 +181,11 @@ public class IngestEngineTest {
     db = new BlocksMapDb(tempdir.toAbsolutePath() + "/" + TEMP_FILE_ID,
         tempdir.toAbsolutePath() + "/" + TEMP_FILE_HEIGHT);
     Blocks blocks = db;
-    runTestValidatedTwoBlocksConcurrently(blocks);
+    Block block1 = BlockFixture.newBlock();
+    Block block2 = BlockFixture.newBlock();
+    runTestValidatedTwoBlocksConcurrently(blocks,block1,block2);
+    Assertions.assertTrue(blocks.has(block1.id()));
+    Assertions.assertTrue(blocks.has(block2.id()));
     db.closeDb();
     FileUtils.deleteDirectory(new File(tempdir.toString()));
   }
@@ -167,13 +195,10 @@ public class IngestEngineTest {
    *
    * @param blocks mocked or real block.
    */
-  public void runTestValidatedTwoBlocksConcurrently(Blocks blocks) {
+  public void runTestValidatedTwoBlocksConcurrently(Blocks blocks,Block block1, Block block2) {
     Identifiers seenEntities = mock(Identifiers.class);
     Identifiers transactionIds = mock(Identifiers.class);
     Transactions pendingTransactions = mock(Transactions.class);
-
-    Block block1 = BlockFixture.newBlock();
-    Block block2 = BlockFixture.newBlock();
 
     IngestEngine ingestEngine = this.mockIngestEngineForEntities(
         new ArrayList<>(Arrays.asList(block1, block2)),
@@ -201,7 +226,11 @@ public class IngestEngineTest {
   @Test
   public void testValidatedSameTwoBlocksMockedStorage() {
     Blocks blocks = mock(Blocks.class);
-    runTestValidatedSameTwoBlocks(blocks);
+    Block block = BlockFixture.newBlock();
+    when(blocks.has(block.id())).thenReturn(false);
+    runTestValidatedSameTwoBlocks(blocks,block);
+    verify(blocks, times(1)).add(block);
+
   }
 
   /**
@@ -216,7 +245,9 @@ public class IngestEngineTest {
     db = new BlocksMapDb(tempdir.toAbsolutePath() + "/" + TEMP_FILE_ID,
         tempdir.toAbsolutePath() + "/" + TEMP_FILE_HEIGHT);
     Blocks blocks = db;
-    runTestValidatedSameTwoBlocks(blocks);
+    Block block = BlockFixture.newBlock();
+    runTestValidatedSameTwoBlocks(blocks,block);
+    Assertions.assertTrue(blocks.has(block.id()));
     db.closeDb();
     FileUtils.deleteDirectory(new File(tempdir.toString()));
   }
@@ -226,12 +257,10 @@ public class IngestEngineTest {
    *
    * @param blocks mocked or real blocks.
    */
-  public void runTestValidatedSameTwoBlocks(Blocks blocks) {
+  public void runTestValidatedSameTwoBlocks(Blocks blocks,Block block) {
     Identifiers seenEntities = mock(Identifiers.class);
     Identifiers transactionIds = mock(Identifiers.class);
     Transactions pendingTransactions = mock(Transactions.class);
-
-    Block block = BlockFixture.newBlock();
 
     when(seenEntities.has(block.id())).thenReturn(false);
 
@@ -260,7 +289,10 @@ public class IngestEngineTest {
   @Test
   public void testValidatedBlockContainingPendingTransactionMockedStorage() throws IOException {
     Blocks blocks = mock(Blocks.class);
-    runTestValidatedBlockContainingPendingTransaction(blocks);
+    Block block = BlockFixture.newBlock();
+    when(blocks.has(block.id())).thenReturn(false);
+    runTestValidatedBlockContainingPendingTransaction(blocks,block);
+    verify(blocks, times(1)).add(block);
   }
 
   /**
@@ -275,7 +307,9 @@ public class IngestEngineTest {
     db = new BlocksMapDb(tempdir.toAbsolutePath() + "/" + TEMP_FILE_ID,
         tempdir.toAbsolutePath() + "/" + TEMP_FILE_HEIGHT);
     Blocks blocks = db;
-    runTestValidatedBlockContainingPendingTransaction(blocks);
+    Block block = BlockFixture.newBlock();
+    runTestValidatedBlockContainingPendingTransaction(blocks,block);
+    Assertions.assertTrue(blocks.has(block.id()));
     db.closeDb();
     FileUtils.deleteDirectory(new File(tempdir.toString()));
   }
@@ -285,11 +319,10 @@ public class IngestEngineTest {
    *
    * @param blocks mocked or real block.
    */
-  public void runTestValidatedBlockContainingPendingTransaction(Blocks blocks) {
+  public void runTestValidatedBlockContainingPendingTransaction(Blocks blocks,Block block) {
     Identifiers seenEntities = mock(Identifiers.class);
     Identifiers transactionIds = mock(Identifiers.class);
     Transactions pendingTransactions = mock(Transactions.class);
-    Block block = BlockFixture.newBlock();
 
     IngestEngine ingestEngine = this.mockIngestEngineForEntities(
         new ArrayList<>(List.of(block)),
@@ -322,7 +355,12 @@ public class IngestEngineTest {
   public void testConcurrentBlockIngestionContainingSeenTransactionDisjointSetMockedStorage() throws IOException {
     // R
     Blocks blocks = mock(Blocks.class);
-    runTestConcurrentBlockIngestionContainingSeenTransactionDisjointSet(blocks);
+    Block block1 = BlockFixture.newBlock();
+    Block block2 = BlockFixture.newBlock();
+    runTestConcurrentBlockIngestionContainingSeenTransactionDisjointSet(blocks,block1,block2);
+    verify(blocks, times(1)).add(block1);
+    verify(blocks, times(1)).add(block2);
+
   }
 
   /**
@@ -338,10 +376,13 @@ public class IngestEngineTest {
     db = new BlocksMapDb(tempdir.toAbsolutePath() + "/" + TEMP_FILE_ID,
         tempdir.toAbsolutePath() + "/" + TEMP_FILE_HEIGHT);
     Blocks blocks = db;
-    runTestConcurrentBlockIngestionContainingSeenTransactionDisjointSet(blocks);
+    Block block1 = BlockFixture.newBlock();
+    Block block2 = BlockFixture.newBlock();
+    runTestConcurrentBlockIngestionContainingSeenTransactionDisjointSet(blocks,block1,block2);
+    Assertions.assertTrue(blocks.has(block1.id()));
+    Assertions.assertTrue(blocks.has(block2.id()));
     db.closeDb();
     FileUtils.deleteDirectory(new File(tempdir.toString()));
-
   }
 
   /**
@@ -349,14 +390,12 @@ public class IngestEngineTest {
    *
    * @param blocks mocked or real block.
    */
-  private void runTestConcurrentBlockIngestionContainingSeenTransactionDisjointSet(Blocks blocks) {
+  private void runTestConcurrentBlockIngestionContainingSeenTransactionDisjointSet(Blocks blocks,Block block1,Block block2) {
     Identifiers seenEntities = mock(Identifiers.class);
     Identifiers transactionIds = mock(Identifiers.class);
     Transactions pendingTransactions = mock(Transactions.class);
 
     ArrayList<Account> accounts = new ArrayList<>(AccountFixture.newAccounts(10, 10).values());
-    Block block1 = BlockFixture.newBlock();
-    Block block2 = BlockFixture.newBlock();
 
     IngestEngine ingestEngine = this.mockIngestEngineForEntities(
         new ArrayList<>(Arrays.asList(block1, block2)),
@@ -389,12 +428,11 @@ public class IngestEngineTest {
    *
    * @param blocks mocked or real block.
    */
-  private void runTestConcurrentBlockIngestionContainingSeenTransactionOverlappingSet(Blocks blocks) {
+  private void runTestConcurrentBlockIngestionContainingSeenTransactionOverlappingSet(Blocks blocks,Block block1,Block block2) {
     Identifiers seenEntities = mock(Identifiers.class);
     Identifiers transactionIds = mock(Identifiers.class);
     Transactions pendingTransactions = mock(Transactions.class);
-    Block block1 = BlockFixture.newBlock();
-    Block block2 = BlockFixture.newBlock();
+
 
     IngestEngine ingestEngine = this.mockIngestEngineForEntities(
         new ArrayList<>(Arrays.asList(block1, block2)),
@@ -431,7 +469,13 @@ public class IngestEngineTest {
   @Test
   public void testConcurrentBlockIngestionContainingSeenTransactionOverlappingSetMockedStorage() {
     Blocks blocks = mock(Blocks.class);
-    runTestConcurrentBlockIngestionContainingSeenTransactionOverlappingSet(blocks);
+    Block block1 = BlockFixture.newBlock();
+    Block block2 = BlockFixture.newBlock();
+    when(blocks.has(block1.id())).thenReturn(false);
+    when(blocks.has(block2.id())).thenReturn(false);
+    runTestConcurrentBlockIngestionContainingSeenTransactionOverlappingSet(blocks,block1,block2);
+    verify(blocks, times(1)).add(block1);
+    verify(blocks, times(1)).add(block2);
   }
 
   /**
@@ -446,17 +490,19 @@ public class IngestEngineTest {
     db = new BlocksMapDb(tempdir.toAbsolutePath() + "/" + TEMP_FILE_ID,
         tempdir.toAbsolutePath() + "/" + TEMP_FILE_HEIGHT);
     Blocks blocks = db;
-    runTestConcurrentBlockIngestionContainingSeenTransactionOverlappingSet(blocks);
+    Block block1 = BlockFixture.newBlock();
+    Block block2 = BlockFixture.newBlock();
+    runTestConcurrentBlockIngestionContainingSeenTransactionOverlappingSet(blocks,block1,block2);
+    Assertions.assertTrue(blocks.has(block1.id()));
+    Assertions.assertTrue(blocks.has(block2.id()));
     db.closeDb();
     FileUtils.deleteDirectory(new File(tempdir.toString()));
   }
 
-  private void runTestValidatedAlreadyIngestedBlock(Blocks blocks) {
+  private void runTestValidatedAlreadyIngestedBlock(Blocks blocks,Block block) {
     Identifiers seenEntities = mock(Identifiers.class);
     Identifiers transactionIds = mock(Identifiers.class);
     Transactions pendingTransactions = mock(Transactions.class);
-
-    Block block = BlockFixture.newBlock();
 
     IngestEngine ingestEngine = this.mockIngestEngineForEntities(
         new ArrayList<>(List.of(block)),
@@ -466,9 +512,6 @@ public class IngestEngineTest {
         blocks);
 
     when(seenEntities.has(block.id())).thenReturn(true); // block is already ingested
-    if (MockUtil.isMock(blocks)) {
-      when(blocks.has(block.id())).thenReturn(false);
-    } // block is already ingested
 
     // action
     ingestEngine.process(block);
@@ -490,7 +533,9 @@ public class IngestEngineTest {
   @Test
   public void testValidatedAlreadyIngestedBlockMockedStorage() {
     Blocks blocks = mock(Blocks.class);
-    runTestValidatedAlreadyIngestedBlock(blocks);
+    Block block = BlockFixture.newBlock();
+    when(blocks.has(block.id())).thenReturn(false);
+    runTestValidatedAlreadyIngestedBlock(blocks,block);
   }
 
   /**
@@ -504,10 +549,10 @@ public class IngestEngineTest {
     db = new BlocksMapDb(tempdir.toAbsolutePath() + "/" + TEMP_FILE_ID,
         tempdir.toAbsolutePath() + "/" + TEMP_FILE_HEIGHT);
     Blocks blocks = db;
-    runTestValidatedAlreadyIngestedBlock(blocks);
+    Block block = BlockFixture.newBlock();
+    runTestValidatedAlreadyIngestedBlock(blocks,block);
     db.closeDb();
     FileUtils.deleteDirectory(new File(tempdir.toString()));
-
   }
 
   /**
@@ -907,12 +952,10 @@ public class IngestEngineTest {
    *
    * @param blocks mocked or real blocks.
    */
-  private void runTestProcessBlockAndIncludedTransaction_BlockFirst(Blocks blocks) {
+  private void runTestProcessBlockAndIncludedTransaction_BlockFirst(Blocks blocks,Block block) {
     Identifiers seenEntities = mock(Identifiers.class);
     Identifiers transactionIds = mock(Identifiers.class);
     Transactions pendingTransactions = mock(Transactions.class);
-
-    Block block = BlockFixture.newBlock();
     ValidatedTransaction validatedTx = block.getTransactions()[0]; // the transaction is in the block
 
     IngestEngine ingestEngine = this.mockIngestEngineForEntities(
@@ -930,10 +973,6 @@ public class IngestEngineTest {
     // process transaction
     ingestEngine.process(validatedTx);
 
-    // verification for block
-    if (MockUtil.isMock(blocks)) {
-      verify(blocks, times(1)).add(block);
-    }
     verify(seenEntities, times(1)).add(block.id());
     for (Transaction tx : block.getTransactions()) {
       verify(transactionIds, times(1)).add(tx.id());
@@ -955,7 +994,10 @@ public class IngestEngineTest {
   @Test
   public void testProcessBlockAndIncludedTransaction_BlockFirstMockedBlocks() {
     Blocks blocks = mock(Blocks.class);
-    runTestProcessBlockAndIncludedTransaction_BlockFirst(blocks);
+    Block block = BlockFixture.newBlock();
+    when(blocks.has(block.id())).thenReturn(false);
+    runTestProcessBlockAndIncludedTransaction_BlockFirst(blocks,block);
+    verify(blocks, times(1)).add(block);
   }
 
   /**
@@ -972,7 +1014,9 @@ public class IngestEngineTest {
     db = new BlocksMapDb(tempdir.toAbsolutePath() + "/" + TEMP_FILE_ID,
         tempdir.toAbsolutePath() + "/" + TEMP_FILE_HEIGHT);
     Blocks blocks = db;
-    runTestProcessBlockAndIncludedTransaction_BlockFirst(blocks);
+    Block block = BlockFixture.newBlock();
+    runTestProcessBlockAndIncludedTransaction_BlockFirst(blocks,block);
+    Assertions.assertTrue(blocks.has(block.id()));
     db.closeDb();
     FileUtils.deleteDirectory(new File(tempdir.toString()));
   }
@@ -982,12 +1026,11 @@ public class IngestEngineTest {
    *
    * @param blocks real or mocked blocks.
    */
-  private void runTestProcessBlockAndIncludedTransaction_TransactionFirst(Blocks blocks) {
+  private void runTestProcessBlockAndIncludedTransaction_TransactionFirst(Blocks blocks,Block block) {
     Identifiers seenEntities = mock(Identifiers.class);
     Identifiers transactionIds = mock(Identifiers.class);
     Transactions pendingTransactions = mock(Transactions.class);
 
-    Block block = BlockFixture.newBlock();
     ValidatedTransaction validatedTx = block.getTransactions()[0]; // the transaction is in the block
 
     IngestEngine ingestEngine = this.mockIngestEngineForEntities(
@@ -1006,10 +1049,6 @@ public class IngestEngineTest {
     // process block next.
     ingestEngine.process(block);
 
-    // verification for block
-    if (MockUtil.isMock(blocks)) {
-      verify(blocks, times(1)).add(block);
-    }
     verify(seenEntities, times(1)).add(block.id());
     for (Transaction tx : block.getTransactions()) {
       verify(transactionIds, times(1)).add(tx.id());
@@ -1034,7 +1073,10 @@ public class IngestEngineTest {
   public void testProcessBlockAndIncludedTransaction_TransactionFirstMockedBlocks() {
     // R
     Blocks blocks = mock(Blocks.class);
-    runTestProcessBlockAndIncludedTransaction_TransactionFirst(blocks);
+    Block block = BlockFixture.newBlock();
+    when(blocks.has(block.id())).thenReturn(false);
+    runTestProcessBlockAndIncludedTransaction_TransactionFirst(blocks,block);
+    verify(blocks, times(1)).add(block);
   }
 
   /**
@@ -1052,7 +1094,9 @@ public class IngestEngineTest {
     db = new BlocksMapDb(tempdir.toAbsolutePath() + "/" + TEMP_FILE_ID,
         tempdir.toAbsolutePath() + "/" + TEMP_FILE_HEIGHT);
     Blocks blocks = db;
-    runTestProcessBlockAndIncludedTransaction_TransactionFirst(blocks);
+    Block block = BlockFixture.newBlock();
+    runTestProcessBlockAndIncludedTransaction_TransactionFirst(blocks,block);
+    Assertions.assertTrue(blocks.has(block.id()));
     db.closeDb();
     FileUtils.deleteDirectory(new File(tempdir.toString()));
   }
@@ -1075,10 +1119,6 @@ public class IngestEngineTest {
       Transactions pendingTx,
       Identifiers txIds,
       Identifiers seenEntities) {
-    if (MockUtil.isMock(blocks)) {
-      verify(blocks, times(1)).add(block);
-    }
-
     verify(seenEntities, times(1)).add(block.id());
     for (Transaction tx : block.getTransactions()) {
       verify(pendingTx, times(1)).has(tx.id());
@@ -1145,9 +1185,6 @@ public class IngestEngineTest {
 
         Block block = (Block) e;
         when(state.atBlockId(block.getPreviousBlockId())).thenReturn(snapshot);
-        if (MockUtil.isMock(blocks)) {
-          when(blocks.has(block.id())).thenReturn(false);
-        }
         for (Transaction tx : block.getTransactions()) {
           when(pendingTx.has(tx.id())).thenReturn(false);
         }
@@ -1232,15 +1269,13 @@ public class IngestEngineTest {
    *
    * @param blocks mocked or real block.
    */
-  private void runTestValidatedSingleBlock(Blocks blocks) {
+  private void runTestValidatedSingleBlock(Blocks blocks,Block block) {
     Identifiers seenEntities = mock(Identifiers.class);
     Identifiers transactionIds = mock(Identifiers.class);
     Transactions pendingTransactions = mock(Transactions.class);
-    Block block = BlockFixture.newBlock();
+
     when(seenEntities.has(block.id())).thenReturn(false);
-    if (MockUtil.isMock(blocks)) {
-      when(blocks.has(block.id())).thenReturn(false);
-    }
+
     IngestEngine ingestEngine = this.mockIngestEngineForEntities(
         new ArrayList<>(List.of(block)),
         seenEntities,
