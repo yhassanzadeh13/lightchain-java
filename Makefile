@@ -16,5 +16,9 @@ test: proto generate
 	@mvn test
 check:
 	@ mvn org.apache.maven.plugins:maven-help-plugin:2.1.1:evaluate -Dexpression=project.version -Dlog4j.debug
-
+docker-build-lightchain:
+	docker run -d -p 5001:5001 --name registry registry:2
+	docker build -f ./DockerfileNode -t localhost:5001/lightchain:lastest .
+docker-clean-registry:
+	docker container stop registry && docker container rm -v registry
 

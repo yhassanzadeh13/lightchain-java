@@ -95,14 +95,14 @@ public class LocalTestNet extends MetricsTestNet {
    * Creates and runs a node network accompanied by a metrics generator server.
    */
   public void createNodeContainers() {
-
+    String imageId = "localhost:5001/lightchain:lastest";
     // Node Container
-    String imageId = dockerClient.buildImageCmd()
-        .withTags(new HashSet<>(Arrays.asList("image")))
-        .withDockerfile(new File(NODE_DOCKER_FILE))
-        .withPull(true)
-        .exec(new BuildImageResultCallback())
-        .awaitImageId();
+//    String imageId = dockerClient.buildImageCmd()
+//        .withTags(new HashSet<>(Arrays.asList("image")))
+//        .withDockerfile(new File(NODE_DOCKER_FILE))
+//        .withPull(true)
+//        .exec(new BuildImageResultCallback())
+//        .awaitImageId();
 
     List<Bind> serverBinds = new ArrayList<>();
     serverBinds.add(Bind.parse(NODE_VOLUME_BINDING));
