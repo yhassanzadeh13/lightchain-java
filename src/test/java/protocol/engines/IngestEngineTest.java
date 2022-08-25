@@ -858,15 +858,41 @@ public class IngestEngineTest {
 
   /**
    * Evaluates that when an entity that is neither a validated block nor a validated transaction
-   * arrives at ingest engine, the engine throws IllegalArgumentException.
+   * arrives at ingest engine, with mocked block storage, the engine throws IllegalArgumentException.
    */
   @Test
-  public void testNeitherBlockNorTransaction() {
+  public void testNeitherBlockNorTransactionMockedBlocks() {
     // R
+    Blocks blocks = mock(Blocks.class);
+    runTestNeitherBlockNorTransaction(blocks);
+  }
+
+  /**
+   * Evaluates that when an entity that is neither a validated block nor a validated transaction
+   * arrives at ingest engine, with real block storage, the engine throws IllegalArgumentException.
+   */
+  @Test
+  public void testNeitherBlockNorTransactionRealBlocks() throws IOException {
+    // R
+    Path currentRelativePath = Paths.get("");
+    tempdir = Files.createTempDirectory(currentRelativePath, TEMP_DIR);
+    db = new BlocksMapDb(tempdir.toAbsolutePath() + "/" + TEMP_FILE_ID,
+        tempdir.toAbsolutePath() + "/" + TEMP_FILE_HEIGHT);
+    Blocks blocks = db;
+    runTestNeitherBlockNorTransaction(blocks);
+    db.closeDb();
+    FileUtils.deleteDirectory(new File(tempdir.toString()));
+  }
+
+  /**
+   * The method called by testNeitherBlockNorTransaction for mocked and real versions.
+   *
+   * @param blocks mocked or real blocks
+   */
+  public void runTestNeitherBlockNorTransaction(Blocks blocks) {
     Transactions pendingTransactions = mock(Transactions.class);
     AssignerInf assigner = mock(AssignerInf.class);
     Identifiers transactionIds = mock(Identifiers.class);
-    Blocks blocks = mock(Blocks.class);
     State state = mock(State.class);
     Identifiers seenEntities = mock(Identifiers.class);
 
