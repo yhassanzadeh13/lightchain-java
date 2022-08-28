@@ -9,7 +9,7 @@ import org.mapdb.*;
 import storage.Blocks;
 
 /**
- * Implementation of Transactions interface.
+ * Implementation of BlocksMapDb interface.
  */
 public class BlocksMapDb implements Blocks {
   private final DB dbId;

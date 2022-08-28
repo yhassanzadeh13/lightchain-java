@@ -13,7 +13,7 @@ public class BlockProposal extends Entity {
   private final BlockPayload payload;
 
   /**
-   * Signature of the proposer over the hash of this block.
+   * Signature of the proposer over the hash of this block.s
    */
   private final Signature proposerSignature;
 
