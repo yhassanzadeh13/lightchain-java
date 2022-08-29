@@ -1,12 +1,12 @@
 package storage.mapdb;
 
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+
 import model.lightchain.BlockProposal;
 import org.mapdb.DB;
 import org.mapdb.DBMaker;
 import org.mapdb.HTreeMap;
 import storage.BlockProposals;
-
 
 /**
  * Implementation of BlockProposals interface.

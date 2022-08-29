@@ -1,5 +1,11 @@
 package storage;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
 import model.lightchain.BlockProposal;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
@@ -9,13 +15,9 @@ import org.testcontainers.shaded.org.apache.commons.io.FileUtils;
 import storage.mapdb.BlockProposalsMapDb;
 import unittest.fixtures.BlockFixture;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.ArrayList;
-
+/**
+ * This class encompasses all the tests for BlockProposals implementation.
+ */
 public class BlockProposalsTest {
   private static final String TEMP_DIR = "tempdir";
   private static final String TEMP_FILE = "tempfile.db";
@@ -51,15 +53,16 @@ public class BlockProposalsTest {
   }
 
   /**
-   *
+   * Test to set the last proposed block and match it against the
+   * last proposed block in database.
    */
   @Test
   void setAndCheckLastBlockProposal() {
-    for (BlockProposal blockProposal: allBlockProposals){
+    for (BlockProposal blockProposal : allBlockProposals) {
       System.out.println(blockProposal);
     }
 
-    for (BlockProposal blockProposal: allBlockProposals){
+    for (BlockProposal blockProposal : allBlockProposals) {
       db.clearLastProposal();
       db.setLastProposal(blockProposal);
       Assertions.assertEquals(blockProposal.id(), db.getLastProposal().id());
