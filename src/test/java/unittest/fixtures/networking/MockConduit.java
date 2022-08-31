@@ -1,4 +1,4 @@
-package networking;
+package unittest.fixtures.networking;
 
 import java.util.ArrayList;
 import java.util.HashSet;

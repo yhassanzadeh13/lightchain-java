@@ -1,4 +1,4 @@
-package networking.stub;
+package unittest.fixtures.networking.stub;
 
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -9,9 +9,9 @@ import model.lightchain.Identifier;
 import network.Conduit;
 import network.Network;
 import network.NetworkAdapter;
-import networking.MockConduit;
 import protocol.Engine;
 import unittest.fixtures.IdentifierFixture;
+import unittest.fixtures.networking.MockConduit;
 
 /**
  * A mock implementation of networking layer as a test util.

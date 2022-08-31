@@ -1,4 +1,4 @@
-package networking.p2p;
+package unittest.fixtures.networking.p2p;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -13,12 +13,12 @@ import model.exceptions.LightChainNetworkingException;
 import model.lightchain.Identifier;
 import network.Conduit;
 import network.p2p.P2pNetwork;
-import networking.MockEngine;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import unittest.fixtures.EntityFixture;
 import unittest.fixtures.EntityFixtureList;
 import unittest.fixtures.IdentifierFixture;
+import unittest.fixtures.networking.MockEngine;
 
 /**
  * Encapsulates tests for gRPC implementation of the networking layer.

@@ -1,4 +1,4 @@
-package networking.p2p;
+package unittest.fixtures.networking.p2p;
 
 /**
  * Encapsulates tests for p2p storage.
