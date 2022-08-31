@@ -1,4 +1,4 @@
-package networking.stub;
+package unittest.fixtures.networking.stub;
 
 /**
  * Encapsulates tests for the storage side of the stub network.
