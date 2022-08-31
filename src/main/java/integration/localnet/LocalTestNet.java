@@ -8,15 +8,12 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import com.github.dockerjava.api.command.BuildImageResultCallback;
 import com.github.dockerjava.api.command.CreateContainerResponse;
 import com.github.dockerjava.api.model.Bind;
-import com.github.dockerjava.api.model.Frame;
 import com.github.dockerjava.api.model.HostConfig;
-import com.github.dockerjava.core.command.LogContainerResultCallback;
 import metrics.integration.MetricsTestNet;
 import model.lightchain.Identifier;
 
@@ -27,6 +24,8 @@ import model.lightchain.Identifier;
  * The prometheus container is exposed at localhost:9090.
  */
 public class LocalTestNet extends MetricsTestNet {
+  private static final String LOCAL_DOCKER_REGISTRY = "localhost:5001";
+  private static final String LIGHTCHAIN_IMAGE = "/lightchain:lastest";
   private static final String SERVER_VOLUME = "server_volume";
   private static final String SERVER = "server";
   private static final String SERVER_VOLUME_BINDING = "server_volume:/app";
@@ -95,14 +94,19 @@ public class LocalTestNet extends MetricsTestNet {
    * Creates and runs a node network accompanied by a metrics generator server.
    */
   public void createNodeContainers() {
-    String imageId = "localhost:5001/lightchain:lastest";
+    String imageId = LOCAL_DOCKER_REGISTRY + LIGHTCHAIN_IMAGE;
+    if (dockerClient.pullImageCmd(imageId) == null) {
+      System.out.println("no local image found, building one, it takes time!");
+      imageId = dockerClient.buildImageCmd()
+          .withTags(new HashSet<>(Arrays.asList("image")))
+          .withDockerfile(new File(NODE_DOCKER_FILE))
+          .withPull(true)
+          .exec(new BuildImageResultCallback())
+          .awaitImageId();
+      System.out.println("image built up!");
+    }
     // Node Container
-//    String imageId = dockerClient.buildImageCmd()
-//        .withTags(new HashSet<>(Arrays.asList("image")))
-//        .withDockerfile(new File(NODE_DOCKER_FILE))
-//        .withPull(true)
-//        .exec(new BuildImageResultCallback())
-//        .awaitImageId();
+
 
     List<Bind> serverBinds = new ArrayList<>();
     serverBinds.add(Bind.parse(NODE_VOLUME_BINDING));
@@ -144,7 +148,6 @@ public class LocalTestNet extends MetricsTestNet {
     }
 
 
-
 //    Thread[] containerLoggerThreads = new Thread[nodeCount];
 //    for (int i = 0; i < nodeCount; i++) {
 //      int finalI = i;
@@ -172,7 +175,7 @@ public class LocalTestNet extends MetricsTestNet {
       t.start();
     }
 
-    Thread loggerWorker = new Thread(()->{
+    Thread loggerWorker = new Thread(() -> {
       while (true) {
         this.containerLogger.runContainerLoggerWorker();
       }
