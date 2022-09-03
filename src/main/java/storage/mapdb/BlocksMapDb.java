@@ -58,8 +58,12 @@ public class BlocksMapDb implements Blocks {
     return hasBoolean;
   }
 
-  /*
-  Adds block to the database
+  /**
+   * Adds block to the database.
+   *
+   * @param block given block to be added.
+   * @return true if block did not exist on the database,
+   false if block is already in database.
    */
   @Override
   public boolean add(Block block) {
@@ -109,7 +113,6 @@ public class BlocksMapDb implements Blocks {
 
   /**
    * Returns the block with given identifier.
-   * t
    *
    * @param blockId identifier of the block.
    * @return the block itself if exists and null otherwise.
@@ -130,7 +133,7 @@ public class BlocksMapDb implements Blocks {
    * Returns the block with the given height.
    *
    * @param height height of the block.
-   * @return the block itself if exists and null otherwise.
+   * @return the block id itself if exists and null otherwise.
    */
   @Override
   public Block atHeight(long height) {
