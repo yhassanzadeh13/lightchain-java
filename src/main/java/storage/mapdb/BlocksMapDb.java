@@ -2,10 +2,12 @@ package storage.mapdb;
 
 import java.util.ArrayList;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
-
 import model.lightchain.Block;
 import model.lightchain.Identifier;
-import org.mapdb.*;
+import org.mapdb.DB;
+import org.mapdb.DBMaker;
+import org.mapdb.HTreeMap;
+import org.mapdb.Serializer;
 import storage.Blocks;
 
 /**
@@ -56,12 +58,8 @@ public class BlocksMapDb implements Blocks {
     return hasBoolean;
   }
 
-  /**
-   * Adds block to the database.
-   *
-   * @param block given block to be added.
-   * @return true if block did not exist on the database, false if block is already in
-   * database.
+  /*
+  Adds block to the database
    */
   @Override
   public boolean add(Block block) {
@@ -74,7 +72,7 @@ public class BlocksMapDb implements Blocks {
       addBooleanId = blocksIdMap.putIfAbsentBoolean(block.id().getBytes(), block);
       if (addBooleanId) {
         blocksHeightMap.compute(height, (key, value) ->
-          (value == null)
+            (value == null)
             ? block.id()
             : null  //TODO: implement else case
         );
@@ -89,8 +87,8 @@ public class BlocksMapDb implements Blocks {
    * Removes block with given identifier.
    *
    * @param blockId identifier of the block.
-   * @return true if block exists on database and removed successfully, false if block does not exist on
-   * database.
+   * @return true if block exists on database and removed successfully,
+    false if block does not exist on database.
    */
   @Override
   public boolean remove(Identifier blockId) {
