@@ -1,4 +1,4 @@
-package networking.stub;
+package unittest.fixtures.networking.stub;
 
 import java.util.concurrent.ConcurrentHashMap;
 
