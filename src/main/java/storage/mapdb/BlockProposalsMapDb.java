@@ -1,7 +1,6 @@
 package storage.mapdb;
 
 import java.util.concurrent.locks.ReentrantReadWriteLock;
-
 import model.lightchain.BlockProposal;
 import org.mapdb.DB;
 import org.mapdb.DBMaker;
@@ -39,8 +38,8 @@ public class BlockProposalsMapDb implements BlockProposals {
    */
   private final HTreeMap<String, BlockProposal> blockProposalsMap;
   public final String LAST_BLOCK_PROPOSAL_EXISTS = "Cannot overwrite existing "
-    +
-    "last block proposal. Clear last proposal before setting a new";
+      +
+      "last block proposal. Clear last proposal before setting a new";
 
   /**
    * Creates a block proposals mapdb.

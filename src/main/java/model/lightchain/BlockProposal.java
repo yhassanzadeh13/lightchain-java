@@ -5,7 +5,8 @@ import model.codec.EntityType;
 import model.crypto.Signature;
 
 /**
- * BlockProposal encapsulates an authenticated collection of transactions that is proposed by a LightChain node to be appended to the chain.
+ * BlockProposal encapsulates an authenticated collection of transactions
+ * that is proposed by a LightChain node to be appended to the chain.
  */
 public class BlockProposal extends Entity {
   private final BlockHeader header;
@@ -13,7 +14,7 @@ public class BlockProposal extends Entity {
   private final BlockPayload payload;
 
   /**
-   * Signature of the proposer over the hash of this block
+   * Signature of the proposer over the hash of this block.
    */
   private final Signature proposerSignature;
 
