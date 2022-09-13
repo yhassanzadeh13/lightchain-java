@@ -37,7 +37,7 @@ public class BlockProposalsMapDb implements BlockProposals {
    * with Strings as keys.
    */
   private final HTreeMap<String, BlockProposal> blockProposalsMap;
-  public final String LAST_BLOCK_PROPOSAL_EXISTS = "Cannot overwrite existing "
+  public static final String LAST_BLOCK_PROPOSAL_EXISTS = "Cannot overwrite existing "
       +
       "last block proposal. Clear last proposal before setting a new";
 
