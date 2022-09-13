@@ -21,4 +21,5 @@ docker-build-lightchain:
 	docker build -f ./DockerfileNode -t localhost:5001/lightchain:lastest .
 docker-clean-registry:
 	docker container stop registry && docker container rm -v registry
-
+docker-stop-all:
+	docker rm -f $(docker ps -aq) && docker rmi -f $(docker images -q)

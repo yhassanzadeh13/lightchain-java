@@ -175,13 +175,10 @@ public class LocalTestNet extends MetricsTestNet {
       t.start();
     }
 
-    Thread loggerWorker = new Thread(() -> {
-      while (true) {
-        this.containerLogger.runContainerLoggerWorker();
-      }
-    });
-    loggerWorker.setDaemon(true);
-    loggerWorker.start();
+    while (true) {
+      this.containerLogger.runContainerLoggerWorker();
+    }
+
 
 //    for (Thread t : containerLoggerThreads) {
 //      try {
