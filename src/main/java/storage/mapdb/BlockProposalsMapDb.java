@@ -38,6 +38,9 @@ public class BlockProposalsMapDb implements BlockProposals {
    * with Strings as keys.
    */
   private final HTreeMap<String, BlockProposal> blockProposalsMap;
+  public final String LAST_BLOCK_PROPOSAL_EXISTS = "Cannot overwrite existing "
+    +
+    "last block proposal. Clear last proposal before setting a new";
 
   /**
    * Creates a block proposals mapdb.
@@ -70,9 +73,7 @@ public class BlockProposalsMapDb implements BlockProposals {
       BlockProposal lastBlockProposal = this.blockProposalsMap.get(LAST_PROPOSED_BLOCK);
       if (lastBlockProposal != null) {
         throw new
-          IllegalStateException("Cannot set last proposal as "
-          +
-          "the recentProposal already exists");
+          IllegalStateException(LAST_BLOCK_PROPOSAL_EXISTS);
       } else {
         this.blockProposalsMap.put(LAST_PROPOSED_BLOCK, proposal);
       }
