@@ -30,4 +30,5 @@ public abstract class Signature extends Entity implements Serializable {
   public byte[] getBytes() {
     return bytes.clone();
   }
+
 }

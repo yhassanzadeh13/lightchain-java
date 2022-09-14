@@ -18,7 +18,7 @@ public class JsonEncoderTest {
   @Test
   public void testEncodingRoundTrip() throws CodecException {
     JsonEncoder encoder = new JsonEncoder();
-    EntityFixture entity = new EntityFixture();
+    Entity entity = new EntityFixture();
     Entity entityChanged = encoder.decode(encoder.encode(entity));
     Assertions.assertEquals(entity, entityChanged);
   }
