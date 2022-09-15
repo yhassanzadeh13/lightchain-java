@@ -2,16 +2,15 @@ package storage.mapdb;
 
 import java.util.ArrayList;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import model.lightchain.Block;
+import model.lightchain.Identifier;
+import org.mapdb.DB;
+import org.mapdb.DBMaker;
+import org.mapdb.HTreeMap;
+import org.mapdb.Serializer;
+import storage.Blocks;
 
-  import model.lightchain.Block;
-  import model.lightchain.Identifier;
-  import org.mapdb.DB;
-  import org.mapdb.DBMaker;
-  import org.mapdb.HTreeMap;
-  import org.mapdb.Serializer;
-  import storage.Blocks;
-
-  /**
+/**
  * Implementation of BlocksMapDb interface.
  */
 public class BlocksMapDb implements Blocks {

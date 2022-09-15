@@ -17,6 +17,7 @@ import org.testcontainers.shaded.org.apache.commons.io.FileUtils;
 import storage.mapdb.BlockProposalsMapDb;
 import unittest.fixtures.BlockFixture;
 
+
 /**
  * This class encompasses all the tests for BlockProposals implementation.
  */
@@ -78,7 +79,8 @@ public class BlockProposalsTest {
     for (BlockProposal blockProposal : allBlockProposals) {
       Throwable exception = Assertions.assertThrows(IllegalStateException.class,
           () -> db.setLastProposal(blockProposal));
-      Assertions.assertEquals(db.LAST_BLOCK_PROPOSAL_EXISTS, exception.getMessage());
+      Assertions.assertEquals(
+          BlockProposalsMapDb.LAST_BLOCK_PROPOSAL_EXISTS, exception.getMessage());
     }
   }
 
@@ -107,7 +109,7 @@ public class BlockProposalsTest {
             Assertions.assertEquals(db.getLastProposal().id(), blockProposal.id());
             testBlockProposal[0] = blockProposal;
           } catch (Exception e) {
-            Assertions.assertEquals(e.getMessage(), db.LAST_BLOCK_PROPOSAL_EXISTS);
+            Assertions.assertEquals(e.getMessage(), BlockProposalsMapDb.LAST_BLOCK_PROPOSAL_EXISTS);
           }
         }
       });
@@ -162,7 +164,7 @@ public class BlockProposalsTest {
           try {
             db.setLastProposal(blockProposal);
           } catch (Exception e) {
-            Assertions.assertEquals(e.getMessage(), db.LAST_BLOCK_PROPOSAL_EXISTS);
+            Assertions.assertEquals(e.getMessage(), BlockProposalsMapDb.LAST_BLOCK_PROPOSAL_EXISTS);
           }
         }
       });
@@ -235,7 +237,8 @@ public class BlockProposalsTest {
    * and rest of the attempts have no effect.
    */
   @Test
-  void repeatedlyConcurrentlyClearLastProposal() {
+  void repeatedlyConcurrentlyClearLastProposal()
+      throws IllegalStateException, InterruptedException {
     ArrayList<Thread> threads = new ArrayList<Thread>();
     final Phaser phaser = new Phaser();
     db.setLastProposal(allBlockProposals.get(0));
@@ -262,8 +265,8 @@ public class BlockProposalsTest {
     for (int i = 0; i < 10; i++) {
       try {
         threads.get(i).start();
-      } catch (Exception e) {
-        System.err.println(e.getMessage());
+      } catch (IllegalStateException e) {
+        throw new IllegalStateException(e.getMessage());
       }
     }
     phaser.arriveAndAwaitAdvance();
@@ -271,10 +274,9 @@ public class BlockProposalsTest {
     for (int i = 0; i < 10; i++) {
       try {
         threads.get(i).join();
-      } catch (Exception e) {
-        System.err.println(e.getMessage());
+      } catch (InterruptedException e) {
+        throw new InterruptedException(e.getMessage());
       }
     }
   }
-
 }
