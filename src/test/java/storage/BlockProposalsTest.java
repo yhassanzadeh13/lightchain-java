@@ -2,12 +2,12 @@ package storage;
 
 import java.io.File;
 import java.io.IOException;
-import java.lang.IllegalStateException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.concurrent.Phaser;
+
 import model.lightchain.BlockProposal;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
@@ -16,7 +16,6 @@ import org.junit.jupiter.api.Test;
 import org.testcontainers.shaded.org.apache.commons.io.FileUtils;
 import storage.mapdb.BlockProposalsMapDb;
 import unittest.fixtures.BlockFixture;
-
 
 /**
  * This class encompasses all the tests for BlockProposals implementation.

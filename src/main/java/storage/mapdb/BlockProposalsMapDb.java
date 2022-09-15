@@ -1,10 +1,12 @@
 package storage.mapdb;
 
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+
 import model.lightchain.BlockProposal;
 import org.mapdb.DB;
 import org.mapdb.DBMaker;
 import org.mapdb.HTreeMap;
+import org.mapdb.Serializer;
 import storage.BlockProposals;
 
 /**
@@ -46,12 +48,15 @@ public class BlockProposalsMapDb implements BlockProposals {
    *
    * @param filePath     of id, block proposal mapdb
    */
+  @SuppressWarnings("unchecked")
   public BlockProposalsMapDb(final String filePath) {
     this.db = DBMaker.fileDB(filePath).make();
     this.lock = new ReentrantReadWriteLock();
     this.blockProposalsMap =
       (HTreeMap<String, BlockProposal>)
-        this.db.hashMap(BLOCK_PROPOSALS_MAP).createOrOpen();
+        this.db.hashMap(BLOCK_PROPOSALS_MAP)
+          .keySerializer(Serializer.STRING)
+          .createOrOpen();
   }
 
   /**
