@@ -110,6 +110,7 @@ public class BlockProposalsTest {
           } catch (Exception e) {
             Assertions.assertEquals(e.getMessage(), BlockProposalsMapDb.LAST_BLOCK_PROPOSAL_EXISTS);
           }
+          phaser.arriveAndDeregister();
         }
       });
     }
@@ -132,6 +133,7 @@ public class BlockProposalsTest {
       }
     }
     Assertions.assertEquals(db.getLastProposal().id(), testBlockProposal[0].id());
+    phaser.arriveAndDeregister();
   }
 
   /**
@@ -165,6 +167,7 @@ public class BlockProposalsTest {
           } catch (Exception e) {
             Assertions.assertEquals(e.getMessage(), BlockProposalsMapDb.LAST_BLOCK_PROPOSAL_EXISTS);
           }
+          phaser.arriveAndDeregister();
         }
       });
     }
@@ -188,6 +191,7 @@ public class BlockProposalsTest {
     }
 
     Assertions.assertEquals(db.getLastProposal().id(), newBlockProposal.id());
+    phaser.arriveAndDeregister();
   }
 
   /**
@@ -236,7 +240,7 @@ public class BlockProposalsTest {
    * and rest of the attempts have no effect.
    */
   @Test
-  void repeatedlyConcurrentlyClearLastProposal()
+  void concurrentlyRepeatedlyClearLastProposal()
       throws IllegalStateException, InterruptedException {
     ArrayList<Thread> threads = new ArrayList<Thread>();
     final Phaser phaser = new Phaser();
@@ -256,6 +260,7 @@ public class BlockProposalsTest {
           } else {
             Assertions.assertDoesNotThrow(() -> db.clearLastProposal());
           }
+          phaser.arriveAndDeregister();
         }
       });
     }
@@ -277,5 +282,6 @@ public class BlockProposalsTest {
         throw new InterruptedException(e.getMessage());
       }
     }
+    phaser.arriveAndDeregister();
   }
 }
