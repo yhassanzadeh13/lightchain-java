@@ -25,7 +25,7 @@ public class BlockProposalsTest {
   private static final String TEMP_FILE = "tempfile.db";
   private Path tempdir;
   private ArrayList<BlockProposal> allBlockProposals;
-  private BlockProposalsMapDb db;
+//  private BlockProposalsMapDb db;
 
   /**
    * Initializes database.
@@ -36,7 +36,7 @@ public class BlockProposalsTest {
   void setup() throws IOException {
     Path currentRelativePath = Paths.get("");
     tempdir = Files.createTempDirectory(currentRelativePath, TEMP_DIR);
-    db = new BlockProposalsMapDb(tempdir.toAbsolutePath() + "/" + TEMP_FILE);
+//    db = new BlockProposalsMapDb(tempdir.toAbsolutePath() + "/" + TEMP_FILE);
     allBlockProposals = new ArrayList<>();
     for (int i = 0; i < 10; i++) {
       allBlockProposals.add(BlockFixture.newBlockProposal());
@@ -50,7 +50,7 @@ public class BlockProposalsTest {
    */
   @AfterEach
   void cleanup() throws IOException {
-    db.closeDb();
+//    db.closeDb();
     FileUtils.deleteDirectory(new File(tempdir.toString()));
   }
 
@@ -60,11 +60,13 @@ public class BlockProposalsTest {
    */
   @Test
   void setAndCheckLastBlockProposal() {
+    final BlockProposalsMapDb db = new BlockProposalsMapDb(tempdir.toAbsolutePath() + "/" + TEMP_FILE);
     for (BlockProposal blockProposal : allBlockProposals) {
       db.clearLastProposal();
       db.setLastProposal(blockProposal);
       Assertions.assertEquals(blockProposal.id(), db.getLastProposal().id());
     }
+    db.closeDb();
   }
 
   /**
@@ -74,6 +76,7 @@ public class BlockProposalsTest {
    */
   @Test
   void setExistingLastBlockProposal() {
+    final BlockProposalsMapDb db = new BlockProposalsMapDb(tempdir.toAbsolutePath() + "/" + TEMP_FILE);
     db.setLastProposal(allBlockProposals.get(0));
     for (BlockProposal blockProposal : allBlockProposals) {
       Throwable exception = Assertions.assertThrows(IllegalStateException.class,
@@ -81,6 +84,7 @@ public class BlockProposalsTest {
       Assertions.assertEquals(
           BlockProposalsMapDb.LAST_BLOCK_PROPOSAL_EXISTS, exception.getMessage());
     }
+    db.closeDb();
   }
 
   /**
@@ -93,6 +97,7 @@ public class BlockProposalsTest {
     ArrayList<Thread> threads = new ArrayList<Thread>();
     final Phaser phaser = new Phaser();
     final BlockProposal[] testBlockProposal = new BlockProposal[1];
+    final BlockProposalsMapDb db = new BlockProposalsMapDb(tempdir.toAbsolutePath() + "/" + TEMP_FILE);
 
     for (BlockProposal blockProposal : allBlockProposals) {
       threads.add(new Thread() {
@@ -132,8 +137,10 @@ public class BlockProposalsTest {
         System.err.println(e.getMessage());
       }
     }
-    Assertions.assertEquals(db.getLastProposal().id(), testBlockProposal[0].id());
+
     phaser.arriveAndDeregister();
+    Assertions.assertEquals(db.getLastProposal().id(), testBlockProposal[0].id());
+    db.closeDb();
   }
 
   /**
@@ -148,7 +155,8 @@ public class BlockProposalsTest {
   void concurrentlySetExistingLastBlockProposal() {
     ArrayList<Thread> threads = new ArrayList<Thread>();
     final Phaser phaser = new Phaser();
-    BlockProposal newBlockProposal = BlockFixture.newBlockProposal();
+    final BlockProposal newBlockProposal = BlockFixture.newBlockProposal();
+    final BlockProposalsMapDb db = new BlockProposalsMapDb(tempdir.toAbsolutePath() + "/" + TEMP_FILE);
 
     db.clearLastProposal();
     db.setLastProposal(newBlockProposal);
@@ -190,8 +198,9 @@ public class BlockProposalsTest {
       }
     }
 
-    Assertions.assertEquals(db.getLastProposal().id(), newBlockProposal.id());
     phaser.arriveAndDeregister();
+    Assertions.assertEquals(db.getLastProposal().id(), newBlockProposal.id());
+    db.closeDb();
   }
 
   /**
@@ -200,7 +209,9 @@ public class BlockProposalsTest {
    */
   @Test
   void clearLastProposalOnEmptyDatabase() {
-    Assertions.assertDoesNotThrow(() -> db.clearLastProposal());
+    final BlockProposalsMapDb db = new BlockProposalsMapDb(tempdir.toAbsolutePath() + "/" + TEMP_FILE);
+    Assertions.assertDoesNotThrow(db::clearLastProposal);
+    db.closeDb();
   }
 
   /**
@@ -209,8 +220,10 @@ public class BlockProposalsTest {
    */
   @Test
   void clearAndGetLastProposal() {
+    final BlockProposalsMapDb db = new BlockProposalsMapDb(tempdir.toAbsolutePath() + "/" + TEMP_FILE);
     db.clearLastProposal();
     Assertions.assertNull(db.getLastProposal());
+    db.closeDb();
   }
 
   /**
@@ -221,7 +234,8 @@ public class BlockProposalsTest {
    */
   @Test
   void repeatedlyClearLastProposal() {
-    BlockProposal blockProposal = allBlockProposals.get(0);
+    final BlockProposal blockProposal = allBlockProposals.get(0);
+    final BlockProposalsMapDb db = new BlockProposalsMapDb(tempdir.toAbsolutePath() + "/" + TEMP_FILE);
 
     db.setLastProposal(blockProposal);
     Assertions.assertEquals(db.getLastProposal().id(), blockProposal.id());
@@ -230,8 +244,9 @@ public class BlockProposalsTest {
     Assertions.assertNull(db.getLastProposal());
 
     for (int i = 0; i < 10; i++) {
-      Assertions.assertDoesNotThrow(() -> db.clearLastProposal());
+      Assertions.assertDoesNotThrow(db::clearLastProposal);
     }
+    db.closeDb();
   }
 
   /**
@@ -244,6 +259,8 @@ public class BlockProposalsTest {
       throws IllegalStateException, InterruptedException {
     ArrayList<Thread> threads = new ArrayList<Thread>();
     final Phaser phaser = new Phaser();
+    final BlockProposalsMapDb db = new BlockProposalsMapDb(tempdir.toAbsolutePath() + "/" + TEMP_FILE);
+
     db.setLastProposal(allBlockProposals.get(0));
 
     for (BlockProposal blockProposal : allBlockProposals) {
@@ -258,7 +275,7 @@ public class BlockProposalsTest {
           if (db.getLastProposal() != null) {
             db.clearLastProposal();
           } else {
-            Assertions.assertDoesNotThrow(() -> db.clearLastProposal());
+            Assertions.assertDoesNotThrow(db::clearLastProposal);
           }
           phaser.arriveAndDeregister();
         }
@@ -283,5 +300,6 @@ public class BlockProposalsTest {
       }
     }
     phaser.arriveAndDeregister();
+    db.closeDb();
   }
 }
