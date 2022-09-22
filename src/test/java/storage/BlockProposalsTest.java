@@ -100,8 +100,6 @@ public class BlockProposalsTest {
       threads.add(new Thread() {
         @Override
         public void run() {
-//          setName(blockProposal.id().toString());
-
           phaser.arriveAndAwaitAdvance();
 
           try {
@@ -116,7 +114,6 @@ public class BlockProposalsTest {
       });
     }
 
-//    phaser.register();
     for (int i = 0; i < 10; i++) {
       try {
         threads.get(i).start();
@@ -160,7 +157,6 @@ public class BlockProposalsTest {
       threads.add(new Thread() {
         @Override
         public void run() {
-//          setName(blockProposal.id().toString());
 
           phaser.arriveAndAwaitAdvance();
 
@@ -254,7 +250,6 @@ public class BlockProposalsTest {
       threads.add(new Thread() {
         @Override
         public void run() {
-//          setName(blockProposal.id().toString());
           phaser.arriveAndAwaitAdvance();
 
           if (db.getLastProposal() != null) {
