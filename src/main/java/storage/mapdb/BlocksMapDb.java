@@ -104,7 +104,6 @@ public class BlocksMapDb implements Blocks {
       Block block = byId(blockId);
       removeBoolean = blocksIdMap.remove(blockId.getBytes(), block);
       if (removeBoolean) {
-        // TOOD: refactor it.
         blocksHeightMap.remove((int) block.getHeight(), blockId);
       }
     } finally {

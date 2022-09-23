@@ -14,34 +14,12 @@ import storage.BlockProposals;
  */
 
 public class BlockProposalsMapDb implements BlockProposals {
-  /**
-   lock variable to access read and write locks while accessing data.
-   */
   private final ReentrantReadWriteLock lock;
-
-  /**
-   * db is used to refer and access to the database.
-   */
   private final DB db;
-
-  /**
-   * name of the map created for block proposals.
-   */
   private static final String BLOCK_PROPOSALS_MAP = "block_proposals_map";
-
-  /**
-   * key for last proposed block.
-   */
   private static final String LAST_PROPOSED_BLOCK = "last_proposed_block";
-
-  /**
-   * runtime Hash tree map to storing Block proposals
-   * with Strings as keys.
-   */
   private final HTreeMap<String, BlockProposal> blockProposalsMap;
-  public static final String LAST_BLOCK_PROPOSAL_EXISTS = "Cannot overwrite existing "
-      +
-      "last block proposal. Clear last proposal before setting a new";
+  public static final String LAST_BLOCK_PROPOSAL_EXISTS = "Cannot overwrite existing last block proposal. Clear last proposal before setting a new";
 
   /**
    * Creates a block proposals mapdb.
@@ -76,8 +54,7 @@ public class BlockProposalsMapDb implements BlockProposals {
       lock.writeLock().lock();
       BlockProposal lastBlockProposal = this.blockProposalsMap.get(LAST_PROPOSED_BLOCK);
       if (lastBlockProposal != null) {
-        throw new
-          IllegalStateException(LAST_BLOCK_PROPOSAL_EXISTS);
+        throw new IllegalStateException(LAST_BLOCK_PROPOSAL_EXISTS);
       } else {
         this.blockProposalsMap.put(LAST_PROPOSED_BLOCK, proposal);
       }

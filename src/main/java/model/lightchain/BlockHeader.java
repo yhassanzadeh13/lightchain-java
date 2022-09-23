@@ -1,5 +1,7 @@
 package model.lightchain;
 
+import java.util.Objects;
+
 import model.Entity;
 import model.codec.EntityType;
 
@@ -65,5 +67,21 @@ public class BlockHeader extends Entity {
   @Override
   public String type() {
     return EntityType.TYPE_BLOCK_HEADER;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (!(o instanceof BlockHeader)) return false;
+    BlockHeader that = (BlockHeader) o;
+    return getHeight() == that.getHeight()
+        && Objects.equals(getPreviousBlockId(), that.getPreviousBlockId())
+        && Objects.equals(getProposerId(), that.getProposerId())
+        && Objects.equals(getPayloadId(), that.getPayloadId());
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(getPreviousBlockId(), getHeight(), getProposerId(), getPayloadId());
   }
 }

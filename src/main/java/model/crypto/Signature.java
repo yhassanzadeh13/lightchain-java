@@ -1,6 +1,8 @@
 package model.crypto;
 
 import java.io.Serializable;
+import java.util.Arrays;
+import java.util.Objects;
 
 import model.Entity;
 import model.lightchain.Identifier;
@@ -29,5 +31,20 @@ public abstract class Signature extends Entity implements Serializable {
 
   public byte[] getBytes() {
     return bytes.clone();
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (!(o instanceof Signature)) return false;
+    Signature signature = (Signature) o;
+    return Arrays.equals(getBytes(), signature.getBytes()) && Objects.equals(getSignerId(), signature.getSignerId());
+  }
+
+  @Override
+  public int hashCode() {
+    int result = Objects.hash(getSignerId());
+    result = 31 * result + Arrays.hashCode(getBytes());
+    return result;
   }
 }

@@ -6,7 +6,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Phaser;
+import java.util.concurrent.TimeUnit;
 
 import model.lightchain.BlockProposal;
 import org.junit.jupiter.api.AfterEach;
@@ -27,6 +29,8 @@ public class BlockProposalsTest {
   private ArrayList<BlockProposal> allBlockProposals;
   private BlockProposalsMapDb db;
 
+  private static final int TEST_SIZE = 10;
+
   /**
    * Initializes database.
    *
@@ -38,7 +42,7 @@ public class BlockProposalsTest {
     tempdir = Files.createTempDirectory(currentRelativePath, TEMP_DIR);
     db = new BlockProposalsMapDb(tempdir.toAbsolutePath() + "/" + TEMP_FILE);
     allBlockProposals = new ArrayList<>();
-    for (int i = 0; i < 10; i++) {
+    for (int i = 0; i < TEST_SIZE; i++) {
       allBlockProposals.add(BlockFixture.newBlockProposal());
     }
   }
@@ -84,60 +88,51 @@ public class BlockProposalsTest {
   }
 
   /**
-   * If multiple threads concurrently set different proposals as last proposal
-   * Only one of them will succeed and rest will throw IllegalStateException
+   * If multiple threads concurrently set different proposals as last proposal,
+   * only one of them will succeed and rest will throw IllegalStateException
    * Lastly the set proposal must be one of them.
    */
   @Test
   void concurrentlySetLastBlockProposal() {
     ArrayList<Thread> threads = new ArrayList<Thread>();
-    final Phaser phaser = new Phaser(1);
-    final BlockProposal[] testBlockProposal = new BlockProposal[1];
-    Assertions.assertEquals(0, phaser.getPhase());
+    final CountDownLatch lastProposalSet = new CountDownLatch(allBlockProposals.size());
 
     for (BlockProposal blockProposal : allBlockProposals) {
-      phaser.register();
       threads.add(new Thread() {
         @Override
         public void run() {
-          phaser.arriveAndAwaitAdvance();
-
           try {
             db.setLastProposal(blockProposal);
             Assertions.assertEquals(db.getLastProposal().id(), blockProposal.id());
-            testBlockProposal[0] = blockProposal;
           } catch (Exception e) {
             Assertions.assertEquals(e.getMessage(), BlockProposalsMapDb.LAST_BLOCK_PROPOSAL_EXISTS);
           }
-          phaser.arriveAndDeregister();
+          lastProposalSet.countDown();
         }
       });
     }
 
-    for (int i = 0; i < 10; i++) {
+    for (int i = 0; i < allBlockProposals.size(); i++) {
       try {
         threads.get(i).start();
       } catch (Exception e) {
-        System.err.println(e.getMessage());
+        Assertions.fail(e);
       }
     }
-    phaser.arriveAndAwaitAdvance();
-    Assertions.assertEquals(1, phaser.getPhase());
 
-    for (int i = 0; i < 10; i++) {
-      try {
-        threads.get(i).join();
-      } catch (Exception e) {
-        System.err.println(e.getMessage());
-      }
+    try {
+      boolean doneOnTime = lastProposalSet.await(1, TimeUnit.SECONDS);
+      Assertions.assertTrue(doneOnTime);
+    } catch (InterruptedException e) {
+      Assertions.fail(e);
     }
-    Assertions.assertEquals(db.getLastProposal().id(), testBlockProposal[0].id());
-    phaser.arriveAndDeregister();
+
+    Assertions.assertTrue(allBlockProposals.contains(db.getLastProposal()));
   }
 
   /**
    * Test that the state of last proposal should not be distorted.
-   * When BlockProposalsMapDb has the last proposal set,
+   * when BlockProposalsMapDb has the last proposal set,
    * 10 threads concurrently setting the last proposal,
    * thrown IllegalStateException.
    * Once all threads are done the last proposal must be the one
@@ -146,50 +141,41 @@ public class BlockProposalsTest {
   @Test
   void concurrentlySetExistingLastBlockProposal() {
     ArrayList<Thread> threads = new ArrayList<Thread>();
-    final Phaser phaser = new Phaser(1);
-    Assertions.assertEquals(0, phaser.getPhase());
+    final CountDownLatch lastProposalSet = new CountDownLatch(allBlockProposals.size());
     BlockProposal newBlockProposal = BlockFixture.newBlockProposal();
     db.clearLastProposal();
     db.setLastProposal(newBlockProposal);
 
     for (BlockProposal blockProposal : allBlockProposals) {
-      phaser.register();
       threads.add(new Thread() {
         @Override
         public void run() {
-
-          phaser.arriveAndAwaitAdvance();
-
           try {
             db.setLastProposal(blockProposal);
           } catch (Exception e) {
             Assertions.assertEquals(e.getMessage(), BlockProposalsMapDb.LAST_BLOCK_PROPOSAL_EXISTS);
           }
-          phaser.arriveAndDeregister();
+          lastProposalSet.countDown();
         }
       });
     }
 
-    for (int i = 0; i < 10; i++) {
+    for (int i = 0; i < allBlockProposals.size(); i++) {
       try {
         threads.get(i).start();
       } catch (Exception e) {
-        System.err.println(e.getMessage());
-      }
-    }
-    phaser.arriveAndAwaitAdvance();
-    Assertions.assertEquals(1, phaser.getPhase());
-
-    for (int i = 0; i < 10; i++) {
-      try {
-        threads.get(i).join();
-      } catch (Exception e) {
-        System.err.println(e.getMessage());
+        Assertions.fail(e);
       }
     }
 
-    Assertions.assertEquals(db.getLastProposal().id(), newBlockProposal.id());
-    phaser.arriveAndDeregister();
+    try {
+      boolean doneOnTime = lastProposalSet.await(1, TimeUnit.SECONDS);
+      Assertions.assertTrue(doneOnTime);
+    } catch (InterruptedException e) {
+      Assertions.fail(e);
+    }
+
+    Assertions.assertEquals(db.getLastProposal(), newBlockProposal);
   }
 
   /**
@@ -207,12 +193,14 @@ public class BlockProposalsTest {
    */
   @Test
   void clearAndGetLastProposal() {
+    BlockProposal blockProposal = BlockFixture.newBlockProposal();
+    db.setLastProposal(blockProposal);
     db.clearLastProposal();
     Assertions.assertNull(db.getLastProposal());
   }
 
   /**
-   * WhenBlockProposalsMapDb has the last proposal set,
+   * When BlockProposalsMapDb has the last proposal set,
    * calling clearLastProposal multiple times sequentially
    * does not have any side effects except it only cleans
    * the last proposal (once), and the rest attempts are idempotent.
@@ -222,14 +210,16 @@ public class BlockProposalsTest {
     BlockProposal blockProposal = allBlockProposals.get(0);
 
     db.setLastProposal(blockProposal);
-    Assertions.assertEquals(db.getLastProposal().id(), blockProposal.id());
+    Assertions.assertEquals(db.getLastProposal(), blockProposal);
 
     db.clearLastProposal();
     Assertions.assertNull(db.getLastProposal());
 
-    for (int i = 0; i < 10; i++) {
+    for (int i = 0; i < allBlockProposals.size(); i++) {
       Assertions.assertDoesNotThrow(() -> db.clearLastProposal());
     }
+
+    Assertions.assertNull(db.getLastProposal());
   }
 
   /**
@@ -238,47 +228,40 @@ public class BlockProposalsTest {
    * and rest of the attempts have no effect.
    */
   @Test
-  void concurrentlyRepeatedlyClearLastProposal()
-      throws IllegalStateException, InterruptedException {
+  void concurrentlyRepeatedlyClearLastProposal() {
     ArrayList<Thread> threads = new ArrayList<Thread>();
-    final Phaser phaser = new Phaser(1);
-    Assertions.assertEquals(0, phaser.getPhase());
+    final CountDownLatch lastProposalCleared = new CountDownLatch(allBlockProposals.size());
     db.setLastProposal(allBlockProposals.get(0));
 
     for (BlockProposal blockProposal : allBlockProposals) {
-      phaser.register();
       threads.add(new Thread() {
         @Override
         public void run() {
-          phaser.arriveAndAwaitAdvance();
-
           if (db.getLastProposal() != null) {
             db.clearLastProposal();
           } else {
             Assertions.assertDoesNotThrow(() -> db.clearLastProposal());
           }
-          phaser.arriveAndDeregister();
+          lastProposalCleared.countDown();
         }
       });
     }
 
-    for (int i = 0; i < 10; i++) {
+    for (int i = 0; i < allBlockProposals.size(); i++) {
       try {
         threads.get(i).start();
       } catch (IllegalStateException e) {
-        throw new IllegalStateException(e.getMessage());
+        Assertions.fail(e);
       }
     }
-    phaser.arriveAndAwaitAdvance();
-    Assertions.assertEquals(1, phaser.getPhase());
 
-    for (int i = 0; i < 10; i++) {
-      try {
-        threads.get(i).join();
-      } catch (InterruptedException e) {
-        throw new InterruptedException(e.getMessage());
-      }
+    try {
+      boolean doneOnTime = lastProposalCleared.await(1, TimeUnit.SECONDS);
+      Assertions.assertTrue(doneOnTime);
+    } catch (InterruptedException e) {
+      Assertions.fail(e);
     }
-    phaser.arriveAndDeregister();
+
+    Assertions.assertNull(db.getLastProposal());
   }
 }
