@@ -46,7 +46,7 @@ public class ContainerLogger {
           }
         }).awaitCompletion();
       } catch (InterruptedException e) {
-        e.printStackTrace();
+        System.exit(1);
       }
       this.lastLogTime.put(c.getKey(), (int) (System.currentTimeMillis() / 1000));
 

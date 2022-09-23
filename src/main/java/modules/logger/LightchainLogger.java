@@ -17,7 +17,7 @@ public class LightchainLogger {
    * @param className class name for which a logger is created.
    * @return logger for the class.
    */
-  public static org.slf4j.Logger getLogger(String className) {
-    return LoggerFactory.getLogger(LOGGER_NAME + "." + className);
+  public static Logger getLogger(String className) {
+    return new Logger(LoggerFactory.getLogger(LOGGER_NAME + "." + className));
   }
 }

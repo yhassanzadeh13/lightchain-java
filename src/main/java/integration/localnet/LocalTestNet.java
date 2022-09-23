@@ -16,6 +16,7 @@ import com.github.dockerjava.api.model.Bind;
 import com.github.dockerjava.api.model.HostConfig;
 import metrics.integration.MetricsTestNet;
 import model.lightchain.Identifier;
+import network.p2p.proto.StorageOuterClass;
 
 /**
  * Creates a metric collection network that is composed of a grafana and a prometheus container, as well as a
@@ -178,7 +179,6 @@ public class LocalTestNet extends MetricsTestNet {
     while (true) {
       this.containerLogger.runContainerLoggerWorker();
     }
-
 
 //    for (Thread t : containerLoggerThreads) {
 //      try {

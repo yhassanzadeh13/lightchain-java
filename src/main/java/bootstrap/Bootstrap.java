@@ -9,14 +9,14 @@ import integration.localnet.LocalTestNet;
 import model.lightchain.Identifier;
 import modules.logger.LightchainLogger;
 import org.slf4j.Logger;
-import protocol.engines.proposer.ProposerEngine;
+
 
 /**
  * Bootstrap class to facilitate the generation of LightChain Nodes running on different Docker containers.
  */
 public class Bootstrap {
   static final String OUTPUT_PATH = "bootstrap.txt";
-  private static final Logger logger = LightchainLogger.getLogger(ProposerEngine .class.getCanonicalName());
+  private final Logger logger = LightchainLogger.getLogger(Bootstrap.class.getCanonicalName());
   /**
    * Main method.
    *
@@ -47,7 +47,7 @@ public class Bootstrap {
    *
    * @param idTable The id table.
    */
-  private static void writeToOutput(ConcurrentMap<Identifier, String> idTable) {
+  private void writeToOutput(ConcurrentMap<Identifier, String> idTable) {
     File file = new File(OUTPUT_PATH);
     try {
       FileOutputStream fileStream = new FileOutputStream(file);
@@ -58,6 +58,7 @@ public class Bootstrap {
       writer.flush();
       writer.close();
     } catch (IOException e) {
+      this.logger.fatal("could not write to output file: " + e);
       System.exit(1);
       throw new IllegalStateException("could not read/write from/to file", e);
     }
