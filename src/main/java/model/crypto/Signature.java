@@ -35,8 +35,12 @@ public abstract class Signature extends Entity implements Serializable {
 
   @Override
   public boolean equals(Object o) {
-    if (this == o) return true;
-    if (!(o instanceof Signature)) return false;
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof Signature)) {
+      return false;
+    }
     Signature signature = (Signature) o;
     return Arrays.equals(getBytes(), signature.getBytes()) && Objects.equals(getSignerId(), signature.getSignerId());
   }

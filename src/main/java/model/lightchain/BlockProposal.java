@@ -68,8 +68,12 @@ public class BlockProposal extends Entity {
 
   @Override
   public boolean equals(Object o) {
-    if (this == o) return true;
-    if (!(o instanceof BlockProposal)) return false;
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof BlockProposal)) {
+      return false;
+    }
     BlockProposal that = (BlockProposal) o;
     return Objects.equals(getHeader(), that.getHeader())
         && Objects.equals(getPayload(), that.getPayload())

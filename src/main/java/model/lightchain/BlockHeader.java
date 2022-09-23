@@ -71,8 +71,12 @@ public class BlockHeader extends Entity {
 
   @Override
   public boolean equals(Object o) {
-    if (this == o) return true;
-    if (!(o instanceof BlockHeader)) return false;
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof BlockHeader)) {
+      return false;
+    }
     BlockHeader that = (BlockHeader) o;
     return getHeight() == that.getHeight()
         && Objects.equals(getPreviousBlockId(), that.getPreviousBlockId())

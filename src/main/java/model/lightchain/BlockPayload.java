@@ -34,8 +34,12 @@ public class BlockPayload extends Entity {
 
   @Override
   public boolean equals(Object o) {
-    if (this == o) return true;
-    if (!(o instanceof BlockPayload)) return false;
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof BlockPayload)) {
+      return false;
+    }
     BlockPayload that = (BlockPayload) o;
     return Arrays.equals(getTransactions(), that.getTransactions());
   }
