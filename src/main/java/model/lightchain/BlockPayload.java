@@ -1,5 +1,7 @@
 package model.lightchain;
 
+import java.util.Arrays;
+
 import model.Entity;
 import model.codec.EntityType;
 
@@ -28,5 +30,22 @@ public class BlockPayload extends Entity {
   @Override
   public String type() {
     return EntityType.TYPE_BLOCK_PAYLOAD;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof BlockPayload)) {
+      return false;
+    }
+    BlockPayload that = (BlockPayload) o;
+    return Arrays.equals(getTransactions(), that.getTransactions());
+  }
+
+  @Override
+  public int hashCode() {
+    return Arrays.hashCode(getTransactions());
   }
 }
