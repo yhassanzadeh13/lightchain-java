@@ -44,7 +44,6 @@ public class IngestEngineTest {
   private static final String TEMP_FILE_HEIGHT = "tempfileHEIGHT.db";
 
 
-
   /**
    * Evaluates that when a new validated block arrives at ingest engine,
    * the engine adds the block to its mocked block storage database.
@@ -291,8 +290,14 @@ public class IngestEngineTest {
       db.closeDb();
       FileUtils.deleteDirectory(new File(tempdir.toString()));
     }
-
   }
+
+  /**
+   * Get the temporary path.
+   *
+   * @param label dir name, height or id.
+   * @return temporary path.
+   */
   private static String getTemporaryPath(String label) {
     Path temporaryDir = null;
     Path currentRelativePath = Paths.get("");
@@ -393,9 +398,8 @@ public class IngestEngineTest {
         blocks);
 
     for (Transaction tx : block.getTransactions()) {
-      when(pendingTransactions.has(tx.id())).thenReturn(true); // pendingTx contains all txs of block
+      when(pendingTransactions.has(tx.id())).thenReturn(true);
     }
-
 
     ingestEngine.process(block);
 
@@ -1481,9 +1485,4 @@ public class IngestEngineTest {
     verifyBlockHappyPathCalled(block, blocks, pendingTransactions, transactionIds, seenEntities);
   }
 
-  /**
-   * Get the temporary path.
-   * @param label temp file id.
-   * @return temporary path.
-   */
 }
