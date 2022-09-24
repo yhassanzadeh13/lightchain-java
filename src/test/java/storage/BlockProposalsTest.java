@@ -27,6 +27,8 @@ public class BlockProposalsTest {
   private ArrayList<BlockProposal> allBlockProposals;
   private BlockProposalsMapDb db;
 
+  private static final int TEST_SIZE = 10;
+
   /**
    * Initializes database.
    *
@@ -38,7 +40,7 @@ public class BlockProposalsTest {
     tempdir = Files.createTempDirectory(currentRelativePath, TEMP_DIR);
     db = new BlockProposalsMapDb(tempdir.toAbsolutePath() + "/" + TEMP_FILE);
     allBlockProposals = new ArrayList<>();
-    for (int i = 0; i < 10; i++) {
+    for (int i = 0; i < TEST_SIZE; i++) {
       allBlockProposals.add(BlockFixture.newBlockProposal());
     }
   }
@@ -114,9 +116,9 @@ public class BlockProposalsTest {
       });
     }
 
-    for (int i = 0; i < 10; i++) {
+    for (Thread thread: threads) {
       try {
-        threads.get(i).start();
+        thread.start();
       } catch (Exception e) {
         System.err.println(e.getMessage());
       }
@@ -124,9 +126,9 @@ public class BlockProposalsTest {
     phaser.arriveAndAwaitAdvance();
     Assertions.assertEquals(1, phaser.getPhase());
 
-    for (int i = 0; i < 10; i++) {
+    for (Thread thread: threads) {
       try {
-        threads.get(i).join();
+        thread.join();
       } catch (Exception e) {
         System.err.println(e.getMessage());
       }
@@ -170,9 +172,9 @@ public class BlockProposalsTest {
       });
     }
 
-    for (int i = 0; i < 10; i++) {
+    for (Thread thread: threads) {
       try {
-        threads.get(i).start();
+        thread.start();
       } catch (Exception e) {
         System.err.println(e.getMessage());
       }
@@ -180,9 +182,9 @@ public class BlockProposalsTest {
     phaser.arriveAndAwaitAdvance();
     Assertions.assertEquals(1, phaser.getPhase());
 
-    for (int i = 0; i < 10; i++) {
+    for (Thread thread: threads) {
       try {
-        threads.get(i).join();
+        thread.join();
       } catch (Exception e) {
         System.err.println(e.getMessage());
       }
@@ -262,9 +264,9 @@ public class BlockProposalsTest {
       });
     }
 
-    for (int i = 0; i < 10; i++) {
+    for (Thread thread: threads) {
       try {
-        threads.get(i).start();
+        thread.start();
       } catch (IllegalStateException e) {
         throw new IllegalStateException(e.getMessage());
       }
@@ -272,9 +274,9 @@ public class BlockProposalsTest {
     phaser.arriveAndAwaitAdvance();
     Assertions.assertEquals(1, phaser.getPhase());
 
-    for (int i = 0; i < 10; i++) {
+    for (Thread thread: threads) {
       try {
-        threads.get(i).join();
+        thread.join();
       } catch (InterruptedException e) {
         throw new InterruptedException(e.getMessage());
       }
