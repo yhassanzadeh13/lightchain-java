@@ -120,7 +120,7 @@ public class BlockProposalsTest {
       try {
         thread.start();
       } catch (Exception e) {
-        System.err.println(e.getMessage());
+        Assertions.fail(e);
       }
     }
     phaser.arriveAndAwaitAdvance();
@@ -130,7 +130,7 @@ public class BlockProposalsTest {
       try {
         thread.join();
       } catch (Exception e) {
-        System.err.println(e.getMessage());
+        Assertions.fail(e);
       }
     }
     Assertions.assertEquals(db.getLastProposal().id(), testBlockProposal[0].id());
@@ -176,7 +176,7 @@ public class BlockProposalsTest {
       try {
         thread.start();
       } catch (Exception e) {
-        System.err.println(e.getMessage());
+        Assertions.fail(e);
       }
     }
     phaser.arriveAndAwaitAdvance();
@@ -186,7 +186,7 @@ public class BlockProposalsTest {
       try {
         thread.join();
       } catch (Exception e) {
-        System.err.println(e.getMessage());
+        Assertions.fail(e);
       }
     }
 
