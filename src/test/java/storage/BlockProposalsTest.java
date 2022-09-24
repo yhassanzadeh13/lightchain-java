@@ -116,7 +116,7 @@ public class BlockProposalsTest {
       });
     }
 
-    for (Thread thread: threads) {
+    for (Thread thread : threads) {
       try {
         thread.start();
       } catch (Exception e) {
@@ -126,7 +126,7 @@ public class BlockProposalsTest {
     phaser.arriveAndAwaitAdvance();
     Assertions.assertEquals(1, phaser.getPhase());
 
-    for (Thread thread: threads) {
+    for (Thread thread : threads) {
       try {
         thread.join();
       } catch (Exception e) {
@@ -172,7 +172,7 @@ public class BlockProposalsTest {
       });
     }
 
-    for (Thread thread: threads) {
+    for (Thread thread : threads) {
       try {
         thread.start();
       } catch (Exception e) {
@@ -182,7 +182,7 @@ public class BlockProposalsTest {
     phaser.arriveAndAwaitAdvance();
     Assertions.assertEquals(1, phaser.getPhase());
 
-    for (Thread thread: threads) {
+    for (Thread thread : threads) {
       try {
         thread.join();
       } catch (Exception e) {
@@ -264,7 +264,7 @@ public class BlockProposalsTest {
       });
     }
 
-    for (Thread thread: threads) {
+    for (Thread thread : threads) {
       try {
         thread.start();
       } catch (IllegalStateException e) {
@@ -274,7 +274,7 @@ public class BlockProposalsTest {
     phaser.arriveAndAwaitAdvance();
     Assertions.assertEquals(1, phaser.getPhase());
 
-    for (Thread thread: threads) {
+    for (Thread thread : threads) {
       try {
         thread.join();
       } catch (InterruptedException e) {
