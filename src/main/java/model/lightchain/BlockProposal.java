@@ -1,5 +1,7 @@
 package model.lightchain;
 
+import java.util.Objects;
+
 import model.Entity;
 import model.codec.EntityType;
 import model.crypto.Signature;
@@ -62,5 +64,24 @@ public class BlockProposal extends Entity {
 
   public BlockPayload getPayload() {
     return payload;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof BlockProposal)) {
+      return false;
+    }
+    BlockProposal that = (BlockProposal) o;
+    return Objects.equals(getHeader(), that.getHeader())
+        && Objects.equals(getPayload(), that.getPayload())
+        && Objects.equals(proposerSignature, that.proposerSignature);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(getHeader(), getPayload(), proposerSignature);
   }
 }

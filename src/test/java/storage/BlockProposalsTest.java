@@ -229,7 +229,7 @@ public class BlockProposalsTest {
     db.clearLastProposal();
     Assertions.assertNull(db.getLastProposal());
 
-    for (int i = 0; i < 10; i++) {
+    for (int i = 0; i < TEST_SIZE; i++) {
       Assertions.assertDoesNotThrow(() -> db.clearLastProposal());
     }
   }

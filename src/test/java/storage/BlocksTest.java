@@ -146,6 +146,7 @@ public class BlocksTest {
         Assertions.assertFalse(db.has(block.id()));
         Assertions.assertFalse(db.all().contains(block));
         Assertions.assertNull(db.byId(block.id()));
+        Assertions.assertNull(db.atHeight(block.getHeight()));
       } else {
         Assertions.assertTrue(db.has(block.id()));
         Assertions.assertTrue(db.all().contains(allBlocks.get(i)));
@@ -165,7 +166,6 @@ public class BlocksTest {
    */
   @Test
   void concurrentRemoveFirstFiveTest() {
-
     /*
     Adding all blocks concurrently.
     */
@@ -230,6 +230,7 @@ public class BlocksTest {
     */
     for (Block block : allBlocks) {
       Assertions.assertTrue(db.has(block.id()));
+      Assertions.assertEquals(db.atHeight(block.getHeight()), block);
     }
 
     for (Block block : allBlocks) {
