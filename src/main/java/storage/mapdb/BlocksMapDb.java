@@ -5,11 +5,14 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import model.lightchain.Block;
 import model.lightchain.Identifier;
-import org.mapdb.*;
+import org.mapdb.DB;
+import org.mapdb.DBMaker;
+import org.mapdb.HTreeMap;
+import org.mapdb.Serializer;
 import storage.Blocks;
 
 /**
- * Implementation of Transactions interface.
+ * Implementation of BlocksMapDb interface.
  */
 public class BlocksMapDb implements Blocks {
   private final DB dbId;
@@ -18,7 +21,7 @@ public class BlocksMapDb implements Blocks {
   private static final String MAP_NAME_ID = "blocks_map_id";
   private static final String MAP_NAME_HEIGHT = "blocks_map_height";
   private final HTreeMap blocksIdMap;
-  private final HTreeMap<Integer, ArrayList<Identifier>> blocksHeightMap;
+  private final HTreeMap<Integer, Identifier> blocksHeightMap;
 
   /**
    * Creates blocks mapdb.
@@ -26,6 +29,7 @@ public class BlocksMapDb implements Blocks {
    * @param filePathId     of id,block mapdb.
    * @param filePathHeight of height,id mapdb.
    */
+  @SuppressWarnings("unchecked")
   public BlocksMapDb(String filePathId, String filePathHeight) {
     // TODO: file paths consolidated.
     this.dbId = DBMaker.fileDB(filePathId).make();
@@ -34,7 +38,7 @@ public class BlocksMapDb implements Blocks {
         .keySerializer(Serializer.BYTE_ARRAY)
         .createOrOpen();
     this.dbHeight = DBMaker.fileDB(filePathHeight).make();
-    blocksHeightMap = (HTreeMap<Integer, ArrayList<Identifier>>) this.dbHeight.hashMap(MAP_NAME_HEIGHT)
+    blocksHeightMap = (HTreeMap<Integer, Identifier>) this.dbHeight.hashMap(MAP_NAME_HEIGHT)
         .createOrOpen();
   }
 
@@ -60,8 +64,8 @@ public class BlocksMapDb implements Blocks {
    * Adds block to the database.
    *
    * @param block given block to be added.
-   * @return true if block did not exist on the database, false if block is already in
-   * database.
+   * @return true if block did not exist on the database,
+   false if block is already in database.
    */
   @Override
   public boolean add(Block block) {
@@ -70,18 +74,14 @@ public class BlocksMapDb implements Blocks {
     Integer height = (int) block.getHeight();
     try {
       lock.writeLock().lock();
+      // if the block.id() key and the block was absent in IdMap, add it and return true
       addBooleanId = blocksIdMap.putIfAbsentBoolean(block.id().getBytes(), block);
       if (addBooleanId) {
-        blocksHeightMap.compute(height, (key, value) -> {
-          final ArrayList<Identifier> newBlockArray;
-          if (value == null) {
-            newBlockArray = new ArrayList<>();
-          } else {
-            newBlockArray = new ArrayList<>(value);
-          }
-          newBlockArray.add(block.id());
-          return newBlockArray;
-        });
+        blocksHeightMap.compute(height, (key, value) ->
+            (value == null)
+            ? block.id()
+            : null  //TODO: implement else case
+        );
       }
     } finally {
       lock.writeLock().unlock();
@@ -93,8 +93,8 @@ public class BlocksMapDb implements Blocks {
    * Removes block with given identifier.
    *
    * @param blockId identifier of the block.
-   * @return true if block exists on database and removed successfully, false if block does not exist on
-   * database.
+   * @return true if block exists on database and removed successfully,
+    false if block does not exist on database.
    */
   @Override
   public boolean remove(Identifier blockId) {
@@ -104,11 +104,7 @@ public class BlocksMapDb implements Blocks {
       Block block = byId(blockId);
       removeBoolean = blocksIdMap.remove(blockId.getBytes(), block);
       if (removeBoolean) {
-        // TOOD: refactor it.
-        ArrayList<Identifier> identifierArrayList = blocksHeightMap.get((int) block.getHeight());
-        if (identifierArrayList != null) {
-          identifierArrayList.remove(blockId);
-        }
+        blocksHeightMap.remove((int) block.getHeight(), blockId);
       }
     } finally {
       lock.writeLock().unlock();
@@ -118,7 +114,6 @@ public class BlocksMapDb implements Blocks {
 
   /**
    * Returns the block with given identifier.
-   * t
    *
    * @param blockId identifier of the block.
    * @return the block itself if exists and null otherwise.
@@ -139,7 +134,7 @@ public class BlocksMapDb implements Blocks {
    * Returns the block with the given height.
    *
    * @param height height of the block.
-   * @return the block itself if exists and null otherwise.
+   * @return the block id itself if exists and null otherwise.
    */
   @Override
   public Block atHeight(long height) {
@@ -147,10 +142,9 @@ public class BlocksMapDb implements Blocks {
     try {
       lock.readLock().lock();
       // TODO: fix the height for long.
-      ArrayList<Identifier> identifierArrayList = blocksHeightMap.get((int) height);
-      if (identifierArrayList != null) {
-        Identifier identifier = identifierArrayList.get(0);
-        block = byId(identifier);
+      final Identifier blockId = blocksHeightMap.get((int) height);
+      if (blockId != null) {
+        block = byId(blockId);
       }
     } finally {
       lock.readLock().unlock();
