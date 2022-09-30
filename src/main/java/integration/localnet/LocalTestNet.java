@@ -189,19 +189,6 @@ public class LocalTestNet extends MetricsTestNet {
 //      t.start();
 //    }
   }
-
-  /**
-   * Builds and returns a ConcurrentMap of nodes to be bootstrapped.
-   */
-  public ConcurrentMap createBootstrapFile() {
-    ConcurrentMap<Identifier, String> idTable = new ConcurrentHashMap<>();
-
-    for (int i = 0; i < nodeCount; i++) {
-      Identifier id = new Identifier(("NODE" + i).getBytes(StandardCharsets.UTF_8));
-      idTable.put(id, "NODE" + i + ":8081");
-    }
-    return idTable;
-  }
 }
 
 
