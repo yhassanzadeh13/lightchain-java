@@ -4,14 +4,13 @@ import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.ConcurrentMap;
 
 import model.lightchain.Identifier;
 import modules.logger.LightchainLogger;
 import modules.logger.Logger;
 
 public class Bootstrap {
-  private final String BOOTSTRAP_FILE_NAME = "bootstrap.txt";
+  private final String BOOTSTRAP_FILE_NAME = "bootstrap.txt"; // Don't change this name, it is used in the Dockerfile.
   private final String BOOTSTRAP_KEY_NAME = "node";
 
   private final String BOOTSTRAP_PORT_NUMBER = "8081";
@@ -70,8 +69,10 @@ public class Bootstrap {
   }
 
   public void print(HashMap<Identifier, String> idTable) {
+    logger.info("Bootstrap file created with the following content:");
     for (Map.Entry<Identifier, String> id : idTable.entrySet()) {
-      System.out.println(id.getKey().toString() + " " + idTable.get(id.getKey()));
+      logger.info(id.getKey() + " " + idTable.get(id.getKey()));
     }
+    logger.info("Bootstrap file written to " + BOOTSTRAP_FILE_NAME);
   }
 }

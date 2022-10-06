@@ -8,11 +8,14 @@ import com.github.dockerjava.api.DockerClient;
 import com.github.dockerjava.api.command.LogContainerCmd;
 import com.github.dockerjava.api.model.Frame;
 import com.github.dockerjava.core.command.LogContainerResultCallback;
+import modules.logger.LightchainLogger;
+import modules.logger.Logger;
 
 public class ContainerLogger {
   private static final int DEFAULT_LAST_LOG_TIME = 0;
   DockerClient dockerClient;
   private final ConcurrentHashMap<String, Integer> lastLogTime;
+  private final Logger logger = LightchainLogger.getLogger(ContainerLogger.class.getCanonicalName());
 
   public ContainerLogger(DockerClient dockerClient) {
     this.dockerClient = dockerClient;
@@ -40,22 +43,15 @@ public class ContainerLogger {
         lg.exec(new LogContainerResultCallback() {
           @Override
           public void onNext(Frame item) {
-            super.onNext(item);
-            System.out.println("[Container] " + new String(item.getPayload(), StandardCharsets.UTF_8));
-            System.out.println("-------------------");
+            // super.onNext(item);
+            String log = new String(item.getPayload(), StandardCharsets.UTF_8);
+            logger.info("{}: {}", c.getKey(), log);
           }
         }).awaitCompletion();
       } catch (InterruptedException e) {
-        System.exit(1);
+        logger.fatal("error while logging container: {}", c.getKey(), e);
       }
       this.lastLogTime.put(c.getKey(), (int) (System.currentTimeMillis() / 1000));
-
-//      lg.exec(new LogContainerResultCallback() {
-//        @Override
-//        public void onNext(Frame item) {
-//          System.out.println("[Container] " + item.toString());
-//        }
-//      });
     }
   }
 }
