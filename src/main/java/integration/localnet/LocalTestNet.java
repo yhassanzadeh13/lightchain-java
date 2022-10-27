@@ -41,11 +41,7 @@ public class LocalTestNet extends MetricsTestNet {
 
   private final Logger logger = LightchainLogger.getLogger(Bootstrap.class.getCanonicalName());
 
-  private int nodeCount;
-
-  public LocalTestNet() {
-    super();
-  }
+  private final int nodeCount;
 
   public LocalTestNet(int nodeCount) {
     this.nodeCount = nodeCount;

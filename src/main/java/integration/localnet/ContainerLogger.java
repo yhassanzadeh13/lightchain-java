@@ -3,8 +3,10 @@ package integration.localnet;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 
 import com.github.dockerjava.api.DockerClient;
+import com.github.dockerjava.api.async.ResultCallback;
 import com.github.dockerjava.api.command.LogContainerCmd;
 import com.github.dockerjava.api.model.Frame;
 import com.github.dockerjava.core.command.LogContainerResultCallback;
@@ -32,22 +34,24 @@ public class ContainerLogger {
   private LogContainerCmd createLogCommand(String containerId, int since) {
     return this.dockerClient
         .logContainerCmd(containerId)
+        .withFollowStream(true)
         .withStdOut(true)
         .withStdErr(true)
-        .withSince(since);
+        .withSince(0);
   }
 
   public void runContainerLoggerWorker() {
     for(Map.Entry<String, Integer> c : this.lastLogTime.entrySet()) {
       try(LogContainerCmd lg = createLogCommand(c.getKey(), c.getValue())) {
-        lg.exec(new LogContainerResultCallback() {
+        lg.exec(new ResultCallback.Adapter<>() {
           @Override
           public void onNext(Frame item) {
             // super.onNext(item);
             String log = new String(item.getPayload(), StandardCharsets.UTF_8);
-            logger.info("{}: {}", c.getKey(), log);
+            // logger.info("{}: {}", c.getKey(), log);
+            System.out.printf("%s: %s \n", c.getKey(), log);
           }
-        }).awaitCompletion();
+        }).awaitCompletion(1, TimeUnit.SECONDS);
       } catch (InterruptedException e) {
         logger.fatal("error while logging container: {}", c.getKey(), e);
       }
@@ -55,3 +59,26 @@ public class ContainerLogger {
     }
   }
 }
+
+//  private void runCmd(Instruction instruction, Map<String, String> s) {
+//    String containerId = client.createContainerCmd(s.get("image")).withCmd(s.get("cmd").split(" ")).exec().getId();
+//    client.startContainerCmd(containerId).exec();
+//
+//    LogContainerCmd logContainerCmd = client.logContainerCmd(containerId);
+//    logContainerCmd.withStdOut(true).withStdErr(true);
+//    StringBuffer sb = new StringBuffer();
+//
+//    try {
+//      logContainerCmd.exec(new ResultCallback.Adapter<Frame>() {
+//        @Override
+//        public void onNext(Frame item) {
+//          sb.append(item.toString());
+//        }
+//      }).awaitCompletion(10 ,TimeUnit.MINUTES);
+//      addInstructionLog(instruction.getId(), sb.toString());
+//    } catch (InterruptedException e) {
+//      addInstructionLog(instruction.getId(), "error：" + e);
+//    }
+//
+//    client.removeContainerCmd(containerId).exec();
+//  }

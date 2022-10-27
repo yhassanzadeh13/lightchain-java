@@ -1,0 +1,6 @@
+FROM openjdk:17
+WORKDIR /app
+COPY bootstrap.txt /app/bootstrap.txt
+COPY /target/lightchain-1.0-SNAPSHOT.jar /app/target/lightchain-1.0-SNAPSHOT.jar
+EXPOSE 8081
+ENTRYPOINT ["java", "-cp", "lightchain-1.0-SNAPSHOT.jar", "bootstrap.Node"]
