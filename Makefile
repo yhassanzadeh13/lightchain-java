@@ -17,10 +17,13 @@ test: proto generate
 check:
 	@ mvn org.apache.maven.plugins:maven-help-plugin:2.1.1:evaluate -Dexpression=project.version -Dlog4j.debug
 docker-build-lightchain:
-	mvn -f pom.xml clean package -DskipTests
+	mvn -B -f pom.xml dependency:go-offline -DskipTests
+	mvn compile assembly:single -DskipTests
 	docker run -d -p 5001:5001 --name registry registry:2
 	docker build -f ./DockerfileTestnet -t localhost:5001/lightchain:lastest .
-docker-clean-registry:
+
+docker-clean-lightchain:
 	docker container stop registry && docker container rm -v registry
 docker-stop-all:
 	docker rm -f $(docker ps -aq) && docker rmi -f $(docker images -q)
+docker-clean-build-lightchain: docker-clean-lightchain docker-build-lightchain

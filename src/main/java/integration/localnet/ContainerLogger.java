@@ -46,10 +46,9 @@ public class ContainerLogger {
         lg.exec(new ResultCallback.Adapter<>() {
           @Override
           public void onNext(Frame item) {
-            // super.onNext(item);
+            super.onNext(item);
             String log = new String(item.getPayload(), StandardCharsets.UTF_8);
-            // logger.info("{}: {}", c.getKey(), log);
-            System.out.printf("%s: %s \n", c.getKey(), log);
+            logger.info("node_id {}: {}", c.getKey(), log);
           }
         }).awaitCompletion(1, TimeUnit.SECONDS);
       } catch (InterruptedException e) {

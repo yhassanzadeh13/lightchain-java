@@ -37,7 +37,7 @@ public class LocalTestNet extends MetricsTestNet {
   private static final String NODE_VOLUME = "server_volume";
   private static final String NODE = "server";
   private static final String NODE_VOLUME_BINDING = "server_volume:/app";
-  private static final String NODE_DOCKER_FILE = "./DockerfileNode";
+  private static final String NODE_DOCKER_FILE = "./DockerfileTestnet";
 
   private final Logger logger = LightchainLogger.getLogger(Bootstrap.class.getCanonicalName());
 
