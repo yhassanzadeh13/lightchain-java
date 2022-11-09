@@ -37,7 +37,7 @@ public class ContainerLogger {
         .withFollowStream(true)
         .withStdOut(true)
         .withStdErr(true)
-        .withSince(0);
+        .withSince(since);
   }
 
   public void runContainerLoggerWorker() {

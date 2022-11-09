@@ -35,7 +35,6 @@
     </dependencyManagement>
 
     <build>
-
         <defaultGoal>clean install</defaultGoal>
         <!-- Source directory configuration -->
         <sourceDirectory>src/main/java</sourceDirectory>
@@ -51,7 +50,6 @@
         <pluginManagement>
             <plugins>
                 <!-- gRPC Plugin -->
-
                 <plugin>
                     <groupId>org.xolstice.maven.plugins</groupId>
                     <artifactId>protobuf-maven-plugin</artifactId>
