@@ -1,3 +1,5 @@
+IMAGE_NAME := "localhost:5001/lightchain:lastest"
+
 generate: proto
 	@mvn clean install
 	@mvn compile
@@ -20,10 +22,11 @@ docker-build-lightchain:
 	mvn -B -f pom.xml dependency:go-offline -DskipTests
 	mvn compile assembly:single -DskipTests
 	docker run -d -p 5001:5001 --name registry registry:2
-	docker build -f ./DockerfileTestnet -t localhost:5001/lightchain:lastest .
-
+	docker image rm -f $(IMAGE_NAME)
+	docker build -f ./DockerfileTestnet -t  $(IMAGE_NAME) .
+docker-clean-registry:
+	docker container stop registry || true
+	docker container rm -f registry || true
 docker-clean-lightchain:
-	docker container stop registry && docker container rm -v registry
-docker-stop-all:
-	docker rm -f $(docker ps -aq) && docker rmi -f $(docker images -q)
-docker-clean-build-lightchain: docker-clean-lightchain docker-build-lightchain
+	(docker rm -f $(docker stop $(docker ps -aq --filter ancestor=$(IMAGE_NAME) --format="{{.ID}}"))) || true
+docker-clean-build-lightchain: docker-clean-lightchain docker-clean-registry docker-build-lightchain
