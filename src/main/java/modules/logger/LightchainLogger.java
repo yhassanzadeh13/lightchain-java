@@ -1,5 +1,6 @@
 package modules.logger;
 
+import model.lightchain.Identifier;
 import org.slf4j.LoggerFactory;
 
 /**
@@ -19,5 +20,18 @@ public class LightchainLogger {
    */
   public static Logger getLogger(String className) {
     return new Logger(LoggerFactory.getLogger(LOGGER_NAME + "." + className));
+  }
+
+  /**
+   * Creates a logger prefixed with the node id for the given class name prefixed by the logger name.
+   *
+   * @param className class name for which a logger is created.
+   * @param nodeId    node id for which a logger is created.
+   * @return logger for the class and node id.
+   */
+  public static Logger getLogger(String className, Identifier nodeId) {
+    Logger logger = new Logger(LoggerFactory.getLogger(LOGGER_NAME + "." + className));
+    logger.addPrefix("node_id: " + nodeId.toString());
+    return logger;
   }
 }
