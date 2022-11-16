@@ -71,7 +71,7 @@ public class Node {
 
       for (Map.Entry<Identifier, String> id : idTable.entrySet()) {
         if (!id.getKey().toString().equals(myId.toString())) {
-          HelloMessageEntity e = new HelloMessageEntity("# + " + i+1 + " Hello from " + myId + " to " + id.getKey());
+          HelloMessageEntity e = new HelloMessageEntity("# + " + i+1 + " Hello from " + myId + " to " + id.getKey(), myId);
           try {
             conduit.unicast(e, id.getKey());
           } catch (LightChainNetworkingException ex) {

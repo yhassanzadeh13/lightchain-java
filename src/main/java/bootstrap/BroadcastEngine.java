@@ -8,24 +8,20 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import model.Entity;
 import model.lightchain.Identifier;
+import modules.logger.LightchainLogger;
+import modules.logger.Logger;
 import protocol.Engine;
 
 /**
  * Represents a mock implementation of Engine interface for testing.
  */
 public class BroadcastEngine implements Engine {
+  private final Logger logger;
+
   private final ReentrantReadWriteLock lock;
   private final Set<Identifier> receivedEntityIds;
   ConcurrentMap<Identifier, String> idTable;
   Identifier myId;
-
-  /**
-   * Constructor for BroadcastEngine.
-   */
-  public BroadcastEngine() {
-    this.receivedEntityIds = new HashSet<>();
-    this.lock = new ReentrantReadWriteLock();
-  }
 
   /**
    * Constructor for BroadcastEngine.
@@ -34,7 +30,9 @@ public class BroadcastEngine implements Engine {
    * @param myId    id of the Node on which the Engine operates.
    */
   public BroadcastEngine(ConcurrentMap<Identifier, String> idTable, Identifier myId) {
-    this();
+    this.receivedEntityIds = new HashSet<>();
+    this.lock = new ReentrantReadWriteLock();
+    this.logger = LightchainLogger.getLogger(BroadcastEngine.class.getCanonicalName(), myId);
     this.idTable = new ConcurrentHashMap<>();
     this.myId = myId;
     this.idTable.putAll(idTable);
@@ -50,13 +48,13 @@ public class BroadcastEngine implements Engine {
     lock.writeLock().lock();
     try {
       receivedEntityIds.add(e.id());
-      System.out.println("Node " + idTable.get(myId) + ": content of the last message is: ");
-      System.out.println(((HelloMessageEntity) e).content);
-      System.out.println("Total Unique Entries Received " + totalReceived());
-      System.out.println();
     } finally {
       lock.writeLock().unlock();
     }
+
+    HelloMessageEntity helloMessageEntity = (HelloMessageEntity) e;
+    logger.info("received hello message from {} with message {} (total so far {})",
+        helloMessageEntity.getSenderId(), helloMessageEntity.getContent(), totalReceived());
   }
 
   /**
