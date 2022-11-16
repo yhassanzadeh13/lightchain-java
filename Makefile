@@ -28,6 +28,6 @@ docker-clean-registry:
 	docker container stop registry || true
 	docker container rm -f registry || true
 docker-clean-lightchain:
-	docker stop $(docker ps -aq --filter ancestor="localhost:5001/lightchain:lastest" --format="{{.ID}}") || true
-	docker rm -f $(docker ps -aq --filter ancestor="localhost:5001/lightchain:lastest" --format="{{.ID}}") || true
+	docker stop $(docker ps -aq --filter ancestor=$(IMAGE_NAME) --format="{{.ID}}") || true
+	docker rm -f $(docker ps -aq --filter ancestor=$(IMAGE_NAME) --format="{{.ID}}") || true
 docker-clean-build: docker-clean-lightchain docker-clean-registry docker-build-lightchain
