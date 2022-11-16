@@ -6,9 +6,12 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import model.exceptions.LightChainNetworkingException;
 import model.lightchain.Identifier;
+import modules.logger.LightchainLogger;
+import modules.logger.Logger;
 import network.Conduit;
 import network.p2p.P2pNetwork;
 import protocol.Engine;
@@ -23,6 +26,7 @@ public class Node {
   static P2pNetwork network;
   static Engine engine;
   static Conduit conduit;
+  static final Logger logger = LightchainLogger.getLogger(Node.class.getCanonicalName());
 
   /**
    * Main method.
@@ -30,9 +34,7 @@ public class Node {
    * @param args Arguments.
    */
   public static void main(String[] args) throws InterruptedException {
-    // Set myID
     myId = new Identifier(args[0].getBytes(StandardCharsets.UTF_8));
-    // Set up idTable from the given path
     idTable = readFromOutput(args[1]);
     network = new P2pNetwork(myId, 8081);
     network.setIdToAddressMap(idTable);
@@ -43,45 +45,44 @@ public class Node {
     try {
       network.start();
     } catch (IOException e) {
-      System.exit(1);
-      throw new IllegalStateException("could start the network: " + e);
+      logger.fatal("could not start network", e);
     }
 
-    System.out.println("Hello world! I'm Node at Port: " + network.getPort());
-    System.out.println("My ID is: " + myId);
-    System.out.println("ID Table Database AFAIK: ");
-    for (Map.Entry<Identifier, String> id : idTable.entrySet()) {
-      System.out.println(id.getKey() + " " + idTable.get(id.getKey()));
-    }
-    sendHelloMessagesToAll();
+    // converts the idTable to a string and prints it.
+    String idTableStr = idTable.entrySet()
+        .stream()
+        .map(Map.Entry::toString)
+        .collect(Collectors.joining(",", "[", "]"));
+
+    logger.info("node {} started successfully at address {}, bootstrap table {}", myId, network.getAddress(), idTableStr);
+    sendHelloMessagesToAll(1000);
   }
 
   /**
    * Sends a hello message to all nodes in the network.
-   *
-   * @throws InterruptedException if the thread is interrupted.
    */
-  private static void sendHelloMessagesToAll() throws InterruptedException {
-    while (true) {
+  private static void sendHelloMessagesToAll(int count) {
+    for(int i = 0; i < count; i++) {
       try {
         TimeUnit.MILLISECONDS.sleep(1000);
       } catch (InterruptedException e) {
-        throw new InterruptedException("interrupted while sleeping");
+        logger.fatal("could not sleep", e);
       }
 
       for (Map.Entry<Identifier, String> id : idTable.entrySet()) {
         if (!id.getKey().toString().equals(myId.toString())) {
-          HelloMessageEntity e = new HelloMessageEntity("Hello from " + myId + " to " + id.getKey());
+          HelloMessageEntity e = new HelloMessageEntity("# + " + i+1 + " Hello from " + myId + " to " + id.getKey());
           try {
             conduit.unicast(e, id.getKey());
           } catch (LightChainNetworkingException ex) {
-            System.exit(1);
-            throw new IllegalStateException("could not send the entity", ex);
+            logger.fatal("could not send hello message", ex);
           }
         }
       }
     }
   }
+
+
 
   /**
    * Reads the given path and returns a ConcurrentMap of Identifiers to IP addresses.
@@ -106,11 +107,9 @@ public class Node {
       }
       reader.close();
     } catch (FileNotFoundException e) {
-      System.exit(1);
-      throw new IllegalStateException("could not found the file", e);
+      logger.fatal("could not find file", e);
     } catch (IOException e) {
-      System.exit(1);
-      throw new IllegalStateException("could not read/write from/to file", e);
+      logger.fatal("could not read file", e);
     }
     return map;
   }
