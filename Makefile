@@ -1,5 +1,5 @@
 IMAGE_NAME := "localhost:5001/lightchain:lastest"
-
+CONTAINER_NAME := "NODE"
 generate: proto
 	@mvn clean install
 	@mvn compile
@@ -27,7 +27,9 @@ docker-build-lightchain:
 docker-clean-registry:
 	docker container stop registry || true
 	docker container rm -f registry || true
-docker-clean-lightchain:
-	docker stop $(docker ps -aq --filter ancestor=$(IMAGE_NAME) --format="{{.ID}}") || true
-	docker rm -f $(docker ps -aq --filter ancestor=$(IMAGE_NAME) --format="{{.ID}}") || true
+docker-stop-lightchain:
+	docker container stop $$(docker ps -aq --filter name="NODE" --format="{{.ID}}") || true
+docker-remove-lightchain:
+	docker container rm -f $$(docker ps -aq --filter name="NODE" --format="{{.ID}}") || true
+docker-clean-lightchain: docker-stop-lightchain docker-remove-lightchain
 docker-clean-build: docker-clean-lightchain docker-clean-registry docker-build-lightchain

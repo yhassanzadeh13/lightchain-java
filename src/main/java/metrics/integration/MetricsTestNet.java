@@ -10,6 +10,7 @@ import com.github.dockerjava.api.command.CreateContainerResponse;
 import com.github.dockerjava.api.command.InspectVolumeResponse;
 import com.github.dockerjava.api.command.ListVolumesResponse;
 import com.github.dockerjava.api.command.PullImageResultCallback;
+import com.github.dockerjava.api.exception.ConflictException;
 import com.github.dockerjava.api.model.*;
 import com.github.dockerjava.core.DefaultDockerClientConfig;
 import com.github.dockerjava.core.DockerClientConfig;
@@ -17,6 +18,8 @@ import com.github.dockerjava.core.DockerClientImpl;
 import com.github.dockerjava.httpclient5.ApacheDockerHttpClient;
 import com.github.dockerjava.transport.DockerHttpClient;
 import integration.localnet.ContainerLogger;
+import modules.logger.LightchainLogger;
+import modules.logger.Logger;
 
 /**
  * Creates a metrics collection network that is composed of a grafana and a prometheus containers.
@@ -24,6 +27,7 @@ import integration.localnet.ContainerLogger;
  * The prometheus container is exposed at localhost:9090.
  */
 public class MetricsTestNet {
+  private final Logger logger = LightchainLogger.getLogger(MetricsTestNet.class.getCanonicalName());
   protected static final String NETWORK_NAME = "network";
   // common
   private static final String MAIN_TAG = "main";
@@ -89,19 +93,28 @@ public class MetricsTestNet {
     this.createNetworkIfNotExist();
 
     // Prometheus
-    CreateContainerResponse prometheusContainer = createPrometheusContainer();
-    dockerClient
-        .startContainerCmd(prometheusContainer.getId())
-        .exec();
+    try {
+      CreateContainerResponse prometheusContainer = createPrometheusContainer();
+      dockerClient
+          .startContainerCmd(prometheusContainer.getId())
+          .exec();
+    } catch (ContainerAlreadyExistsException e) {
+      logger.warn("prometheus container already exists, skipping creation");
+    }
+
 
     // Grafana
-    CreateContainerResponse grafanaContainer = this.createGrafanaContainer();
+    try {
+      CreateContainerResponse grafanaContainer = this.createGrafanaContainer();
+      dockerClient
+          .startContainerCmd(grafanaContainer.getId())
+          .exec();
+    } catch (ContainerAlreadyExistsException e) {
+      logger.warn("grafana container already exists, skipping creation");
+    }
 
-    dockerClient
-        .startContainerCmd(grafanaContainer.getId())
-        .exec();
-    System.out.println("prometheus is up and running at localhost:9090");
-    System.out.println("grafana is up and running at localhost:3000");
+    this.logger.info("prometheus is running at localhost:{}", PROMETHEUS_PORT);
+    this.logger.info("grafana is running at localhost:{}", GRAFANA_PORT);
   }
 
   /**
@@ -149,7 +162,7 @@ public class MetricsTestNet {
    * @return create container response for grafana.
    * @throws IllegalStateException when container creation faces an illegal state.
    */
-  private CreateContainerResponse createGrafanaContainer() throws IllegalStateException {
+  private CreateContainerResponse createGrafanaContainer() throws IllegalStateException, ContainerAlreadyExistsException {
     try {
       this.dockerClient.pullImageCmd(GRAFANA_IMAGE)
           .withTag(MAIN_TAG)
@@ -172,15 +185,19 @@ public class MetricsTestNet {
         .withNetworkMode(NETWORK_NAME)
         .withPortBindings(grafanaPortBindings);
 
-    return this.dockerClient
-        .createContainerCmd(GRAFANA_MAIN_CMD)
-        .withName(GRAFANA)
-        .withTty(true)
-        .withEnv(GRAFANA_ADMIN_USER_NAME)
-        .withEnv(GRAFANA_ADMIN_PASSWORD)
-        .withEnv(GRAFANA_NO_SIGN_UP)
-        .withHostConfig(hostConfig)
-        .exec();
+    try {
+      return this.dockerClient
+          .createContainerCmd(GRAFANA_MAIN_CMD)
+          .withName(GRAFANA)
+          .withTty(true)
+          .withEnv(GRAFANA_ADMIN_USER_NAME)
+          .withEnv(GRAFANA_ADMIN_PASSWORD)
+          .withEnv(GRAFANA_NO_SIGN_UP)
+          .withHostConfig(hostConfig)
+          .exec();
+    } catch (ConflictException ex) {
+      throw new ContainerAlreadyExistsException("grafana container already exists: " + ex);
+    }
   }
 
   /**
@@ -189,7 +206,7 @@ public class MetricsTestNet {
    * @return create container response for prometheus.
    * @throws IllegalStateException when container creation faces an illegal state.
    */
-  private CreateContainerResponse createPrometheusContainer() throws IllegalStateException {
+  private CreateContainerResponse createPrometheusContainer() throws IllegalStateException, ContainerAlreadyExistsException {
     try {
       this.dockerClient.pullImageCmd(PROMETHEUS_IMAGE)
           .withTag(MAIN_TAG)
@@ -211,12 +228,19 @@ public class MetricsTestNet {
         .withNetworkMode(NETWORK_NAME)
         .withPortBindings(promPortBindings);
 
-    return this.dockerClient
-        .createContainerCmd(PROMETHEUS_MAIN_CMD)
-        .withName(PROMETHEUS)
-        .withTty(true)
-        .withHostConfig(hostConfig)
-        .exec();
+    CreateContainerResponse container;
+    try {
+     container  = this.dockerClient
+          .createContainerCmd(PROMETHEUS_MAIN_CMD)
+          .withName(PROMETHEUS)
+          .withTty(true)
+          .withHostConfig(hostConfig)
+          .exec();
+    } catch (ConflictException ex) {
+      throw new ContainerAlreadyExistsException("prometheus container already exists: " + ex);
+    }
+
+    return container;
   }
 
 }

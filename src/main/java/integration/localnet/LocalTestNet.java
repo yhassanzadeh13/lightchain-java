@@ -86,7 +86,7 @@ public class LocalTestNet extends MetricsTestNet {
     this.logger.info("creating local testnet");
     this.logger.info("creating metrics collection network");
 
-//    super.runMetricsTestNet();
+    super.runMetricsTestNet();
 //
 //    this.logger.info("metrics collection network created");
 //    this.logger.info("creating node containers");

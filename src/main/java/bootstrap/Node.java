@@ -82,8 +82,6 @@ public class Node {
     }
   }
 
-
-
   /**
    * Reads the given path and returns a ConcurrentMap of Identifiers to IP addresses.
    *
