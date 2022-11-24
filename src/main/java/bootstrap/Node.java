@@ -25,25 +25,25 @@ public class Node {
   static Identifier myId;
   static P2pNetwork network;
   static Engine engine;
-  static Conduit conduit;
+
   static final Logger logger = LightchainLogger.getLogger(Node.class.getCanonicalName());
 
   /**
    * Main method.
    *
-   * @param args Arguments.
+   * @param args cmd arguments.
    */
-  public static void main(String[] args) throws InterruptedException {
+  public static void main(String[] args) {
     myId = new Identifier(args[0].getBytes(StandardCharsets.UTF_8));
     idTable = readFromOutput(args[1]);
     network = new P2pNetwork(myId, 8081);
     network.setIdToAddressMap(idTable);
-    // TODO change this from hardcoded.
-    engine = new BroadcastEngine(idTable, myId);
-    conduit = network.register(engine, "channel1");
+
+    engine = new BroadcastEngine(idTable, myId, network);
+
 
     try {
-      network.start();
+
     } catch (IOException e) {
       logger.fatal("could not start network", e);
     }
@@ -58,29 +58,7 @@ public class Node {
     sendHelloMessagesToAll(1000);
   }
 
-  /**
-   * Sends a hello message to all nodes in the network.
-   */
-  private static void sendHelloMessagesToAll(int count) {
-    for(int i = 0; i < count; i++) {
-      try {
-        TimeUnit.MILLISECONDS.sleep(1000);
-      } catch (InterruptedException e) {
-        logger.fatal("could not sleep", e);
-      }
 
-      for (Map.Entry<Identifier, String> id : idTable.entrySet()) {
-        if (!id.getKey().toString().equals(myId.toString())) {
-          HelloMessageEntity e = new HelloMessageEntity("# + " + i+1 + " Hello from " + myId + " to " + id.getKey(), myId);
-          try {
-            conduit.unicast(e, id.getKey());
-          } catch (LightChainNetworkingException ex) {
-            logger.fatal("could not send hello message", ex);
-          }
-        }
-      }
-    }
-  }
 
   /**
    * Reads the given path and returns a ConcurrentMap of Identifiers to IP addresses.

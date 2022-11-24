@@ -64,15 +64,15 @@ public class Bootstrap {
       writer.flush();
       writer.close();
     } catch (IOException e) {
-      throw new RuntimeException(e);
+      this.logger.fatal("could not write bootstrap file", e);
     }
   }
 
   public void print(HashMap<Identifier, String> idTable) {
-    logger.info("Bootstrap file created with the following content:");
+    logger.info("bootstrap file created with the following content:");
     for (Map.Entry<Identifier, String> id : idTable.entrySet()) {
       logger.info(id.getKey() + " " + idTable.get(id.getKey()));
     }
-    logger.info("Bootstrap file written to " + BOOTSTRAP_FILE_NAME);
+    logger.info("bootstrap file written to " + BOOTSTRAP_FILE_NAME);
   }
 }
