@@ -1,5 +1,6 @@
 package protocol.engines;
 
+import java.time.Duration;
 import java.util.ArrayList;
 
 import model.Entity;
@@ -27,6 +28,11 @@ public class LoaderEngine implements Engine {
    * @throws IllegalStateException any illegal state face.
    */
   public void createLoad(int size) throws IllegalStateException {
+
+  }
+
+  @Override
+  public void start(Duration deadline) throws IllegalStateException {
 
   }
 }

@@ -1,5 +1,6 @@
 package protocol.engines.proposer;
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.concurrent.locks.ReentrantLock;
@@ -250,5 +251,10 @@ public class ProposerEngine implements NewBlockSubscriber, Engine {
       return false;
     }
     return true;
+  }
+
+  @Override
+  public void start(Duration deadline) throws IllegalStateException {
+    
   }
 }

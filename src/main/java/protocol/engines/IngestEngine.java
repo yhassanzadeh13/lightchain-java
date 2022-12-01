@@ -1,5 +1,6 @@
 package protocol.engines;
 
+import java.time.Duration;
 import java.util.concurrent.locks.ReentrantLock;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
@@ -177,5 +178,10 @@ public class IngestEngine implements Engine {
     }
 
     return signatures >= Parameters.SIGNATURE_THRESHOLD;
+  }
+
+  @Override
+  public void start(Duration deadline) throws IllegalStateException {
+
   }
 }

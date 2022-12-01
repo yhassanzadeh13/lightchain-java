@@ -1,5 +1,7 @@
 package protocol.engines;
 
+import java.time.Duration;
+
 import model.Entity;
 import protocol.Engine;
 
@@ -25,5 +27,10 @@ public class ValidatorEngine implements Engine {
    */
   @Override
   public void process(Entity e) throws IllegalArgumentException {
+  }
+
+  @Override
+  public void start(Duration deadline) throws IllegalStateException {
+
   }
 }
