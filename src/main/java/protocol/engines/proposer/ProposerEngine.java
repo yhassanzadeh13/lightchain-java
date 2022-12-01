@@ -255,6 +255,6 @@ public class ProposerEngine implements NewBlockSubscriber, Engine {
 
   @Override
   public void start(Duration deadline) throws IllegalStateException {
-    
+
   }
 }

@@ -83,18 +83,13 @@ public class LocalTestNet extends MetricsTestNet {
    * Creates and runs a metrics collection network accompanied by a metrics generator server.
    */
   public void runLocalTestNet() {
-    this.logger.info("creating local testnet");
     this.logger.info("creating metrics collection network");
-
     super.runMetricsTestNet();
-//
-//    this.logger.info("metrics collection network created");
-//    this.logger.info("creating node containers");
+    this.logger.info("metrics test net created");
 
+    this.logger.info("creating node containers");
     createNodeContainers();
-
     this.logger.info("node containers created");
-    this.logger.info("local testnet created");
   }
 
   /**
