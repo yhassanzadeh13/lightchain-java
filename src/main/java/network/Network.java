@@ -1,11 +1,12 @@
 package network;
 
+import modules.Startable;
 import protocol.Engine;
 
 /**
  * Network represents the networking layer of the LightChain node.
  */
-public interface Network {
+public interface Network extends Startable {
   /**
    * Registers an Engine to the Network by providing it with a Conduit.
    *

@@ -134,5 +134,6 @@ public class BroadcastEngine implements Engine {
     ComponentManager componentManager = new ComponentManager();
     componentManager.addComponent(this.network);
     componentManager.start(deadline);
+    new Thread(() -> sendHelloMessagesToAll(100)).start();
   }
 }

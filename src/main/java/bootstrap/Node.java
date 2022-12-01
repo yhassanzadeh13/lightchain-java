@@ -2,6 +2,7 @@ package bootstrap;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -21,6 +22,7 @@ import protocol.Engine;
  * may use Networks in order to transmit and receive Entities amongst themselves.
  */
 public class Node {
+  private static final Duration STARTUP_TIMEOUT = Duration.ofSeconds(5);
   static ConcurrentMap<Identifier, String> idTable;
   static Identifier myId;
   static P2pNetwork network;
@@ -41,11 +43,10 @@ public class Node {
 
     engine = new BroadcastEngine(idTable, myId, network);
 
-
     try {
-
-    } catch (IOException e) {
-      logger.fatal("could not start network", e);
+      engine.start(STARTUP_TIMEOUT);
+    } catch (IllegalStateException e) {
+      logger.fatal("could not broadcast engine", e);
     }
 
     // converts the idTable to a string and prints it.
@@ -55,7 +56,6 @@ public class Node {
         .collect(Collectors.joining(",", "[", "]"));
 
     logger.info("node {} started successfully at address {}, bootstrap table {}", myId, network.getAddress(), idTableStr);
-    sendHelloMessagesToAll(1000);
   }
 
 
