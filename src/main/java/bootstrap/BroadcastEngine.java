@@ -71,24 +71,6 @@ public class BroadcastEngine implements Engine {
   }
 
   /**
-   * Check whether an entity is received.
-   *
-   * @param e the entity.
-   * @return true if the entity received, otherwise false.
-   */
-  public boolean hasReceived(Entity e) {
-    lock.readLock().lock();
-    boolean ok;
-
-    try {
-      ok = this.receivedEntityIds.contains(e.id());
-    } finally {
-      lock.readLock().unlock();
-    }
-    return ok;
-  }
-
-  /**
    * Total distinct entities this engine received.
    *
    * @return total messages it received.
