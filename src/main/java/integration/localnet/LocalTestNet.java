@@ -189,15 +189,6 @@ public class LocalTestNet extends MetricsTestNet {
         logger.fatal("interrupted while sleeping to log containers", e);
       }
     }
-
-//    for (Thread t : containerLoggerThreads) {
-//      try {
-//        TimeUnit.MILLISECONDS.sleep(100);
-//      } catch (InterruptedException e) {
-//        System.err.println("thread logger operation interrupted: " + e);
-//      }
-//      t.start();
-//    }
   }
 }
 
