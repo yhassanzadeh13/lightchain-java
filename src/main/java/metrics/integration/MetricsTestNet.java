@@ -6,7 +6,6 @@ import java.net.Inet4Address;
 import java.net.UnknownHostException;
 import java.time.Duration;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -37,25 +36,25 @@ import modules.logger.Logger;
  * The prometheus container is exposed at localhost:9090.
  */
 public class MetricsTestNet {
-  protected static final String NETWORK_NAME = "network";
+  private static final String LIGHTCHAIN_PREFIX = "lightchain_";
+  protected static final String NETWORK_NAME = LIGHTCHAIN_PREFIX + "network";
   // common
   private static final String MAIN_TAG = "main";
   private static final String USER_DIR = "user.dir";
   private static final String NETWORK_DRIVER_NAME = "bridge";
   // Prometheus
   private static final int PROMETHEUS_PORT = 9090;
-  private static final String PROMETHEUS = "prometheus";
-
+  private static final String PROMETHEUS_CONTAINER_NAME = LIGHTCHAIN_PREFIX + "prometheus";
   private static final String PROMETHEUS_YAML_PATH = "prometheus/prometheus.yml";
   private static final String PROMETHEUS_IMAGE = "prom/prometheus";
-  private static final String PROMETHEUS_VOLUME = "prometheus_volume";
+  private static final String PROMETHEUS_VOLUME_NAME = LIGHTCHAIN_PREFIX + "prometheus_volume";
   private static final String PROMETHEUS_MAIN_CMD = "prom/prometheus:main";
   private static final String PROMETHEUS_VOLUME_BINDING_ETC = "/prometheus" + ":" + "/etc/prometheus";
   private static final String PROMETHEUS_VOLUME_BINDING_VOLUME = "prometheus_volume" + ":" + "/prometheus";
   // Grafana
   private static final int GRAFANA_PORT = 3000;
-  private static final String GRAFANA = "grafana";
-  private static final String GRAFANA_VOLUME = "grafana_volume";
+  private static final String GRAFANA_CONTAINER_NAME = LIGHTCHAIN_PREFIX + "grafana";
+  private static final String GRAFANA_VOLUME_NAME = LIGHTCHAIN_PREFIX + "grafana_volume";
   private static final String GRAFANA_IMAGE = "grafana/grafana";
   private static final String GRAFANA_MAIN_CMD = "grafana/grafana:main";
   private static final String GRAFANA_NO_SIGN_UP = "GF_USERS_ALLOW_SIGN_UP=false";
@@ -94,11 +93,11 @@ public class MetricsTestNet {
    * @throws IllegalStateException when container creation faces an illegal state.
    */
   public void runMetricsTestNet() throws IllegalStateException {
-    this.OverridePrometheusMetricServerAddress();
+    // this.OverridePrometheusMetricServerAddress();
 
     // Volume check + create if absent
-    this.createVolumesIfNotExist(PROMETHEUS_VOLUME);
-    this.createVolumesIfNotExist(GRAFANA_VOLUME);
+    this.createVolumesIfNotExist(PROMETHEUS_VOLUME_NAME);
+    this.createVolumesIfNotExist(GRAFANA_VOLUME_NAME);
 
     // Network
     this.createNetworkIfNotExist();
@@ -193,7 +192,7 @@ public class MetricsTestNet {
 
     try {
       return this.dockerClient.createContainerCmd(GRAFANA_MAIN_CMD)
-          .withName(GRAFANA)
+          .withName(GRAFANA_CONTAINER_NAME)
           .withTty(true)
           .withEnv(GRAFANA_ADMIN_USER_NAME)
           .withEnv(GRAFANA_ADMIN_PASSWORD)
@@ -235,7 +234,7 @@ public class MetricsTestNet {
     CreateContainerResponse container;
     try {
       container = this.dockerClient.createContainerCmd(PROMETHEUS_MAIN_CMD)
-          .withName(PROMETHEUS)
+          .withName(PROMETHEUS_CONTAINER_NAME)
           .withTty(true)
           .withHostConfig(hostConfig)
           .exec();
