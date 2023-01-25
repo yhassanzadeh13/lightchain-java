@@ -2,27 +2,15 @@
 global:
   scrape_interval: "15s"
   evaluation_interval: "15s"
-  external_labels:
-    monitor: "docker-host-alpha"
-rule_files:
-  - "alert.rules"
 scrape_configs:
-  - job_name: "lightchain"
-    metrics_path: "/metrics"
-    scrape_interval: "5s"
-    relabel_configs:
-      - source_labels: [__name__]
-        target_label: job
-        replacement: lightchain
-    static_configs:
-      - targets:
-          - "host.docker.internal:8081"
-  - job_name: "prometheus"
-    scrape_interval: "10s"
-    relabel_configs:
-      - source_labels: [__name__]
-        target_label: job
-        replacement: prometheus
-    static_configs:
-      - targets:
-          - "localhost:9090"
+- job_name: "simulator"
+  metrics_path: ""
+  scrape_interval: "5s"
+  static_configs:
+  - targets:
+    - "127.0.0.1:8081"
+- job_name: "prometheus"
+  scrape_interval: "10s"
+  static_configs:
+  - targets:
+    - "localhost:9090"
