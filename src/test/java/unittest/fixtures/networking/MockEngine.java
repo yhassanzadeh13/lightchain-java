@@ -64,4 +64,9 @@ public class MockEngine implements Engine {
     lock.readLock().unlock();
     return size;
   }
+
+  @Override
+  public void start(java.time.Duration deadline) throws IllegalStateException {
+
+  }
 }

@@ -277,11 +277,7 @@ public class NetworkTest {
     for (int i = 0; i < networks.length; i++) {
       int finalI = i;
       networkThreads[i] = new Thread(() -> {
-        try {
-          networks[finalI].start();
-        } catch (IOException e) {
-          threadErrorCount.incrementAndGet();
-        }
+        networks[finalI].start();
         done.countDown();
       });
     }
