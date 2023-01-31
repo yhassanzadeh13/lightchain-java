@@ -13,6 +13,10 @@ import com.github.dockerjava.core.command.LogContainerResultCallback;
 import modules.logger.LightchainLogger;
 import modules.logger.Logger;
 
+/**
+ * ContainerLogger is a class that logs the output of containers. It is used to log the output of the containers
+ * created by the LocalTestNet.
+ */
 public class ContainerLogger {
   private static final int DEFAULT_LAST_LOG_TIME = 0;
   /**
@@ -27,12 +31,22 @@ public class ContainerLogger {
   LogContainerResultCallback loggingCallback = new
       LogContainerResultCallback();
 
+  /**
+   * Creates a new ContainerLogger.
+   *
+   * @param dockerClient the docker client to be used.
+   */
   public ContainerLogger(DockerClient dockerClient) {
     this.dockerClient = dockerClient;
     this.lastLogTime = new ConcurrentHashMap<>();
     this.loggingBuffer = new Hashtable<>();
   }
 
+  /**
+   * Registers a container to be logged.
+   *
+   * @param containerId the id of the container to be logged.
+   */
   public void registerLogger(String containerId) {
     if (this.lastLogTime.containsKey(containerId)) {
       return;
@@ -49,6 +63,9 @@ public class ContainerLogger {
         .withSince(since);
   }
 
+  /**
+   * Prints the logs of containers.
+   */
   public void runContainerLoggerWorker() {
     for (Map.Entry<String, Integer> c : this.lastLogTime.entrySet()) {
       try (LogContainerCmd lg = createLogCommand(c.getKey(), c.getValue())) {

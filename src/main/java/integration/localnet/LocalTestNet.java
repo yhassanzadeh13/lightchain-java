@@ -43,7 +43,6 @@ public class LocalTestNet extends MetricsTestNet {
 
   /**
    * Creates and returns HTTP Server container that serves as the local testnet.
-   * <p>
    * Deprecated: contains a sample MVP server that is not used in the testnet.
    */
   @Deprecated
@@ -146,24 +145,6 @@ public class LocalTestNet extends MetricsTestNet {
         this.logger.info("node container {} started", finalI);
       });
     }
-
-//    Thread[] containerLoggerThreads = new Thread[nodeCount];
-//    for (int i = 0; i < nodeCount; i++) {
-//      int finalI = i;
-//      containerLoggerThreads[i] = new Thread(() -> {
-//        dockerClient
-//            .logContainerCmd(containers.get(finalI).getId())
-//            .withStdOut(true)
-//            .withStdOut(true)
-//            .withTimestamps(true)
-//            .exec(new LogContainerResultCallback() {
-//              @Override
-//              public void onNext(Frame item) {
-//                System.out.println("[Container] " + item.toString());
-//              }
-//            });
-//      });
-//    }
 
     for (Thread t : containerThreads) {
       try {

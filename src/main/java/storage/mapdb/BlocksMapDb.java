@@ -34,12 +34,9 @@ public class BlocksMapDb implements Blocks {
     // TODO: file paths consolidated.
     this.dbId = DBMaker.fileDB(filePathId).make();
     this.lock = new ReentrantReadWriteLock();
-    blocksIdMap = this.dbId.hashMap(MAP_NAME_ID)
-        .keySerializer(Serializer.BYTE_ARRAY)
-        .createOrOpen();
+    blocksIdMap = this.dbId.hashMap(MAP_NAME_ID).keySerializer(Serializer.BYTE_ARRAY).createOrOpen();
     this.dbHeight = DBMaker.fileDB(filePathHeight).make();
-    blocksHeightMap = (HTreeMap<Integer, Identifier>) this.dbHeight.hashMap(MAP_NAME_HEIGHT)
-        .createOrOpen();
+    blocksHeightMap = (HTreeMap<Integer, Identifier>) this.dbHeight.hashMap(MAP_NAME_HEIGHT).createOrOpen();
   }
 
   /**
@@ -77,11 +74,7 @@ public class BlocksMapDb implements Blocks {
       // if the block.id() key and the block was absent in IdMap, add it and return true
       addBooleanId = blocksIdMap.putIfAbsentBoolean(block.id().getBytes(), block);
       if (addBooleanId) {
-        blocksHeightMap.compute(height, (key, value) ->
-                (value == null)
-                ? block.id()
-                : null  //TODO: implement else case
-                               );
+        blocksHeightMap.compute(height, (key, value) -> (value == null) ? block.id() : null);   //TODO: implement else case
       }
     } finally {
       lock.writeLock().unlock();

@@ -237,10 +237,11 @@ public class MetricsTestNet {
 
   /**
    * Reads the IP address of the local machine and overrides the prometheus configuration file.
+   *
    * @throws IllegalStateException when the local address cannot be obtained or the prometheus
    * configuration cannot be read or written.
    */
-  public void OverridePrometheusMetricServerAddress() throws IllegalStateException {
+  public void overridePrometheusMetricServerAddress() throws IllegalStateException {
     // Obtain the local address
     String localAddress = null;
     try {
@@ -260,10 +261,10 @@ public class MetricsTestNet {
       throw new IllegalStateException("could not read prometheus config: " + e);
     }
 
-    List<Object> scrape_configs = (List<Object>) config.get("scrape_configs");
-    Map<String, Object> simulator_job = (Map<String, Object>) scrape_configs.get(0);
-    List<Object> static_configs = (List<Object>) simulator_job.get("static_configs");
-    Map<String, Object> targets = (Map<String, Object>) static_configs.get(0);
+    List<Object> scrapeConfigs = (List<Object>) config.get("scrape_configs");
+    Map<String, Object> simulatorJob = (Map<String, Object>) scrapeConfigs.get(0);
+    List<Object> staticConfigs = (List<Object>) simulatorJob.get("static_configs");
+    Map<String, Object> targets = (Map<String, Object>) staticConfigs.get(0);
     targets.put("targets", List.of(localAddress + ":" + MetricServer.SERVER_PORT));
 
     // write again on the file

@@ -4,6 +4,9 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.slf4j.Marker;
 import org.slf4j.MarkerFactory;
 
+/**
+ * Logger is a wrapper class for slf4j logger that adds a prefix to the log message and implements a fatal method.
+ */
 public class Logger {
   private final org.slf4j.Logger logger;
   private final Marker fatal = MarkerFactory.getMarker("FATAL");
