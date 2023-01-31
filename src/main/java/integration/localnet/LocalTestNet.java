@@ -1,13 +1,9 @@
 package integration.localnet;
 
 import java.io.File;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.TimeUnit;
 
 import bootstrap.Bootstrap;
@@ -16,10 +12,8 @@ import com.github.dockerjava.api.command.CreateContainerResponse;
 import com.github.dockerjava.api.model.Bind;
 import com.github.dockerjava.api.model.HostConfig;
 import metrics.integration.MetricsTestNet;
-import model.lightchain.Identifier;
 import modules.logger.LightchainLogger;
 import modules.logger.Logger;
-import network.p2p.proto.StorageOuterClass;
 
 /**
  * Creates a metric collection network that is composed of a grafana and a prometheus container, as well as a
@@ -49,7 +43,7 @@ public class LocalTestNet extends MetricsTestNet {
 
   /**
    * Creates and returns HTTP Server container that serves as the local testnet.
-   *
+   * <p>
    * Deprecated: contains a sample MVP server that is not used in the testnet.
    */
   @Deprecated
@@ -152,7 +146,6 @@ public class LocalTestNet extends MetricsTestNet {
         this.logger.info("node container {} started", finalI);
       });
     }
-
 
 //    Thread[] containerLoggerThreads = new Thread[nodeCount];
 //    for (int i = 0; i < nodeCount; i++) {

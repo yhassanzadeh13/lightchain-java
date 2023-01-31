@@ -13,7 +13,7 @@ public class HelloMessageEntity extends Entity {
   /**
    * Constructor for the HelloMessageEntity.
    *
-   * @param content The content of the HelloMessage.
+   * @param content  The content of the HelloMessage.
    * @param senderId The id of the sender of the HelloMessage.
    */
   public HelloMessageEntity(String content, Identifier senderId) {

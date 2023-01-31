@@ -14,9 +14,9 @@ import storage.Identifiers;
  * Implementation of identifiers interface.
  */
 public class IdentifierMapDb implements Identifiers {
+  private static final String MAP_NAME = "identifier_map";
   private final DB db;
   private final ReentrantReadWriteLock lock;
-  private static final String MAP_NAME = "identifier_map";
   private final HTreeMap<byte[], byte[]> identifierMap;
 
   /**

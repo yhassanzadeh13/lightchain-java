@@ -24,7 +24,7 @@ public interface Distributed {
    *
    * @param e given entity to be added.
    * @return true if entity did not exist on the database, false if entity is already in
-   * database.
+   *     database.
    */
   boolean add(Entity e);
 
@@ -33,7 +33,7 @@ public interface Distributed {
    *
    * @param e identifier of the entity.
    * @return true if entity exists on database and removed successfully, false if entity does not exist on
-   * database.
+   *     database.
    */
   boolean remove(Entity e);
 

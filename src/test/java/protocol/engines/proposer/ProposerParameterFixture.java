@@ -8,7 +8,12 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import model.lightchain.*;
+import model.lightchain.Account;
+import model.lightchain.Assignment;
+import model.lightchain.Block;
+import model.lightchain.BlockProposal;
+import model.lightchain.Identifier;
+import model.lightchain.ValidatedTransaction;
 import network.Channels;
 import network.Conduit;
 import network.Network;
@@ -119,7 +124,7 @@ public class ProposerParameterFixture extends ProposerParameters {
    * Mocks state of this fixture with the given accounts at the given block id.
    *
    * @param accounts accounts to mock the state with.
-   * @param blockId block id corresponding to the state snapshot for these accounts.
+   * @param blockId  block id corresponding to the state snapshot for these accounts.
    */
   public void mockSnapshotAtBlock(ArrayList<Account> accounts, Identifier blockId) {
     Snapshot snapshot = mock(Snapshot.class);

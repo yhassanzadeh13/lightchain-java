@@ -19,7 +19,11 @@ import com.github.dockerjava.api.command.InspectVolumeResponse;
 import com.github.dockerjava.api.command.ListVolumesResponse;
 import com.github.dockerjava.api.command.PullImageResultCallback;
 import com.github.dockerjava.api.exception.ConflictException;
-import com.github.dockerjava.api.model.*;
+import com.github.dockerjava.api.model.Bind;
+import com.github.dockerjava.api.model.ExposedPort;
+import com.github.dockerjava.api.model.HostConfig;
+import com.github.dockerjava.api.model.Network;
+import com.github.dockerjava.api.model.Ports;
 import com.github.dockerjava.core.DefaultDockerClientConfig;
 import com.github.dockerjava.core.DockerClientConfig;
 import com.github.dockerjava.core.DockerClientImpl;
@@ -61,10 +65,8 @@ public class MetricsTestNet {
   private static final String GRAFANA_VOLUME_BINDING = "grafana_volume:/var/lib/grafana";
   private static final String GRAFANA_ADMIN_USER_NAME = "GF_SECURITY_ADMIN_USER=${ADMIN_USER:-admin}";
   private static final String GRAFANA_ADMIN_PASSWORD = "GF_SECURITY_ADMIN_PASSWORD=${ADMIN_PASSWORD:-admin}";
-  private static final String GRAFANA_DASHBOARD_BINDING = "/grafana/provisioning/dashboards:/etc/grafana/provisioning" +
-      "/dashboards";
-  private static final String GRAFANA_DATA_SOURCE_BINDING = "/grafana/provisioning/datasources:/etc/grafana" +
-      "/provisioning/datasources";
+  private static final String GRAFANA_DASHBOARD_BINDING = "/grafana/provisioning/dashboards:/etc/grafana/provisioning" + "/dashboards";
+  private static final String GRAFANA_DATA_SOURCE_BINDING = "/grafana/provisioning/datasources:/etc/grafana" + "/provisioning/datasources";
   protected final DockerClient dockerClient;
   protected final ContainerLogger containerLogger;
   private final Logger logger = LightchainLogger.getLogger(MetricsTestNet.class.getCanonicalName());
@@ -81,7 +83,6 @@ public class MetricsTestNet {
         .connectionTimeout(Duration.ofSeconds(30))
         .responseTimeout(Duration.ofSeconds(45))
         .build();
-
 
     this.dockerClient = DockerClientImpl.getInstance(config, client);
     this.containerLogger = new ContainerLogger(dockerClient);
@@ -109,7 +110,6 @@ public class MetricsTestNet {
     } catch (ContainerAlreadyExistsException e) {
       logger.warn("prometheus container already exists, skipping creation");
     }
-
 
     // Grafana
     try {
@@ -168,13 +168,9 @@ public class MetricsTestNet {
    * @return create container response for grafana.
    * @throws IllegalStateException when container creation faces an illegal state.
    */
-  private CreateContainerResponse createGrafanaContainer() throws IllegalStateException,
-      ContainerAlreadyExistsException {
+  private CreateContainerResponse createGrafanaContainer() throws IllegalStateException, ContainerAlreadyExistsException {
     try {
-      this.dockerClient.pullImageCmd(GRAFANA_IMAGE)
-          .withTag(MAIN_TAG)
-          .exec(new PullImageResultCallback())
-          .awaitCompletion(60, TimeUnit.SECONDS);
+      this.dockerClient.pullImageCmd(GRAFANA_IMAGE).withTag(MAIN_TAG).exec(new PullImageResultCallback()).awaitCompletion(60, TimeUnit.SECONDS);
     } catch (InterruptedException ex) {
       throw new IllegalStateException("could not run grafana container" + ex);
     }
@@ -187,8 +183,7 @@ public class MetricsTestNet {
     grafBinds.add(Bind.parse(System.getProperty(USER_DIR) + GRAFANA_DASHBOARD_BINDING));
     grafBinds.add(Bind.parse(System.getProperty(USER_DIR) + GRAFANA_DATA_SOURCE_BINDING));
 
-    HostConfig hostConfig = new HostConfig().withBinds(grafBinds).withNetworkMode(NETWORK_NAME).withPortBindings(
-        grafanaPortBindings);
+    HostConfig hostConfig = new HostConfig().withBinds(grafBinds).withNetworkMode(NETWORK_NAME).withPortBindings(grafanaPortBindings);
 
     try {
       return this.dockerClient.createContainerCmd(GRAFANA_MAIN_CMD)
@@ -210,13 +205,9 @@ public class MetricsTestNet {
    * @return create container response for prometheus.
    * @throws IllegalStateException when container creation faces an illegal state.
    */
-  private CreateContainerResponse createPrometheusContainer() throws IllegalStateException,
-      ContainerAlreadyExistsException {
+  private CreateContainerResponse createPrometheusContainer() throws IllegalStateException, ContainerAlreadyExistsException {
     try {
-      this.dockerClient.pullImageCmd(PROMETHEUS_IMAGE)
-          .withTag(MAIN_TAG)
-          .exec(new PullImageResultCallback())
-          .awaitCompletion(60, TimeUnit.SECONDS);
+      this.dockerClient.pullImageCmd(PROMETHEUS_IMAGE).withTag(MAIN_TAG).exec(new PullImageResultCallback()).awaitCompletion(60, TimeUnit.SECONDS);
     } catch (InterruptedException ex) {
       throw new IllegalStateException("could not run prometheus container" + ex);
     }
@@ -228,8 +219,7 @@ public class MetricsTestNet {
     promBinds.add(Bind.parse(System.getProperty(USER_DIR) + PROMETHEUS_VOLUME_BINDING_ETC));
     promBinds.add(Bind.parse(PROMETHEUS_VOLUME_BINDING_VOLUME));
 
-    HostConfig hostConfig = new HostConfig().withBinds(promBinds).withNetworkMode(NETWORK_NAME).withPortBindings(
-        promPortBindings);
+    HostConfig hostConfig = new HostConfig().withBinds(promBinds).withNetworkMode(NETWORK_NAME).withPortBindings(promPortBindings);
 
     CreateContainerResponse container;
     try {
@@ -245,6 +235,11 @@ public class MetricsTestNet {
     return container;
   }
 
+  /**
+   * Reads the IP address of the local machine and overrides the prometheus configuration file.
+   * @throws IllegalStateException when the local address cannot be obtained or the prometheus
+   * configuration cannot be read or written.
+   */
   public void OverridePrometheusMetricServerAddress() throws IllegalStateException {
     // Obtain the local address
     String localAddress = null;

@@ -23,7 +23,6 @@ public class StubNetworkEpidemicTest {
   private ArrayList<StubNetwork> networks;
   private Hub hub;
 
-
   /**
    * Creates a hub with 10 connected networks, each network has two mock engines on different channels.
    */

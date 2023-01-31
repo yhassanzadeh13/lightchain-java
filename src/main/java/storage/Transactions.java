@@ -22,7 +22,7 @@ public interface Transactions {
    *
    * @param transaction given transaction to be added.
    * @return true if transaction did not exist on the database, false if transaction is already in
-   * database.
+   *     database.
    */
   boolean add(Transaction transaction);
 
@@ -31,7 +31,7 @@ public interface Transactions {
    *
    * @param transactionId identifier of the transaction.
    * @return true if transaction exists on database and removed successfully, false if transaction does not exist on
-   * database.
+   *     database.
    */
   boolean remove(Identifier transactionId);
 

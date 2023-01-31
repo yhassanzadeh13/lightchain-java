@@ -8,8 +8,8 @@ import io.prometheus.client.exporter.HTTPServer;
  * HTTP Server constructor class for the Prometheus exposer server.
  */
 public class MetricServer {
-  private HTTPServer server;
   public static final int SERVER_PORT = 8081;
+  private HTTPServer server;
 
   /**
    * Initiates the Prometheus Exposer HTTP Server.

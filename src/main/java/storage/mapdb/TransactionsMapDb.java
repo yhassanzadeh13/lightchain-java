@@ -5,16 +5,19 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import model.lightchain.Identifier;
 import model.lightchain.Transaction;
-import org.mapdb.*;
+import org.mapdb.DB;
+import org.mapdb.DBMaker;
+import org.mapdb.HTreeMap;
+import org.mapdb.Serializer;
 import storage.Transactions;
 
 /**
  * Implementation of Transactions interface.
  */
 public class TransactionsMapDb implements Transactions {
+  private static final String MAP_NAME = "transactions_map";
   private final DB db;
   private final ReentrantReadWriteLock lock;
-  private static final String MAP_NAME = "transactions_map";
   private final HTreeMap transactionsMap;
 
   /**
@@ -53,7 +56,7 @@ public class TransactionsMapDb implements Transactions {
    *
    * @param transaction given transaction to be added.
    * @return true if transaction did not exist on the database, false if transaction is already in
-   * database.
+   *     database.
    */
   @Override
   public boolean add(Transaction transaction) {
@@ -72,7 +75,7 @@ public class TransactionsMapDb implements Transactions {
    *
    * @param transactionId identifier of the transaction.
    * @return true if transaction exists on database and removed successfully, false if transaction does not exist on
-   * database.
+   *     database.
    */
   @Override
   public boolean remove(Identifier transactionId) {

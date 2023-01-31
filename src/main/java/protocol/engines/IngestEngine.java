@@ -7,7 +7,10 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import model.Entity;
 import model.codec.EntityType;
 import model.crypto.Signature;
-import model.lightchain.*;
+import model.lightchain.Assignment;
+import model.lightchain.Block;
+import model.lightchain.Transaction;
+import model.lightchain.ValidatedTransaction;
 import protocol.Engine;
 import protocol.Parameters;
 import protocol.assigner.AssignerInf;
@@ -127,7 +130,7 @@ public class IngestEngine implements Engine {
   /**
    * Handles a supposedly block given its set of certificates.
    *
-   * @param block        incoming block.
+   * @param block incoming block.
    */
   private void handleBlock(Block block) {
     // performs validator assignment.

@@ -1,9 +1,9 @@
 package integration.localnet;
 
 import java.nio.charset.StandardCharsets;
-import java.util.*;
+import java.util.Hashtable;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.TimeUnit;
 
 import com.github.dockerjava.api.DockerClient;
 import com.github.dockerjava.api.async.ResultCallback;
@@ -15,16 +15,17 @@ import modules.logger.Logger;
 
 public class ContainerLogger {
   private static final int DEFAULT_LAST_LOG_TIME = 0;
-  DockerClient dockerClient;
-  private final ConcurrentHashMap<String, Integer> lastLogTime;
-
-  private final Hashtable<String, String> loggingBuffer;
-
   /**
    * Minimum length of a log to be printed.
    */
   private static final int MIN_LOG_LENGTH = 30;
+  private final ConcurrentHashMap<String, Integer> lastLogTime;
+
+  private final Hashtable<String, String> loggingBuffer;
   private final Logger logger = LightchainLogger.getLogger(ContainerLogger.class.getCanonicalName());
+  DockerClient dockerClient;
+  LogContainerResultCallback loggingCallback = new
+      LogContainerResultCallback();
 
   public ContainerLogger(DockerClient dockerClient) {
     this.dockerClient = dockerClient;
@@ -49,8 +50,8 @@ public class ContainerLogger {
   }
 
   public void runContainerLoggerWorker() {
-    for(Map.Entry<String, Integer> c : this.lastLogTime.entrySet()) {
-      try(LogContainerCmd lg = createLogCommand(c.getKey(), c.getValue())) {
+    for (Map.Entry<String, Integer> c : this.lastLogTime.entrySet()) {
+      try (LogContainerCmd lg = createLogCommand(c.getKey(), c.getValue())) {
         lg.exec(new ResultCallback.Adapter<>() {
           @Override
           public void onNext(Frame item) {
@@ -58,8 +59,8 @@ public class ContainerLogger {
             String lg = new String(item.getPayload(), StandardCharsets.UTF_8);
             String[] split = lg.split("\n");
             System.out.println("-------------------");
-            for(String s : split) {
-                System.out.println("[Container] " + s);
+            for (String s : split) {
+              System.out.println("[Container] " + s);
             }
             System.out.println("-------------------");
             // inspectLog(c.getKey(), lg);
@@ -72,14 +73,11 @@ public class ContainerLogger {
     }
   }
 
-  LogContainerResultCallback loggingCallback = new
-      LogContainerResultCallback();
-
   /**
    * Buffers the log message from the container.
    *
    * @param containerId the container id.
-   * @param log the log message.
+   * @param log         the log message.
    */
   private void bufferLog(String containerId, String log) {
     if (this.loggingBuffer.containsKey(containerId)) {
@@ -105,7 +103,7 @@ public class ContainerLogger {
    * Logs the log message from the container.
    *
    * @param containerId the container id.
-   * @param log the log message.
+   * @param log         the log message.
    */
   private void inspectLog(String containerId, String log) {
     log = log.trim();
@@ -122,11 +120,11 @@ public class ContainerLogger {
    * longer than the minimum length.
    *
    * @param containerId the container id.
-   * @param log the log message.
+   * @param log         the log message.
    */
   private void bufferAndFlushLog(String containerId, String log) {
     bufferLog(containerId, log);
-    if(this.loggingBuffer.get(containerId).length() > MIN_LOG_LENGTH) {
+    if (this.loggingBuffer.get(containerId).length() > MIN_LOG_LENGTH) {
       flushLog(containerId);
     }
   }

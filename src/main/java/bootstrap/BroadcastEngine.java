@@ -1,13 +1,11 @@
 package bootstrap;
 
-import java.io.IOException;
 import java.time.Duration;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
@@ -67,7 +65,8 @@ public class BroadcastEngine implements Engine {
     }
 
     HelloMessageEntity helloMessageEntity = (HelloMessageEntity) e;
-    logger.info("received hello message from {} with message {} (total so far {})", helloMessageEntity.getSenderId(), helloMessageEntity.getContent(), totalReceived());
+    logger.info("received hello message from {} with message {} (total so far {})", helloMessageEntity.getSenderId(), helloMessageEntity.getContent(),
+        totalReceived());
   }
 
   /**

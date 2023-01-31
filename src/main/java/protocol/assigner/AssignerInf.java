@@ -15,8 +15,8 @@ public interface AssignerInf {
    * is less than or equal to hash(id || i). Once the ith identifier is chosen, it is omitted from the procedure
    * of picking the i+1(th) one.
    *
-   * @param id identifier of the entity.
-   * @param s snapshot to select identifiers from.
+   * @param id  identifier of the entity.
+   * @param s   snapshot to select identifiers from.
    * @param num number of identifiers to select.
    * @return list of selected identifiers.
    */

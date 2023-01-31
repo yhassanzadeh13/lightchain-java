@@ -1,6 +1,5 @@
 package unittest.fixtures.networking.p2p;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;

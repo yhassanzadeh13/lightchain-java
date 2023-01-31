@@ -48,7 +48,7 @@ public class TableState implements state.State {
    * The most recent finalized state snapshot (tail of the snapshot list).
    *
    * @return the most recent finalized state snapshot of the node. Note that it never returns a null, since at the
-   * bare minimum the snapshot of Genesis block exists.
+   *     bare minimum the snapshot of Genesis block exists.
    */
   @Override
   public Snapshot last() {

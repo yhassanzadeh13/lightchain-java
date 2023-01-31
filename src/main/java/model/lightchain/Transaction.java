@@ -34,10 +34,6 @@ public class Transaction extends model.Entity implements Serializable {
    */
   protected Signature signature;
 
-  public void setSignature(Signature signature) {
-    this.signature = signature;
-  }
-
   /**
    * Constructor of the transaction.
    *
@@ -109,5 +105,9 @@ public class Transaction extends model.Entity implements Serializable {
 
   public Signature getSignature() {
     return signature;
+  }
+
+  public void setSignature(Signature signature) {
+    this.signature = signature;
   }
 }

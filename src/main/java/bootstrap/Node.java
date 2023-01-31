@@ -1,19 +1,23 @@
 package bootstrap;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
-import model.exceptions.LightChainNetworkingException;
 import model.lightchain.Identifier;
 import modules.logger.LightchainLogger;
 import modules.logger.Logger;
-import network.Conduit;
 import network.p2p.P2pNetwork;
 import protocol.Engine;
 
@@ -22,13 +26,12 @@ import protocol.Engine;
  * may use Networks in order to transmit and receive Entities amongst themselves.
  */
 public class Node {
+  static final Logger logger = LightchainLogger.getLogger(Node.class.getCanonicalName());
   private static final Duration STARTUP_TIMEOUT = Duration.ofSeconds(5);
   static ConcurrentMap<Identifier, String> idTable;
   static Identifier myId;
   static P2pNetwork network;
   static Engine engine;
-
-  static final Logger logger = LightchainLogger.getLogger(Node.class.getCanonicalName());
 
   /**
    * Main method.
@@ -57,8 +60,6 @@ public class Node {
 
     logger.info("node {} started successfully at address {}, bootstrap table {}", myId, network.getAddress(), idTableStr);
   }
-
-
 
   /**
    * Reads the given path and returns a ConcurrentMap of Identifiers to IP addresses.

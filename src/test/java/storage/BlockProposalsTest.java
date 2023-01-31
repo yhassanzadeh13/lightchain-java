@@ -24,11 +24,10 @@ import unittest.fixtures.BlockFixture;
 public class BlockProposalsTest {
   private static final String TEMP_DIR = "tempdir";
   private static final String TEMP_FILE = "tempfile.db";
+  private static final int TEST_SIZE = 10;
   private Path tempdir;
   private ArrayList<BlockProposal> allBlockProposals;
   private BlockProposalsMapDb db;
-
-  private static final int TEST_SIZE = 10;
 
   /**
    * Initializes database.

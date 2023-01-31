@@ -9,19 +9,23 @@ public interface GetReplyOrBuilder extends
 
   /**
    * <code>bytes Payload = 1;</code>
+   *
    * @return The payload.
    */
   com.google.protobuf.ByteString getPayload();
 
   /**
    * <code>string Type = 2;</code>
+   *
    * @return The type.
    */
   java.lang.String getType();
+
   /**
    * <code>string Type = 2;</code>
+   *
    * @return The bytes for type.
    */
   com.google.protobuf.ByteString
-      getTypeBytes();
+  getTypeBytes();
 }

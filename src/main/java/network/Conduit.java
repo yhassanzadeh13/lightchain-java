@@ -14,7 +14,7 @@ public interface Conduit {
   /**
    * Sends the Entity through the Network to the remote target.
    *
-   * @param e the Entity to be sent over the network.
+   * @param e      the Entity to be sent over the network.
    * @param target Identifier of the receiver.
    * @throws LightChainNetworkingException any unhappy path taken on sending the Entity.
    */
@@ -37,7 +37,6 @@ public interface Conduit {
    * @throws LightChainDistributedStorageException any unhappy path taken on retrieving the Entity.
    */
   Entity get(Identifier identifier) throws LightChainDistributedStorageException;
-
 
   /**
    * Retrieves all entities stored on the underlying DHT of nodes that stored on this channel.

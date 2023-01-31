@@ -14,27 +14,44 @@ import storage.BlockProposals;
  */
 
 public class BlockProposalsMapDb implements BlockProposals {
-  private final ReentrantReadWriteLock lock;
-  private final DB db;
+  public static final String LAST_BLOCK_PROPOSAL_EXISTS = "Cannot overwrite existing last block proposal. Clear last proposal before setting a new";
   private static final String BLOCK_PROPOSALS_MAP = "block_proposals_map";
   private static final String LAST_PROPOSED_BLOCK = "last_proposed_block";
+  private final ReentrantReadWriteLock lock;
+  private final DB db;
   private final HTreeMap<String, BlockProposal> blockProposalsMap;
-  public static final String LAST_BLOCK_PROPOSAL_EXISTS = "Cannot overwrite existing last block proposal. Clear last proposal before setting a new";
 
   /**
    * Creates a block proposals mapdb.
    *
-   * @param filePath     of id, block proposal mapdb
+   * @param filePath of id, block proposal mapdb
    */
   @SuppressWarnings("unchecked")
   public BlockProposalsMapDb(final String filePath) {
     this.db = DBMaker.fileDB(filePath).make();
     this.lock = new ReentrantReadWriteLock();
     this.blockProposalsMap =
-      (HTreeMap<String, BlockProposal>)
-        this.db.hashMap(BLOCK_PROPOSALS_MAP)
-          .keySerializer(Serializer.STRING)
-          .createOrOpen();
+        (HTreeMap<String, BlockProposal>)
+            this.db.hashMap(BLOCK_PROPOSALS_MAP)
+                .keySerializer(Serializer.STRING)
+                .createOrOpen();
+  }
+
+  /**
+   * Returns the most recent proposal.
+   *
+   * @return returns the most recent proposal.
+   */
+  @Override
+  public BlockProposal getLastProposal() {
+    BlockProposal lastBlockProposal;
+    try {
+      lock.readLock().lock();
+      lastBlockProposal = this.blockProposalsMap.get(LAST_PROPOSED_BLOCK);
+    } finally {
+      lock.readLock().unlock();
+    }
+    return lastBlockProposal;
   }
 
   /**
@@ -61,23 +78,6 @@ public class BlockProposalsMapDb implements BlockProposals {
     } finally {
       lock.writeLock().unlock();
     }
-  }
-
-  /**
-   * Returns the most recent proposal.
-   *
-   * @return returns the most recent proposal.
-   */
-  @Override
-  public BlockProposal getLastProposal() {
-    BlockProposal lastBlockProposal;
-    try {
-      lock.readLock().lock();
-      lastBlockProposal = this.blockProposalsMap.get(LAST_PROPOSED_BLOCK);
-    } finally {
-      lock.readLock().unlock();
-    }
-    return lastBlockProposal;
   }
 
   /**

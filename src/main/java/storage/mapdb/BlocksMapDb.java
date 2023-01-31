@@ -15,11 +15,11 @@ import storage.Blocks;
  * Implementation of BlocksMapDb interface.
  */
 public class BlocksMapDb implements Blocks {
+  private static final String MAP_NAME_ID = "blocks_map_id";
+  private static final String MAP_NAME_HEIGHT = "blocks_map_height";
   private final DB dbId;
   private final DB dbHeight;
   private final ReentrantReadWriteLock lock;
-  private static final String MAP_NAME_ID = "blocks_map_id";
-  private static final String MAP_NAME_HEIGHT = "blocks_map_height";
   private final HTreeMap blocksIdMap;
   private final HTreeMap<Integer, Identifier> blocksHeightMap;
 
@@ -65,7 +65,7 @@ public class BlocksMapDb implements Blocks {
    *
    * @param block given block to be added.
    * @return true if block did not exist on the database,
-   false if block is already in database.
+   *     false if block is already in database.
    */
   @Override
   public boolean add(Block block) {
@@ -78,10 +78,10 @@ public class BlocksMapDb implements Blocks {
       addBooleanId = blocksIdMap.putIfAbsentBoolean(block.id().getBytes(), block);
       if (addBooleanId) {
         blocksHeightMap.compute(height, (key, value) ->
-            (value == null)
-            ? block.id()
-            : null  //TODO: implement else case
-        );
+                (value == null)
+                ? block.id()
+                : null  //TODO: implement else case
+                               );
       }
     } finally {
       lock.writeLock().unlock();
@@ -94,7 +94,7 @@ public class BlocksMapDb implements Blocks {
    *
    * @param blockId identifier of the block.
    * @return true if block exists on database and removed successfully,
-    false if block does not exist on database.
+   *     false if block does not exist on database.
    */
   @Override
   public boolean remove(Identifier blockId) {

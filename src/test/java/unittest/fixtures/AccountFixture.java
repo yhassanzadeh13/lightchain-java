@@ -21,12 +21,12 @@ public class AccountFixture {
    */
   public static Account newAccount(Identifier identifier) {
     return new Account(
-            identifier,
-            Mockito.mock(
-                    PublicKey.class,
-                    Mockito.withSettings().useConstructor(Bytes.byteArrayFixture(32))),
-            IdentifierFixture.newIdentifier(),
-            Parameters.MINIMUM_STAKE);
+        identifier,
+        Mockito.mock(
+            PublicKey.class,
+            Mockito.withSettings().useConstructor(Bytes.byteArrayFixture(32))),
+        IdentifierFixture.newIdentifier(),
+        Parameters.MINIMUM_STAKE);
   }
 
   /**
@@ -37,11 +37,11 @@ public class AccountFixture {
    */
   public static Account newAccount(Identifier identifier, int stake) {
     return new Account(identifier,
-            Mockito.mock(
-                    PublicKey.class,
-                    Mockito.withSettings().useConstructor(Bytes.byteArrayFixture(32))),
-            IdentifierFixture.newIdentifier(),
-            stake);
+        Mockito.mock(
+            PublicKey.class,
+            Mockito.withSettings().useConstructor(Bytes.byteArrayFixture(32))),
+        IdentifierFixture.newIdentifier(),
+        stake);
   }
 
   /**
@@ -53,11 +53,11 @@ public class AccountFixture {
    */
   public static Account newAccount(Identifier publicKey, Identifier lastBlockId, int stake) {
     return new Account(publicKey,
-            Mockito.mock(
-                    PublicKey.class,
-                    Mockito.withSettings().useConstructor(Bytes.byteArrayFixture(32))),
-            lastBlockId,
-            stake);
+        Mockito.mock(
+            PublicKey.class,
+            Mockito.withSettings().useConstructor(Bytes.byteArrayFixture(32))),
+        lastBlockId,
+        stake);
   }
 
   /**

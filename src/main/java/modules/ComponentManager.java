@@ -9,9 +9,12 @@ import java.util.concurrent.locks.ReentrantLock;
 import modules.logger.LightchainLogger;
 import modules.logger.Logger;
 
+/**
+ * ComponentManager is a class that manages the lifecycle of components.
+ */
 public class ComponentManager implements DeadlineStartable {
-  private ReentrantLock lock;
   private final Logger logger = LightchainLogger.getLogger(ComponentManager.class.getName());
+  private ReentrantLock lock;
   private List<Startable> components;
 
   private boolean started = false;

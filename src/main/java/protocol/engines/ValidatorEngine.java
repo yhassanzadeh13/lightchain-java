@@ -10,7 +10,6 @@ import protocol.Engine;
  */
 public class ValidatorEngine implements Engine {
 
-
   /**
    * Received entity to this engine can be either a block or a transaction, anything else should throw an exception.
    * Upon receiving a block or transaction, the engine runs the assignment and checks whether the current node

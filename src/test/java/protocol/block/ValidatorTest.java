@@ -6,7 +6,12 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import model.crypto.Signature;
-import model.lightchain.*;
+import model.lightchain.Account;
+import model.lightchain.Block;
+import model.lightchain.BlockHeader;
+import model.lightchain.BlockProposal;
+import model.lightchain.Identifier;
+import model.lightchain.ValidatedTransaction;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import protocol.Parameters;
