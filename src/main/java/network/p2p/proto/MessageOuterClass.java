@@ -35,6 +35,7 @@ public final class MessageOuterClass {
         new java.lang.String[]{"OriginId", "Channel", "TargetIds", "Payload", "Type",});
     com.google.protobuf.EmptyProto.getDescriptor();
   }
+
   private MessageOuterClass() {
   }
 

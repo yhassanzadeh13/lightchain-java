@@ -44,6 +44,7 @@ public final class Message extends
   private Message(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
     super(builder);
   }
+
   private Message() {
     originId_ = com.google.protobuf.ByteString.EMPTY;
     channel_ = "";

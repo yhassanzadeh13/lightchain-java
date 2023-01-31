@@ -60,6 +60,7 @@ public final class StorageOuterClass {
         new java.lang.String[]{"Payload", "Type",});
     com.google.protobuf.EmptyProto.getDescriptor();
   }
+
   private StorageOuterClass() {
   }
 

@@ -239,7 +239,7 @@ public class MetricsTestNet {
    * Reads the IP address of the local machine and overrides the prometheus configuration file.
    *
    * @throws IllegalStateException when the local address cannot be obtained or the prometheus
-   * configuration cannot be read or written.
+   *                               configuration cannot be read or written.
    */
   public void overridePrometheusMetricServerAddress() throws IllegalStateException {
     // Obtain the local address

@@ -33,6 +33,7 @@ public final class GetReply extends
   private com.google.protobuf.ByteString payload_;
   private volatile java.lang.Object type_;
   private byte memoizedIsInitialized = -1;
+
   // Use GetReply.newBuilder() to construct.
   private GetReply(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
     super(builder);

@@ -40,6 +40,7 @@ public final class GetRequest extends
   private GetRequest() {
     identifier_ = com.google.protobuf.ByteString.EMPTY;
   }
+
   private GetRequest(
       com.google.protobuf.CodedInputStream input,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
