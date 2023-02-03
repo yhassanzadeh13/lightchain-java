@@ -67,6 +67,9 @@ public class ContainerLogger {
   /**
    * Prints the logs of containers.
    */
+
+  @edu.umd.cs.findbugs.annotations.SuppressFBWarnings(value = "RCN_REDUNDANT_NULLCHECK_WOULD_HAVE_BEEN_A_NPE", justification = "seems a false "
+      + "positive")
   public void runContainerLoggerWorker() {
     for (Map.Entry<String, Integer> c : this.lastLogTime.entrySet()) {
       try (LogContainerCmd lg = createLogCommand(c.getKey(), c.getValue())) {

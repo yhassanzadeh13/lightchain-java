@@ -25,6 +25,9 @@ public class ComponentManager implements DeadlineStartable {
   }
 
   @Override
+  // we suppress this warning because we aim to revamp the whole component management system soon. 
+  @edu.umd.cs.findbugs.annotations.SuppressFBWarnings(value = "UL_UNRELEASED_LOCK_EXCEPTION_PATH",
+      justification = "technical debt: modules.ComponentManager.start(Duration) does not release lock on all exception paths")
   public void start(Duration deadline) throws IllegalStateException {
     lock.lock();
     if (started) {
@@ -65,7 +68,7 @@ public class ComponentManager implements DeadlineStartable {
       }
     }
   }
-  
+
   public void addComponent(Startable component) {
     components.add(component);
   }
