@@ -54,13 +54,18 @@ public class ComponentManager implements DeadlineStartable {
         }
       } catch (InterruptedException e) {
         throw new IllegalStateException("could not wait for components to start", e);
+      } finally {
+        lock.unlock();
       }
 
       started = true;
     } finally {
-      lock.unlock();
+      if (lock.isHeldByCurrentThread()) {
+        lock.unlock();
+      }
     }
   }
+
 
   public void addComponent(Startable component) {
     components.add(component);

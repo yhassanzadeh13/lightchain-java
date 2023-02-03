@@ -39,6 +39,7 @@ public class BroadcastEngine implements Engine {
    * @param idTable idTable containing all Nodes and their addresses.
    * @param myId    id of the Node on which the Engine operates.
    */
+  @edu.umd.cs.findbugs.annotations.SuppressFBWarnings(value = "EI_EXPOSE_REP2", justification = "we want idTable to be exposed externally")
   public BroadcastEngine(ConcurrentMap<Identifier, String> idTable, Identifier myId, Network network) {
     this.receivedEntityIds = new HashSet<>();
     this.lock = new ReentrantReadWriteLock();

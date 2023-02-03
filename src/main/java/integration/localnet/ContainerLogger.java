@@ -36,6 +36,7 @@ public class ContainerLogger {
    *
    * @param dockerClient the docker client to be used.
    */
+  @edu.umd.cs.findbugs.annotations.SuppressFBWarnings(value = "EI_EXPOSE_REP2", justification = "we want docker client mutable externally")
   public ContainerLogger(DockerClient dockerClient) {
     this.dockerClient = dockerClient;
     this.lastLogTime = new ConcurrentHashMap<>();
@@ -73,14 +74,13 @@ public class ContainerLogger {
           @Override
           public void onNext(Frame item) {
             super.onNext(item);
-            String lg = new String(item.getPayload(), StandardCharsets.UTF_8);
-            String[] split = lg.split("\n");
+            String lgMsg = new String(item.getPayload(), StandardCharsets.UTF_8);
+            String[] split = lgMsg.split("\n");
             System.out.println("-------------------");
             for (String s : split) {
               System.out.println("[Container] " + s);
             }
             System.out.println("-------------------");
-            // inspectLog(c.getKey(), lg);
           }
         }).awaitCompletion();
       } catch (InterruptedException e) {
