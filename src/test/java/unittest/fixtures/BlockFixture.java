@@ -3,7 +3,12 @@ package unittest.fixtures;
 import java.util.Random;
 
 import model.crypto.Signature;
-import model.lightchain.*;
+import model.lightchain.Block;
+import model.lightchain.BlockHeader;
+import model.lightchain.BlockPayload;
+import model.lightchain.BlockProposal;
+import model.lightchain.Identifier;
+import model.lightchain.ValidatedTransaction;
 import model.local.Local;
 import protocol.Parameters;
 

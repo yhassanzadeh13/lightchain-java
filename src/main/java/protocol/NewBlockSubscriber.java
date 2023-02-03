@@ -9,7 +9,7 @@ public interface NewBlockSubscriber {
   /**
    * OnNewValidatedBlock is called whenever a new block arrives to the node that successfully pass validation.
    *
-   * @param blockId     identifier of block.
+   * @param blockId identifier of block.
    */
   void onNewValidatedBlock(Identifier blockId);
 }

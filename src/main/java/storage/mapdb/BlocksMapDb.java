@@ -15,11 +15,11 @@ import storage.Blocks;
  * Implementation of BlocksMapDb interface.
  */
 public class BlocksMapDb implements Blocks {
+  private static final String MAP_NAME_ID = "blocks_map_id";
+  private static final String MAP_NAME_HEIGHT = "blocks_map_height";
   private final DB dbId;
   private final DB dbHeight;
   private final ReentrantReadWriteLock lock;
-  private static final String MAP_NAME_ID = "blocks_map_id";
-  private static final String MAP_NAME_HEIGHT = "blocks_map_height";
   private final HTreeMap blocksIdMap;
   private final HTreeMap<Integer, Identifier> blocksHeightMap;
 
@@ -34,12 +34,9 @@ public class BlocksMapDb implements Blocks {
     // TODO: file paths consolidated.
     this.dbId = DBMaker.fileDB(filePathId).make();
     this.lock = new ReentrantReadWriteLock();
-    blocksIdMap = this.dbId.hashMap(MAP_NAME_ID)
-        .keySerializer(Serializer.BYTE_ARRAY)
-        .createOrOpen();
+    blocksIdMap = this.dbId.hashMap(MAP_NAME_ID).keySerializer(Serializer.BYTE_ARRAY).createOrOpen();
     this.dbHeight = DBMaker.fileDB(filePathHeight).make();
-    blocksHeightMap = (HTreeMap<Integer, Identifier>) this.dbHeight.hashMap(MAP_NAME_HEIGHT)
-        .createOrOpen();
+    blocksHeightMap = (HTreeMap<Integer, Identifier>) this.dbHeight.hashMap(MAP_NAME_HEIGHT).createOrOpen();
   }
 
   /**
@@ -65,7 +62,7 @@ public class BlocksMapDb implements Blocks {
    *
    * @param block given block to be added.
    * @return true if block did not exist on the database,
-   false if block is already in database.
+   *     false if block is already in database.
    */
   @Override
   public boolean add(Block block) {
@@ -77,11 +74,7 @@ public class BlocksMapDb implements Blocks {
       // if the block.id() key and the block was absent in IdMap, add it and return true
       addBooleanId = blocksIdMap.putIfAbsentBoolean(block.id().getBytes(), block);
       if (addBooleanId) {
-        blocksHeightMap.compute(height, (key, value) ->
-            (value == null)
-            ? block.id()
-            : null  //TODO: implement else case
-        );
+        blocksHeightMap.compute(height, (key, value) -> (value == null) ? block.id() : null);   //TODO: implement else case
       }
     } finally {
       lock.writeLock().unlock();
@@ -94,7 +87,7 @@ public class BlocksMapDb implements Blocks {
    *
    * @param blockId identifier of the block.
    * @return true if block exists on database and removed successfully,
-    false if block does not exist on database.
+   *     false if block does not exist on database.
    */
   @Override
   public boolean remove(Identifier blockId) {

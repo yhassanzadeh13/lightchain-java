@@ -1,12 +1,16 @@
 package protocol.engines;
 
+import java.time.Duration;
 import java.util.concurrent.locks.ReentrantLock;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import model.Entity;
 import model.codec.EntityType;
 import model.crypto.Signature;
-import model.lightchain.*;
+import model.lightchain.Assignment;
+import model.lightchain.Block;
+import model.lightchain.Transaction;
+import model.lightchain.ValidatedTransaction;
 import protocol.Engine;
 import protocol.Parameters;
 import protocol.assigner.AssignerInf;
@@ -126,7 +130,7 @@ public class IngestEngine implements Engine {
   /**
    * Handles a supposedly block given its set of certificates.
    *
-   * @param block        incoming block.
+   * @param block incoming block.
    */
   private void handleBlock(Block block) {
     // performs validator assignment.
@@ -177,5 +181,10 @@ public class IngestEngine implements Engine {
     }
 
     return signatures >= Parameters.SIGNATURE_THRESHOLD;
+  }
+
+  @Override
+  public void start(Duration deadline) throws IllegalStateException {
+
   }
 }

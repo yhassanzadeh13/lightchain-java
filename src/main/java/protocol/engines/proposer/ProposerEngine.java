@@ -1,5 +1,6 @@
 package protocol.engines.proposer;
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.concurrent.locks.ReentrantLock;
@@ -10,12 +11,21 @@ import model.Entity;
 import model.codec.EntityType;
 import model.crypto.Signature;
 import model.exceptions.LightChainNetworkingException;
-import model.lightchain.*;
+import model.lightchain.Account;
+import model.lightchain.Assignment;
+import model.lightchain.Block;
+import model.lightchain.BlockApproval;
+import model.lightchain.BlockHeader;
+import model.lightchain.BlockPayload;
+import model.lightchain.BlockProposal;
+import model.lightchain.Identifier;
+import model.lightchain.Transaction;
+import model.lightchain.ValidatedTransaction;
 import model.local.Local;
+import modules.logger.LightchainLogger;
+import modules.logger.Logger;
 import network.Channels;
 import network.Conduit;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import protocol.Engine;
 import protocol.NewBlockSubscriber;
 import protocol.Parameters;
@@ -60,7 +70,7 @@ public class ProposerEngine implements NewBlockSubscriber, Engine {
     this.blockProposals = parameters.blockProposals;
 
     this.approvals = new ArrayList<>();
-    this.logger = LogManager.getLogger(ProposerEngine.class.getName());
+    this.logger = LightchainLogger.getLogger(ProposerEngine.class.getCanonicalName());
 
     proposerCon = parameters.network.register(this, Channels.ProposedBlocks);
     validatedCon = parameters.network.register(this, Channels.ValidatedBlocks);
@@ -195,7 +205,8 @@ public class ProposerEngine implements NewBlockSubscriber, Engine {
             // TODO: replace with broadcast.
             validatedCon.unicast(nextBlock, account.getIdentifier());
           } catch (LightChainNetworkingException ex) {
-            this.logger.fatal("target_id {}, exception {}, could not send block to target",
+            // TODO: switch to FATAL.
+            this.logger.error("target_id {}, exception {}, could not send block to target",
                 account.getIdentifier(), Arrays.toString(ex.getStackTrace()));
           }
         }
@@ -231,7 +242,7 @@ public class ProposerEngine implements NewBlockSubscriber, Engine {
    * @param count  number of desired pending transactions to exist.
    * @param millis delay in milliseconds before returning false.
    * @return true if at least count-many transactions exist in pending transactions storage, and false otherwise. A true is returned immediately,
-   * while a false is returned with a "millis" milliseconds delay.
+   *     while a false is returned with a "millis" milliseconds delay.
    */
   private boolean checkPendingTransactionsWithBackoff(int count, long millis) throws IllegalStateException {
     // TODO: put this in a new function
@@ -249,5 +260,10 @@ public class ProposerEngine implements NewBlockSubscriber, Engine {
       return false;
     }
     return true;
+  }
+
+  @Override
+  public void start(Duration deadline) throws IllegalStateException {
+
   }
 }

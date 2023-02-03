@@ -13,9 +13,9 @@ import modules.ads.MembershipProof;
  * A proof of membership in a Merkle tree.
  */
 public class MerkleProof implements MembershipProof, Serializable {
-  private ArrayList<Sha3256Hash> path;
   private final ArrayList<Boolean> isLeftNode;
   private final Sha3256Hash root;
+  private ArrayList<Sha3256Hash> path;
 
   /**
    * Constructs a proof from a list of hashes and a root.

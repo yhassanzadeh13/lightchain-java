@@ -7,13 +7,23 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import model.Entity;
 import model.codec.EntityType;
 import model.crypto.PublicKey;
 import model.crypto.Signature;
-import model.lightchain.*;
+import model.lightchain.Account;
+import model.lightchain.Assignment;
+import model.lightchain.Block;
+import model.lightchain.BlockProposal;
+import model.lightchain.Identifier;
+import model.lightchain.Transaction;
+import model.lightchain.ValidatedTransaction;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import protocol.Parameters;

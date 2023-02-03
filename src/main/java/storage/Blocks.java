@@ -22,7 +22,7 @@ public interface Blocks {
    *
    * @param block given block to be added.
    * @return true if block did not exist on the database, false if block is already in
-   * database.
+   *     database.
    */
   boolean add(Block block);
 
@@ -31,7 +31,7 @@ public interface Blocks {
    *
    * @param blockId identifier of the block.
    * @return true if block exists on database and removed successfully, false if block does not exist on
-   * database.
+   *     database.
    */
   boolean remove(Identifier blockId);
 

@@ -1,12 +1,13 @@
 package protocol;
 
 import model.Entity;
+import modules.DeadlineStartable;
 
 /**
  * Engine encapsulates a standalone unit of process in LightChain that is responsible for executing a certain
  * part of the LightChain protocol.
  */
-public interface Engine {
+public interface Engine extends DeadlineStartable {
   /**
    * Called by Network whenever an Entity is arrived for this engine.
    *

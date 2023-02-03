@@ -23,7 +23,7 @@ public class Hub {
    * Registeration of a network to the Hub.
    *
    * @param identifier identifier of network.
-   * @param network to be registered.
+   * @param network    to be registered.
    */
   public void registerNetwork(Identifier identifier, Network network) {
     networks.put(identifier, network);
@@ -32,8 +32,8 @@ public class Hub {
   /**
    * Transfer entity from to another network on the same channel.
    *
-   * @param entity entity to be transferred.
-   * @param target identifier of target.
+   * @param entity  entity to be transferred.
+   * @param target  identifier of target.
    * @param channel channel on which the entity is delivered to target.
    */
   public void transferEntity(Entity entity, Identifier target, String channel) throws IllegalStateException {

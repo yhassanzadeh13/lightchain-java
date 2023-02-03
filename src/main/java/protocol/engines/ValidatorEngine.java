@@ -1,5 +1,7 @@
 package protocol.engines;
 
+import java.time.Duration;
+
 import model.Entity;
 import protocol.Engine;
 
@@ -7,7 +9,6 @@ import protocol.Engine;
  * ValidatorEngine is a standalone engine of LightChain that runs transaction and block validation.
  */
 public class ValidatorEngine implements Engine {
-
 
   /**
    * Received entity to this engine can be either a block or a transaction, anything else should throw an exception.
@@ -25,5 +26,10 @@ public class ValidatorEngine implements Engine {
    */
   @Override
   public void process(Entity e) throws IllegalArgumentException {
+  }
+
+  @Override
+  public void start(Duration deadline) throws IllegalStateException {
+
   }
 }

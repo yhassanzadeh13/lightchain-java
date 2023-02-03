@@ -9,6 +9,9 @@
         <Logger name="com.lightchain" level="debug" additivity="false">
             <AppenderRef ref="LogToConsole"/>
         </Logger>
+        <Logger name="com.github.dockerjava.api.command" level="OFF" additivity="false">
+            <AppenderRef ref="LogToConsole"/>
+        </Logger>
         <Root level="debug">
             <AppenderRef ref="LogToConsole"/>
         </Root>

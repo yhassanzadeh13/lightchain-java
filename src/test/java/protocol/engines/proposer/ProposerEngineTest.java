@@ -5,17 +5,31 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import model.Entity;
 import model.exceptions.LightChainNetworkingException;
-import model.lightchain.*;
+import model.lightchain.Account;
+import model.lightchain.Block;
+import model.lightchain.BlockApproval;
+import model.lightchain.BlockProposal;
+import model.lightchain.Identifier;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import protocol.Parameters;
 import protocol.block.BlockValidator;
 import state.Snapshot;
-import unittest.fixtures.*;
+import unittest.fixtures.AccountFixture;
+import unittest.fixtures.BlockApprovalFixture;
+import unittest.fixtures.BlockFixture;
+import unittest.fixtures.EntityFixture;
+import unittest.fixtures.IdentifierFixture;
+import unittest.fixtures.SignatureFixture;
 
 /**
  * Encapsulates tests for the proposer engine.

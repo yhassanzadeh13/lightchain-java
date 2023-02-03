@@ -57,6 +57,8 @@ public class Demo {
         Thread.sleep(1000);
         finalizedBlockCount.inc(1);
         currentBlockCount.inc(1);
+        System.out.println("Finalized block count: " + finalizedBlockCount.get());
+        System.out.println("Current block count: " + currentBlockCount.get());
       } catch (InterruptedException ex) {
         System.err.println("Thread sleep issue, breaking the loop");
         break;
@@ -71,5 +73,4 @@ public class Demo {
     }
 
   }
-
 }

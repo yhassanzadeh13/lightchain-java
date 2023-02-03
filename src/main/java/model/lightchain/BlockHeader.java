@@ -33,7 +33,7 @@ public class BlockHeader extends Entity {
   /**
    * Constructor of the block header.
    *
-   * @param height height of this block header (height of genesis is 0, and height of a block is 1 + height of previous block).
+   * @param height          height of this block header (height of genesis is 0, and height of a block is 1 + height of previous block).
    * @param previousBlockId identifier of a finalized block that this block is extending its snapshot.
    * @param proposer        identifier of the node that proposes this block (i.e., miner).
    * @param payloadId       identifier of the payload of this block.

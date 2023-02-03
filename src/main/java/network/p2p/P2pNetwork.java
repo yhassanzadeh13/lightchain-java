@@ -41,8 +41,12 @@ public class P2pNetwork implements network.Network {
   /**
    * Starts the MessageServer and waits until it is shutdown.
    */
-  public void start() throws IOException {
-    this.server.start();
+  public void start() throws IllegalStateException {
+    try {
+      this.server.start();
+    } catch (IOException e) {
+      throw new IllegalStateException("failed to start server", e);
+    }
   }
 
   public void stop() throws InterruptedException {
@@ -56,16 +60,6 @@ public class P2pNetwork implements network.Network {
    */
   public Identifier getId() {
     return myId;
-  }
-
-  /**
-   * Sets idToAddressMap for this network.
-   *
-   * @param idToAddressMap map from identifiers to addresses.
-   */
-  @SuppressFBWarnings(value = "EI_EXPOSE_REP2", justification = "intentionally mutable externally")
-  public void setIdToAddressMap(ConcurrentMap<Identifier, String> idToAddressMap) {
-    this.idToAddressMap = idToAddressMap;
   }
 
   /**
@@ -101,8 +95,7 @@ public class P2pNetwork implements network.Network {
    * @throws IOException              if the gRPC channel cannot be built.
    * @throws IllegalArgumentException if target identifier does not correspond to a valid address.
    */
-  public void sendUnicast(Entity e, Identifier target, String channel) throws InterruptedException,
-          IOException, IllegalArgumentException {
+  public void sendUnicast(Entity e, Identifier target, String channel) throws InterruptedException, IOException, IllegalArgumentException {
 
     String targetAddress = this.idToAddressMap.get(target);
     if (targetAddress == null) {
@@ -120,5 +113,15 @@ public class P2pNetwork implements network.Network {
   @SuppressFBWarnings(value = "EI_EXPOSE_REP", justification = "internal representation is intentionally returned")
   public ConcurrentMap<Identifier, String> getIdToAddressMap() {
     return this.idToAddressMap;
+  }
+
+  /**
+   * Sets idToAddressMap for this network.
+   *
+   * @param idToAddressMap map from identifiers to addresses.
+   */
+  @SuppressFBWarnings(value = "EI_EXPOSE_REP2", justification = "intentionally mutable externally")
+  public void setIdToAddressMap(ConcurrentMap<Identifier, String> idToAddressMap) {
+    this.idToAddressMap = idToAddressMap;
   }
 }

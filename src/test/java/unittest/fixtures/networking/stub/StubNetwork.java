@@ -126,4 +126,9 @@ public class StubNetwork implements Network, NetworkAdapter {
   public Entity get(Identifier identifier, String namespace) throws LightChainDistributedStorageException {
     return null;
   }
+
+  @Override
+  public void start() throws IllegalStateException {
+
+  }
 }
