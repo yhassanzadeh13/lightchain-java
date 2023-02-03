@@ -65,8 +65,7 @@ public class ComponentManager implements DeadlineStartable {
       }
     }
   }
-
-
+  
   public void addComponent(Startable component) {
     components.add(component);
   }
