@@ -31,5 +31,7 @@ docker-stop-lightchain:
 	docker container stop $$(docker ps -aq --filter name="NODE" --format="{{.ID}}") || true
 docker-remove-lightchain:
 	docker container rm -f $$(docker ps -aq --filter name="NODE" --format="{{.ID}}") || true
+docker-remove-lightchain-volume:
+	docker volume rm $$(docker volume ls | grep "^NODE_" | awk '{print $2}')
 docker-clean-lightchain: docker-stop-lightchain docker-remove-lightchain
 docker-clean-build: docker-clean-lightchain docker-clean-registry docker-build-lightchain

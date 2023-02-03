@@ -146,26 +146,3 @@ public class ContainerLogger {
     }
   }
 }
-
-//  private void runCmd(Instruction instruction, Map<String, String> s) {
-//    String containerId = client.createContainerCmd(s.get("image")).withCmd(s.get("cmd").split(" ")).exec().getId();
-//    client.startContainerCmd(containerId).exec();
-//
-//    LogContainerCmd logContainerCmd = client.logContainerCmd(containerId);
-//    logContainerCmd.withStdOut(true).withStdErr(true);
-//    StringBuffer sb = new StringBuffer();
-//
-//    try {
-//      logContainerCmd.exec(new ResultCallback.Adapter<Frame>() {
-//        @Override
-//        public void onNext(Frame item) {
-//          sb.append(item.toString());
-//        }
-//      }).awaitCompletion(10 ,TimeUnit.MINUTES);
-//      addInstructionLog(instruction.getId(), sb.toString());
-//    } catch (InterruptedException e) {
-//      addInstructionLog(instruction.getId(), "error：" + e);
-//    }
-//
-//    client.removeContainerCmd(containerId).exec();
-//  }
