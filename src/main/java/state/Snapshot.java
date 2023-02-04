@@ -28,7 +28,7 @@ public interface Snapshot {
    *
    * @param identifier identifier of an account of interest.
    * @return account corresponding to the given identifier at this snapshot, or null if such an account
-   * does not exist.
+   *     does not exist.
    */
   Account getAccount(Identifier identifier);
 

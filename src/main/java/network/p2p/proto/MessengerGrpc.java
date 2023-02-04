@@ -3,6 +3,7 @@ package network.p2p.proto;
 import static io.grpc.MethodDescriptor.generateFullMethodName;
 
 /**
+ *
  */
 @javax.annotation.Generated(
     value = "by gRPC proto compiler (version 1.45.1)",
@@ -10,13 +11,15 @@ import static io.grpc.MethodDescriptor.generateFullMethodName;
 @io.grpc.stub.annotations.GrpcGenerated
 public final class MessengerGrpc {
 
-  private MessengerGrpc() {}
-
   public static final String SERVICE_NAME = "network.p2p.proto.Messenger";
-
+  private static final int METHODID_DELIVER = 0;
   // Static method descriptors that strictly reflect the proto.
   private static volatile io.grpc.MethodDescriptor<network.p2p.proto.Message,
       com.google.protobuf.Empty> getDeliverMethod;
+  private static volatile io.grpc.ServiceDescriptor serviceDescriptor;
+
+  private MessengerGrpc() {
+  }
 
   @io.grpc.stub.annotations.RpcMethod(
       fullMethodName = SERVICE_NAME + '/' + "Deliver",
@@ -31,15 +34,15 @@ public final class MessengerGrpc {
         if ((getDeliverMethod = MessengerGrpc.getDeliverMethod) == null) {
           MessengerGrpc.getDeliverMethod = getDeliverMethod =
               io.grpc.MethodDescriptor.<network.p2p.proto.Message, com.google.protobuf.Empty>newBuilder()
-              .setType(io.grpc.MethodDescriptor.MethodType.CLIENT_STREAMING)
-              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "Deliver"))
-              .setSampledToLocalTracing(true)
-              .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
-                  network.p2p.proto.Message.getDefaultInstance()))
-              .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
-                  com.google.protobuf.Empty.getDefaultInstance()))
-              .setSchemaDescriptor(new MessengerMethodDescriptorSupplier("Deliver"))
-              .build();
+                  .setType(io.grpc.MethodDescriptor.MethodType.CLIENT_STREAMING)
+                  .setFullMethodName(generateFullMethodName(SERVICE_NAME, "Deliver"))
+                  .setSampledToLocalTracing(true)
+                  .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                      network.p2p.proto.Message.getDefaultInstance()))
+                  .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                      com.google.protobuf.Empty.getDefaultInstance()))
+                  .setSchemaDescriptor(new MessengerMethodDescriptorSupplier("Deliver"))
+                  .build();
         }
       }
     }
@@ -51,12 +54,12 @@ public final class MessengerGrpc {
    */
   public static MessengerStub newStub(io.grpc.Channel channel) {
     io.grpc.stub.AbstractStub.StubFactory<MessengerStub> factory =
-      new io.grpc.stub.AbstractStub.StubFactory<MessengerStub>() {
-        @java.lang.Override
-        public MessengerStub newStub(io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
-          return new MessengerStub(channel, callOptions);
-        }
-      };
+        new io.grpc.stub.AbstractStub.StubFactory<MessengerStub>() {
+          @java.lang.Override
+          public MessengerStub newStub(io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
+            return new MessengerStub(channel, callOptions);
+          }
+        };
     return MessengerStub.newStub(factory, channel);
   }
 
@@ -66,12 +69,12 @@ public final class MessengerGrpc {
   public static MessengerBlockingStub newBlockingStub(
       io.grpc.Channel channel) {
     io.grpc.stub.AbstractStub.StubFactory<MessengerBlockingStub> factory =
-      new io.grpc.stub.AbstractStub.StubFactory<MessengerBlockingStub>() {
-        @java.lang.Override
-        public MessengerBlockingStub newStub(io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
-          return new MessengerBlockingStub(channel, callOptions);
-        }
-      };
+        new io.grpc.stub.AbstractStub.StubFactory<MessengerBlockingStub>() {
+          @java.lang.Override
+          public MessengerBlockingStub newStub(io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
+            return new MessengerBlockingStub(channel, callOptions);
+          }
+        };
     return MessengerBlockingStub.newStub(factory, channel);
   }
 
@@ -81,40 +84,60 @@ public final class MessengerGrpc {
   public static MessengerFutureStub newFutureStub(
       io.grpc.Channel channel) {
     io.grpc.stub.AbstractStub.StubFactory<MessengerFutureStub> factory =
-      new io.grpc.stub.AbstractStub.StubFactory<MessengerFutureStub>() {
-        @java.lang.Override
-        public MessengerFutureStub newStub(io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
-          return new MessengerFutureStub(channel, callOptions);
-        }
-      };
+        new io.grpc.stub.AbstractStub.StubFactory<MessengerFutureStub>() {
+          @java.lang.Override
+          public MessengerFutureStub newStub(io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
+            return new MessengerFutureStub(channel, callOptions);
+          }
+        };
     return MessengerFutureStub.newStub(factory, channel);
   }
 
+  public static io.grpc.ServiceDescriptor getServiceDescriptor() {
+    io.grpc.ServiceDescriptor result = serviceDescriptor;
+    if (result == null) {
+      synchronized (MessengerGrpc.class) {
+        result = serviceDescriptor;
+        if (result == null) {
+          serviceDescriptor = result = io.grpc.ServiceDescriptor.newBuilder(SERVICE_NAME)
+              .setSchemaDescriptor(new MessengerFileDescriptorSupplier())
+              .addMethod(getDeliverMethod())
+              .build();
+        }
+      }
+    }
+    return result;
+  }
+
   /**
+   *
    */
   public static abstract class MessengerImplBase implements io.grpc.BindableService {
 
     /**
+     *
      */
     public io.grpc.stub.StreamObserver<network.p2p.proto.Message> deliver(
         io.grpc.stub.StreamObserver<com.google.protobuf.Empty> responseObserver) {
       return io.grpc.stub.ServerCalls.asyncUnimplementedStreamingCall(getDeliverMethod(), responseObserver);
     }
 
-    @java.lang.Override public final io.grpc.ServerServiceDefinition bindService() {
+    @java.lang.Override
+    public final io.grpc.ServerServiceDefinition bindService() {
       return io.grpc.ServerServiceDefinition.builder(getServiceDescriptor())
           .addMethod(
-            getDeliverMethod(),
-            io.grpc.stub.ServerCalls.asyncClientStreamingCall(
-              new MethodHandlers<
-                network.p2p.proto.Message,
-                com.google.protobuf.Empty>(
-                  this, METHODID_DELIVER)))
+              getDeliverMethod(),
+              io.grpc.stub.ServerCalls.asyncClientStreamingCall(
+                  new MethodHandlers<
+                      network.p2p.proto.Message,
+                      com.google.protobuf.Empty>(
+                      this, METHODID_DELIVER)))
           .build();
     }
   }
 
   /**
+   *
    */
   public static final class MessengerStub extends io.grpc.stub.AbstractAsyncStub<MessengerStub> {
     private MessengerStub(
@@ -129,6 +152,7 @@ public final class MessengerGrpc {
     }
 
     /**
+     *
      */
     public io.grpc.stub.StreamObserver<network.p2p.proto.Message> deliver(
         io.grpc.stub.StreamObserver<com.google.protobuf.Empty> responseObserver) {
@@ -138,6 +162,7 @@ public final class MessengerGrpc {
   }
 
   /**
+   *
    */
   public static final class MessengerBlockingStub extends io.grpc.stub.AbstractBlockingStub<MessengerBlockingStub> {
     private MessengerBlockingStub(
@@ -153,6 +178,7 @@ public final class MessengerGrpc {
   }
 
   /**
+   *
    */
   public static final class MessengerFutureStub extends io.grpc.stub.AbstractFutureStub<MessengerFutureStub> {
     private MessengerFutureStub(
@@ -166,8 +192,6 @@ public final class MessengerGrpc {
       return new MessengerFutureStub(channel, callOptions);
     }
   }
-
-  private static final int METHODID_DELIVER = 0;
 
   private static final class MethodHandlers<Req, Resp> implements
       io.grpc.stub.ServerCalls.UnaryMethod<Req, Resp>,
@@ -207,7 +231,8 @@ public final class MessengerGrpc {
 
   private static abstract class MessengerBaseDescriptorSupplier
       implements io.grpc.protobuf.ProtoFileDescriptorSupplier, io.grpc.protobuf.ProtoServiceDescriptorSupplier {
-    MessengerBaseDescriptorSupplier() {}
+    MessengerBaseDescriptorSupplier() {
+    }
 
     @java.lang.Override
     public com.google.protobuf.Descriptors.FileDescriptor getFileDescriptor() {
@@ -222,7 +247,8 @@ public final class MessengerGrpc {
 
   private static final class MessengerFileDescriptorSupplier
       extends MessengerBaseDescriptorSupplier {
-    MessengerFileDescriptorSupplier() {}
+    MessengerFileDescriptorSupplier() {
+    }
   }
 
   private static final class MessengerMethodDescriptorSupplier
@@ -238,23 +264,5 @@ public final class MessengerGrpc {
     public com.google.protobuf.Descriptors.MethodDescriptor getMethodDescriptor() {
       return getServiceDescriptor().findMethodByName(methodName);
     }
-  }
-
-  private static volatile io.grpc.ServiceDescriptor serviceDescriptor;
-
-  public static io.grpc.ServiceDescriptor getServiceDescriptor() {
-    io.grpc.ServiceDescriptor result = serviceDescriptor;
-    if (result == null) {
-      synchronized (MessengerGrpc.class) {
-        result = serviceDescriptor;
-        if (result == null) {
-          serviceDescriptor = result = io.grpc.ServiceDescriptor.newBuilder(SERVICE_NAME)
-              .setSchemaDescriptor(new MessengerFileDescriptorSupplier())
-              .addMethod(getDeliverMethod())
-              .build();
-        }
-      }
-    }
-    return result;
   }
 }

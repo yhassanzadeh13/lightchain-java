@@ -50,7 +50,7 @@ public class TableSnapshot implements state.Snapshot {
    * Adds an account to the snapshot.
    *
    * @param identifier Identifier of the account to add.
-   * @param account Account to add.
+   * @param account    Account to add.
    */
   public void addAccount(Identifier identifier, Account account) {
     this.table.put(identifier, account);

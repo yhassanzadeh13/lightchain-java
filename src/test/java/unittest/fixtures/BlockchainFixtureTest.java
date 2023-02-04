@@ -1,7 +1,7 @@
 package unittest.fixtures;
 
 /**
- * Encapsulates tests for validating blockchain fixture. 
+ * Encapsulates tests for validating blockchain fixture.
  */
 public class BlockchainFixtureTest {
   // TODO: implement following test WITHOUT mocking anything

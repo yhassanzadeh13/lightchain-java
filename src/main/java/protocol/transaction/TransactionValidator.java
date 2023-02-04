@@ -31,8 +31,8 @@ public class TransactionValidator implements InfTransactionValidator {
    *
    * @param transaction the transaction under validation.
    * @return true if all transaction fields have a valid value, and false otherwise. A transaction is valid if the
-   * reference block id is a valid and finalized block, the sender and receiver both refer to valid accounts at the
-   * snapshot of the reference block id, and the amount value is non-negative.
+   *     reference block id is a valid and finalized block, the sender and receiver both refer to valid accounts at the
+   *     snapshot of the reference block id, and the amount value is non-negative.
    */
   @Override
   public boolean isCorrect(Transaction transaction) {
@@ -63,7 +63,7 @@ public class TransactionValidator implements InfTransactionValidator {
    *
    * @param transaction the transaction under validation.
    * @return true if reference block id of this transaction has a strictly higher height than the height of the
-   * last block id in the sender account, and false otherwise.
+   *     last block id in the sender account, and false otherwise.
    */
   @Override
   public boolean isSound(Transaction transaction) {
@@ -84,7 +84,7 @@ public class TransactionValidator implements InfTransactionValidator {
    *
    * @param transaction the transaction under validation.
    * @return true if the transaction has a valid signature that is verifiable by the public key of its sender,
-   * false otherwise.
+   *     false otherwise.
    */
   @Override
   public boolean isAuthenticated(Transaction transaction) {
@@ -99,7 +99,7 @@ public class TransactionValidator implements InfTransactionValidator {
    *
    * @param transaction the transaction under validation.
    * @return true if sender has a greater than or equal balance than the amount of transaction, and false otherwise.
-   * The balance of sender must be checked at the snapshot of the reference block of the transaction.
+   *     The balance of sender must be checked at the snapshot of the reference block of the transaction.
    */
   @Override
   public boolean senderHasEnoughBalance(Transaction transaction) {

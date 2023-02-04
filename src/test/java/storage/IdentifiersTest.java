@@ -322,7 +322,8 @@ public class IdentifiersTest {
   /**
    * Concurrent version of duplicationTest.
    */
-  @Test void concurrentDuplicationTest() throws IOException {
+  @Test
+  void concurrentDuplicationTest() throws IOException {
     int concurrencyDegree = 10;
 
     /*

@@ -24,12 +24,12 @@ public class LightChainHistogram implements HistogramCollector {
   public Histogram register(String name, String namespace, String subsystem,
                             String helpMessage, double[] buckets) throws IllegalArgumentException {
     return Histogram
-            .build()
-            .namespace(namespace)
-            .subsystem(subsystem)
-            .name(name)
-            .help(helpMessage)
-            .register();
+        .build()
+        .namespace(namespace)
+        .subsystem(subsystem)
+        .name(name)
+        .help(helpMessage)
+        .register();
   }
 
 }
