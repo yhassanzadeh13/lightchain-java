@@ -31,7 +31,7 @@ public class Node {
   /**
    * Port number at which the node will be listening for incoming connections from other nodes.
    */
-  private static final int portNumber = 6063;
+  private static final int portNumber = 8081;
   private static ConcurrentMap<Identifier, String> idTable;
   private static Identifier myId;
   private static P2pNetwork network;
