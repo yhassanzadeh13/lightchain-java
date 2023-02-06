@@ -68,7 +68,7 @@ public class BroadcastEngine implements Engine {
     }
 
     HelloMessageEntity helloMessageEntity = (HelloMessageEntity) e;
-    this.collector.onHelloMessageReceived()
+    this.collector.onHelloMessageReceived();
     logger.info("received hello message from {} with message {} (total so far {})", helloMessageEntity.getSenderId(), helloMessageEntity.getContent(),
         totalReceived());
   }
