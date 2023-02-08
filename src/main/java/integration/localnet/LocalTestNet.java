@@ -1,7 +1,6 @@
 package integration.localnet;
 
 import java.io.File;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -11,9 +10,7 @@ import bootstrap.Bootstrap;
 import com.github.dockerjava.api.command.BuildImageResultCallback;
 import com.github.dockerjava.api.command.CreateContainerResponse;
 import com.github.dockerjava.api.model.Bind;
-import com.github.dockerjava.api.model.Frame;
 import com.github.dockerjava.api.model.HostConfig;
-import com.github.dockerjava.core.command.LogContainerResultCallback;
 import metrics.integration.MetricsTestNet;
 import modules.logger.LightchainLogger;
 import modules.logger.Logger;
@@ -55,24 +52,17 @@ public class LocalTestNet extends MetricsTestNet {
 
     // HTTP Server Container
     String imageId = dockerClient.buildImageCmd()
-            .withDockerfile(new File(DOCKER_FILE))
-            .withPull(true)
-            .exec(new BuildImageResultCallback())
-            .awaitImageId();
+        .withDockerfile(new File(DOCKER_FILE))
+        .withPull(true)
+        .exec(new BuildImageResultCallback())
+        .awaitImageId();
 
     List<Bind> serverBinds = new ArrayList<>();
     serverBinds.add(Bind.parse(SERVER_VOLUME_BINDING));
 
-    HostConfig hostConfig = new HostConfig()
-            .withBinds(serverBinds)
-            .withNetworkMode(NETWORK_NAME);
+    HostConfig hostConfig = new HostConfig().withBinds(serverBinds).withNetworkMode(NETWORK_NAME);
 
-    return this.dockerClient
-            .createContainerCmd(imageId)
-            .withName(SERVER)
-            .withTty(true)
-            .withHostConfig(hostConfig)
-            .exec();
+    return this.dockerClient.createContainerCmd(imageId).withName(SERVER).withTty(true).withHostConfig(hostConfig).exec();
   }
 
   /**
@@ -110,9 +100,7 @@ public class LocalTestNet extends MetricsTestNet {
 
     List<Bind> serverBinds = new ArrayList<>();
     serverBinds.add(Bind.parse(NODE_VOLUME_BINDING));
-    HostConfig hostConfig = new HostConfig()
-        .withBinds(serverBinds)
-        .withNetworkMode(NETWORK_NAME);
+    HostConfig hostConfig = new HostConfig().withBinds(serverBinds).withNetworkMode(NETWORK_NAME);
     ArrayList<CreateContainerResponse> containers = new ArrayList<>();
 
     for (int i = 0; i < nodeCount; i++) {
@@ -120,8 +108,7 @@ public class LocalTestNet extends MetricsTestNet {
 
       logger.info("creating node container {}", i);
 
-      CreateContainerResponse nodeServer = this.dockerClient
-          .createContainerCmd(imageId)
+      CreateContainerResponse nodeServer = this.dockerClient.createContainerCmd(imageId)
           .withName("NODE" + i)
           .withTty(true)
           .withHostConfig(hostConfig)
@@ -140,9 +127,7 @@ public class LocalTestNet extends MetricsTestNet {
       containerThreads[i] = new Thread(() -> {
         this.logger.info("starting node container {}", finalI);
 
-        dockerClient
-            .startContainerCmd(containers.get(finalI).getId())
-            .exec();
+        dockerClient.startContainerCmd(containers.get(finalI).getId()).exec();
         this.containerLogger.registerLogger(containers.get(finalI).getId());
 
         this.logger.info("node container {} started", finalI);
