@@ -44,10 +44,6 @@ public class LocalTestNet extends MetricsTestNet {
     this.nodeCount = nodeCount;
   }
 
-  public LocalTestNet(int nodeCount) {
-    this.nodeCount = nodeCount;
-  }
-
   /**
    * Creates and returns HTTP Server container that serves as the local testnet.
    * Deprecated: contains a sample MVP server that is not used in the testnet.
@@ -170,96 +166,6 @@ public class LocalTestNet extends MetricsTestNet {
         logger.fatal("interrupted while sleeping to log containers", e);
       }
     }
-  }
-
-  /**
-   * Creates and runs a node network accompanied by a metrics generator server.
-   */
-  public void createNodeContainers() {
-
-    // Node Container
-    String imageId = dockerClient.buildImageCmd()
-            .withTags(new HashSet<>(Arrays.asList("image")))
-            .withDockerfile(new File(NODE_DOCKER_FILE))
-            .withPull(true)
-            .exec(new BuildImageResultCallback())
-            .awaitImageId();
-
-    List<Bind> serverBinds = new ArrayList<>();
-    serverBinds.add(Bind.parse(NODE_VOLUME_BINDING));
-
-    HostConfig hostConfig = new HostConfig()
-            .withBinds(serverBinds)
-            .withNetworkMode(NETWORK_NAME);
-
-    ArrayList<CreateContainerResponse> containers = new ArrayList<>();
-
-    for (int i = 0; i < nodeCount; i++) {
-      // Volume Creation
-      this.createVolumesIfNotExist("NODE_VOLUME_" + i);
-
-      System.out.println("building local node " + i + " , please wait ....");
-
-      CreateContainerResponse nodeServer = this.dockerClient
-              .createContainerCmd(imageId)
-              .withName("NODE" + i)
-              .withTty(true)
-              .withHostConfig(hostConfig)
-              .withCmd("NODE" + i, "bootstrap.txt")
-              .exec();
-      containers.add(nodeServer);
-    }
-
-    super.runMetricsTestNet();
-
-    Thread[] containerThreads = new Thread[nodeCount];
-    for (int i = 0; i < nodeCount; i++) {
-      int finalI = i;
-      containerThreads[i] = new Thread(() -> {
-        try {
-          TimeUnit.MILLISECONDS.sleep(1000);
-        } catch (InterruptedException e) {
-          System.err.println("thread operation interrupted: " + e);
-        }
-
-        dockerClient
-                .startContainerCmd(containers.get(finalI).getId())
-                .exec();
-
-        dockerClient
-                .logContainerCmd(containers.get(finalI).getId())
-                .withStdErr(true)
-                .withStdOut(true)
-                .withFollowStream(true)
-                .withSince((int) (System.currentTimeMillis() / 1000))
-                .exec(new ResultCallbackTemplate<LogContainerResultCallback, Frame>() {
-                  @Override
-                  public void onNext(Frame frame) {
-                    System.out.print("Node " + finalI + "> " + new String(frame.getPayload(), StandardCharsets.UTF_8));
-                  }
-                });
-        System.out.println("Node " + finalI + " is up and running!");
-        while (true) {
-        }
-      });
-    }
-
-    for (Thread t : containerThreads) {
-      t.start();
-    }
-  }
-
-  /**
-   * Builds and returns a ConcurrentMap of nodes to be bootstrapped.
-   */
-  public ConcurrentMap createBootstrapFile() {
-    ConcurrentMap<Identifier, String> idTable = new ConcurrentHashMap<>();
-
-    for (int i = 0; i < nodeCount; i++) {
-      Identifier id = new Identifier(("NODE" + i).getBytes(StandardCharsets.UTF_8));
-      idTable.put(id, "NODE" + i + ":8081");
-    }
-    return idTable;
   }
 }
 
