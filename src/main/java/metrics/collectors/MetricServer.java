@@ -12,11 +12,6 @@ public class MetricServer {
   private HTTPServer server;
 
   public MetricServer() {
-    this.serverPort = 8081;
-  }
-
-  public MetricServer(int serverPort) {
-    this.serverPort = serverPort;
   }
 
   /**
@@ -25,7 +20,7 @@ public class MetricServer {
   public void start() {
 
     try {
-      server = new HTTPServer(serverPort);
+      server = new HTTPServer(SERVER_PORT);
     } catch (IOException e) {
       throw new IllegalStateException("could not start metrics server:\t" + e);
     }
