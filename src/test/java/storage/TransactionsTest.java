@@ -11,11 +11,11 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import model.lightchain.Transaction;
+import org.apache.commons.io.FileUtils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.testcontainers.shaded.org.apache.commons.io.FileUtils;
 import storage.mapdb.TransactionsMapDb;
 import unittest.fixtures.TransactionFixture;
 

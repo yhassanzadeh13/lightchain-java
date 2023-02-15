@@ -10,11 +10,11 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import model.lightchain.BlockProposal;
+import org.apache.commons.io.FileUtils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.testcontainers.shaded.org.apache.commons.io.FileUtils;
 import storage.mapdb.BlockProposalsMapDb;
 import unittest.fixtures.BlockFixture;
 
