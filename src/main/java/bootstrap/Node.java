@@ -43,7 +43,8 @@ public class Node {
     idTable = readFromOutput(args[1]);
     network = new P2pNetwork(myId, 8081);
     network.setIdToAddressMap(idTable);
-
+    logger.info("node {} started successfully at address {}", myId);
+    logger.info("args[0]: {}, arg[1]: {}", args[0], args[1]);
     engine = new BroadcastEngine(idTable, myId, network);
 
     try {

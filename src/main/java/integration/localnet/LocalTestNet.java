@@ -132,6 +132,7 @@ public class LocalTestNet extends MetricsTestNet {
     super.runMetricsTestNet();
 
     Thread[] containerThreads = new Thread[nodeCount];
+    Thread[] containerLoggerThreads = new Thread[nodeCount];
     for (int i = 0; i < nodeCount; i++) {
       int finalI = i;
       containerThreads[i] = new Thread(() -> {
@@ -140,9 +141,14 @@ public class LocalTestNet extends MetricsTestNet {
         dockerClient
             .startContainerCmd(containers.get(finalI).getId())
             .exec();
-        this.containerLogger.registerLogger(containers.get(finalI).getId());
-
         this.logger.info("node container {} started", finalI);
+      });
+
+      containerLoggerThreads[i] = new Thread(() -> {
+        this.logger.info("starting node container logger {}", finalI);
+
+        this.containerLogger.runContainerLoggerWorker(containers.get(finalI).getId());
+        this.logger.info("node container logger {} started", finalI);
       });
     }
 
@@ -155,12 +161,20 @@ public class LocalTestNet extends MetricsTestNet {
       t.start();
     }
 
-    while (true) {
-      this.containerLogger.runContainerLoggerWorker();
+    for (Thread t : containerLoggerThreads) {
       try {
-        TimeUnit.SECONDS.sleep(1);
+        TimeUnit.MILLISECONDS.sleep(100);
       } catch (InterruptedException e) {
-        logger.fatal("interrupted while sleeping to log containers", e);
+        logger.fatal("interrupted while sleeping to start container logger", e);
+      }
+      t.start();
+    }
+
+    for (Thread t : containerThreads) {
+      try {
+        t.join();
+      } catch (InterruptedException e) {
+        logger.fatal("interrupted while waiting for container to start", e);
       }
     }
   }

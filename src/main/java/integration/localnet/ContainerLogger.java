@@ -55,13 +55,12 @@ public class ContainerLogger {
     this.lastLogTime.put(containerId, DEFAULT_LAST_LOG_TIME);
   }
 
-  private LogContainerCmd createLogCommand(String containerId, int since) {
+  private LogContainerCmd createLogCommand(String containerId) {
     return this.dockerClient
         .logContainerCmd(containerId)
         .withFollowStream(true)
         .withStdOut(true)
-        .withStdErr(true)
-        .withSince(since);
+        .withStdErr(true);
   }
 
   /**
@@ -70,27 +69,23 @@ public class ContainerLogger {
 
   @edu.umd.cs.findbugs.annotations.SuppressFBWarnings(value = "RCN_REDUNDANT_NULLCHECK_WOULD_HAVE_BEEN_A_NPE", justification = "seems a false "
       + "positive")
-  public void runContainerLoggerWorker() {
-    for (Map.Entry<String, Integer> c : this.lastLogTime.entrySet()) {
-      try (LogContainerCmd lg = createLogCommand(c.getKey(), c.getValue())) {
+  public void runContainerLoggerWorker(String containerId) {
+      try (LogContainerCmd lg = createLogCommand(containerId)) {
         lg.exec(new ResultCallback.Adapter<>() {
           @Override
           public void onNext(Frame item) {
             super.onNext(item);
-            String lgMsg = new String(item.getPayload(), StandardCharsets.UTF_8);
+            String lgMsg = new String(item.getPayload(), StandardCharsets.UTF_8).trim();
             String[] split = lgMsg.split("\n");
-            System.out.println("-------------------");
             for (String s : split) {
-              System.out.println("[Container] " + s);
+              // appends the container id to the log message (only the first 10 characters).
+              System.out.println("[Container] " + containerId.substring(0, 10) + ":" + s);
             }
-            System.out.println("-------------------");
           }
         }).awaitCompletion();
       } catch (InterruptedException e) {
-        logger.fatal("error while logging container: {}", c.getKey(), e);
+        logger.fatal("error while logging container: {}", containerId);
       }
-      this.lastLogTime.put(c.getKey(), (int) (System.currentTimeMillis() / 1000));
-    }
   }
 
   /**
