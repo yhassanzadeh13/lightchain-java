@@ -8,10 +8,8 @@ import java.util.concurrent.TimeUnit;
 
 import bootstrap.Bootstrap;
 import bootstrap.BootstrapInfo;
-import com.github.dockerjava.api.DockerClient;
 import com.github.dockerjava.api.command.BuildImageResultCallback;
 import com.github.dockerjava.api.command.CreateContainerResponse;
-import com.github.dockerjava.api.command.PullImageCmd;
 import com.github.dockerjava.api.exception.DockerException;
 import com.github.dockerjava.api.model.Bind;
 import com.github.dockerjava.api.model.HostConfig;
