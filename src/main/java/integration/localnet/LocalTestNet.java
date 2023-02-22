@@ -8,10 +8,14 @@ import java.util.concurrent.TimeUnit;
 
 import bootstrap.Bootstrap;
 import bootstrap.BootstrapInfo;
+import com.github.dockerjava.api.DockerClient;
 import com.github.dockerjava.api.command.BuildImageResultCallback;
 import com.github.dockerjava.api.command.CreateContainerResponse;
+import com.github.dockerjava.api.command.PullImageCmd;
+import com.github.dockerjava.api.exception.DockerException;
 import com.github.dockerjava.api.model.Bind;
 import com.github.dockerjava.api.model.HostConfig;
+import com.github.dockerjava.api.model.Image;
 import metrics.integration.MetricsTestNet;
 import modules.logger.LightchainLogger;
 import modules.logger.Logger;
@@ -84,7 +88,7 @@ public class LocalTestNet extends MetricsTestNet {
    */
   public void createNodeContainers() {
     String imageId = LOCAL_DOCKER_REGISTRY + LIGHTCHAIN_IMAGE;
-    if (dockerClient.pullImageCmd(imageId) == null) {
+    if (!this.checkImageExistence(imageId)) {
       // alternatively, you may run docker-build-lightchain to build the image.
       this.logger.warn("could not find image {} in local registry", imageId);
       this.logger.warn("building lightchain images from Dockerfile, this may take a while...");
@@ -166,6 +170,24 @@ public class LocalTestNet extends MetricsTestNet {
         logger.fatal("interrupted while waiting for container to start", e);
       }
     }
+  }
+
+  private boolean checkImageExistence(String imageId) {
+    boolean imageExists = false;
+    try {
+      // Get a list of all images on the Docker host
+      List<Image> images = this.dockerClient.listImagesCmd().exec();
+      // Loop through the list to find the image with the given image ID
+      for (Image image : images) {
+        if (image.getId().equals(imageId)) {
+          imageExists = true;
+          break;
+        }
+      }
+    } catch (DockerException e) {
+      System.err.println("Failed to check for Docker image existence: " + e.getMessage());
+    }
+    return imageExists;
   }
 }
 
