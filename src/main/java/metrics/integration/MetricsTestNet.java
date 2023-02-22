@@ -53,17 +53,17 @@ public class MetricsTestNet {
   private static final String PROMETHEUS_YAML_PATH = "prometheus/prometheus.yml";
   private static final String PROMETHEUS_IMAGE = "prom/prometheus";
   private static final String PROMETHEUS_VOLUME_NAME = LIGHTCHAIN_PREFIX + "prometheus_volume";
+  private static final String PROMETHEUS_VOLUME_BINDING_VOLUME = PROMETHEUS_VOLUME_NAME + ":/prometheus";
   private static final String PROMETHEUS_MAIN_CMD = "prom/prometheus:main";
   private static final String PROMETHEUS_VOLUME_BINDING_ETC = "/prometheus" + ":" + "/etc/prometheus";
-  private static final String PROMETHEUS_VOLUME_BINDING_VOLUME = PROMETHEUS_VOLUME_NAME + ":/prometheus";
   // Grafana
   private static final int GRAFANA_PORT = 3000;
   private static final String GRAFANA_CONTAINER_NAME = LIGHTCHAIN_PREFIX + "grafana";
   private static final String GRAFANA_VOLUME_NAME = LIGHTCHAIN_PREFIX + "grafana_volume";
+  private static final String GRAFANA_VOLUME_BINDING = GRAFANA_VOLUME_NAME + ":/var/lib/grafana";
   private static final String GRAFANA_IMAGE = "grafana/grafana";
   private static final String GRAFANA_MAIN_CMD = "grafana/grafana:main";
   private static final String GRAFANA_NO_SIGN_UP = "GF_USERS_ALLOW_SIGN_UP=false";
-  private static final String GRAFANA_VOLUME_BINDING = GRAFANA_VOLUME_NAME + ":/var/lib/grafana";
   private static final String GRAFANA_ADMIN_USER_NAME = "GF_SECURITY_ADMIN_USER=${ADMIN_USER:-admin}";
   private static final String GRAFANA_ADMIN_PASSWORD = "GF_SECURITY_ADMIN_PASSWORD=${ADMIN_PASSWORD:-admin}";
   private static final String GRAFANA_DASHBOARD_BINDING = "/grafana/provisioning/dashboards:/etc/grafana/provisioning" + "/dashboards";

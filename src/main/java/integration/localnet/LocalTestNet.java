@@ -7,10 +7,13 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import bootstrap.Bootstrap;
+import bootstrap.BootstrapInfo;
 import com.github.dockerjava.api.command.BuildImageResultCallback;
 import com.github.dockerjava.api.command.CreateContainerResponse;
+import com.github.dockerjava.api.exception.DockerException;
 import com.github.dockerjava.api.model.Bind;
 import com.github.dockerjava.api.model.HostConfig;
+import com.github.dockerjava.api.model.Image;
 import metrics.integration.MetricsTestNet;
 import modules.logger.LightchainLogger;
 import modules.logger.Logger;
@@ -33,12 +36,12 @@ public class LocalTestNet extends MetricsTestNet {
   private static final String NODE_VOLUME_BINDING = "server_volume:/app";
   private static final String NODE_DOCKER_FILE = "./DockerfileTestnet";
 
+  private final BootstrapInfo bootstrapInfo;
+
   private final Logger logger = LightchainLogger.getLogger(Bootstrap.class.getCanonicalName());
 
-  private final int nodeCount;
-
-  public LocalTestNet(int nodeCount) {
-    this.nodeCount = nodeCount;
+  public LocalTestNet(BootstrapInfo info) {
+    this.bootstrapInfo = info;
   }
 
   /**
@@ -83,7 +86,7 @@ public class LocalTestNet extends MetricsTestNet {
    */
   public void createNodeContainers() {
     String imageId = LOCAL_DOCKER_REGISTRY + LIGHTCHAIN_IMAGE;
-    if (dockerClient.pullImageCmd(imageId) == null) {
+    if (!this.checkImageExistence(imageId)) {
       // alternatively, you may run docker-build-lightchain to build the image.
       this.logger.warn("could not find image {} in local registry", imageId);
       this.logger.warn("building lightchain images from Dockerfile, this may take a while...");
@@ -103,7 +106,7 @@ public class LocalTestNet extends MetricsTestNet {
     HostConfig hostConfig = new HostConfig().withBinds(serverBinds).withNetworkMode(NETWORK_NAME);
     ArrayList<CreateContainerResponse> containers = new ArrayList<>();
 
-    for (int i = 0; i < nodeCount; i++) {
+    for (int i = 0; i < this.bootstrapInfo.size(); i++) {
       this.createVolumesIfNotExist("NODE_VOLUME_" + i);
 
       logger.info("creating node container {}", i);
@@ -112,7 +115,7 @@ public class LocalTestNet extends MetricsTestNet {
           .withName("NODE" + i)
           .withTty(true)
           .withHostConfig(hostConfig)
-          .withCmd("NODE" + i, "bootstrap.txt")
+          .withCmd(bootstrapInfo.getIdentifier(i).toString(), bootstrapInfo.getBootstrapFileName())
           .exec();
       containers.add(nodeServer);
 
@@ -121,16 +124,22 @@ public class LocalTestNet extends MetricsTestNet {
 
     super.runMetricsTestNet();
 
-    Thread[] containerThreads = new Thread[nodeCount];
-    for (int i = 0; i < nodeCount; i++) {
+    Thread[] containerThreads = new Thread[this.bootstrapInfo.size()];
+    Thread[] containerLoggerThreads = new Thread[this.bootstrapInfo.size()];
+    for (int i = 0; i < this.bootstrapInfo.size(); i++) {
       int finalI = i;
       containerThreads[i] = new Thread(() -> {
         this.logger.info("starting node container {}", finalI);
 
         dockerClient.startContainerCmd(containers.get(finalI).getId()).exec();
-        this.containerLogger.registerLogger(containers.get(finalI).getId());
-
         this.logger.info("node container {} started", finalI);
+      });
+
+      containerLoggerThreads[i] = new Thread(() -> {
+        this.logger.info("starting node container logger {}", finalI);
+
+        this.containerLogger.runContainerLoggerWorker(containers.get(finalI).getId());
+        this.logger.info("node container logger {} started", finalI);
       });
     }
 
@@ -143,14 +152,40 @@ public class LocalTestNet extends MetricsTestNet {
       t.start();
     }
 
-    while (true) {
-      this.containerLogger.runContainerLoggerWorker();
+    for (Thread t : containerLoggerThreads) {
       try {
-        TimeUnit.SECONDS.sleep(1);
+        TimeUnit.MILLISECONDS.sleep(100);
       } catch (InterruptedException e) {
-        logger.fatal("interrupted while sleeping to log containers", e);
+        logger.fatal("interrupted while sleeping to start container logger", e);
+      }
+      t.start();
+    }
+
+    for (Thread t : containerThreads) {
+      try {
+        t.join();
+      } catch (InterruptedException e) {
+        logger.fatal("interrupted while waiting for container to start", e);
       }
     }
+  }
+
+  private boolean checkImageExistence(String imageId) {
+    boolean imageExists = false;
+    try {
+      // Get a list of all images on the Docker host
+      List<Image> images = this.dockerClient.listImagesCmd().exec();
+      // Loop through the list to find the image with the given image ID
+      for (Image image : images) {
+        if (image.getId().equals(imageId)) {
+          imageExists = true;
+          break;
+        }
+      }
+    } catch (DockerException e) {
+      System.err.println("Failed to check for Docker image existence: " + e.getMessage());
+    }
+    return imageExists;
   }
 }
 

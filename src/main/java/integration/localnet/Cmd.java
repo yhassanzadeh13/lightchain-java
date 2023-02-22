@@ -17,9 +17,7 @@ public class Cmd {
    */
   public static void main(String[] args) {
     Bootstrap bootstrap = new Bootstrap(NODE_COUNT);
-    bootstrap.build();
-
-    LocalTestNet testNet = new LocalTestNet(NODE_COUNT);
+    LocalTestNet testNet = new LocalTestNet(bootstrap.build());
     try {
       testNet.runLocalTestNet();
     } catch (IllegalStateException e) {
