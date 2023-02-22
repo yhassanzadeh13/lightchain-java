@@ -1,5 +1,6 @@
 package bootstrap;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
@@ -43,10 +44,10 @@ public class BootstrapInfo {
     //      the identifiers in the identifierTable must be unique, and the docker names must be unique and docker names should match
     //      the address in the identifier table.
     //      It should throw a RuntimeException if any of the above conditions are not met.
-    this.identifiers = identifiers;
-    this.dockerNames = dockerNames;
+    this.identifiers = new ArrayList<>(identifiers);
+    this.dockerNames = new ArrayList<>(dockerNames);
     this.bootstrapFileName = bootstrapFileName;
-    this.identifierTable = identifierTable;
+    this.identifierTable = new HashMap<>(identifierTable);
   }
 
   /**
@@ -55,7 +56,7 @@ public class BootstrapInfo {
    * @return the list of docker names.
    */
   public List<String> getDockerNames() {
-    return dockerNames;
+    return new ArrayList<>(dockerNames);
   }
 
   /**
@@ -73,7 +74,7 @@ public class BootstrapInfo {
    * @return the identifier table.
    */
   public HashMap<Identifier, String> getIdentifierTable() {
-    return identifierTable;
+    return new HashMap<Identifier, String>(identifierTable);
   }
 
   /**
