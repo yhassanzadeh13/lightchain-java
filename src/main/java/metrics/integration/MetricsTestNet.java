@@ -27,7 +27,6 @@ import com.github.dockerjava.api.model.Ports;
 import com.github.dockerjava.core.DefaultDockerClientConfig;
 import com.github.dockerjava.core.DockerClientConfig;
 import com.github.dockerjava.core.DockerClientImpl;
-
 import com.github.dockerjava.httpclient5.ApacheDockerHttpClient;
 import com.github.dockerjava.transport.DockerHttpClient;
 import integration.localnet.ContainerLogger;
@@ -78,8 +77,7 @@ public class MetricsTestNet {
   public MetricsTestNet() {
     DockerClientConfig config = DefaultDockerClientConfig.createDefaultConfigBuilder().build();
 
-    DockerHttpClient client = new ApacheDockerHttpClient.Builder()
-        .dockerHost(config.getDockerHost())
+    DockerHttpClient client = new ApacheDockerHttpClient.Builder().dockerHost(config.getDockerHost())
         .sslConfig(config.getSSLConfig())
         .maxConnections(100)
         .connectionTimeout(Duration.ofSeconds(30))
