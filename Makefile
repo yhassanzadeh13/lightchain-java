@@ -18,9 +18,10 @@ test: proto generate
 	@mvn test
 check:
 	@ mvn org.apache.maven.plugins:maven-help-plugin:2.1.1:evaluate -Dexpression=project.version -Dlog4j.debug
-docker-build-lightchain:
+compile-lightchain:
 	mvn -B -f pom.xml dependency:go-offline -DskipTests
 	mvn compile assembly:single -DskipTests
+docker-build-lightchain: compile-lightchain
 	docker run -d -p 5001:5001 --name registry registry:2
 	docker image rm -f $(IMAGE_NAME)
 	docker build -f ./DockerfileTestnet -t  $(IMAGE_NAME) .

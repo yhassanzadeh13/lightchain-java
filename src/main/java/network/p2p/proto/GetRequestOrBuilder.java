@@ -9,7 +9,6 @@ public interface GetRequestOrBuilder extends
 
   /**
    * <code>bytes Identifier = 1;</code>
-   *
    * @return The identifier.
    */
   com.google.protobuf.ByteString getIdentifier();

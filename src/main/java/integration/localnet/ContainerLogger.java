@@ -2,7 +2,6 @@ package integration.localnet;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Hashtable;
-import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import com.github.dockerjava.api.DockerClient;
@@ -70,22 +69,22 @@ public class ContainerLogger {
   @edu.umd.cs.findbugs.annotations.SuppressFBWarnings(value = "RCN_REDUNDANT_NULLCHECK_WOULD_HAVE_BEEN_A_NPE", justification = "seems a false "
       + "positive")
   public void runContainerLoggerWorker(String containerId) {
-      try (LogContainerCmd lg = createLogCommand(containerId)) {
-        lg.exec(new ResultCallback.Adapter<>() {
-          @Override
-          public void onNext(Frame item) {
-            super.onNext(item);
-            String lgMsg = new String(item.getPayload(), StandardCharsets.UTF_8).trim();
-            String[] split = lgMsg.split("\n");
-            for (String s : split) {
-              // appends the container id to the log message (only the first 10 characters).
-              System.out.println("[Container] " + containerId.substring(0, 10) + ":" + s);
-            }
+    try (LogContainerCmd lg = createLogCommand(containerId)) {
+      lg.exec(new ResultCallback.Adapter<>() {
+        @Override
+        public void onNext(Frame item) {
+          super.onNext(item);
+          String lgMsg = new String(item.getPayload(), StandardCharsets.UTF_8).trim();
+          String[] split = lgMsg.split("\n");
+          for (String s : split) {
+            // appends the container id to the log message (only the first 10 characters).
+            System.out.println("[Container] " + containerId.substring(0, 10) + ":" + s);
           }
-        }).awaitCompletion();
-      } catch (InterruptedException e) {
-        logger.fatal("error while logging container: {}", containerId);
-      }
+        }
+      }).awaitCompletion();
+    } catch (InterruptedException e) {
+      logger.fatal("error while logging container: {}", containerId);
+    }
   }
 
   /**

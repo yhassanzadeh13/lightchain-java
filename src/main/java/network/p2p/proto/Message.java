@@ -10,41 +10,11 @@ public final class Message extends
     com.google.protobuf.GeneratedMessageV3 implements
     // @@protoc_insertion_point(message_implements:network.p2p.proto.Message)
     MessageOrBuilder {
-  public static final int ORIGINID_FIELD_NUMBER = 1;
-  public static final int CHANNEL_FIELD_NUMBER = 2;
-  public static final int TARGETIDS_FIELD_NUMBER = 3;
-  public static final int PAYLOAD_FIELD_NUMBER = 4;
-  public static final int TYPE_FIELD_NUMBER = 5;
-  private static final long serialVersionUID = 0L;
-  // @@protoc_insertion_point(class_scope:network.p2p.proto.Message)
-  private static final network.p2p.proto.Message DEFAULT_INSTANCE;
-  private static final com.google.protobuf.Parser<Message>
-      PARSER = new com.google.protobuf.AbstractParser<Message>() {
-    @java.lang.Override
-    public Message parsePartialFrom(
-        com.google.protobuf.CodedInputStream input,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return new Message(input, extensionRegistry);
-    }
-  };
-
-  static {
-    DEFAULT_INSTANCE = new network.p2p.proto.Message();
-  }
-
-  private com.google.protobuf.ByteString originId_;
-  private volatile java.lang.Object channel_;
-  private java.util.List<com.google.protobuf.ByteString> targetIds_;
-  private com.google.protobuf.ByteString payload_;
-  private volatile java.lang.Object type_;
-  private byte memoizedIsInitialized = -1;
-
+private static final long serialVersionUID = 0L;
   // Use Message.newBuilder() to construct.
   private Message(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
     super(builder);
   }
-
   private Message() {
     originId_ = com.google.protobuf.ByteString.EMPTY;
     channel_ = "";
@@ -53,6 +23,18 @@ public final class Message extends
     type_ = "";
   }
 
+  @java.lang.Override
+  @SuppressWarnings({"unused"})
+  protected java.lang.Object newInstance(
+      UnusedPrivateParameter unused) {
+    return new Message();
+  }
+
+  @java.lang.Override
+  public final com.google.protobuf.UnknownFieldSet
+  getUnknownFields() {
+    return this.unknownFields;
+  }
   private Message(
       com.google.protobuf.CodedInputStream input,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -124,133 +106,23 @@ public final class Message extends
       makeExtensionsImmutable();
     }
   }
-
   public static final com.google.protobuf.Descriptors.Descriptor
-  getDescriptor() {
+      getDescriptor() {
     return network.p2p.proto.MessageOuterClass.internal_static_network_p2p_proto_Message_descriptor;
-  }
-
-  public static network.p2p.proto.Message parseFrom(
-      java.nio.ByteBuffer data)
-      throws com.google.protobuf.InvalidProtocolBufferException {
-    return PARSER.parseFrom(data);
-  }
-
-  public static network.p2p.proto.Message parseFrom(
-      java.nio.ByteBuffer data,
-      com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-      throws com.google.protobuf.InvalidProtocolBufferException {
-    return PARSER.parseFrom(data, extensionRegistry);
-  }
-
-  public static network.p2p.proto.Message parseFrom(
-      com.google.protobuf.ByteString data)
-      throws com.google.protobuf.InvalidProtocolBufferException {
-    return PARSER.parseFrom(data);
-  }
-
-  public static network.p2p.proto.Message parseFrom(
-      com.google.protobuf.ByteString data,
-      com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-      throws com.google.protobuf.InvalidProtocolBufferException {
-    return PARSER.parseFrom(data, extensionRegistry);
-  }
-
-  public static network.p2p.proto.Message parseFrom(byte[] data)
-      throws com.google.protobuf.InvalidProtocolBufferException {
-    return PARSER.parseFrom(data);
-  }
-
-  public static network.p2p.proto.Message parseFrom(
-      byte[] data,
-      com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-      throws com.google.protobuf.InvalidProtocolBufferException {
-    return PARSER.parseFrom(data, extensionRegistry);
-  }
-
-  public static network.p2p.proto.Message parseFrom(java.io.InputStream input)
-      throws java.io.IOException {
-    return com.google.protobuf.GeneratedMessageV3
-        .parseWithIOException(PARSER, input);
-  }
-
-  public static network.p2p.proto.Message parseFrom(
-      java.io.InputStream input,
-      com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-      throws java.io.IOException {
-    return com.google.protobuf.GeneratedMessageV3
-        .parseWithIOException(PARSER, input, extensionRegistry);
-  }
-
-  public static network.p2p.proto.Message parseDelimitedFrom(java.io.InputStream input)
-      throws java.io.IOException {
-    return com.google.protobuf.GeneratedMessageV3
-        .parseDelimitedWithIOException(PARSER, input);
-  }
-
-  public static network.p2p.proto.Message parseDelimitedFrom(
-      java.io.InputStream input,
-      com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-      throws java.io.IOException {
-    return com.google.protobuf.GeneratedMessageV3
-        .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
-  }
-
-  public static network.p2p.proto.Message parseFrom(
-      com.google.protobuf.CodedInputStream input)
-      throws java.io.IOException {
-    return com.google.protobuf.GeneratedMessageV3
-        .parseWithIOException(PARSER, input);
-  }
-
-  public static network.p2p.proto.Message parseFrom(
-      com.google.protobuf.CodedInputStream input,
-      com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-      throws java.io.IOException {
-    return com.google.protobuf.GeneratedMessageV3
-        .parseWithIOException(PARSER, input, extensionRegistry);
-  }
-
-  public static Builder newBuilder() {
-    return DEFAULT_INSTANCE.toBuilder();
-  }
-
-  public static Builder newBuilder(network.p2p.proto.Message prototype) {
-    return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
-  }
-
-  public static network.p2p.proto.Message getDefaultInstance() {
-    return DEFAULT_INSTANCE;
-  }
-
-  public static com.google.protobuf.Parser<Message> parser() {
-    return PARSER;
-  }
-
-  @java.lang.Override
-  @SuppressWarnings({"unused"})
-  protected java.lang.Object newInstance(
-      UnusedPrivateParameter unused) {
-    return new Message();
-  }
-
-  @java.lang.Override
-  public final com.google.protobuf.UnknownFieldSet
-  getUnknownFields() {
-    return this.unknownFields;
   }
 
   @java.lang.Override
   protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
-  internalGetFieldAccessorTable() {
+      internalGetFieldAccessorTable() {
     return network.p2p.proto.MessageOuterClass.internal_static_network_p2p_proto_Message_fieldAccessorTable
         .ensureFieldAccessorsInitialized(
             network.p2p.proto.Message.class, network.p2p.proto.Message.Builder.class);
   }
 
+  public static final int ORIGINID_FIELD_NUMBER = 1;
+  private com.google.protobuf.ByteString originId_;
   /**
    * <code>bytes OriginId = 1;</code>
-   *
    * @return The originId.
    */
   @java.lang.Override
@@ -258,9 +130,10 @@ public final class Message extends
     return originId_;
   }
 
+  public static final int CHANNEL_FIELD_NUMBER = 2;
+  private volatile java.lang.Object channel_;
   /**
    * <code>string Channel = 2;</code>
-   *
    * @return The channel.
    */
   @java.lang.Override
@@ -269,25 +142,23 @@ public final class Message extends
     if (ref instanceof java.lang.String) {
       return (java.lang.String) ref;
     } else {
-      com.google.protobuf.ByteString bs =
+      com.google.protobuf.ByteString bs = 
           (com.google.protobuf.ByteString) ref;
       java.lang.String s = bs.toStringUtf8();
       channel_ = s;
       return s;
     }
   }
-
   /**
    * <code>string Channel = 2;</code>
-   *
    * @return The bytes for channel.
    */
   @java.lang.Override
   public com.google.protobuf.ByteString
-  getChannelBytes() {
+      getChannelBytes() {
     java.lang.Object ref = channel_;
     if (ref instanceof java.lang.String) {
-      com.google.protobuf.ByteString b =
+      com.google.protobuf.ByteString b = 
           com.google.protobuf.ByteString.copyFromUtf8(
               (java.lang.String) ref);
       channel_ = b;
@@ -297,29 +168,26 @@ public final class Message extends
     }
   }
 
+  public static final int TARGETIDS_FIELD_NUMBER = 3;
+  private java.util.List<com.google.protobuf.ByteString> targetIds_;
   /**
    * <code>repeated bytes TargetIds = 3;</code>
-   *
    * @return A list containing the targetIds.
    */
   @java.lang.Override
   public java.util.List<com.google.protobuf.ByteString>
-  getTargetIdsList() {
+      getTargetIdsList() {
     return targetIds_;
   }
-
   /**
    * <code>repeated bytes TargetIds = 3;</code>
-   *
    * @return The count of targetIds.
    */
   public int getTargetIdsCount() {
     return targetIds_.size();
   }
-
   /**
    * <code>repeated bytes TargetIds = 3;</code>
-   *
    * @param index The index of the element to return.
    * @return The targetIds at the given index.
    */
@@ -327,9 +195,10 @@ public final class Message extends
     return targetIds_.get(index);
   }
 
+  public static final int PAYLOAD_FIELD_NUMBER = 4;
+  private com.google.protobuf.ByteString payload_;
   /**
    * <code>bytes Payload = 4;</code>
-   *
    * @return The payload.
    */
   @java.lang.Override
@@ -337,9 +206,10 @@ public final class Message extends
     return payload_;
   }
 
+  public static final int TYPE_FIELD_NUMBER = 5;
+  private volatile java.lang.Object type_;
   /**
    * <code>string Type = 5;</code>
-   *
    * @return The type.
    */
   @java.lang.Override
@@ -348,25 +218,23 @@ public final class Message extends
     if (ref instanceof java.lang.String) {
       return (java.lang.String) ref;
     } else {
-      com.google.protobuf.ByteString bs =
+      com.google.protobuf.ByteString bs = 
           (com.google.protobuf.ByteString) ref;
       java.lang.String s = bs.toStringUtf8();
       type_ = s;
       return s;
     }
   }
-
   /**
    * <code>string Type = 5;</code>
-   *
    * @return The bytes for type.
    */
   @java.lang.Override
   public com.google.protobuf.ByteString
-  getTypeBytes() {
+      getTypeBytes() {
     java.lang.Object ref = type_;
     if (ref instanceof java.lang.String) {
-      com.google.protobuf.ByteString b =
+      com.google.protobuf.ByteString b = 
           com.google.protobuf.ByteString.copyFromUtf8(
               (java.lang.String) ref);
       type_ = b;
@@ -376,15 +244,12 @@ public final class Message extends
     }
   }
 
+  private byte memoizedIsInitialized = -1;
   @java.lang.Override
   public final boolean isInitialized() {
     byte isInitialized = memoizedIsInitialized;
-    if (isInitialized == 1) {
-      return true;
-    }
-    if (isInitialized == 0) {
-      return false;
-    }
+    if (isInitialized == 1) return true;
+    if (isInitialized == 0) return false;
 
     memoizedIsInitialized = 1;
     return true;
@@ -392,7 +257,7 @@ public final class Message extends
 
   @java.lang.Override
   public void writeTo(com.google.protobuf.CodedOutputStream output)
-      throws java.io.IOException {
+                      throws java.io.IOException {
     if (!originId_.isEmpty()) {
       output.writeBytes(1, originId_);
     }
@@ -414,14 +279,12 @@ public final class Message extends
   @java.lang.Override
   public int getSerializedSize() {
     int size = memoizedSize;
-    if (size != -1) {
-      return size;
-    }
+    if (size != -1) return size;
 
     size = 0;
     if (!originId_.isEmpty()) {
       size += com.google.protobuf.CodedOutputStream
-          .computeBytesSize(1, originId_);
+        .computeBytesSize(1, originId_);
     }
     if (!com.google.protobuf.GeneratedMessageV3.isStringEmpty(channel_)) {
       size += com.google.protobuf.GeneratedMessageV3.computeStringSize(2, channel_);
@@ -430,14 +293,14 @@ public final class Message extends
       int dataSize = 0;
       for (int i = 0; i < targetIds_.size(); i++) {
         dataSize += com.google.protobuf.CodedOutputStream
-            .computeBytesSizeNoTag(targetIds_.get(i));
+          .computeBytesSizeNoTag(targetIds_.get(i));
       }
       size += dataSize;
       size += 1 * getTargetIdsList().size();
     }
     if (!payload_.isEmpty()) {
       size += com.google.protobuf.CodedOutputStream
-          .computeBytesSize(4, payload_);
+        .computeBytesSize(4, payload_);
     }
     if (!com.google.protobuf.GeneratedMessageV3.isStringEmpty(type_)) {
       size += com.google.protobuf.GeneratedMessageV3.computeStringSize(5, type_);
@@ -450,7 +313,7 @@ public final class Message extends
   @java.lang.Override
   public boolean equals(final java.lang.Object obj) {
     if (obj == this) {
-      return true;
+     return true;
     }
     if (!(obj instanceof network.p2p.proto.Message)) {
       return super.equals(obj);
@@ -458,28 +321,16 @@ public final class Message extends
     network.p2p.proto.Message other = (network.p2p.proto.Message) obj;
 
     if (!getOriginId()
-        .equals(other.getOriginId())) {
-      return false;
-    }
+        .equals(other.getOriginId())) return false;
     if (!getChannel()
-        .equals(other.getChannel())) {
-      return false;
-    }
+        .equals(other.getChannel())) return false;
     if (!getTargetIdsList()
-        .equals(other.getTargetIdsList())) {
-      return false;
-    }
+        .equals(other.getTargetIdsList())) return false;
     if (!getPayload()
-        .equals(other.getPayload())) {
-      return false;
-    }
+        .equals(other.getPayload())) return false;
     if (!getType()
-        .equals(other.getType())) {
-      return false;
-    }
-    if (!unknownFields.equals(other.unknownFields)) {
-      return false;
-    }
+        .equals(other.getType())) return false;
+    if (!unknownFields.equals(other.unknownFields)) return false;
     return true;
   }
 
@@ -507,15 +358,88 @@ public final class Message extends
     return hash;
   }
 
-  @java.lang.Override
-  public Builder newBuilderForType() {
-    return newBuilder();
+  public static network.p2p.proto.Message parseFrom(
+      java.nio.ByteBuffer data)
+      throws com.google.protobuf.InvalidProtocolBufferException {
+    return PARSER.parseFrom(data);
+  }
+  public static network.p2p.proto.Message parseFrom(
+      java.nio.ByteBuffer data,
+      com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+      throws com.google.protobuf.InvalidProtocolBufferException {
+    return PARSER.parseFrom(data, extensionRegistry);
+  }
+  public static network.p2p.proto.Message parseFrom(
+      com.google.protobuf.ByteString data)
+      throws com.google.protobuf.InvalidProtocolBufferException {
+    return PARSER.parseFrom(data);
+  }
+  public static network.p2p.proto.Message parseFrom(
+      com.google.protobuf.ByteString data,
+      com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+      throws com.google.protobuf.InvalidProtocolBufferException {
+    return PARSER.parseFrom(data, extensionRegistry);
+  }
+  public static network.p2p.proto.Message parseFrom(byte[] data)
+      throws com.google.protobuf.InvalidProtocolBufferException {
+    return PARSER.parseFrom(data);
+  }
+  public static network.p2p.proto.Message parseFrom(
+      byte[] data,
+      com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+      throws com.google.protobuf.InvalidProtocolBufferException {
+    return PARSER.parseFrom(data, extensionRegistry);
+  }
+  public static network.p2p.proto.Message parseFrom(java.io.InputStream input)
+      throws java.io.IOException {
+    return com.google.protobuf.GeneratedMessageV3
+        .parseWithIOException(PARSER, input);
+  }
+  public static network.p2p.proto.Message parseFrom(
+      java.io.InputStream input,
+      com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+      throws java.io.IOException {
+    return com.google.protobuf.GeneratedMessageV3
+        .parseWithIOException(PARSER, input, extensionRegistry);
+  }
+  public static network.p2p.proto.Message parseDelimitedFrom(java.io.InputStream input)
+      throws java.io.IOException {
+    return com.google.protobuf.GeneratedMessageV3
+        .parseDelimitedWithIOException(PARSER, input);
+  }
+  public static network.p2p.proto.Message parseDelimitedFrom(
+      java.io.InputStream input,
+      com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+      throws java.io.IOException {
+    return com.google.protobuf.GeneratedMessageV3
+        .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
+  }
+  public static network.p2p.proto.Message parseFrom(
+      com.google.protobuf.CodedInputStream input)
+      throws java.io.IOException {
+    return com.google.protobuf.GeneratedMessageV3
+        .parseWithIOException(PARSER, input);
+  }
+  public static network.p2p.proto.Message parseFrom(
+      com.google.protobuf.CodedInputStream input,
+      com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+      throws java.io.IOException {
+    return com.google.protobuf.GeneratedMessageV3
+        .parseWithIOException(PARSER, input, extensionRegistry);
   }
 
   @java.lang.Override
+  public Builder newBuilderForType() { return newBuilder(); }
+  public static Builder newBuilder() {
+    return DEFAULT_INSTANCE.toBuilder();
+  }
+  public static Builder newBuilder(network.p2p.proto.Message prototype) {
+    return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+  }
+  @java.lang.Override
   public Builder toBuilder() {
     return this == DEFAULT_INSTANCE
-           ? new Builder() : new Builder().mergeFrom(this);
+        ? new Builder() : new Builder().mergeFrom(this);
   }
 
   @java.lang.Override
@@ -524,17 +448,6 @@ public final class Message extends
     Builder builder = new Builder(parent);
     return builder;
   }
-
-  @java.lang.Override
-  public com.google.protobuf.Parser<Message> getParserForType() {
-    return PARSER;
-  }
-
-  @java.lang.Override
-  public network.p2p.proto.Message getDefaultInstanceForType() {
-    return DEFAULT_INSTANCE;
-  }
-
   /**
    * Protobuf type {@code network.p2p.proto.Message}
    */
@@ -542,12 +455,18 @@ public final class Message extends
       com.google.protobuf.GeneratedMessageV3.Builder<Builder> implements
       // @@protoc_insertion_point(builder_implements:network.p2p.proto.Message)
       network.p2p.proto.MessageOrBuilder {
-    private int bitField0_;
-    private com.google.protobuf.ByteString originId_ = com.google.protobuf.ByteString.EMPTY;
-    private java.lang.Object channel_ = "";
-    private java.util.List<com.google.protobuf.ByteString> targetIds_ = java.util.Collections.emptyList();
-    private com.google.protobuf.ByteString payload_ = com.google.protobuf.ByteString.EMPTY;
-    private java.lang.Object type_ = "";
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return network.p2p.proto.MessageOuterClass.internal_static_network_p2p_proto_Message_descriptor;
+    }
+
+    @java.lang.Override
+    protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return network.p2p.proto.MessageOuterClass.internal_static_network_p2p_proto_Message_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              network.p2p.proto.Message.class, network.p2p.proto.Message.Builder.class);
+    }
 
     // Construct using network.p2p.proto.Message.newBuilder()
     private Builder() {
@@ -559,26 +478,11 @@ public final class Message extends
       super(parent);
       maybeForceBuilderInitialization();
     }
-
-    public static final com.google.protobuf.Descriptors.Descriptor
-    getDescriptor() {
-      return network.p2p.proto.MessageOuterClass.internal_static_network_p2p_proto_Message_descriptor;
-    }
-
-    @java.lang.Override
-    protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
-    internalGetFieldAccessorTable() {
-      return network.p2p.proto.MessageOuterClass.internal_static_network_p2p_proto_Message_fieldAccessorTable
-          .ensureFieldAccessorsInitialized(
-              network.p2p.proto.Message.class, network.p2p.proto.Message.Builder.class);
-    }
-
     private void maybeForceBuilderInitialization() {
       if (com.google.protobuf.GeneratedMessageV3
-          .alwaysUseFieldBuilders) {
+              .alwaysUseFieldBuilders) {
       }
     }
-
     @java.lang.Override
     public Builder clear() {
       super.clear();
@@ -597,7 +501,7 @@ public final class Message extends
 
     @java.lang.Override
     public com.google.protobuf.Descriptors.Descriptor
-    getDescriptorForType() {
+        getDescriptorForType() {
       return network.p2p.proto.MessageOuterClass.internal_static_network_p2p_proto_Message_descriptor;
     }
 
@@ -636,44 +540,38 @@ public final class Message extends
     public Builder clone() {
       return super.clone();
     }
-
     @java.lang.Override
     public Builder setField(
         com.google.protobuf.Descriptors.FieldDescriptor field,
         java.lang.Object value) {
       return super.setField(field, value);
     }
-
     @java.lang.Override
     public Builder clearField(
         com.google.protobuf.Descriptors.FieldDescriptor field) {
       return super.clearField(field);
     }
-
     @java.lang.Override
     public Builder clearOneof(
         com.google.protobuf.Descriptors.OneofDescriptor oneof) {
       return super.clearOneof(oneof);
     }
-
     @java.lang.Override
     public Builder setRepeatedField(
         com.google.protobuf.Descriptors.FieldDescriptor field,
         int index, java.lang.Object value) {
       return super.setRepeatedField(field, index, value);
     }
-
     @java.lang.Override
     public Builder addRepeatedField(
         com.google.protobuf.Descriptors.FieldDescriptor field,
         java.lang.Object value) {
       return super.addRepeatedField(field, value);
     }
-
     @java.lang.Override
     public Builder mergeFrom(com.google.protobuf.Message other) {
       if (other instanceof network.p2p.proto.Message) {
-        return mergeFrom((network.p2p.proto.Message) other);
+        return mergeFrom((network.p2p.proto.Message)other);
       } else {
         super.mergeFrom(other);
         return this;
@@ -681,9 +579,7 @@ public final class Message extends
     }
 
     public Builder mergeFrom(network.p2p.proto.Message other) {
-      if (other == network.p2p.proto.Message.getDefaultInstance()) {
-        return this;
-      }
+      if (other == network.p2p.proto.Message.getDefaultInstance()) return this;
       if (other.getOriginId() != com.google.protobuf.ByteString.EMPTY) {
         setOriginId(other.getOriginId());
       }
@@ -736,48 +632,45 @@ public final class Message extends
       }
       return this;
     }
+    private int bitField0_;
 
+    private com.google.protobuf.ByteString originId_ = com.google.protobuf.ByteString.EMPTY;
     /**
      * <code>bytes OriginId = 1;</code>
-     *
      * @return The originId.
      */
     @java.lang.Override
     public com.google.protobuf.ByteString getOriginId() {
       return originId_;
     }
-
     /**
      * <code>bytes OriginId = 1;</code>
-     *
      * @param value The originId to set.
      * @return This builder for chaining.
      */
     public Builder setOriginId(com.google.protobuf.ByteString value) {
       if (value == null) {
-        throw new NullPointerException();
-      }
-
+    throw new NullPointerException();
+  }
+  
       originId_ = value;
       onChanged();
       return this;
     }
-
     /**
      * <code>bytes OriginId = 1;</code>
-     *
      * @return This builder for chaining.
      */
     public Builder clearOriginId() {
-
+      
       originId_ = getDefaultInstance().getOriginId();
       onChanged();
       return this;
     }
 
+    private java.lang.Object channel_ = "";
     /**
      * <code>string Channel = 2;</code>
-     *
      * @return The channel.
      */
     public java.lang.String getChannel() {
@@ -792,34 +685,15 @@ public final class Message extends
         return (java.lang.String) ref;
       }
     }
-
     /**
      * <code>string Channel = 2;</code>
-     *
-     * @param value The channel to set.
-     * @return This builder for chaining.
-     */
-    public Builder setChannel(
-        java.lang.String value) {
-      if (value == null) {
-        throw new NullPointerException();
-      }
-
-      channel_ = value;
-      onChanged();
-      return this;
-    }
-
-    /**
-     * <code>string Channel = 2;</code>
-     *
      * @return The bytes for channel.
      */
     public com.google.protobuf.ByteString
-    getChannelBytes() {
+        getChannelBytes() {
       java.lang.Object ref = channel_;
       if (ref instanceof String) {
-        com.google.protobuf.ByteString b =
+        com.google.protobuf.ByteString b = 
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         channel_ = b;
@@ -828,77 +702,81 @@ public final class Message extends
         return (com.google.protobuf.ByteString) ref;
       }
     }
-
     /**
      * <code>string Channel = 2;</code>
-     *
+     * @param value The channel to set.
+     * @return This builder for chaining.
+     */
+    public Builder setChannel(
+        java.lang.String value) {
+      if (value == null) {
+    throw new NullPointerException();
+  }
+  
+      channel_ = value;
+      onChanged();
+      return this;
+    }
+    /**
+     * <code>string Channel = 2;</code>
+     * @return This builder for chaining.
+     */
+    public Builder clearChannel() {
+      
+      channel_ = getDefaultInstance().getChannel();
+      onChanged();
+      return this;
+    }
+    /**
+     * <code>string Channel = 2;</code>
      * @param value The bytes for channel to set.
      * @return This builder for chaining.
      */
     public Builder setChannelBytes(
         com.google.protobuf.ByteString value) {
       if (value == null) {
-        throw new NullPointerException();
-      }
-      checkByteStringIsUtf8(value);
-
+    throw new NullPointerException();
+  }
+  checkByteStringIsUtf8(value);
+      
       channel_ = value;
       onChanged();
       return this;
     }
 
-    /**
-     * <code>string Channel = 2;</code>
-     *
-     * @return This builder for chaining.
-     */
-    public Builder clearChannel() {
-
-      channel_ = getDefaultInstance().getChannel();
-      onChanged();
-      return this;
-    }
-
+    private java.util.List<com.google.protobuf.ByteString> targetIds_ = java.util.Collections.emptyList();
     private void ensureTargetIdsIsMutable() {
       if (!((bitField0_ & 0x00000001) != 0)) {
         targetIds_ = new java.util.ArrayList<com.google.protobuf.ByteString>(targetIds_);
         bitField0_ |= 0x00000001;
-      }
+       }
     }
-
     /**
      * <code>repeated bytes TargetIds = 3;</code>
-     *
      * @return A list containing the targetIds.
      */
     public java.util.List<com.google.protobuf.ByteString>
-    getTargetIdsList() {
+        getTargetIdsList() {
       return ((bitField0_ & 0x00000001) != 0) ?
-             java.util.Collections.unmodifiableList(targetIds_) : targetIds_;
+               java.util.Collections.unmodifiableList(targetIds_) : targetIds_;
     }
-
     /**
      * <code>repeated bytes TargetIds = 3;</code>
-     *
      * @return The count of targetIds.
      */
     public int getTargetIdsCount() {
       return targetIds_.size();
     }
-
     /**
      * <code>repeated bytes TargetIds = 3;</code>
-     *
      * @param index The index of the element to return.
      * @return The targetIds at the given index.
      */
     public com.google.protobuf.ByteString getTargetIds(int index) {
       return targetIds_.get(index);
     }
-
     /**
      * <code>repeated bytes TargetIds = 3;</code>
-     *
      * @param index The index to set the value at.
      * @param value The targetIds to set.
      * @return This builder for chaining.
@@ -906,33 +784,29 @@ public final class Message extends
     public Builder setTargetIds(
         int index, com.google.protobuf.ByteString value) {
       if (value == null) {
-        throw new NullPointerException();
-      }
-      ensureTargetIdsIsMutable();
+    throw new NullPointerException();
+  }
+  ensureTargetIdsIsMutable();
       targetIds_.set(index, value);
       onChanged();
       return this;
     }
-
     /**
      * <code>repeated bytes TargetIds = 3;</code>
-     *
      * @param value The targetIds to add.
      * @return This builder for chaining.
      */
     public Builder addTargetIds(com.google.protobuf.ByteString value) {
       if (value == null) {
-        throw new NullPointerException();
-      }
-      ensureTargetIdsIsMutable();
+    throw new NullPointerException();
+  }
+  ensureTargetIdsIsMutable();
       targetIds_.add(value);
       onChanged();
       return this;
     }
-
     /**
      * <code>repeated bytes TargetIds = 3;</code>
-     *
      * @param values The targetIds to add.
      * @return This builder for chaining.
      */
@@ -944,10 +818,8 @@ public final class Message extends
       onChanged();
       return this;
     }
-
     /**
      * <code>repeated bytes TargetIds = 3;</code>
-     *
      * @return This builder for chaining.
      */
     public Builder clearTargetIds() {
@@ -957,47 +829,43 @@ public final class Message extends
       return this;
     }
 
+    private com.google.protobuf.ByteString payload_ = com.google.protobuf.ByteString.EMPTY;
     /**
      * <code>bytes Payload = 4;</code>
-     *
      * @return The payload.
      */
     @java.lang.Override
     public com.google.protobuf.ByteString getPayload() {
       return payload_;
     }
-
     /**
      * <code>bytes Payload = 4;</code>
-     *
      * @param value The payload to set.
      * @return This builder for chaining.
      */
     public Builder setPayload(com.google.protobuf.ByteString value) {
       if (value == null) {
-        throw new NullPointerException();
-      }
-
+    throw new NullPointerException();
+  }
+  
       payload_ = value;
       onChanged();
       return this;
     }
-
     /**
      * <code>bytes Payload = 4;</code>
-     *
      * @return This builder for chaining.
      */
     public Builder clearPayload() {
-
+      
       payload_ = getDefaultInstance().getPayload();
       onChanged();
       return this;
     }
 
+    private java.lang.Object type_ = "";
     /**
      * <code>string Type = 5;</code>
-     *
      * @return The type.
      */
     public java.lang.String getType() {
@@ -1012,34 +880,15 @@ public final class Message extends
         return (java.lang.String) ref;
       }
     }
-
     /**
      * <code>string Type = 5;</code>
-     *
-     * @param value The type to set.
-     * @return This builder for chaining.
-     */
-    public Builder setType(
-        java.lang.String value) {
-      if (value == null) {
-        throw new NullPointerException();
-      }
-
-      type_ = value;
-      onChanged();
-      return this;
-    }
-
-    /**
-     * <code>string Type = 5;</code>
-     *
      * @return The bytes for type.
      */
     public com.google.protobuf.ByteString
-    getTypeBytes() {
+        getTypeBytes() {
       java.lang.Object ref = type_;
       if (ref instanceof String) {
-        com.google.protobuf.ByteString b =
+        com.google.protobuf.ByteString b = 
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         type_ = b;
@@ -1048,37 +897,47 @@ public final class Message extends
         return (com.google.protobuf.ByteString) ref;
       }
     }
-
     /**
      * <code>string Type = 5;</code>
-     *
+     * @param value The type to set.
+     * @return This builder for chaining.
+     */
+    public Builder setType(
+        java.lang.String value) {
+      if (value == null) {
+    throw new NullPointerException();
+  }
+  
+      type_ = value;
+      onChanged();
+      return this;
+    }
+    /**
+     * <code>string Type = 5;</code>
+     * @return This builder for chaining.
+     */
+    public Builder clearType() {
+      
+      type_ = getDefaultInstance().getType();
+      onChanged();
+      return this;
+    }
+    /**
+     * <code>string Type = 5;</code>
      * @param value The bytes for type to set.
      * @return This builder for chaining.
      */
     public Builder setTypeBytes(
         com.google.protobuf.ByteString value) {
       if (value == null) {
-        throw new NullPointerException();
-      }
-      checkByteStringIsUtf8(value);
-
+    throw new NullPointerException();
+  }
+  checkByteStringIsUtf8(value);
+      
       type_ = value;
       onChanged();
       return this;
     }
-
-    /**
-     * <code>string Type = 5;</code>
-     *
-     * @return This builder for chaining.
-     */
-    public Builder clearType() {
-
-      type_ = getDefaultInstance().getType();
-      onChanged();
-      return this;
-    }
-
     @java.lang.Override
     public final Builder setUnknownFields(
         final com.google.protobuf.UnknownFieldSet unknownFields) {
@@ -1091,7 +950,43 @@ public final class Message extends
       return super.mergeUnknownFields(unknownFields);
     }
 
+
     // @@protoc_insertion_point(builder_scope:network.p2p.proto.Message)
+  }
+
+  // @@protoc_insertion_point(class_scope:network.p2p.proto.Message)
+  private static final network.p2p.proto.Message DEFAULT_INSTANCE;
+  static {
+    DEFAULT_INSTANCE = new network.p2p.proto.Message();
+  }
+
+  public static network.p2p.proto.Message getDefaultInstance() {
+    return DEFAULT_INSTANCE;
+  }
+
+  private static final com.google.protobuf.Parser<Message>
+      PARSER = new com.google.protobuf.AbstractParser<Message>() {
+    @java.lang.Override
+    public Message parsePartialFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return new Message(input, extensionRegistry);
+    }
+  };
+
+  public static com.google.protobuf.Parser<Message> parser() {
+    return PARSER;
+  }
+
+  @java.lang.Override
+  public com.google.protobuf.Parser<Message> getParserForType() {
+    return PARSER;
+  }
+
+  @java.lang.Override
+  public network.p2p.proto.Message getDefaultInstanceForType() {
+    return DEFAULT_INSTANCE;
   }
 
 }
