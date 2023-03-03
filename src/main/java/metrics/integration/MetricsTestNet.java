@@ -52,6 +52,8 @@ public class MetricsTestNet {
   private static final String PROMETHEUS_YAML_PATH = "prometheus/prometheus.yml";
   private static final String PROMETHEUS_IMAGE = "prom/prometheus";
   private static final String PROMETHEUS_VOLUME_NAME = LIGHTCHAIN_PREFIX + "prometheus_volume";
+  private static final String PROMETHEUS_CONFIG_PATH = "/prometheus";
+  private static final String PROMETHEUS_TARGETS_FILE = PROMETHEUS_CONFIG_PATH + "/targets.json";
   private static final String PROMETHEUS_VOLUME_BINDING_VOLUME = PROMETHEUS_VOLUME_NAME + ":/prometheus";
   private static final String PROMETHEUS_MAIN_CMD = "prom/prometheus:main";
   private static final String PROMETHEUS_VOLUME_BINDING_ETC = "/prometheus" + ":" + "/etc/prometheus";
@@ -72,9 +74,14 @@ public class MetricsTestNet {
   private final Logger logger = LightchainLogger.getLogger(MetricsTestNet.class.getCanonicalName());
 
   /**
+   * Prometheus targets to be scraped by prometheus. The targets are expected to be in the format of <host>:<port>.
+   */
+  private final List<String> prometheusTargets;
+
+  /**
    * Default constructor.
    */
-  public MetricsTestNet() {
+  public MetricsTestNet(List<String> targets) {
     DockerClientConfig config = DefaultDockerClientConfig.createDefaultConfigBuilder().build();
 
     DockerHttpClient client = new ApacheDockerHttpClient.Builder().dockerHost(config.getDockerHost())
@@ -84,6 +91,7 @@ public class MetricsTestNet {
         .responseTimeout(Duration.ofSeconds(45))
         .build();
 
+    this.prometheusTargets = targets;
     this.dockerClient = DockerClientImpl.getInstance(config, client);
     this.containerLogger = new ContainerLogger(dockerClient);
   }
@@ -94,6 +102,11 @@ public class MetricsTestNet {
    * @throws IllegalStateException when container creation faces an illegal state.
    */
   public void runMetricsTestNet() throws IllegalStateException {
+    try {
+      PrometheusTargetWriter.writeTargetsToFile(prometheusTargets, PROMETHEUS_TARGETS_FILE);
+    } catch (IOException e) {
+      throw new IllegalStateException("failed to write prometheus targets to file", e);
+    }
     // this.OverridePrometheusMetricServerAddress();
 
     // Volume check + create if absent

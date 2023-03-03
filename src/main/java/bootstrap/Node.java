@@ -15,6 +15,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.stream.Collectors;
 
+import metrics.collectors.MetricServer;
 import model.lightchain.Identifier;
 import modules.logger.LightchainLogger;
 import modules.logger.Logger;
@@ -28,10 +29,6 @@ import protocol.Engine;
 public class Node {
   private static final Logger logger = LightchainLogger.getLogger(Node.class.getCanonicalName());
   private static final Duration STARTUP_TIMEOUT = Duration.ofSeconds(5);
-  /**
-   * Port number at which the node will be listening for incoming connections from other nodes.
-   */
-  private static final int portNumber = 8081;
   private static ConcurrentMap<Identifier, String> idTable;
   private static Identifier myId;
   private static P2pNetwork network;
@@ -45,9 +42,19 @@ public class Node {
   public static void main(String[] args) {
     myId = new Identifier(args[0].getBytes(StandardCharsets.UTF_8));
     idTable = readFromOutput(args[1]);
-    network = new P2pNetwork(myId, portNumber);
+    network = new P2pNetwork(myId, Bootstrap.bootstrapPortNumber);
     network.setIdToAddressMap(idTable);
+    MetricServer metricServer = new MetricServer();
     DemoCollector collector = new DemoCollector();
+
+    try {
+      metricServer.start();
+    } catch (IllegalStateException ex) {
+      System.err.println("Could not start the Metric Server");
+      System.exit(1);
+    }
+
+
 
     engine = new BroadcastEngine(idTable, myId, network, collector);
 
@@ -61,6 +68,8 @@ public class Node {
     String idTableStr = idTable.entrySet().stream().map(Map.Entry::toString).collect(Collectors.joining(",", "[", "]"));
 
     logger.info("node {} started successfully at address {}, bootstrap table {}", myId, network.getAddress(), idTableStr);
+
+    // TODO: add a shutdown hook to stop the engine and network and metric server
   }
 
   /**

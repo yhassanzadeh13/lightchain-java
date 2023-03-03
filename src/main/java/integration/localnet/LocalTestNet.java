@@ -41,6 +41,7 @@ public class LocalTestNet extends MetricsTestNet {
   private final Logger logger = LightchainLogger.getLogger(Bootstrap.class.getCanonicalName());
 
   public LocalTestNet(BootstrapInfo info) {
+    super(new ArrayList<>(info.getMetricsTable().values()));
     this.bootstrapInfo = info;
   }
 
@@ -92,7 +93,7 @@ public class LocalTestNet extends MetricsTestNet {
       this.logger.warn("building lightchain images from Dockerfile, this may take a while...");
 
       imageId = dockerClient.buildImageCmd()
-          .withTags(new HashSet<>(List.of("image")))
+          .withTags(new HashSet<>(List.of(imageId)))
           .withDockerfile(new File(NODE_DOCKER_FILE))
           .withPull(true)
           .exec(new BuildImageResultCallback())
@@ -122,7 +123,12 @@ public class LocalTestNet extends MetricsTestNet {
       logger.info("node container {} created", i);
     }
 
-    super.runMetricsTestNet();
+    try {
+      super.runMetricsTestNet();
+    } catch (IllegalStateException e) {
+      this.logger.fatal("could not start metrics test net, exiting...", e);
+    }
+
 
     Thread[] containerThreads = new Thread[this.bootstrapInfo.size()];
     Thread[] containerLoggerThreads = new Thread[this.bootstrapInfo.size()];

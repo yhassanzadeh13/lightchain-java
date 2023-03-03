@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
+import metrics.collectors.MetricServer;
 import model.lightchain.Identifier;
 import modules.logger.LightchainLogger;
 import modules.logger.Logger;
@@ -25,7 +26,10 @@ public class Bootstrap {
   private static final Random random = new Random();
   private final String bootstrapFileName = "bootstrap.txt"; // Don't change this name, it is used in the Dockerfile.
   private final String bootstrapKeyName = "node";
-  private final String bootstrapPortNumber = "8081";
+  /**
+   * Port number at which the node will be listening for incoming connections from other nodes.
+   */
+  public static final int bootstrapPortNumber = 8082;
   private final Logger logger = LightchainLogger.getLogger(Bootstrap.class.getCanonicalName());
   private final short nodeCount;
 
@@ -43,6 +47,10 @@ public class Bootstrap {
    * The id table is a map that contains the node's identifier and the node's address.
    */
   private final HashMap<Identifier, String> idTable;
+  /**
+   * The metrics table is a map that contains the node's identifier and the node's metrics address.
+   */
+  private final HashMap<Identifier, String> metricsTable;
 
   /**
    * Constructor for Bootstrap.
@@ -52,6 +60,7 @@ public class Bootstrap {
   public Bootstrap(short nodeCount) {
     this.nodeCount = nodeCount;
     this.idTable = new HashMap<>();
+    this.metricsTable = new HashMap<>();
   }
 
   /**
@@ -63,7 +72,7 @@ public class Bootstrap {
     this.makeBootstrap();
     this.writeOnFile();
     this.print();
-    return new BootstrapInfo(this.identifiers, this.dockerNames, this.bootstrapFileName, this.idTable);
+    return new BootstrapInfo(this.identifiers, this.dockerNames, this.bootstrapFileName, this.idTable, this.metricsTable);
   }
 
   /**
@@ -80,6 +89,8 @@ public class Bootstrap {
       this.dockerNames.add(dockerName);
       this.identifiers.add(id);
       this.idTable.put(id, dockerName + ":" + bootstrapPortNumber);
+      // TODO: server port should be a parameter.
+      this.metricsTable.put(id, dockerName + ":" + MetricServer.SERVER_PORT);
     }
   }
 
