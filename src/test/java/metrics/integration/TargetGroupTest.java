@@ -1,6 +1,7 @@
 package metrics.integration;
 
 import java.util.List;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -11,17 +12,41 @@ public class TargetGroupTest {
 
   @Test
   public void testConstructor() {
-    List<String> targets = List.of("example1.com:9090", "example2.com:9090");
-    TargetGroup targetGroup = new TargetGroup(targets);
+    List<String> targetAddresses = List.of("example1.com:9090", "example2.com:9090");
+    TargetGroup targetGroup = new TargetGroup(targetAddresses);
     assertNotNull(targetGroup);
-    assertEquals(targets, targetGroup.getTargets());
+
+    List<TargetGroup.TargetEntry> targetEntries = targetGroup.getTargets();
+    assertEquals(targetAddresses.size(), targetEntries.size());
+
+    for (int i = 0; i < targetAddresses.size(); i++) {
+      assertEquals(List.of(targetAddresses.get(i)), targetEntries.get(i).getTargets());
+      assertEquals(Map.of("num", String.valueOf(i)), targetEntries.get(i).getLabels());
+    }
   }
 
   @Test
   public void testToJsonString() {
-    List<String> targets = List.of("example1.com:9090", "example2.com:9090");
-    TargetGroup targetGroup = new TargetGroup(targets);
-    String expectedJson = "{\n  \"targets\": [\n    \"example1.com:9090\",\n    \"example2.com:9090\"\n  ]\n}";
+    List<String> targetAddresses = List.of("example1.com:9090", "example2.com:9090");
+    TargetGroup targetGroup = new TargetGroup(targetAddresses);
+    String expectedJson = "[\n" +
+        "  {\n" +
+        "    \"targets\": [\n" +
+        "      \"example1.com:9090\"\n" +
+        "    ],\n" +
+        "    \"labels\": {\n" +
+        "      \"num\": \"0\"\n" +
+        "    }\n" +
+        "  },\n" +
+        "  {\n" +
+        "    \"targets\": [\n" +
+        "      \"example2.com:9090\"\n" +
+        "    ],\n" +
+        "    \"labels\": {\n" +
+        "      \"num\": \"1\"\n" +
+        "    }\n" +
+        "  }\n" +
+        "]";
     String actualJson = targetGroup.toJsonString();
     assertEquals(expectedJson, actualJson);
   }

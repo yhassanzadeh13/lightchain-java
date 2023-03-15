@@ -52,7 +52,7 @@ public class MetricsTestNet {
   private static final String PROMETHEUS_YAML_PATH = "prometheus/prometheus.yml";
   private static final String PROMETHEUS_IMAGE = "prom/prometheus";
   private static final String PROMETHEUS_VOLUME_NAME = LIGHTCHAIN_PREFIX + "prometheus_volume";
-  private static final String PROMETHEUS_CONFIG_PATH = "/prometheus";
+  private static final String PROMETHEUS_CONFIG_PATH = "prometheus";
   private static final String PROMETHEUS_TARGETS_FILE = PROMETHEUS_CONFIG_PATH + "/targets.json";
   private static final String PROMETHEUS_VOLUME_BINDING_VOLUME = PROMETHEUS_VOLUME_NAME + ":/prometheus";
   private static final String PROMETHEUS_MAIN_CMD = "prom/prometheus:main";

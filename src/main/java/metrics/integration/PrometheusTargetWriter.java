@@ -1,5 +1,6 @@
 package metrics.integration;
 
+import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.List;
@@ -20,10 +21,19 @@ public class PrometheusTargetWriter {
     String targetGroupsJson = new TargetGroup(targets).toJsonString();
 
     // Write the JSON to a file
-    try (FileWriter fileWriter = new FileWriter(filePath)) {
-      fileWriter.write(targetGroupsJson);
+    try {
+      File file = new File(filePath);
+      if (!file.exists()) {
+        if(!file.createNewFile()) {
+          // If the file does not exist and cannot be created, throw an exception.
+          throw new IOException(String.format("Failed to create file %s", filePath));
+        }
+      }
+      try (FileWriter fileWriter = new FileWriter(file)) {
+        fileWriter.write(targetGroupsJson);
+      }
     } catch (IOException e) {
-      throw new IOException("failed to write targets to file", e);
+      throw new IOException("Failed to write targets to file", e);
     }
   }
 }

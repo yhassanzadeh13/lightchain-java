@@ -24,5 +24,8 @@ scrape_configs:
     scrape_timeout: 10s
     metrics_path: /metrics
     scheme: http
-    static_configs:
-      - targets: [ 'host.docker.internal:8081' ]
+    file_sd_configs:
+      - files:
+          - targets.json
+#    static_configs:
+#      - targets: [ 'host.docker.internal:8081', 'node0:8081', 'node1:8081', 'node2:8081', 'node3:8081', 'node4:8081']
