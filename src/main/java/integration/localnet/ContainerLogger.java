@@ -71,14 +71,19 @@ public class ContainerLogger {
   public void runContainerLoggerWorker(String containerId) {
     try (LogContainerCmd lg = createLogCommand(containerId)) {
       lg.exec(new ResultCallback.Adapter<>() {
+        private final StringBuilder logBuffer = new StringBuilder();
+
         @Override
         public void onNext(Frame item) {
           super.onNext(item);
-          String lgMsg = new String(item.getPayload(), StandardCharsets.UTF_8).trim();
-          String[] split = lgMsg.split("\n");
-          for (String s : split) {
-            // appends the container id to the log message (only the first 10 characters).
-            System.out.println("[Container] " + containerId.substring(0, 10) + ":" + s);
+          String lgMsg = new String(item.getPayload(), StandardCharsets.UTF_8);
+          logBuffer.append(lgMsg);
+
+          int lastNewLineIndex;
+          while ((lastNewLineIndex = logBuffer.indexOf("\n")) != -1) {
+            String logLine = logBuffer.substring(0, lastNewLineIndex).trim();
+            System.out.println("[Container] " + containerId.substring(0, 10) + ":" + logLine);
+            logBuffer.delete(0, lastNewLineIndex + 1);
           }
         }
       }).awaitCompletion();
