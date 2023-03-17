@@ -1,6 +1,5 @@
 package metrics.integration;
 
-import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -11,9 +10,6 @@ import java.util.List;
 import static metrics.integration.PrometheusTargetWriter.writeTargetsToFile;
 import static org.junit.Assert.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.mock;
 
 import org.junit.Test;
 
@@ -32,13 +28,11 @@ public class PrometheusTargetWriterTest {
     String filePath = "test_file.json";
     writeTargetsToFile(targets, filePath);
 
-    String expectedContent = "{\n"
-        + "  \"targets\": [\n"
-        + "    \"target1\",\n"
-        + "    \"target2\",\n"
-        + "    \"target3\"\n"
-        + "  ]\n"
-        + "}";
+    String expectedContent =
+        "[\n" + "  {\n" + "    \"targets\": [\n" + "      \"target1\"\n" + "    ],\n" + "    \"labels\": {\n" + "      \"num\": \"0\"\n" + "    }\n"
+            + "  },\n" + "  {\n" + "    \"targets\": [\n" + "      \"target2\"\n" + "    ],\n" + "    \"labels\": {\n" + "      \"num\": \"1\"\n"
+            + "    }\n" + "  },\n" + "  {\n" + "    \"targets\": [\n" + "      \"target3\"\n" + "    ],\n" + "    \"labels\": {\n"
+            + "      \"num\": \"2\"\n" + "    }\n" + "  }\n" + "]";
 
     // Read the file contents and compare to the expected JSON
     Path path = Paths.get(filePath);
@@ -53,7 +47,7 @@ public class PrometheusTargetWriterTest {
    * Test that an IOException is thrown when the file writer fails.
    */
   @Test
-  public void testWriteTargetsToFileIOException() {
+  public void testWriteTargetsToFileIoException() {
     List<String> targets = Arrays.asList("target1", "target2", "target3");
     String filePath = "non_existent_directory/test_file.json";
 

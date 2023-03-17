@@ -3,6 +3,7 @@ package metrics.integration;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 /**
@@ -24,12 +25,12 @@ public class PrometheusTargetWriter {
     try {
       File file = new File(filePath);
       if (!file.exists()) {
-        if(!file.createNewFile()) {
+        if (!file.createNewFile()) {
           // If the file does not exist and cannot be created, throw an exception.
           throw new IOException(String.format("Failed to create file %s", filePath));
         }
       }
-      try (FileWriter fileWriter = new FileWriter(file)) {
+      try (FileWriter fileWriter = new FileWriter(file, StandardCharsets.UTF_8)) {
         fileWriter.write(targetGroupsJson);
       }
     } catch (IOException e) {

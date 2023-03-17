@@ -129,7 +129,6 @@ public class LocalTestNet extends MetricsTestNet {
       this.logger.fatal("could not start metrics test net, exiting...", e);
     }
 
-
     Thread[] containerThreads = new Thread[this.bootstrapInfo.size()];
     Thread[] containerLoggerThreads = new Thread[this.bootstrapInfo.size()];
     for (int i = 0; i < this.bootstrapInfo.size(); i++) {

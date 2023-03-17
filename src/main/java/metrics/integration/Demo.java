@@ -1,7 +1,5 @@
 package metrics.integration;
 
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import io.prometheus.client.Counter;
@@ -13,11 +11,10 @@ import metrics.collectors.MetricServer;
  * Demonstrative class to set up a Prometheus server and create LightChain Counter and Gauge instances.
  */
 public class Demo {
+  private static final List<String> DEFAULT_TARGETS = List.of("host.docker.internal:" + MetricServer.SERVER_PORT);
   private static LightChainCollector collector;
   private static Counter finalizedBlockCount;
   private static Gauge currentBlockCount;
-
-  private static final List<String> DEFAULT_TARGETS = List.of("host.docker.internal:" + MetricServer.SERVER_PORT);
 
   /**
    * main function.

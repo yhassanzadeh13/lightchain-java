@@ -74,7 +74,7 @@ public class MetricsTestNet {
   private final Logger logger = LightchainLogger.getLogger(MetricsTestNet.class.getCanonicalName());
 
   /**
-   * Prometheus targets to be scraped by prometheus. The targets are expected to be in the format of <host>:<port>.
+   * Prometheus targets to be scraped by prometheus. The targets are expected to be in the format of host:port.
    */
   private final List<String> prometheusTargets;
 
@@ -91,7 +91,7 @@ public class MetricsTestNet {
         .responseTimeout(Duration.ofSeconds(45))
         .build();
 
-    this.prometheusTargets = targets;
+    this.prometheusTargets = new ArrayList<>(targets);
     this.dockerClient = DockerClientImpl.getInstance(config, client);
     this.containerLogger = new ContainerLogger(dockerClient);
   }

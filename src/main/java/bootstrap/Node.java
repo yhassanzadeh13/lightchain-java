@@ -54,8 +54,6 @@ public class Node {
       System.exit(1);
     }
 
-
-
     engine = new BroadcastEngine(idTable, myId, network, collector);
 
     try {
