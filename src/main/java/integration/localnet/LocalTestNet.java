@@ -143,7 +143,8 @@ public class LocalTestNet extends MetricsTestNet {
       containerLoggerThreads[i] = new Thread(() -> {
         this.logger.info("starting node container logger {}", finalI);
 
-        this.containerLogger.runContainerLoggerWorker(containers.get(finalI).getId());
+        this.containerLogger.runContainerLoggerWorker(containers.get(finalI).getId(), "NODE" + finalI,
+            this.bootstrapInfo.getIdentifier(finalI).toString());
         this.logger.info("node container logger {} started", finalI);
       });
     }

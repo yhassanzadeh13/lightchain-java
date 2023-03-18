@@ -27,8 +27,7 @@ public class ContainerLogger {
   private final Hashtable<String, String> loggingBuffer;
   private final Logger logger = LightchainLogger.getLogger(ContainerLogger.class.getCanonicalName());
   DockerClient dockerClient;
-  LogContainerResultCallback loggingCallback = new
-      LogContainerResultCallback();
+  LogContainerResultCallback loggingCallback = new LogContainerResultCallback();
 
   /**
    * Creates a new ContainerLogger.
@@ -55,11 +54,7 @@ public class ContainerLogger {
   }
 
   private LogContainerCmd createLogCommand(String containerId) {
-    return this.dockerClient
-        .logContainerCmd(containerId)
-        .withFollowStream(true)
-        .withStdOut(true)
-        .withStdErr(true);
+    return this.dockerClient.logContainerCmd(containerId).withFollowStream(true).withStdOut(true).withStdErr(true);
   }
 
   /**
@@ -68,7 +63,7 @@ public class ContainerLogger {
 
   @edu.umd.cs.findbugs.annotations.SuppressFBWarnings(value = "RCN_REDUNDANT_NULLCHECK_WOULD_HAVE_BEEN_A_NPE", justification = "seems a false "
       + "positive")
-  public void runContainerLoggerWorker(String containerId) {
+  public void runContainerLoggerWorker(String containerId, String containerName, String nodeId) {
     try (LogContainerCmd lg = createLogCommand(containerId)) {
       lg.exec(new ResultCallback.Adapter<>() {
         private final StringBuilder logBuffer = new StringBuilder();
@@ -82,7 +77,18 @@ public class ContainerLogger {
           int lastNewLineIndex;
           while ((lastNewLineIndex = logBuffer.indexOf("\n")) != -1) {
             String logLine = logBuffer.substring(0, lastNewLineIndex).trim();
-            System.out.println("[Container] " + containerId.substring(0, 10) + ":" + logLine);
+
+            String sb = "container-id: "
+                + containerId.substring(0, 10)
+                + " "
+                + "container-name: "
+                + containerName
+                + " "
+                + "node-id: "
+                + nodeId
+                + " "
+                + logLine;
+            System.out.println(sb);
             logBuffer.delete(0, lastNewLineIndex + 1);
           }
         }
