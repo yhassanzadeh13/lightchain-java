@@ -40,7 +40,7 @@ public class Node {
    * @param args cmd arguments.
    */
   public static void main(String[] args) {
-    myId = new Identifier(args[0].getBytes(StandardCharsets.UTF_8));
+    myId = new Identifier(args[0]);
     idTable = readFromOutput(args[1]);
     network = new P2pNetwork(myId, Bootstrap.bootstrapPortNumber);
     network.setIdToAddressMap(idTable);
