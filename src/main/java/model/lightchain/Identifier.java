@@ -12,8 +12,29 @@ public class Identifier implements Serializable {
   public static final int Size = 32;
   private final byte[] value;
 
+  /**
+   * Returns the byte representation of the identifier.
+   *
+   * @param value identifier in byte representation.
+   */
   public Identifier(byte[] value) {
+    if (value.length != Size) {
+      throw new IllegalArgumentException("Identifier must be 32 bytes long");
+    }
     this.value = value.clone();
+  }
+
+  /**
+   * Returns the byte representation of the identifier.
+   *
+   * @param identifierString identifier in Base58BTC format.
+   */
+  public Identifier(String identifierString) {
+    byte[] decodedValue = Multibase.decode(identifierString);
+    if (decodedValue.length != Size) {
+      throw new IllegalArgumentException("Identifier must be 32 bytes long");
+    }
+    this.value = decodedValue;
   }
 
   /**
@@ -23,6 +44,9 @@ public class Identifier implements Serializable {
    * @return Base58BTC representation of identifier.
    */
   private static String pretty(byte[] identifier) {
+    if (identifier.length != Size) {
+      throw new IllegalArgumentException("Identifier must be 32 bytes long");
+    }
     return Multibase.encode(Multibase.Base.Base58BTC, identifier);
   }
 
@@ -41,6 +65,10 @@ public class Identifier implements Serializable {
       return false;
     }
     Identifier that = (Identifier) o;
+
+    if (value.length != that.value.length) {
+      return false;
+    }
     return Arrays.equals(value, that.value);
   }
 
