@@ -30,7 +30,7 @@ public class BroadcastEngine implements Engine {
   private final Set<Identifier> receivedEntityIds;
   private final Conduit conduit;
   private final P2pNetwork network;
-  private final ConcurrentMap<Identifier, String> idTable;
+  private final Map<Identifier, String> idTable;
   private final Identifier myId;
   private final DemoCollector collector;
 
@@ -41,7 +41,7 @@ public class BroadcastEngine implements Engine {
    * @param myId    id of the Node on which the Engine operates.
    */
   @edu.umd.cs.findbugs.annotations.SuppressFBWarnings(value = "EI_EXPOSE_REP2", justification = "we want idTable to be exposed externally")
-  public BroadcastEngine(ConcurrentMap<Identifier, String> idTable, Identifier myId, Network network, DemoCollector collector) {
+  public BroadcastEngine(Map<Identifier, String> idTable, Identifier myId, Network network, DemoCollector collector) {
     this.collector = collector;
     this.receivedEntityIds = new HashSet<>();
     this.lock = new ReentrantReadWriteLock();

@@ -10,6 +10,7 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -29,7 +30,7 @@ import protocol.Engine;
 public class Node {
   private static final Logger logger = LightchainLogger.getLogger(Node.class.getCanonicalName());
   private static final Duration STARTUP_TIMEOUT = Duration.ofSeconds(5);
-  private static ConcurrentMap<Identifier, String> idTable;
+  private static Map<Identifier, String> idTable;
   private static Identifier myId;
   private static P2pNetwork network;
   private static Engine engine;
@@ -76,9 +77,8 @@ public class Node {
    * @param path Path to the file.
    * @return A ConcurrentMap of Identifiers to IP addresses.
    */
-  private static ConcurrentMap<Identifier, String> readFromOutput(String path) {
-    ConcurrentMap<Identifier, String> map = new ConcurrentHashMap<>();
-
+  private static Map<Identifier, String> readFromOutput(String path) {
+    Map<Identifier, String> map = new HashMap<>();
     try {
       File idTableFile = new File(path);
       InputStream inputStream = new FileInputStream(idTableFile);
@@ -87,8 +87,8 @@ public class Node {
       String line;
 
       while ((line = reader.readLine()) != null) {
-        String[] strings = line.split(":");
-        map.put(new Identifier(strings[1].getBytes(StandardCharsets.UTF_8)), strings[1] + ":" + strings[2]);
+        String[] split = line.split(":");
+        map.put(new Identifier(split[1]), split[1] + ":" + split[2]);
       }
       reader.close();
     } catch (FileNotFoundException e) {
