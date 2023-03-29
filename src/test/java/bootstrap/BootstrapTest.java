@@ -14,103 +14,131 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import metrics.collectors.MetricServer;
 import model.lightchain.Identifier;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 /**
  * Tests for bootstrap class {@link Bootstrap}.
  */
 public class BootstrapTest {
-
-  private Bootstrap bootstrap;
-
-  @BeforeEach
-  public void setup() {
-    this.bootstrap = new Bootstrap((short) 3);
-  }
-
+  /**
+   * testMakeBootstrap tests the makeBootstrap method of the bootstrap class.
+   * It creates a bootstrap object with 3 nodes and checks if the docker names, identifiers, id table and metrics table are correct.
+   */
   @Test
   public void testMakeBootstrap() {
-    this.bootstrap.makeBootstrap();
+    // creates a bootstrap object with 3 nodes.
+    Bootstrap bootstrap = new Bootstrap((short) 3);
+    bootstrap.makeBootstrap();
 
-    List<String> dockerNames = this.bootstrap.getDockerNames();
+    List<String> dockerNames = bootstrap.getDockerNames();
     assertEquals(3, dockerNames.size());
 
-    List<Identifier> identifiers = this.bootstrap.getIdentifiers();
+    List<Identifier> identifiers = bootstrap.getIdentifiers();
     assertEquals(3, identifiers.size());
 
-    Map<Identifier, String> idTable = this.bootstrap.getIdTable();
+    Map<Identifier, String> idTable = bootstrap.getIdTable();
     assertEquals(3, idTable.size());
 
-    Map<Identifier, String> metricsTable = this.bootstrap.getMetricsTable();
+    Map<Identifier, String> metricsTable = bootstrap.getMetricsTable();
     assertEquals(3, metricsTable.size());
 
+    // Check if the id table and metrics table contain the correct values. 
     for (int i = 0; i < 3; i++) {
       String dockerName = dockerNames.get(i);
       Identifier id = identifiers.get(i);
-      String idTableValue = idTable.get(id);
-      String metricsTableValue = metricsTable.get(id);
+      // idTable keeps a map of the node's identifier and the node's fully qualified address (in LightChain protocol).
+      String fullyQualifiedAddress = idTable.get(id);
+      // metrics table keeps a map of the node's identifier and the node's metrics server address (the address that the metrics server is exposing
+      // the metrics to).
+      String metricsServerAddress = metricsTable.get(id);
 
-      assertEquals(dockerName + ":" + Bootstrap.bootstrapPortNumber, idTableValue);
-      assertEquals(dockerName + ":" + MetricServer.SERVER_PORT, metricsTableValue);
+      // dockerName + ":" + Bootstrap.bootstrapPortNumber should be equal the fully qualified address of the node in the docker network.
+      assertEquals(dockerName + ":" + Bootstrap.bootstrapPortNumber, fullyQualifiedAddress);
+      // dockerName + ":" + MetricServer.SERVER_PORT should be equal the metrics address of the node in the docker network.
+      assertEquals(dockerName + ":" + MetricServer.SERVER_PORT, metricsServerAddress);
     }
   }
 
+  /**
+   * testWriteOnFile tests the writeOnFile method of the bootstrap class.
+   * It creates a bootstrap object with 3 nodes and checks if the bootstrap file is created and if the content of the file is correct.
+   */
   @Test
   public void testWriteOnFile() throws IOException {
-    this.bootstrap.makeBootstrap();
-    this.bootstrap.writeOnFile();
+    // creates a bootstrap object with 3 nodes.
+    Bootstrap bootstrap = new Bootstrap((short) 3);
+    bootstrap.makeBootstrap();
 
-    File file = new File(this.bootstrap.getBootstrapFileName());
+    // loads the bootstrap file and checks if it exists.
+    File file = new File(bootstrap.getBootstrapFileName());
     assertTrue(file.exists());
 
-    List<String> lines = Files.readAllLines(Path.of(this.bootstrap.getBootstrapFileName()));
+    // checks if the content of the size of the bootstrap file is correct (3 lines).
+    List<String> lines = Files.readAllLines(Path.of(bootstrap.getBootstrapFileName()));
     assertEquals(3, lines.size());
 
-    Map<Identifier, String> idTable = this.bootstrap.getIdTable();
+    // checks if the content of the bootstrap file is correct.
+    Map<Identifier, String> idTable = bootstrap.getIdTable();
     for (String line : lines) {
+      // each line should be in the format of "identifier:fullyQualifiedAddress"
       String[] split = line.split(":");
       Identifier id = new Identifier(split[0]);
-      String idTableValue = idTable.get(id);
-      assertEquals(line, id + ":" + idTableValue);
+      String fullyQualifiedAddress = idTable.get(id);
+      assertEquals(line, id + ":" + fullyQualifiedAddress);
     }
 
     file.deleteOnExit();
   }
 
+  /**
+   * testPrint tests the print method of the bootstrap class,
+   * it creates a bootstrap object with 3 nodes and checks if the console output is correct.
+   */
   @Test
   public void testPrint() {
-    this.bootstrap.makeBootstrap();
+    // creates a bootstrap object with 3 nodes.
+    Bootstrap bootstrap = new Bootstrap((short) 3);
+    bootstrap.makeBootstrap();
 
-    // Redirect console output to check if it matches expected output
+    // redirects console output to check if it matches expected output
     ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
     System.setOut(new PrintStream(outputStream));
 
-    this.bootstrap.print();
+    bootstrap.print();
 
     String output = outputStream.toString();
+    // checks the header of the console output.
     assertTrue(output.contains("bootstrap file created with the following content:"));
-    assertTrue(output.contains("bootstrap file written to " + this.bootstrap.getBootstrapFileName()));
+    // checks the name of the bootstrap file.
+    assertTrue(output.contains("bootstrap file written to " + bootstrap.getBootstrapFileName()));
 
-    Map<Identifier, String> idTable = this.bootstrap.getIdTable();
+    // each subsequent line should be in the format of "identifier fullyQualifiedAddress"
+    Map<Identifier, String> idTable = bootstrap.getIdTable();
     for (Identifier id : idTable.keySet()) {
       assertTrue(output.contains(id.toString() + " " + idTable.get(id)));
     }
   }
 
+  /**
+   * testReadFile tests the readFile method of the bootstrap class.
+   * It creates a bootstrap file with 3 lines and checks if the content of the file is correct.
+   */
   @Test
   public void testReadFile() throws IOException {
-    // Create a temporary file with test data
+    // creates a temporary file with test data.
     Path tempFile = Files.createTempFile("bootstrap", ".txt");
     Files.write(tempFile, List.of(
         "id1:node1:1234",
         "id2:node2:5678",
-        "id3:node3:9012"
-                                 ));
+        "id3:node3:9012"));
 
+    // reads the file into a map of identifier and fully qualified address.
     Map<Identifier, String> map = Bootstrap.readFile(tempFile.toString());
 
+    // checks if the size of the map is correct.
     assertEquals(3, map.size());
+
+    // each map entry should represent a map of identifier and fully qualified address.
     assertEquals("node1:1234", map.get(new Identifier("id1")));
     assertEquals("node2:5678", map.get(new Identifier("id2")));
     assertEquals("node3:9012", map.get(new Identifier("id3")));
@@ -118,19 +146,21 @@ public class BootstrapTest {
     Files.deleteIfExists(tempFile);
   }
 
+  // testRoundTrip tests the round trip of the bootstrap class. It creates a bootstrap object, writes it to a file and reads it back.
+  // It then checks if the original and new bootstraps are equivalent.
   @Test
   public void testRoundTrip() throws IOException {
-    // Create the original bootstrap
+    // create the original bootstrap.
     Bootstrap originalBootstrap = new Bootstrap((short) 3);
     originalBootstrap.build();
 
-    // Write the bootstrap to the file
+    // writes the bootstrap to the file.
     originalBootstrap.writeOnFile();
 
-    // Read the bootstrap from the file
+    // read the bootstrap from the file.
     Map<Identifier, String> idTable = Bootstrap.readFile(originalBootstrap.getBootstrapFileName());
 
-    // Verify that the original and new bootstraps are equivalent
+    // verifies that the original and new bootstraps are equivalent, the id table should be the same mapping of identifier to fully qualified address.
     assertEquals(originalBootstrap.getIdTable(), idTable);
   }
 }
