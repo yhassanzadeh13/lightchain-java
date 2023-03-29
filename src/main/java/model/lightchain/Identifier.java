@@ -30,6 +30,11 @@ public class Identifier implements Serializable {
    * @param identifierString identifier in Base58BTC format.
    */
   public Identifier(String identifierString) {
+    try {
+      Multibase.decode(identifierString);
+    } catch (IllegalStateException e) {
+      throw new IllegalArgumentException(String.format("Identifier must be in Base58BTC format: %s", identifierString), e);
+    }
     byte[] decodedValue = Multibase.decode(identifierString);
     if (decodedValue.length != Size) {
       throw new IllegalArgumentException("Identifier must be 32 bytes long");
