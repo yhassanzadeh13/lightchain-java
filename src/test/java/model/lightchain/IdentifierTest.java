@@ -13,6 +13,7 @@ import org.junit.jupiter.api.Test;
 
 class IdentifierTest {
   private static final Random random = new Random();
+
   @Test
   void testIdentifierConstructorWithByteArray() {
     byte[] value = new byte[Identifier.Size];

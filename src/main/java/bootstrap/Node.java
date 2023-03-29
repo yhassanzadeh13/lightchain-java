@@ -1,19 +1,8 @@
 package bootstrap;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.Reader;
-import java.nio.charset.StandardCharsets;
 import java.time.Duration;
-import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
 import java.util.stream.Collectors;
 
 import metrics.collectors.MetricServer;
@@ -42,7 +31,12 @@ public class Node {
    */
   public static void main(String[] args) {
     myId = new Identifier(args[0]);
-    idTable = readFromOutput(args[1]);
+    try {
+      idTable = Bootstrap.readFile(args[1]);
+    } catch (IOException e) {
+      logger.fatal("could not read bootstrap file", e);
+    }
+
     network = new P2pNetwork(myId, Bootstrap.bootstrapPortNumber);
     network.setIdToAddressMap(idTable);
     MetricServer metricServer = new MetricServer();
@@ -51,8 +45,7 @@ public class Node {
     try {
       metricServer.start();
     } catch (IllegalStateException ex) {
-      System.err.println("Could not start the Metric Server");
-      System.exit(1);
+      logger.fatal("could not start metric server", ex);
     }
 
     engine = new BroadcastEngine(idTable, myId, network, collector);
@@ -69,33 +62,5 @@ public class Node {
     logger.info("node {} started successfully at address {}, bootstrap table {}", myId, network.getAddress(), idTableStr);
 
     // TODO: add a shutdown hook to stop the engine and network and metric server
-  }
-
-  /**
-   * Reads the given path and returns a ConcurrentMap of Identifiers to IP addresses.
-   *
-   * @param path Path to the file.
-   * @return A ConcurrentMap of Identifiers to IP addresses.
-   */
-  private static Map<Identifier, String> readFromOutput(String path) {
-    Map<Identifier, String> map = new HashMap<>();
-    try {
-      File idTableFile = new File(path);
-      InputStream inputStream = new FileInputStream(idTableFile);
-      Reader readerStream = new InputStreamReader(inputStream, StandardCharsets.UTF_8);
-      BufferedReader reader = new BufferedReader(readerStream);
-      String line;
-
-      while ((line = reader.readLine()) != null) {
-        String[] split = line.split(":");
-        map.put(new Identifier(split[1]), split[1] + ":" + split[2]);
-      }
-      reader.close();
-    } catch (FileNotFoundException e) {
-      logger.fatal("could not find file", e);
-    } catch (IOException e) {
-      logger.fatal("could not read file", e);
-    }
-    return map;
   }
 }
