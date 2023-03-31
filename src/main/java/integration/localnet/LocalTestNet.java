@@ -119,8 +119,7 @@ public class LocalTestNet extends MetricsTestNet {
           .withCmd(bootstrapInfo.getIdentifier(i).toString(), bootstrapInfo.getBootstrapFileName())
           .exec();
       containers.add(nodeServer);
-
-      logger.info("node container {} created", i);
+      logger.info("node container {} created identifier {}", i, bootstrapInfo.getIdentifier(i).toString());
     }
 
     try {
