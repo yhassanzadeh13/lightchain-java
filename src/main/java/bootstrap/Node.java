@@ -37,6 +37,8 @@ public class Node {
       logger.fatal("could not read bootstrap file", e);
     }
 
+    logger.info("starting node {} with bootstrap file {}", myId, args[1]);
+
     network = new P2pNetwork(myId, Bootstrap.bootstrapPortNumber);
     network.setIdToAddressMap(idTable);
     MetricServer metricServer = new MetricServer();
@@ -57,7 +59,11 @@ public class Node {
     }
 
     // converts the idTable to a string and prints it.
-    String idTableStr = idTable.entrySet().stream().map(Map.Entry::toString).collect(Collectors.joining(",", "[", "]"));
+    String idTableStr = idTable.entrySet()
+        .stream()
+        .map(entry -> entry.getKey().toString() + "=" + entry.getValue().toString())
+        .collect(Collectors.joining(",", "[", "]"));
+
 
     logger.info("node {} started successfully at address {}, bootstrap table {}", myId, network.getAddress(), idTableStr);
 
