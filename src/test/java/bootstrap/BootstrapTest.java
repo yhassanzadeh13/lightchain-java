@@ -15,6 +15,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import metrics.collectors.MetricServer;
 import model.lightchain.Identifier;
 import org.junit.jupiter.api.Test;
+import unittest.fixtures.IdentifierFixture;
 
 /**
  * Tests for bootstrap class {@link Bootstrap}.
@@ -127,10 +128,13 @@ public class BootstrapTest {
   public void testReadFile() throws IOException {
     // creates a temporary file with test data.
     Path tempFile = Files.createTempFile("bootstrap", ".txt");
+    Identifier id1 = IdentifierFixture.newIdentifier();
+    Identifier id2 = IdentifierFixture.newIdentifier();
+    Identifier id3 = IdentifierFixture.newIdentifier();
     Files.write(tempFile, List.of(
-        "id1:node1:1234",
-        "id2:node2:5678",
-        "id3:node3:9012"));
+        String.format("%s:%s:%d", id1, "node1", 1234),
+        String.format("%s:%s:%d", id2, "node2", 5678),
+        String.format("%s:%s:%d", id3, "node3", 9012)));
 
     // reads the file into a map of identifier and fully qualified address.
     Map<Identifier, String> map = Bootstrap.readFile(tempFile.toString());
@@ -139,9 +143,9 @@ public class BootstrapTest {
     assertEquals(3, map.size());
 
     // each map entry should represent a map of identifier and fully qualified address.
-    assertEquals("node1:1234", map.get(new Identifier("id1")));
-    assertEquals("node2:5678", map.get(new Identifier("id2")));
-    assertEquals("node3:9012", map.get(new Identifier("id3")));
+    assertEquals("node1:1234", map.get(id1));
+    assertEquals("node2:5678", map.get(id2));
+    assertEquals("node3:9012", map.get(id3));
 
     Files.deleteIfExists(tempFile);
   }
