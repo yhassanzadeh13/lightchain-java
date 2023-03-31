@@ -63,8 +63,7 @@ public class Node {
         .stream()
         .map(entry -> entry.getKey().toString() + "=" + entry.getValue().toString())
         .collect(Collectors.joining(",", "[", "]"));
-
-
+    
     logger.info("node {} started successfully at address {}, bootstrap table {}", myId, network.getAddress(), idTableStr);
 
     // TODO: add a shutdown hook to stop the engine and network and metric server
