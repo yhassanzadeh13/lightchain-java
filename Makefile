@@ -1,5 +1,7 @@
 IMAGE_NAME := "localhost:5001/lightchain:lastest"
-CONTAINER_NAME := "NODE"
+NODE_VOLUME_NAME := "lightchain_node_volume"
+PROMETHEUS_CONTAINER_NAME := "lightchain_prometheus"
+GRAFANA_CONTAINER_NAME := "lightchain_grafana"
 generate: proto
 	@mvn clean install
 	@mvn compile
@@ -33,6 +35,11 @@ docker-stop-lightchain:
 docker-remove-lightchain:
 	docker container rm -f $$(docker ps -aq --filter name="NODE" --format="{{.ID}}") || true
 docker-remove-lightchain-volume:
-	docker volume rm $$(docker volume ls | grep "^NODE_" | awk '{print $2}')
-docker-clean-lightchain: docker-stop-lightchain docker-remove-lightchain
+	docker volume ls -q --filter name=$(NODE_VOLUME_NAME) | xargs -r docker volume rm
+docker-stop-prometheus:
+	docker container stop $$(docker ps -aq --filter name=$(PROMETHEUS_CONTAINER_NAME) --format="{{.ID}}") || true
+docker-stop-grafana:
+	docker container stop $$(docker ps -aq --filter name=$(GRAFANA_CONTAINER_NAME) --format="{{.ID}}") || true
+docker-stop-metrics: docker-stop-prometheus docker-stop-grafana
+docker-clean-lightchain: docker-stop-lightchain docker-remove-lightchain docker-remove-lightchain-volume
 docker-clean-build: docker-clean-lightchain docker-clean-registry docker-build-lightchain

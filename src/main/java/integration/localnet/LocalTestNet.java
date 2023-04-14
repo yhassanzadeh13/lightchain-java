@@ -31,8 +31,7 @@ public class LocalTestNet extends MetricsTestNet {
   private static final String SERVER = "server";
   private static final String SERVER_VOLUME_BINDING = "server_volume:/app";
   private static final String DOCKER_FILE = "./Dockerfile";
-  private static final String NODE_VOLUME = "server_volume";
-  private static final String NODE = "server";
+  private static final String LIGHTCHAIN_NODE_VOLUME = "lightchain_node_volume";
   private static final String NODE_VOLUME_BINDING = "server_volume:/app";
   private static final String NODE_DOCKER_FILE = "./DockerfileTestnet";
 
@@ -108,7 +107,7 @@ public class LocalTestNet extends MetricsTestNet {
     ArrayList<CreateContainerResponse> containers = new ArrayList<>();
 
     for (int i = 0; i < this.bootstrapInfo.size(); i++) {
-      this.createVolumesIfNotExist("NODE_VOLUME_" + i);
+      this.createVolumesIfNotExist(LIGHTCHAIN_NODE_VOLUME + "_" + i);
 
       logger.info("creating node container {}", i);
 

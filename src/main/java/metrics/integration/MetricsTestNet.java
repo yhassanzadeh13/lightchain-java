@@ -116,30 +116,27 @@ public class MetricsTestNet {
     } catch (IOException e) {
       throw new IllegalStateException("failed to write prometheus targets to file", e);
     }
-    // this.OverridePrometheusMetricServerAddress();
 
     // Volume check + create if absent
     this.createVolumesIfNotExist(PROMETHEUS_VOLUME_NAME);
     this.createVolumesIfNotExist(GRAFANA_VOLUME_NAME);
 
     // Network
+    logger.info("creating docker network");
     this.createNetworkIfNotExist();
+    logger.info("created docker network");
 
     // Prometheus
-    try {
-      CreateContainerResponse prometheusContainer = createPrometheusContainer();
-      dockerClient.startContainerCmd(prometheusContainer.getId()).exec();
-    } catch (ContainerAlreadyExistsException e) {
-      logger.warn("prometheus container already exists, skipping creation");
-    }
+    logger.info("creating prometheus container");
+    CreateContainerResponse prometheusContainer = createPrometheusContainer();
+    dockerClient.startContainerCmd(prometheusContainer.getId()).exec();
+    logger.info("created prometheus container");
 
     // Grafana
-    try {
-      CreateContainerResponse grafanaContainer = this.createGrafanaContainer();
-      dockerClient.startContainerCmd(grafanaContainer.getId()).exec();
-    } catch (ContainerAlreadyExistsException e) {
-      logger.warn("grafana container already exists, skipping creation");
-    }
+    logger.info("creating grafana container");
+    CreateContainerResponse grafanaContainer = this.createGrafanaContainer();
+    dockerClient.startContainerCmd(grafanaContainer.getId()).exec();
+    logger.info("created grafana container");
 
     this.logger.info("prometheus is running at localhost:{}", PROMETHEUS_PORT);
     this.logger.info("grafana is running at localhost:{}", GRAFANA_PORT);
@@ -190,8 +187,7 @@ public class MetricsTestNet {
    * @return create container response for grafana.
    * @throws IllegalStateException when container creation faces an illegal state.
    */
-  private CreateContainerResponse createGrafanaContainer() throws IllegalStateException,
-      ContainerAlreadyExistsException {
+  private CreateContainerResponse createGrafanaContainer() throws IllegalStateException {
     try {
       this.dockerClient.pullImageCmd(GRAFANA_IMAGE)
           .withTag(MAIN_TAG)
@@ -247,8 +243,7 @@ public class MetricsTestNet {
    * @return create container response for prometheus.
    * @throws IllegalStateException when container creation faces an illegal state.
    */
-  private CreateContainerResponse createPrometheusContainer() throws IllegalStateException,
-      ContainerAlreadyExistsException {
+  private CreateContainerResponse createPrometheusContainer() throws IllegalStateException {
     try {
       this.dockerClient.pullImageCmd(PROMETHEUS_IMAGE)
           .withTag(MAIN_TAG)
