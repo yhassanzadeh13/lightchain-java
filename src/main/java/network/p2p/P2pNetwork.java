@@ -1,6 +1,7 @@
 package network.p2p;
 
 import java.io.IOException;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -121,7 +122,7 @@ public class P2pNetwork implements network.Network {
    * @param idToAddressMap map from identifiers to addresses.
    */
   @SuppressFBWarnings(value = "EI_EXPOSE_REP2", justification = "intentionally mutable externally")
-  public void setIdToAddressMap(ConcurrentMap<Identifier, String> idToAddressMap) {
-    this.idToAddressMap = idToAddressMap;
+  public void setIdToAddressMap(Map<Identifier, String> idToAddressMap) {
+    this.idToAddressMap = new ConcurrentHashMap<>(idToAddressMap);
   }
 }

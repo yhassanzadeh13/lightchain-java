@@ -5,7 +5,6 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
@@ -30,8 +29,9 @@ public class BroadcastEngine implements Engine {
   private final Set<Identifier> receivedEntityIds;
   private final Conduit conduit;
   private final P2pNetwork network;
-  ConcurrentMap<Identifier, String> idTable;
-  Identifier myId;
+  private final Map<Identifier, String> idTable;
+  private final Identifier myId;
+  private final DemoCollector collector;
 
   /**
    * Constructor for BroadcastEngine.
@@ -40,7 +40,8 @@ public class BroadcastEngine implements Engine {
    * @param myId    id of the Node on which the Engine operates.
    */
   @edu.umd.cs.findbugs.annotations.SuppressFBWarnings(value = "EI_EXPOSE_REP2", justification = "we want idTable to be exposed externally")
-  public BroadcastEngine(ConcurrentMap<Identifier, String> idTable, Identifier myId, Network network) {
+  public BroadcastEngine(Map<Identifier, String> idTable, Identifier myId, Network network, DemoCollector collector) {
+    this.collector = collector;
     this.receivedEntityIds = new HashSet<>();
     this.lock = new ReentrantReadWriteLock();
     this.logger = LightchainLogger.getLogger(BroadcastEngine.class.getCanonicalName(), myId);
@@ -66,6 +67,7 @@ public class BroadcastEngine implements Engine {
     }
 
     HelloMessageEntity helloMessageEntity = (HelloMessageEntity) e;
+    this.collector.onHelloMessageReceived();
     logger.info("received hello message from {} with message {} (total so far {})", helloMessageEntity.getSenderId(), helloMessageEntity.getContent(),
         totalReceived());
   }
@@ -116,6 +118,6 @@ public class BroadcastEngine implements Engine {
     ComponentManager componentManager = new ComponentManager();
     componentManager.addComponent(this.network);
     componentManager.start(deadline);
-    new Thread(() -> sendHelloMessagesToAll(100)).start();
+    new Thread(() -> sendHelloMessagesToAll(500)).start();
   }
 }

@@ -21,8 +21,7 @@ public class Cmd {
     try {
       testNet.runLocalTestNet();
     } catch (IllegalStateException e) {
-      System.exit(1);
-      throw new IllegalStateException("could not initialize and run local net", e);
+      throw new RuntimeException("could not initialize and run local net", e);
     }
   }
 }

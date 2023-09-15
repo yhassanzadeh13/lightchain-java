@@ -1,9 +1,14 @@
 package bootstrap;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
+import java.io.Reader;
 import java.io.Writer;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -12,6 +17,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
+import metrics.collectors.MetricServer;
 import model.lightchain.Identifier;
 import modules.logger.LightchainLogger;
 import modules.logger.Logger;
@@ -22,10 +28,13 @@ import modules.logger.Logger;
  * the node's address.
  */
 public class Bootstrap {
+  /**
+   * Port number at which the node will be listening for incoming connections from other nodes.
+   */
+  public static final int bootstrapPortNumber = 8082;
   private static final Random random = new Random();
   private final String bootstrapFileName = "bootstrap.txt"; // Don't change this name, it is used in the Dockerfile.
   private final String bootstrapKeyName = "node";
-  private final String bootstrapPortNumber = "8081";
   private final Logger logger = LightchainLogger.getLogger(Bootstrap.class.getCanonicalName());
   private final short nodeCount;
 
@@ -43,6 +52,10 @@ public class Bootstrap {
    * The id table is a map that contains the node's identifier and the node's address.
    */
   private final HashMap<Identifier, String> idTable;
+  /**
+   * The metrics table is a map that contains the node's identifier and the node's metrics address.
+   */
+  private final HashMap<Identifier, String> metricsTable;
 
   /**
    * Constructor for Bootstrap.
@@ -52,6 +65,31 @@ public class Bootstrap {
   public Bootstrap(short nodeCount) {
     this.nodeCount = nodeCount;
     this.idTable = new HashMap<>();
+    this.metricsTable = new HashMap<>();
+  }
+
+  /**
+   * Reads the bootstrap file and returns a map containing the node's identifier and the node's address.
+   *
+   * @param path path to the bootstrap file.
+   * @return a map containing the node's identifier and the node's address.
+   * @throws IOException if the bootstrap file cannot be read. The exception is irrecoverable and the caller should exit.
+   */
+  public static Map<Identifier, String> readFile(String path) throws IOException {
+    Map<Identifier, String> map = new HashMap<>();
+
+    File idTableFile = new File(path);
+    InputStream inputStream = new FileInputStream(idTableFile);
+    Reader readerStream = new InputStreamReader(inputStream, StandardCharsets.UTF_8);
+    BufferedReader reader = new BufferedReader(readerStream);
+    String line;
+
+    while ((line = reader.readLine()) != null) {
+      String[] split = line.split(":");
+      map.put(new Identifier(split[0]), split[1] + ":" + split[2]);
+    }
+    reader.close();
+    return map;
   }
 
   /**
@@ -63,7 +101,7 @@ public class Bootstrap {
     this.makeBootstrap();
     this.writeOnFile();
     this.print();
-    return new BootstrapInfo(this.identifiers, this.dockerNames, this.bootstrapFileName, this.idTable);
+    return new BootstrapInfo(this.identifiers, this.dockerNames, this.bootstrapFileName, this.idTable, this.metricsTable);
   }
 
   /**
@@ -80,19 +118,21 @@ public class Bootstrap {
       this.dockerNames.add(dockerName);
       this.identifiers.add(id);
       this.idTable.put(id, dockerName + ":" + bootstrapPortNumber);
+      // TODO: server port should be a parameter.
+      this.metricsTable.put(id, dockerName + ":" + MetricServer.SERVER_PORT);
     }
   }
 
   /**
    * Writes the bootstrap file to the output file.
    */
-  private void writeOnFile() {
+  void writeOnFile() {
     File file = new File(bootstrapFileName);
     try {
       FileOutputStream fileStream = new FileOutputStream(file);
       Writer writer = new OutputStreamWriter(fileStream, StandardCharsets.UTF_8);
       for (Map.Entry<Identifier, String> id : this.idTable.entrySet()) {
-        writer.write(id.getKey() + ":" + this.idTable.get(id.getKey()) + "\n");
+        writer.write(id.getKey().toString() + ":" + this.idTable.get(id.getKey()) + "\n");
       }
       writer.flush();
       writer.close();
@@ -123,5 +163,50 @@ public class Bootstrap {
     byte[] bytes = new byte[model.lightchain.Identifier.Size];
     random.nextBytes(bytes);
     return new model.lightchain.Identifier(bytes);
+  }
+
+  /**
+   * Returns the docker names of the nodes in the form of a list.
+   *
+   * @return the docker names of the nodes in the form of a list.
+   */
+  public List<String> getDockerNames() {
+    return new ArrayList<>(dockerNames);
+  }
+
+  /**
+   * Returns the identifiers of the nodes in the form of a list.
+   *
+   * @return the identifiers of the nodes in the form of a list.
+   */
+  public List<Identifier> getIdentifiers() {
+    return new ArrayList<>(identifiers);
+  }
+
+  /**
+   * Returns the id table, which is a map that contains the node's identifier and the node's address.
+   *
+   * @return the id table, which is a map that contains the node's identifier and the node's address.
+   */
+  public HashMap<Identifier, String> getIdTable() {
+    return new HashMap<>(idTable);
+  }
+
+  /**
+   * Returns the metrics table, which is a map that contains the node's identifier and the node's metrics address.
+   *
+   * @return the metrics table, which is a map that contains the node's identifier and the node's metrics address.
+   */
+  public HashMap<Identifier, String> getMetricsTable() {
+    return new HashMap<>(metricsTable);
+  }
+
+  /**
+   * Returns the name of the bootstrap file.
+   *
+   * @return the name of the bootstrap file.
+   */
+  public String getBootstrapFileName() {
+    return bootstrapFileName;
   }
 }

@@ -31,8 +31,7 @@ public class LocalTestNet extends MetricsTestNet {
   private static final String SERVER = "server";
   private static final String SERVER_VOLUME_BINDING = "server_volume:/app";
   private static final String DOCKER_FILE = "./Dockerfile";
-  private static final String NODE_VOLUME = "server_volume";
-  private static final String NODE = "server";
+  private static final String LIGHTCHAIN_NODE_VOLUME = "lightchain_node_volume";
   private static final String NODE_VOLUME_BINDING = "server_volume:/app";
   private static final String NODE_DOCKER_FILE = "./DockerfileTestnet";
 
@@ -41,6 +40,7 @@ public class LocalTestNet extends MetricsTestNet {
   private final Logger logger = LightchainLogger.getLogger(Bootstrap.class.getCanonicalName());
 
   public LocalTestNet(BootstrapInfo info) {
+    super(new ArrayList<>(info.getMetricsTable().values()));
     this.bootstrapInfo = info;
   }
 
@@ -92,7 +92,7 @@ public class LocalTestNet extends MetricsTestNet {
       this.logger.warn("building lightchain images from Dockerfile, this may take a while...");
 
       imageId = dockerClient.buildImageCmd()
-          .withTags(new HashSet<>(List.of("image")))
+          .withTags(new HashSet<>(List.of(imageId)))
           .withDockerfile(new File(NODE_DOCKER_FILE))
           .withPull(true)
           .exec(new BuildImageResultCallback())
@@ -107,7 +107,7 @@ public class LocalTestNet extends MetricsTestNet {
     ArrayList<CreateContainerResponse> containers = new ArrayList<>();
 
     for (int i = 0; i < this.bootstrapInfo.size(); i++) {
-      this.createVolumesIfNotExist("NODE_VOLUME_" + i);
+      this.createVolumesIfNotExist(LIGHTCHAIN_NODE_VOLUME + "_" + i);
 
       logger.info("creating node container {}", i);
 
@@ -118,11 +118,8 @@ public class LocalTestNet extends MetricsTestNet {
           .withCmd(bootstrapInfo.getIdentifier(i).toString(), bootstrapInfo.getBootstrapFileName())
           .exec();
       containers.add(nodeServer);
-
-      logger.info("node container {} created", i);
+      logger.info("node container {} created identifier {}", i, bootstrapInfo.getIdentifier(i).toString());
     }
-
-    super.runMetricsTestNet();
 
     Thread[] containerThreads = new Thread[this.bootstrapInfo.size()];
     Thread[] containerLoggerThreads = new Thread[this.bootstrapInfo.size()];
@@ -138,7 +135,8 @@ public class LocalTestNet extends MetricsTestNet {
       containerLoggerThreads[i] = new Thread(() -> {
         this.logger.info("starting node container logger {}", finalI);
 
-        this.containerLogger.runContainerLoggerWorker(containers.get(finalI).getId());
+        this.containerLogger.runContainerLoggerWorker(containers.get(finalI).getId(), "NODE" + finalI,
+            this.bootstrapInfo.getIdentifier(finalI).toString());
         this.logger.info("node container logger {} started", finalI);
       });
     }

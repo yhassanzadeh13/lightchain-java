@@ -25,6 +25,11 @@ public class BootstrapInfo {
    * The identifier table is a map that contains the node's identifier and the node's address.
    */
   private final HashMap<Identifier, String> identifierTable;
+
+  /**
+   * The metrics table is a map that contains the node's identifier and the node's metrics address.
+   */
+  private final HashMap<Identifier, String> metricsTable;
   /**
    * The list of identifiers.
    */
@@ -36,10 +41,14 @@ public class BootstrapInfo {
    * @param identifiers is the list of identifiers of the nodes in the bootstrapped network.
    * @param dockerNames is the list of docker names of the nodes in the bootstrapped network.
    * @param bootstrapFileName is the name of the bootstrap file.
-   * @param identifierTable is the identifier table of the bootstrapped network.
+   * @param identifierTable is the identifier table of the bootstrapped network, which contains the address of each node.
+   * @param metricsTable is the metrics table of the bootstrapped network, which contains the metrics address of each node.
    */
-  public BootstrapInfo(List<Identifier> identifiers, List<String> dockerNames, String bootstrapFileName,
-                       HashMap<Identifier, String> identifierTable) {
+  public BootstrapInfo(List<Identifier> identifiers,
+                       List<String> dockerNames,
+                       String bootstrapFileName,
+                       HashMap<Identifier, String> identifierTable,
+                       HashMap<Identifier, String> metricsTable) {
     // TODO: implement validate method: size of docker names and identifierTable must be identical, and
     //      the identifiers in the identifierTable must be unique, and the docker names must be unique and docker names should match
     //      the address in the identifier table.
@@ -48,6 +57,7 @@ public class BootstrapInfo {
     this.dockerNames = new ArrayList<>(dockerNames);
     this.bootstrapFileName = bootstrapFileName;
     this.identifierTable = new HashMap<>(identifierTable);
+    this.metricsTable = new HashMap<>(metricsTable);
   }
 
   /**
@@ -93,6 +103,15 @@ public class BootstrapInfo {
    */
   public int size() {
     return this.identifierTable.size();
+  }
+
+  /**
+   * Returns the metrics table.
+   *
+   * @return the metrics table.
+   */
+  public HashMap<Identifier, String> getMetricsTable() {
+    return new HashMap<Identifier, String>(metricsTable);
   }
 }
 

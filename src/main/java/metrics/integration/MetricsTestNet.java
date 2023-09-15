@@ -20,6 +20,7 @@ import com.github.dockerjava.api.command.ListVolumesResponse;
 import com.github.dockerjava.api.command.PullImageResultCallback;
 import com.github.dockerjava.api.exception.ConflictException;
 import com.github.dockerjava.api.model.Bind;
+import com.github.dockerjava.api.model.Container;
 import com.github.dockerjava.api.model.ExposedPort;
 import com.github.dockerjava.api.model.HostConfig;
 import com.github.dockerjava.api.model.Network;
@@ -52,9 +53,13 @@ public class MetricsTestNet {
   private static final String PROMETHEUS_YAML_PATH = "prometheus/prometheus.yml";
   private static final String PROMETHEUS_IMAGE = "prom/prometheus";
   private static final String PROMETHEUS_VOLUME_NAME = LIGHTCHAIN_PREFIX + "prometheus_volume";
-  private static final String PROMETHEUS_VOLUME_BINDING_VOLUME = PROMETHEUS_VOLUME_NAME + ":/prometheus";
+  private static final String PROMETHEUS_VOLUME_BINDING_VOLUME =
+      PROMETHEUS_VOLUME_NAME + ":/prometheus";
+  private static final String PROMETHEUS_CONFIG_PATH = "prometheus";
+  private static final String PROMETHEUS_TARGETS_FILE = PROMETHEUS_CONFIG_PATH + "/targets.json";
   private static final String PROMETHEUS_MAIN_CMD = "prom/prometheus:main";
-  private static final String PROMETHEUS_VOLUME_BINDING_ETC = "/prometheus" + ":" + "/etc/prometheus";
+  private static final String PROMETHEUS_VOLUME_BINDING_ETC =
+      "/prometheus" + ":" + "/etc/prometheus";
   // Grafana
   private static final int GRAFANA_PORT = 3000;
   private static final String GRAFANA_CONTAINER_NAME = LIGHTCHAIN_PREFIX + "grafana";
@@ -63,27 +68,39 @@ public class MetricsTestNet {
   private static final String GRAFANA_IMAGE = "grafana/grafana";
   private static final String GRAFANA_MAIN_CMD = "grafana/grafana:main";
   private static final String GRAFANA_NO_SIGN_UP = "GF_USERS_ALLOW_SIGN_UP=false";
-  private static final String GRAFANA_ADMIN_USER_NAME = "GF_SECURITY_ADMIN_USER=${ADMIN_USER:-admin}";
-  private static final String GRAFANA_ADMIN_PASSWORD = "GF_SECURITY_ADMIN_PASSWORD=${ADMIN_PASSWORD:-admin}";
-  private static final String GRAFANA_DASHBOARD_BINDING = "/grafana/provisioning/dashboards:/etc/grafana/provisioning" + "/dashboards";
-  private static final String GRAFANA_DATA_SOURCE_BINDING = "/grafana/provisioning/datasources:/etc/grafana" + "/provisioning/datasources";
+  private static final String GRAFANA_ADMIN_USER_NAME =
+      "GF_SECURITY_ADMIN_USER=${ADMIN_USER" + ":-admin}";
+  private static final String GRAFANA_ADMIN_PASSWORD =
+      "GF_SECURITY_ADMIN_PASSWORD=$" + "{ADMIN_PASSWORD:-admin}";
+  private static final String GRAFANA_DASHBOARD_BINDING =
+      "/grafana/provisioning/dashboards:/etc/grafana/provisioning" + "/dashboards";
+  private static final String GRAFANA_DATA_SOURCE_BINDING =
+      "/grafana/provisioning/datasources:/etc/grafana" + "/provisioning/datasources";
   protected final DockerClient dockerClient;
   protected final ContainerLogger containerLogger;
   private final Logger logger = LightchainLogger.getLogger(MetricsTestNet.class.getCanonicalName());
 
   /**
+   * Prometheus targets to be scraped by prometheus. The targets are expected to be in the format
+   * of host:port.
+   */
+  private final List<String> prometheusTargets;
+
+  /**
    * Default constructor.
    */
-  public MetricsTestNet() {
+  public MetricsTestNet(List<String> targets) {
     DockerClientConfig config = DefaultDockerClientConfig.createDefaultConfigBuilder().build();
 
-    DockerHttpClient client = new ApacheDockerHttpClient.Builder().dockerHost(config.getDockerHost())
+    DockerHttpClient client = new ApacheDockerHttpClient.Builder().dockerHost(
+            config.getDockerHost())
         .sslConfig(config.getSSLConfig())
         .maxConnections(100)
         .connectionTimeout(Duration.ofSeconds(30))
         .responseTimeout(Duration.ofSeconds(45))
         .build();
 
+    this.prometheusTargets = new ArrayList<>(targets);
     this.dockerClient = DockerClientImpl.getInstance(config, client);
     this.containerLogger = new ContainerLogger(dockerClient);
   }
@@ -94,30 +111,32 @@ public class MetricsTestNet {
    * @throws IllegalStateException when container creation faces an illegal state.
    */
   public void runMetricsTestNet() throws IllegalStateException {
-    // this.OverridePrometheusMetricServerAddress();
+    try {
+      PrometheusTargetWriter.writeTargetsToFile(prometheusTargets, PROMETHEUS_TARGETS_FILE);
+    } catch (IOException e) {
+      throw new IllegalStateException("failed to write prometheus targets to file", e);
+    }
 
     // Volume check + create if absent
     this.createVolumesIfNotExist(PROMETHEUS_VOLUME_NAME);
     this.createVolumesIfNotExist(GRAFANA_VOLUME_NAME);
 
     // Network
+    logger.info("creating docker network");
     this.createNetworkIfNotExist();
+    logger.info("created docker network");
 
     // Prometheus
-    try {
-      CreateContainerResponse prometheusContainer = createPrometheusContainer();
-      dockerClient.startContainerCmd(prometheusContainer.getId()).exec();
-    } catch (ContainerAlreadyExistsException e) {
-      logger.warn("prometheus container already exists, skipping creation");
-    }
+    logger.info("creating prometheus container");
+    CreateContainerResponse prometheusContainer = createPrometheusContainer();
+    dockerClient.startContainerCmd(prometheusContainer.getId()).exec();
+    logger.info("created prometheus container");
 
     // Grafana
-    try {
-      CreateContainerResponse grafanaContainer = this.createGrafanaContainer();
-      dockerClient.startContainerCmd(grafanaContainer.getId()).exec();
-    } catch (ContainerAlreadyExistsException e) {
-      logger.warn("grafana container already exists, skipping creation");
-    }
+    logger.info("creating grafana container");
+    CreateContainerResponse grafanaContainer = this.createGrafanaContainer();
+    dockerClient.startContainerCmd(grafanaContainer.getId()).exec();
+    logger.info("created grafana container");
 
     this.logger.info("prometheus is running at localhost:{}", PROMETHEUS_PORT);
     this.logger.info("grafana is running at localhost:{}", GRAFANA_PORT);
@@ -168,9 +187,12 @@ public class MetricsTestNet {
    * @return create container response for grafana.
    * @throws IllegalStateException when container creation faces an illegal state.
    */
-  private CreateContainerResponse createGrafanaContainer() throws IllegalStateException, ContainerAlreadyExistsException {
+  private CreateContainerResponse createGrafanaContainer() throws IllegalStateException {
     try {
-      this.dockerClient.pullImageCmd(GRAFANA_IMAGE).withTag(MAIN_TAG).exec(new PullImageResultCallback()).awaitCompletion(60, TimeUnit.SECONDS);
+      this.dockerClient.pullImageCmd(GRAFANA_IMAGE)
+          .withTag(MAIN_TAG)
+          .exec(new PullImageResultCallback())
+          .awaitCompletion(60, TimeUnit.SECONDS);
     } catch (InterruptedException ex) {
       throw new IllegalStateException("could not run grafana container" + ex);
     }
@@ -183,7 +205,9 @@ public class MetricsTestNet {
     grafBinds.add(Bind.parse(System.getProperty(USER_DIR) + GRAFANA_DASHBOARD_BINDING));
     grafBinds.add(Bind.parse(System.getProperty(USER_DIR) + GRAFANA_DATA_SOURCE_BINDING));
 
-    HostConfig hostConfig = new HostConfig().withBinds(grafBinds).withNetworkMode(NETWORK_NAME).withPortBindings(grafanaPortBindings);
+    HostConfig hostConfig = new HostConfig().withBinds(grafBinds)
+        .withNetworkMode(NETWORK_NAME)
+        .withPortBindings(grafanaPortBindings);
 
     try {
       return this.dockerClient.createContainerCmd(GRAFANA_MAIN_CMD)
@@ -195,7 +219,21 @@ public class MetricsTestNet {
           .withHostConfig(hostConfig)
           .exec();
     } catch (ConflictException ex) {
-      throw new ContainerAlreadyExistsException("grafana container already exists: " + ex);
+      // Get the existing container's info instead of throwing an exception
+      List<Container> containers = this.dockerClient.listContainersCmd()
+          .withShowAll(true)
+          .withNameFilter(List.of(GRAFANA_CONTAINER_NAME))
+          .exec();
+
+      if (containers.size() > 0) {
+        Container container = containers.get(0);
+        CreateContainerResponse response = new CreateContainerResponse();
+        response.setId(container.getId());
+        return response;
+
+      } else {
+        throw new IllegalStateException("unable to retrieve existing grafana container: " + ex);
+      }
     }
   }
 
@@ -205,34 +243,50 @@ public class MetricsTestNet {
    * @return create container response for prometheus.
    * @throws IllegalStateException when container creation faces an illegal state.
    */
-  private CreateContainerResponse createPrometheusContainer() throws IllegalStateException, ContainerAlreadyExistsException {
+  private CreateContainerResponse createPrometheusContainer() throws IllegalStateException {
     try {
-      this.dockerClient.pullImageCmd(PROMETHEUS_IMAGE).withTag(MAIN_TAG).exec(new PullImageResultCallback()).awaitCompletion(180, TimeUnit.SECONDS);
+      this.dockerClient.pullImageCmd(PROMETHEUS_IMAGE)
+          .withTag(MAIN_TAG)
+          .exec(new PullImageResultCallback())
+          .awaitCompletion(180, TimeUnit.SECONDS);
     } catch (InterruptedException ex) {
       throw new IllegalStateException("could not run prometheus container" + ex);
     }
 
     Ports promPortBindings = new Ports();
-    promPortBindings.bind(ExposedPort.tcp(PROMETHEUS_PORT), Ports.Binding.bindPort(PROMETHEUS_PORT));
+    promPortBindings.bind(ExposedPort.tcp(PROMETHEUS_PORT),
+        Ports.Binding.bindPort(PROMETHEUS_PORT));
 
     List<Bind> promBinds = new ArrayList<Bind>();
     promBinds.add(Bind.parse(System.getProperty(USER_DIR) + PROMETHEUS_VOLUME_BINDING_ETC));
     promBinds.add(Bind.parse(PROMETHEUS_VOLUME_BINDING_VOLUME));
 
-    HostConfig hostConfig = new HostConfig().withBinds(promBinds).withNetworkMode(NETWORK_NAME).withPortBindings(promPortBindings);
+    HostConfig hostConfig = new HostConfig().withBinds(promBinds)
+        .withNetworkMode(NETWORK_NAME)
+        .withPortBindings(promPortBindings);
 
-    CreateContainerResponse container;
     try {
-      container = this.dockerClient.createContainerCmd(PROMETHEUS_MAIN_CMD)
+      return this.dockerClient.createContainerCmd(PROMETHEUS_MAIN_CMD)
           .withName(PROMETHEUS_CONTAINER_NAME)
           .withTty(true)
           .withHostConfig(hostConfig)
           .exec();
     } catch (ConflictException ex) {
-      throw new ContainerAlreadyExistsException("prometheus container already exists: " + ex);
-    }
+      // Get the existing container's info instead of throwing an exception
+      List<Container> containers = this.dockerClient.listContainersCmd()
+          .withShowAll(true)
+          .withNameFilter(List.of(PROMETHEUS_CONTAINER_NAME))
+          .exec();
 
-    return container;
+      if (containers.size() > 0) {
+        Container container = containers.get(0);
+        CreateContainerResponse response = new CreateContainerResponse();
+        response.setId(container.getId());
+        return response;
+      } else {
+        throw new IllegalStateException("unable to retrieve existing prometheus container: " + ex);
+      }
+    }
   }
 
   /**

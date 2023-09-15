@@ -11,6 +11,9 @@ public class MetricServer {
   public static final int SERVER_PORT = 8081;
   private HTTPServer server;
 
+  public MetricServer() {
+  }
+
   /**
    * Initiates the Prometheus Exposer HTTP Server.
    */

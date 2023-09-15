@@ -30,10 +30,10 @@ public class DemoServer {
     // registers metrics.
     try {
       demoServerQueryCount = collector.counter().register("demo_server_query_count",
-          "localnet", "demo", "Demo server query count");
+              "localnet", "demo", "Demo server query count");
 
       demoServerQueryGauge = collector.gauge().register("demo_server_query_gauge",
-          "localnet", "demo", "Demo server query gauge");
+              "localnet", "demo", "Demo server query gauge");
     } catch (IllegalArgumentException ex) {
       System.exit(1);
       throw new IllegalArgumentException("could not initialize the metrics with the provided arguments", ex);
