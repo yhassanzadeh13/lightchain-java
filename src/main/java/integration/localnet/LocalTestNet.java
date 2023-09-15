@@ -121,12 +121,6 @@ public class LocalTestNet extends MetricsTestNet {
       logger.info("node container {} created identifier {}", i, bootstrapInfo.getIdentifier(i).toString());
     }
 
-    try {
-      super.runMetricsTestNet();
-    } catch (IllegalStateException e) {
-      this.logger.fatal("could not start metrics test net, exiting...", e);
-    }
-
     Thread[] containerThreads = new Thread[this.bootstrapInfo.size()];
     Thread[] containerLoggerThreads = new Thread[this.bootstrapInfo.size()];
     for (int i = 0; i < this.bootstrapInfo.size(); i++) {
