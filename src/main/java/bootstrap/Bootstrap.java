@@ -107,7 +107,7 @@ public class Bootstrap {
   /**
    * Builds and returns a ConcurrentMap of nodes to be bootstrapped.
    */
-  void makeBootstrap() {
+  private void makeBootstrap() {
     for (int i = 0; i < this.nodeCount; i++) {
       Identifier id = this.newIdentifier();
       while (idTable.containsKey(id)) {
@@ -132,7 +132,7 @@ public class Bootstrap {
       FileOutputStream fileStream = new FileOutputStream(file);
       Writer writer = new OutputStreamWriter(fileStream, StandardCharsets.UTF_8);
       for (Map.Entry<Identifier, String> id : this.idTable.entrySet()) {
-        writer.write(id.getKey() + ":" + this.idTable.get(id.getKey()) + "\n");
+        writer.write(id.getKey().toString() + ":" + this.idTable.get(id.getKey()) + "\n");
       }
       writer.flush();
       writer.close();

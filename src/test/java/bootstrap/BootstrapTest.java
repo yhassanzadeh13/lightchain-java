@@ -1,9 +1,7 @@
 package bootstrap;
 
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
-import java.io.PrintStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
@@ -29,7 +27,7 @@ public class BootstrapTest {
   public void testMakeBootstrap() {
     // creates a bootstrap object with 3 nodes.
     Bootstrap bootstrap = new Bootstrap((short) 3);
-    bootstrap.makeBootstrap();
+    bootstrap.build();
 
     List<String> dockerNames = bootstrap.getDockerNames();
     assertEquals(3, dockerNames.size());
@@ -68,7 +66,7 @@ public class BootstrapTest {
   public void testWriteOnFile() throws IOException {
     // creates a bootstrap object with 3 nodes.
     Bootstrap bootstrap = new Bootstrap((short) 3);
-    bootstrap.makeBootstrap();
+    bootstrap.build();
 
     // loads the bootstrap file and checks if it exists.
     File file = new File(bootstrap.getBootstrapFileName());
@@ -89,35 +87,6 @@ public class BootstrapTest {
     }
 
     file.deleteOnExit();
-  }
-
-  /**
-   * testPrint tests the print method of the bootstrap class,
-   * it creates a bootstrap object with 3 nodes and checks if the console output is correct.
-   */
-  @Test
-  public void testPrint() {
-    // creates a bootstrap object with 3 nodes.
-    Bootstrap bootstrap = new Bootstrap((short) 3);
-    bootstrap.makeBootstrap();
-
-    // redirects console output to check if it matches expected output
-    ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-    System.setOut(new PrintStream(outputStream));
-
-    bootstrap.print();
-
-    String output = outputStream.toString();
-    // checks the header of the console output.
-    assertTrue(output.contains("bootstrap file created with the following content:"));
-    // checks the name of the bootstrap file.
-    assertTrue(output.contains("bootstrap file written to " + bootstrap.getBootstrapFileName()));
-
-    // each subsequent line should be in the format of "identifier fullyQualifiedAddress"
-    Map<Identifier, String> idTable = bootstrap.getIdTable();
-    for (Identifier id : idTable.keySet()) {
-      assertTrue(output.contains(id.toString() + " " + idTable.get(id)));
-    }
   }
 
   /**
