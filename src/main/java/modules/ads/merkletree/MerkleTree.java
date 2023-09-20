@@ -109,10 +109,10 @@ public class MerkleTree implements AuthenticatedDataStructure {
     MerklePath path = new MerklePath();
     MerkleNode currentNode = leafNodes.get(idx);
     while (currentNode != root) {
-      path.add(currentNode.getSibling().getHash(), currentNode.isLeft());
+      path.add(currentNode.getSibling().getRootHash(), currentNode.isLeft());
       currentNode = currentNode.getParent();
     }
-    return new MerkleProof(root.getHash(), path);
+    return new MerkleProof(root.getRootHash(), path);
   }
 
   /**
@@ -139,9 +139,9 @@ public class MerkleTree implements AuthenticatedDataStructure {
           right = currentLevelNodes.get(i + 1); // we have a right node
         } else {
           // TODO: edge case need to get fixed.
-          right = new MerkleNode(left.getHash());
+          right = new MerkleNode(left.getRootHash());
         }
-        Sha3256Hash hash = hasher.computeHash(left.getHash().getBytes(), right.getHash().getBytes());
+        Sha3256Hash hash = hasher.computeHash(left.getRootHash().getBytes(), right.getRootHash().getBytes());
         MerkleNode parent = new MerkleNode(hash, left, right);
         left.setParent(parent);
         right.setParent(parent);

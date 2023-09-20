@@ -21,7 +21,7 @@ public class MerklePatriciaTrie extends MerkleTree {
   private static final Sha3256Hasher hasher = new Sha3256Hasher();
   private final Map<Identifier, Entity> entityHashTable;
   private final ReentrantReadWriteLock lock;
-  private final MerkleNode root;
+  private final MerkleNode rootNode;
   private int size;
 
   /**
@@ -29,7 +29,7 @@ public class MerklePatriciaTrie extends MerkleTree {
    */
   public MerklePatriciaTrie() {
     this.size = 0;
-    this.root = new MerkleNode();
+    this.rootNode = new MerkleNode();
     this.entityHashTable = new HashMap<>();
     this.lock = new ReentrantReadWriteLock();
   }
@@ -41,13 +41,13 @@ public class MerklePatriciaTrie extends MerkleTree {
    * @return AuthenticatedEntity containing the entity and its membership proof
    */
   @Override
-  public AuthenticatedEntity put(Entity e) throws IllegalArgumentException {
+  public AuthenticatedEntity put(Entity e) {
     try {
       lock.writeLock().lock();
       if (e == null) {
-        throw new IllegalArgumentException("entity cannot be null");
+        throw new IllegalArgumentException("attempting to put a null entity in merkle patricia trie");
       }
-      MerkleNode currNode = root;
+      MerkleNode currentNode = rootNode;
       Identifier id = e.id();
       byte[] bytes = id.getBytes();
       String path = "";
@@ -56,38 +56,38 @@ public class MerklePatriciaTrie extends MerkleTree {
       }
       for (int i = 0; i < path.length() - 1; i++) {
         if (path.charAt(i) == '0') {
-          if (currNode.getLeft() == null) {
-            currNode.setLeftNode(new MerkleNode(currNode, true));
+          if (currentNode.getLeft() == null) {
+            currentNode.setLeftNode(new MerkleNode(currentNode, true));
           }
-          currNode = currNode.getLeft();
+          currentNode = currentNode.getLeft();
         } else {
-          if (currNode.getRight() == null) {
-            currNode.setRightNode(new MerkleNode(currNode, false));
+          if (currentNode.getRight() == null) {
+            currentNode.setRightNode(new MerkleNode(currentNode, false));
           }
-          currNode = currNode.getRight();
+          currentNode = currentNode.getRight();
         }
       }
       MerkleNode newNode = null;
       if (path.charAt(path.length() - 1) == '0') {
-        if (currNode.getLeft() == null) {
-          newNode = new MerkleNode(currNode, true, hasher.computeHash(id));
-          currNode.setLeftNode(newNode);
+        if (currentNode.getLeft() == null) {
+          newNode = new MerkleNode(currentNode, true, hasher.computeHash(id));
+          currentNode.setLeftNode(newNode);
           entityHashTable.put(id, e);
           size++;
         }
       } else {
-        if (currNode.getRight() == null) {
-          newNode = new MerkleNode(currNode, false, hasher.computeHash(id));
-          currNode.setRightNode(newNode);
+        if (currentNode.getRight() == null) {
+          newNode = new MerkleNode(currentNode, false, hasher.computeHash(id));
+          currentNode.setRightNode(newNode);
           entityHashTable.put(id, e);
           size++;
         }
       }
       for (int i = 0; i < path.length() - 1; i++) {
-        currNode.updateHash();
-        currNode = currNode.getParent();
+        currentNode.updateHash();
+        currentNode = currentNode.getParent();
       }
-      currNode.updateHash();
+      currentNode.updateHash();
       return get(id);
     } finally {
       lock.writeLock().unlock();
@@ -110,7 +110,7 @@ public class MerklePatriciaTrie extends MerkleTree {
 
       ArrayList<Sha3256Hash> pathList = new ArrayList<>();
       ArrayList<Boolean> isLeftNode = new ArrayList<>();
-      MerkleNode currNode = root;
+      MerkleNode currNode = rootNode;
       byte[] bytes = id.getBytes();
       String path = "";
       for (byte b : bytes) {
@@ -127,13 +127,13 @@ public class MerklePatriciaTrie extends MerkleTree {
         if (currNode == null) {
           throw new IllegalArgumentException("identifier not found");
         }
-        pathList.add(currNode.getSibling() == null ? new Sha3256Hash(new byte[32]) : currNode.getSibling().getHash());
+        pathList.add(currNode.getSibling() == null ? new Sha3256Hash(new byte[32]) : currNode.getSibling().getRootHash());
       }
       Collections.reverse(pathList);
       Collections.reverse(isLeftNode);
       Entity e = entityHashTable.get(id);
       MerklePath merklePath = new MerklePath(pathList, isLeftNode);
-      MerkleProof proof = new MerkleProof(root.getHash(), merklePath);
+      MerkleProof proof = new MerkleProof(rootNode.getRootHash(), merklePath);
       return new MerkleTreeAuthenticatedEntity(proof, e.type(), e);
     } finally {
       lock.readLock().unlock();

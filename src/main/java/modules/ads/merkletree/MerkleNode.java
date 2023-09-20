@@ -14,7 +14,7 @@ public class MerkleNode {
   private MerkleNode right;
   private MerkleNode parent;
   private boolean isLeft;
-  private Sha3256Hash hash;
+  private Sha3256Hash rootHash;
 
   /**
    * Default constructor.
@@ -24,7 +24,7 @@ public class MerkleNode {
     this.right = null;
     this.parent = null;
     this.isLeft = false;
-    this.hash = new Sha3256Hash(new byte[32]);
+    this.rootHash = new Sha3256Hash(new byte[32]);
   }
 
   /**
@@ -38,7 +38,7 @@ public class MerkleNode {
     this.right = null;
     this.parent = null;
     this.isLeft = isLeft;
-    this.hash = hasher.computeHash(e.id());
+    this.rootHash = hasher.computeHash(e.id());
   }
 
   /**
@@ -53,7 +53,7 @@ public class MerkleNode {
     this.right = null;
     this.parent = parent;
     this.isLeft = isLeft;
-    this.hash = new Sha3256Hash(new byte[32]);
+    this.rootHash = new Sha3256Hash(new byte[32]);
   }
 
   /**
@@ -69,7 +69,7 @@ public class MerkleNode {
     this.right = null;
     this.parent = parent;
     this.isLeft = isLeft;
-    this.hash = hash;
+    this.rootHash = hash;
   }
 
   /**
@@ -82,7 +82,7 @@ public class MerkleNode {
     this.right = null;
     this.parent = null;
     this.isLeft = false;
-    this.hash = hash;
+    this.rootHash = hash;
   }
 
   /**
@@ -98,7 +98,7 @@ public class MerkleNode {
     this.right = right;
     this.parent = null;
     this.isLeft = false;
-    this.hash = hash;
+    this.rootHash = hash;
   }
 
   /**
@@ -146,8 +146,8 @@ public class MerkleNode {
    *
    * @return the hash corresponding to the node
    */
-  public Sha3256Hash getHash() {
-    return hash;
+  public Sha3256Hash getRootHash() {
+    return rootHash;
   }
 
   /**
@@ -205,8 +205,8 @@ public class MerkleNode {
    * Updates the hash of the node.
    */
   public void updateHash() {
-    Sha3256Hash leftHash = left == null ? new Sha3256Hash(new byte[32]) : left.getHash();
-    Sha3256Hash rightHash = right == null ? new Sha3256Hash(new byte[32]) : right.getHash();
-    this.hash = hasher.computeHash(leftHash, rightHash);
+    Sha3256Hash leftHash = left == null ? new Sha3256Hash(new byte[32]) : left.getRootHash();
+    Sha3256Hash rightHash = right == null ? new Sha3256Hash(new byte[32]) : right.getRootHash();
+    this.rootHash = hasher.computeHash(leftHash, rightHash);
   }
 }
