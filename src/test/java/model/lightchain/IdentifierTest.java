@@ -174,4 +174,7 @@ class IdentifierTest {
     assertArrayEquals(bitIdentifier.getBytes(), identifier.getBytes());
     assertEquals(bitIdentifier.comparedTo(identifier), 0);
   }
+
+  // TODO: test for no collision in the random identifier generation.
+  // TODO: test that binary string is only 256 bits long comprised of 0s and 1s.
 }
