@@ -11,6 +11,7 @@ import modules.ads.MembershipProof;
 public class MerkleProof implements MembershipProof {
   private final MerklePath merklePath;
   private final Sha3256Hash root;
+  private ArrayList<Sha3256Hash> path;
 
   /**
    * Constructs a proof from a list of hashes and a root.

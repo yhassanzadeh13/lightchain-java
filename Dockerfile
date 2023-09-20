@@ -9,7 +9,7 @@ COPY src /app/src/
 RUN mvn compile assembly:single
 
 FROM openjdk:17
-COPY --from=build /app/target/lightchain-sdp-1.0-SNAPSHOT-jar-with-dependencies.jar .
+COPY --from=build /app/target/lightchain-1.0-SNAPSHOT-jar-with-dependencies.jar .
 COPY prometheus /app/prometheus/
 EXPOSE 8081
-ENTRYPOINT ["java", "-cp", "lightchain-sdp-1.0-SNAPSHOT-jar-with-dependencies.jar", "integration.localnet.DemoServer"]
+ENTRYPOINT ["java", "-cp", "lightchain-1.0-SNAPSHOT-jar-with-dependencies.jar", "integration.localnet.DemoServer"]

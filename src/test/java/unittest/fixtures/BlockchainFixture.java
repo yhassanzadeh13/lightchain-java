@@ -2,7 +2,6 @@ package unittest.fixtures;
 
 import java.util.ArrayList;
 
-import model.lightchain.ValidatedBlock;
 import state.Snapshot;
 
 /**
@@ -25,7 +24,7 @@ public class BlockchainFixture {
    * @return chain of validated blocks.
    * @throws IllegalStateException if any block or transaction fails validation.
    */
-  public static ArrayList<ValidatedBlock> newValidChain(Snapshot rootSnapshot, int blockNum)
+  public static ArrayList<model.lightchain.Block> newValidChain(Snapshot rootSnapshot, int blockNum)
       throws IllegalStateException {
     return null;
   }

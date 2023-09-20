@@ -1,12 +1,14 @@
 package model.lightchain;
 
+import java.io.Serializable;
+
 import model.codec.EntityType;
 import model.crypto.Signature;
 
 /**
  * Represents a LightChain transaction in form of a token transfer between a sender and receiver.
  */
-public class Transaction extends model.Entity {
+public class Transaction extends model.Entity implements Serializable {
   /**
    * The identifier of a finalized block that this transaction refers to its snapshot.
    */
@@ -32,10 +34,6 @@ public class Transaction extends model.Entity {
    */
   protected Signature signature;
 
-  public void setSignature(Signature signature) {
-    this.signature = signature;
-  }
-
   /**
    * Constructor of the transaction.
    *
@@ -49,6 +47,35 @@ public class Transaction extends model.Entity {
     this.sender = sender;
     this.receiver = receiver;
     this.amount = amount;
+  }
+
+  /**
+   * Return the HashCode.
+   *
+   * @return the hashcode.
+   */
+  @Override
+  public int hashCode() {
+    return this.id().hashCode();
+  }
+
+  /**
+   * Returns true if objects are equal.
+   *
+   * @param o an transaction object.
+   * @return true if objects equal.
+   */
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof Transaction)) {
+      return false;
+    }
+    Transaction that = (Transaction) o;
+
+    return this.id().equals(that.id());
   }
 
   /**
@@ -78,5 +105,9 @@ public class Transaction extends model.Entity {
 
   public Signature getSignature() {
     return signature;
+  }
+
+  public void setSignature(Signature signature) {
+    this.signature = signature;
   }
 }

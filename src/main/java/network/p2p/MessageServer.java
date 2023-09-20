@@ -26,6 +26,7 @@ import io.grpc.Server;
 import io.grpc.ServerBuilder;
 import io.grpc.stub.StreamObserver;
 import model.codec.EncodedEntity;
+import model.exceptions.CodecException;
 import modules.codec.JsonEncoder;
 import network.p2p.proto.Message;
 import network.p2p.proto.MessengerGrpc;
@@ -110,10 +111,11 @@ public class MessageServer {
         @SuppressFBWarnings(value = "DM_EXIT", justification = "meant to fail VM safely upon error")
         public void onNext(Message message) {
           // TODO: replace with info log
-          System.out.println("Received Entity");
-          System.out.println("OriginID: " + message.getOriginId().toStringUtf8());
-          System.out.println("Channel: " + message.getChannel());
-          System.out.println("Type: " + message.getType());
+          // TODO: uncomment once viable
+          // System.out.println("Received Entity");
+          // System.out.println("OriginID: " + message.getOriginId().toStringUtf8());
+          // System.out.println("Channel: " + message.getChannel());
+          // System.out.println("Type: " + message.getType());
 
           // TODO: check that this node is among target ids
           if (engineChannelTable.containsKey(message.getChannel())) {
@@ -121,7 +123,7 @@ public class MessageServer {
             EncodedEntity e = new EncodedEntity(message.getPayload().toByteArray(), message.getType());
             try {
               engineChannelTable.get(message.getChannel()).process(encoder.decode(e));
-            } catch (ClassNotFoundException ex) {
+            } catch (CodecException ex) {
               // TODO: replace with fatal log
               System.err.println("could not decode incoming message");
               ex.printStackTrace();

@@ -1,5 +1,7 @@
 package metrics.integration;
 
+import java.util.List;
+
 import io.prometheus.client.Counter;
 import io.prometheus.client.Gauge;
 import metrics.collectors.LightChainCollector;
@@ -9,9 +11,10 @@ import metrics.collectors.MetricServer;
  * Demonstrative class to set up a Prometheus server and create LightChain Counter and Gauge instances.
  */
 public class Demo {
-  static LightChainCollector collector;
-  static Counter finalizedBlockCount;
-  static Gauge currentBlockCount;
+  private static final List<String> DEFAULT_TARGETS = List.of("host.docker.internal:" + MetricServer.SERVER_PORT);
+  private static LightChainCollector collector;
+  private static Counter finalizedBlockCount;
+  private static Gauge currentBlockCount;
 
   /**
    * main function.
@@ -19,7 +22,7 @@ public class Demo {
    * @param args standard Java args
    */
   public static void main(String[] args) {
-    MetricsTestNet testNet = new MetricsTestNet();
+    MetricsTestNet testNet = new MetricsTestNet(DEFAULT_TARGETS);
     MetricServer server = new MetricServer();
 
     try {
@@ -57,6 +60,8 @@ public class Demo {
         Thread.sleep(1000);
         finalizedBlockCount.inc(1);
         currentBlockCount.inc(1);
+        System.out.println("Finalized block count: " + finalizedBlockCount.get());
+        System.out.println("Current block count: " + currentBlockCount.get());
       } catch (InterruptedException ex) {
         System.err.println("Thread sleep issue, breaking the loop");
         break;
@@ -71,5 +76,4 @@ public class Demo {
     }
 
   }
-
 }

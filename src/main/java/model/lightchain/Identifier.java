@@ -1,5 +1,6 @@
 package model.lightchain;
 
+import java.io.Serializable;
 import java.util.Arrays;
 
 import io.ipfs.multibase.Multibase;
@@ -7,12 +8,51 @@ import io.ipfs.multibase.Multibase;
 /**
  * Represents a 32-byte unique identifier for an entity. Normally is computed as the hash value of the entity.
  */
-public class Identifier {
+public class Identifier implements Serializable {
   public static final int Size = 32;
   private final byte[] value;
 
+  /**
+   * Returns the byte representation of the identifier.
+   *
+   * @param value identifier in byte representation.
+   */
   public Identifier(byte[] value) {
+    if (value.length != Size) {
+      throw new IllegalArgumentException("Identifier must be 32 bytes long");
+    }
     this.value = value.clone();
+  }
+
+  /**
+   * Returns the byte representation of the identifier.
+   *
+   * @param identifierString identifier in Base58BTC format.
+   */
+  public Identifier(String identifierString) {
+    try {
+      Multibase.decode(identifierString);
+    } catch (IllegalStateException e) {
+      throw new IllegalArgumentException(String.format("Identifier must be in Base58BTC format: %s", identifierString), e);
+    }
+    byte[] decodedValue = Multibase.decode(identifierString);
+    if (decodedValue.length != Size) {
+      throw new IllegalArgumentException("Identifier must be 32 bytes long");
+    }
+    this.value = decodedValue;
+  }
+
+  /**
+   * Converts identifier from its byte representation to Base58BTC.
+   *
+   * @param identifier input identifier in byte representation.
+   * @return Base58BTC representation of identifier.
+   */
+  private static String pretty(byte[] identifier) {
+    if (identifier.length != Size) {
+      throw new IllegalArgumentException("Identifier must be 32 bytes long");
+    }
+    return Multibase.encode(Multibase.Base.Base58BTC, identifier);
   }
 
   /**
@@ -30,6 +70,10 @@ public class Identifier {
       return false;
     }
     Identifier that = (Identifier) o;
+
+    if (value.length != that.value.length) {
+      return false;
+    }
     return Arrays.equals(value, that.value);
   }
 
@@ -57,21 +101,11 @@ public class Identifier {
   }
 
   /**
-   * Converts identifier from its byte representation to Base58BTC.
-   *
-   * @param identifier input identifier in byte representation.
-   * @return Base58BTC representation of identifier.
-   */
-  private static String pretty(byte[] identifier) {
-    return Multibase.encode(Multibase.Base.Base58BTC, identifier);
-  }
-
-  /**
    * Compares this identifier with the other identifier.
    *
    * @param other represents other identifier to compared to.
    * @return 0 if two identifiers are equal, 1 if this identifier is greater than other,
-   * -1 if other identifier is greater than this.
+   *     -1 if other identifier is greater than this.
    */
   public int comparedTo(Identifier other) {
     int result = Arrays.compare(this.value, other.value);

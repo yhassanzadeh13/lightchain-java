@@ -38,3 +38,5 @@ infer-out/tmp/
 infer-out/
 
 *.db
+
+*.txt

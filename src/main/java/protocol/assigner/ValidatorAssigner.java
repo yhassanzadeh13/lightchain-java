@@ -5,19 +5,16 @@ import model.lightchain.Identifier;
 import state.Snapshot;
 
 /**
- * Represents the abstraction of assignment of validators to an entity.
+ * Validator assigner abstracts the logic of assigning deterministic validators for a given entity.
  */
 public interface ValidatorAssigner {
   /**
-   * Assigns validators from the given snapshot to the entity with given identifier.
-   * Identifier of the ith validator is chosen as the staked account with the greatest identifier that
-   * is less than or equal to hash(id || i). Once the ith validator is chosen, it is omitted from the procedure
-   * of picking the i+1(th) validator.
+   * Returns the validators of the given entity.
    *
-   * @param id identifier of the entity.
-   * @param s snapshot to pick validators from.
-   * @param num number of validators to choose.
-   * @return list of validators.
+   * @param identifier identifier of entity that urges validator assignment.
+   * @param snapshot   snapshot of protocol state from which validators are picked.
+   * @return list of validators assigned to this entity.
+   * @throws IllegalStateException any unhappy path taken on computing validators.
    */
-  Assignment assign(Identifier id, Snapshot s, short num) throws IllegalArgumentException;
+  Assignment getValidatorsAtSnapshot(Identifier identifier, Snapshot snapshot) throws IllegalStateException;
 }

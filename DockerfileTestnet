@@ -1,0 +1,6 @@
+FROM openjdk:17
+COPY pom.xml .
+COPY bootstrap.txt .
+COPY /target/lightchain-1.0-SNAPSHOT-jar-with-dependencies.jar .
+EXPOSE 8081
+ENTRYPOINT ["java", "-cp", "lightchain-1.0-SNAPSHOT-jar-with-dependencies.jar", "bootstrap.Node"]

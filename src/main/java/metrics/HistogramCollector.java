@@ -19,6 +19,6 @@ public interface HistogramCollector {
    *                                  same name has already been registered.
    */
   Histogram register(String name, String namespace, String subsystem, String helpMessage, double[] buckets)
-          throws IllegalArgumentException;
+      throws IllegalArgumentException;
 
 }

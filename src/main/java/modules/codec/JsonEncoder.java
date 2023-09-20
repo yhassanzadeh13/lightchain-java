@@ -1,16 +1,20 @@
 package modules.codec;
 
-import java.lang.reflect.Type;
-import java.nio.charset.StandardCharsets;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
 
-import com.google.gson.Gson;
 import model.Entity;
 import model.codec.EncodedEntity;
+import model.exceptions.CodecException;
 
 /**
  * Implements encoding and decoding using JSON.
  */
-public class JsonEncoder implements Codec {
+public class JsonEncoder implements Codec, Serializable {
   /**
    * Encodes an Entity to an EncodedEntity.
    *
@@ -18,9 +22,17 @@ public class JsonEncoder implements Codec {
    * @return the JSON encoded representation of Entity.
    */
   @Override
-  public EncodedEntity encode(Entity e) {
-    Gson gson = new Gson();
-    byte[] bytes = gson.toJson(e).getBytes(StandardCharsets.UTF_8);
+  public EncodedEntity encode(Entity e) throws CodecException {
+    byte[] bytes;
+    try {
+      ByteArrayOutputStream bos = new ByteArrayOutputStream();
+      ObjectOutputStream out = new ObjectOutputStream(bos);
+      out.writeObject(e);
+      out.flush();
+      bytes = bos.toByteArray();
+    } catch (IOException ex) {
+      throw new CodecException("could not encode entity", ex);
+    }
     String type = e.getClass().getCanonicalName();
     return new EncodedEntity(bytes, type);
   }
@@ -32,10 +44,16 @@ public class JsonEncoder implements Codec {
    * @return original Entity type.
    */
   @Override
-  public Entity decode(EncodedEntity e) throws ClassNotFoundException {
-    Gson gson = new Gson();
-    String json = new String(e.getBytes().clone(), StandardCharsets.UTF_8);
-    return gson.fromJson(json, (Type) Class.forName(e.getType()));
-
+  public Entity decode(EncodedEntity e) throws CodecException {
+    Entity entity = null;
+    try {
+      ByteArrayInputStream bis = new ByteArrayInputStream(e.getBytes().clone());
+      ObjectInputStream inp = null;
+      inp = new ObjectInputStream(bis);
+      entity = (Entity) (Class.forName(e.getType())).cast(inp.readObject());
+    } catch (IOException | ClassNotFoundException ex) {
+      throw new CodecException("could not decode entity", ex);
+    }
+    return entity;
   }
 }

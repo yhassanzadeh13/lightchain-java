@@ -1,11 +1,15 @@
 package protocol.block;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import model.crypto.Signature;
 import model.lightchain.Account;
 import model.lightchain.Block;
+import model.lightchain.BlockHeader;
+import model.lightchain.BlockProposal;
 import model.lightchain.Identifier;
 import model.lightchain.ValidatedTransaction;
 import org.junit.jupiter.api.Assertions;
@@ -28,19 +32,17 @@ public class ValidatorTest {
    */
   @Test
   public void testBlockIsNotCorrect_InvalidPreviousBlockSnapshot() {
-    // Arrange
-    /// Block
-    Block block = BlockFixture.newBlock();
+    BlockProposal proposal = BlockFixture.newBlockProposal();
 
     /// State & Snapshot Mocking
     State mockState = mock(State.class);
-    when(mockState.atBlockId(block.getPreviousBlockId())).thenReturn(null);
+    when(mockState.atBlockId(proposal.getPreviousBlockId())).thenReturn(null);
 
     /// Verifier
     InfBlockValidator validator = new BlockValidator(mockState);
 
     // Act
-    boolean result = validator.isCorrect(block);
+    boolean result = validator.isCorrect(proposal);
 
     // Assert
     Assertions.assertFalse(result);
@@ -52,21 +54,19 @@ public class ValidatorTest {
    */
   @Test
   public void testBlockIsNotCorrect_InvalidProposer() {
-    // Arrange
-    /// Block
-    Block block = BlockFixture.newBlock();
+    BlockProposal proposal = BlockFixture.newBlockProposal();
 
     /// State & Snapshot Mocking
     State mockState = mock(State.class);
     Snapshot mockSnapshot = mock(Snapshot.class);
-    when(mockState.atBlockId(block.getPreviousBlockId())).thenReturn(mockSnapshot);
-    when(mockSnapshot.getAccount(block.getProposer())).thenReturn(null);
+    when(mockState.atBlockId(proposal.getPreviousBlockId())).thenReturn(mockSnapshot);
+    when(mockSnapshot.getAccount(proposal.getProposerId())).thenReturn(null);
 
     /// Verifier
     InfBlockValidator validator = new BlockValidator(mockState);
 
     // Act
-    boolean result = validator.isCorrect(block);
+    boolean result = validator.isCorrect(proposal);
 
     // Assert
     Assertions.assertFalse(result);
@@ -78,30 +78,22 @@ public class ValidatorTest {
    */
   @Test
   public void testBlockIsNotCorrect_ValidatedTransactionBelowMinimum() {
-    // Arrange
-    /// Block
-    int validatedTransactionSize = Parameters.MIN_TRANSACTIONS_NUM - 1;
-    Assertions.assertTrue(validatedTransactionSize >= 0);
-
-    Block block = BlockFixture.newBlock(validatedTransactionSize);
+    BlockProposal proposal = BlockFixture.newBlockProposal(Parameters.MIN_TRANSACTIONS_NUM - 1);
 
     /// State & Snapshot Mocking
     State mockState = mock(State.class);
     Snapshot mockSnapshot = mock(Snapshot.class);
 
-    Identifier proposer = block.getProposer();
+    Identifier proposer = proposal.getProposerId();
     Account proposerAccount = AccountFixture.newAccount(proposer);
 
-    when(mockState.atBlockId(block.getPreviousBlockId())).thenReturn(mockSnapshot);
+    when(mockState.atBlockId(proposal.getPreviousBlockId())).thenReturn(mockSnapshot);
     when(mockSnapshot.getAccount(proposer)).thenReturn(proposerAccount);
 
-    /// Verifier
     InfBlockValidator validator = new BlockValidator(mockState);
 
-    // Act
-    boolean result = validator.isCorrect(block);
+    boolean result = validator.isCorrect(proposal);
 
-    // Assert
     Assertions.assertFalse(result);
   }
 
@@ -111,26 +103,24 @@ public class ValidatorTest {
    */
   @Test
   public void testBlockIsNotCorrect_ValidatedTransactionAboveMaximum() {
-    // Arrange
-    /// Block
     int validatedTransactionSize = Parameters.MAX_TRANSACTIONS_NUM + 2;
-    Block block = BlockFixture.newBlock(validatedTransactionSize);
+    BlockProposal proposal = BlockFixture.newBlockProposal(validatedTransactionSize);
 
     // State & Snapshot Mocking
     State mockState = mock(State.class);
     Snapshot mockSnapshot = mock(Snapshot.class);
 
-    Identifier proposer = block.getProposer();
+    Identifier proposer = proposal.getProposerId();
     Account proposerAccount = AccountFixture.newAccount(proposer);
 
-    when(mockState.atBlockId(block.getPreviousBlockId())).thenReturn(mockSnapshot);
+    when(mockState.atBlockId(proposal.getPreviousBlockId())).thenReturn(mockSnapshot);
     when(mockSnapshot.getAccount(proposer)).thenReturn(proposerAccount);
 
     /// Verifier
     InfBlockValidator validator = new BlockValidator(mockState);
 
     // Act
-    boolean result = validator.isCorrect(block);
+    boolean result = validator.isCorrect(proposal);
 
     // Assert
     Assertions.assertFalse(result);
@@ -145,27 +135,25 @@ public class ValidatorTest {
    */
   @Test
   public void testBlockIsCorrect() {
-    // Arrange
-    /// Block
     int validatedTransactionSize = (Parameters.MIN_TRANSACTIONS_NUM + Parameters.MAX_TRANSACTIONS_NUM) / 2;
     Assertions.assertNotEquals(0, validatedTransactionSize);
-    Block block = BlockFixture.newBlock(validatedTransactionSize);
+    BlockProposal proposal = BlockFixture.newBlockProposal(validatedTransactionSize);
 
     /// State & Snapshot Mocking
     State mockState = mock(State.class);
     Snapshot mockSnapshot = mock(Snapshot.class);
 
-    Identifier proposer = block.getProposer();
+    Identifier proposer = proposal.getProposerId();
     Account proposerAccount = AccountFixture.newAccount(proposer);
 
-    when(mockState.atBlockId(block.getPreviousBlockId())).thenReturn(mockSnapshot);
+    when(mockState.atBlockId(proposal.getPreviousBlockId())).thenReturn(mockSnapshot);
     when(mockSnapshot.getAccount(proposer)).thenReturn(proposerAccount);
 
     /// Verifier
     InfBlockValidator validator = new BlockValidator(mockState);
 
     // Act
-    boolean result = validator.isCorrect(block);
+    boolean result = validator.isCorrect(proposal);
 
     // Assert
     Assertions.assertTrue(result);
@@ -177,9 +165,7 @@ public class ValidatorTest {
    */
   @Test
   public void testBlockIsNotConsistent_InvalidPreviousBlockId() {
-    // Arrange
-    /// Block
-    Block block = BlockFixture.newBlock();
+    BlockProposal proposal = BlockFixture.newBlockProposal();
 
     /// State & Snapshot Mocking
     State mockState = mock(State.class);
@@ -192,7 +178,7 @@ public class ValidatorTest {
     InfBlockValidator validator = new BlockValidator(mockState);
 
     // Act
-    boolean result = validator.isConsistent(block);
+    boolean result = validator.isConsistent(proposal);
 
     // Assert
     Assertions.assertFalse(result);
@@ -203,22 +189,20 @@ public class ValidatorTest {
    */
   @Test
   public void testBlockIsConsistent() {
-    //Arrange
-    /// Block
-    Block block = BlockFixture.newBlock();
+    BlockProposal proposal = BlockFixture.newBlockProposal();
 
     /// State & Snapshot Mocking
     State mockState = mock(State.class);
     Snapshot mockSnapshot = mock(Snapshot.class);
-    when(mockState.atBlockId(block.getPreviousBlockId())).thenReturn(mockSnapshot);
+    when(mockState.atBlockId(proposal.getPreviousBlockId())).thenReturn(mockSnapshot);
     when(mockState.last()).thenReturn(mockSnapshot);
-    when(mockSnapshot.getReferenceBlockId()).thenReturn(block.getPreviousBlockId());
+    when(mockSnapshot.getReferenceBlockId()).thenReturn(proposal.getPreviousBlockId());
 
     ///Verifier
     InfBlockValidator validator = new BlockValidator(mockState);
 
     //Act
-    boolean result = validator.isConsistent(block);
+    boolean result = validator.isConsistent(proposal);
 
     //Assert
     Assertions.assertTrue(result);
@@ -229,29 +213,27 @@ public class ValidatorTest {
    */
   @Test
   public void testBlockIsNotAuthenticated() {
-    // Arrange
-    /// Block
-    Block block = BlockFixture.newBlock();
+    BlockProposal proposal = BlockFixture.newBlockProposal();
 
     /// State & Snapshot Mocking
     State mockState = mock(State.class);
     Snapshot mockSnapshot = mock(Snapshot.class);
-    Identifier proposer = block.getProposer();
+    Identifier proposer = proposal.getProposerId();
     Account proposerAccount = AccountFixture.newAccount(proposer);
-    when(mockState.atBlockId(block.getPreviousBlockId()))
+    when(mockState.atBlockId(proposal.getPreviousBlockId()))
         .thenReturn(mockSnapshot);
     when(mockSnapshot
         .getAccount(proposer))
         .thenReturn(proposerAccount);
     when(mockSnapshot.getAccount(proposer)
         .getPublicKey()
-        .verifySignature(block, block.getSignature())).thenReturn(false);
+        .verifySignature(proposal.getHeader(), proposal.getSignature())).thenReturn(false);
 
     /// Verifier
     InfBlockValidator validator = new BlockValidator(mockState);
 
     // Act
-    boolean result = validator.isAuthenticated(block);
+    boolean result = validator.isAuthenticated(proposal);
 
     // Assert
     Assertions.assertFalse(result);
@@ -262,29 +244,27 @@ public class ValidatorTest {
    */
   @Test
   public void testBlockIsAuthenticated() {
-    // Arrange
-    /// Block
-    Block block = BlockFixture.newBlock();
+    BlockProposal proposal = BlockFixture.newBlockProposal();
 
     /// State & Snapshot Mocking
     State mockState = mock(State.class);
     Snapshot mockSnapshot = mock(Snapshot.class);
-    Identifier proposer = block.getProposer();
+    Identifier proposer = proposal.getProposerId();
     Account proposerAccount = AccountFixture.newAccount(proposer);
-    when(mockState.atBlockId(block.getPreviousBlockId()))
+    when(mockState.atBlockId(proposal.getPreviousBlockId()))
         .thenReturn(mockSnapshot);
     when(mockSnapshot.getAccount(proposer))
         .thenReturn(proposerAccount);
     when(mockSnapshot.getAccount(proposer)
         .getPublicKey()
-        .verifySignature(block, block.getSignature()))
+        .verifySignature(any(BlockHeader.class), eq(proposal.getSignature())))
         .thenReturn(true);
 
     /// Verifier
     InfBlockValidator verifier = new BlockValidator(mockState);
 
     // Act
-    boolean result = verifier.isAuthenticated(block);
+    boolean result = verifier.isAuthenticated(proposal);
 
     // Assert
     Assertions.assertTrue(result);
@@ -295,23 +275,21 @@ public class ValidatorTest {
    */
   @Test
   public void testProposerHasNotEnoughStake() {
-    // Arrange
-    /// Block
-    Block block = BlockFixture.newBlock();
+    BlockProposal proposal = BlockFixture.newBlockProposal();
 
     /// State & Snapshot Mocking
     State mockState = mock(State.class);
     Snapshot mockSnapshot = mock(Snapshot.class);
-    Identifier proposer = block.getProposer();
+    Identifier proposer = proposal.getProposerId();
     Account proposerAccount = AccountFixture.newAccount(proposer, Parameters.MINIMUM_STAKE - 2);
-    when(mockState.atBlockId(block.getPreviousBlockId())).thenReturn(mockSnapshot);
+    when(mockState.atBlockId(proposal.getPreviousBlockId())).thenReturn(mockSnapshot);
     when(mockSnapshot.getAccount(proposer)).thenReturn(proposerAccount);
 
     /// Verifier
     InfBlockValidator validator = new BlockValidator(mockState);
 
     // Act
-    boolean result = validator.proposerHasEnoughStake(block);
+    boolean result = validator.proposerHasEnoughStake(proposal);
 
     // Assert
     Assertions.assertFalse(result);
@@ -323,23 +301,21 @@ public class ValidatorTest {
    */
   @Test
   public void testProposerHasEnoughStake() {
-    // Arrange
-    /// Block
-    Block block = BlockFixture.newBlock();
+    BlockProposal proposal = BlockFixture.newBlockProposal();
 
     /// State & Snapshot Mocking
     State mockState = mock(State.class);
     Snapshot mockSnapshot = mock(Snapshot.class);
-    Identifier proposer = block.getProposer();
+    Identifier proposer = proposal.getProposerId();
     Account proposerAccount = AccountFixture.newAccount(proposer);
-    when(mockState.atBlockId(block.getPreviousBlockId())).thenReturn(mockSnapshot);
+    when(mockState.atBlockId(proposal.getPreviousBlockId())).thenReturn(mockSnapshot);
     when(mockSnapshot.getAccount(proposer)).thenReturn(proposerAccount);
 
     /// Verifier
     InfBlockValidator validator = new BlockValidator(mockState);
 
     // Act
-    boolean result = validator.proposerHasEnoughStake(block);
+    boolean result = validator.proposerHasEnoughStake(proposal);
 
     // Assert
     Assertions.assertTrue(result);
@@ -354,9 +330,15 @@ public class ValidatorTest {
     // Arrange
     /// Block
     ValidatedTransaction transaction1 = ValidatedTransactionFixture
-        .newValidatedTransaction(Parameters.SIGNATURE_THRESHOLD - 1);
+        .newValidatedTransaction(
+            IdentifierFixture.newIdentifier(),
+            IdentifierFixture.newIdentifier(),
+            Parameters.SIGNATURE_THRESHOLD - 1);
     ValidatedTransaction transaction2 = ValidatedTransactionFixture
-        .newValidatedTransaction(Parameters.SIGNATURE_THRESHOLD);
+        .newValidatedTransaction(
+            IdentifierFixture.newIdentifier(),
+            IdentifierFixture.newIdentifier(),
+            Parameters.SIGNATURE_THRESHOLD);
 
     Block block = BlockFixture.newBlock(new ValidatedTransaction[]{transaction1, transaction2});
 
