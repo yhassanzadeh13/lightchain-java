@@ -142,7 +142,7 @@ class IdentifierTest {
    * input string.
    */
   @Test
-  void testRoundTrip() {
+  void testByteStringRoundTrip() {
     // creates a random identifier with a random byte array.
     byte[] value = new byte[Identifier.Size];
     random.nextBytes(value);
@@ -154,5 +154,24 @@ class IdentifierTest {
     assertEquals(identifier, identifier2);
     // the string representation of the two identifiers should be the same regardless of the way they are created.
     assertEquals(identifier.toString(), identifier2.toString());
+  }
+
+  /**
+   * Tests the round trip of Identifier. The method should return an Identifier with the same bit string representation as
+   * the input bit string.
+   */
+  @Test
+  void testBitStringRoundTrip() {
+    byte[] value = new byte[Identifier.Size];
+    random.nextBytes(value);
+    Identifier identifier = new Identifier(value);
+
+    String bitString = identifier.getBitString();
+    Identifier bitIdentifier = Identifier.bitStringToIdentifier(bitString);
+
+    assertEquals(bitIdentifier.getBitString(), bitString);
+    assertEquals(bitIdentifier.getBitString(), identifier.getBitString());
+    assertArrayEquals(bitIdentifier.getBytes(), identifier.getBytes());
+    assertEquals(bitIdentifier.comparedTo(identifier), 0);
   }
 }

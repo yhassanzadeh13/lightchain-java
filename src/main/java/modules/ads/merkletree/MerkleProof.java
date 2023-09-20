@@ -11,7 +11,6 @@ import modules.ads.MembershipProof;
 public class MerkleProof implements MembershipProof {
   private final MerklePath merklePath;
   private final Sha3256Hash root;
-  private ArrayList<Sha3256Hash> path;
 
   /**
    * Constructs a proof from a list of hashes and a root.
@@ -47,7 +46,6 @@ public class MerkleProof implements MembershipProof {
    * Checks if two MerkleProofs are equal.
    *
    * @param o the other MerkleProof
-   *
    * @return true if the MerkleProofs are equal, false otherwise
    */
   @Override
