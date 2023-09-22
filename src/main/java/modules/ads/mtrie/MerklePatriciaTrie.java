@@ -9,6 +9,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import crypto.Sha3256Hasher;
 import model.Entity;
 import model.crypto.Sha3256Hash;
+import model.lightchain.Direction;
 import model.lightchain.Identifier;
 import modules.ads.AuthenticatedEntity;
 import modules.ads.merkletree.*;
@@ -48,21 +49,19 @@ public class MerklePatriciaTrie extends MerkleTree {
         throw new IllegalArgumentException("attempting to put a null entity in merkle patricia trie");
       }
       MerkleNode currentNode = rootNode;
+
       Identifier id = e.id();
-      byte[] bytes = id.getBytes();
-      String path = "";
-      for (byte b : bytes) {
-        path += String.format("%8s", Integer.toBinaryString(b & 0xFF)).replace(' ', '0');
-      }
+      String path = id.getBitString();
+
       for (int i = 0; i < path.length() - 1; i++) {
         if (path.charAt(i) == '0') {
           if (currentNode.getLeft() == null) {
-            currentNode.setLeftNode(new MerkleNode(currentNode, true));
+            currentNode.setLeftNode(new MerkleNode(currentNode, Direction.LEFT));
           }
           currentNode = currentNode.getLeft();
         } else {
           if (currentNode.getRight() == null) {
-            currentNode.setRightNode(new MerkleNode(currentNode, false));
+            currentNode.setRightNode(new MerkleNode(currentNode, Direction.RIGHT));
           }
           currentNode = currentNode.getRight();
         }
@@ -70,14 +69,14 @@ public class MerklePatriciaTrie extends MerkleTree {
       MerkleNode newNode = null;
       if (path.charAt(path.length() - 1) == '0') {
         if (currentNode.getLeft() == null) {
-          newNode = new MerkleNode(currentNode, true, hasher.computeHash(id));
+          newNode = new MerkleNode(currentNode, Direction.LEFT, hasher.computeHash(id));
           currentNode.setLeftNode(newNode);
           entityHashTable.put(id, e);
           size++;
         }
       } else {
         if (currentNode.getRight() == null) {
-          newNode = new MerkleNode(currentNode, false, hasher.computeHash(id));
+          newNode = new MerkleNode(currentNode, Direction.RIGHT, hasher.computeHash(id));
           currentNode.setRightNode(newNode);
           entityHashTable.put(id, e);
           size++;
@@ -111,11 +110,7 @@ public class MerklePatriciaTrie extends MerkleTree {
       ArrayList<Sha3256Hash> pathList = new ArrayList<>();
       ArrayList<Boolean> isLeftNode = new ArrayList<>();
       MerkleNode currNode = rootNode;
-      byte[] bytes = id.getBytes();
-      String path = "";
-      for (byte b : bytes) {
-        path += String.format("%8s", Integer.toBinaryString(b & 0xFF)).replace(' ', '0');
-      }
+      String path = id.getBitString();
       for (int i = 0; i < path.length(); i++) {
         if (path.charAt(i) == '0') {
           currNode = currNode.getLeft();

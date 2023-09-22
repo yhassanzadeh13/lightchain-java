@@ -8,6 +8,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import crypto.Sha3256Hasher;
 import model.Entity;
 import model.crypto.Sha3256Hash;
+import model.lightchain.Direction;
 import model.lightchain.Identifier;
 import modules.ads.AuthenticatedDataStructure;
 
@@ -53,7 +54,7 @@ public class MerkleTree implements AuthenticatedDataStructure {
       Sha3256Hash hash = new Sha3256Hash(e.id().getBytes());
       Integer idx = leafNodesHashTable.get(hash);
       if (idx == null) {
-        leafNodes.add(new MerkleNode(e, false));
+        leafNodes.add(new MerkleNode(e, Direction.RIGHT));
         leafNodesHashTable.put(hash, size);
         entityHashTable.put(e.id(), e);
         size++;
@@ -132,7 +133,7 @@ public class MerkleTree implements AuthenticatedDataStructure {
       for (int i = 0; i < currentLevelNodes.size(); i += 2) {
         // pairs up current level nodes as siblings for next level.
         MerkleNode left = currentLevelNodes.get(i);
-        left.setLeft(true);
+        left.setDirection(Direction.LEFT);
 
         MerkleNode right;
         if (i + 1 < currentLevelNodes.size()) {
