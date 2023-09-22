@@ -1,6 +1,7 @@
 package model.lightchain;
 
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Random;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
@@ -9,7 +10,11 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import io.ipfs.multibase.Multibase;
+import org.junit.Assert;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import unittest.fixtures.Bits;
+import unittest.fixtures.IdentifierFixture;
 
 class IdentifierTest {
   private static final Random random = new Random();
@@ -175,6 +180,34 @@ class IdentifierTest {
     assertEquals(bitIdentifier.comparedTo(identifier), 0);
   }
 
-  // TODO: test for no collision in the random identifier generation.
-  // TODO: test that binary string is only 256 bits long comprised of 0s and 1s.
+  /**
+   * Tests that unique bit strings are converted to unique identifiers.
+   */
+  @Test
+  void testRandomBitStrings() {
+    HashSet<String> bitStrings = new HashSet<>();
+    HashSet<Identifier> identifiers = new HashSet<>();
+
+    for (int i = 0; i < 1_000_000; i++) {
+      String bitString = Bits.BitStringFixture(Identifier.Size * 8);
+      Assertions.assertFalse(bitStrings.contains(bitString));
+      bitStrings.add(bitString);
+      Identifier identifier = Identifier.bitStringToIdentifier(bitString);
+      Assertions.assertFalse(identifiers.contains(identifier));
+      identifiers.add(identifier);
+    }
+  }
+
+  /**
+   * Tests that the bit string representation of an identifier is correct, i.e., it is a string of 0s and 1s with length 256 bits.
+   */
+  @Test
+  void testBitStringCorrectness() {
+    Identifier identifier = IdentifierFixture.newIdentifier();
+    String bitString = identifier.getBitString();
+    Assertions.assertEquals(bitString.length(), Identifier.Size * 8);
+    for (int i = 0; i < bitString.length(); i++) {
+      Assertions.assertTrue(bitString.charAt(i) == '0' || bitString.charAt(i) == '1');
+    }
+  }
 }
