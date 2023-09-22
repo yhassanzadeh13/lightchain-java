@@ -10,10 +10,9 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import io.ipfs.multibase.Multibase;
-import org.junit.Assert;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-import unittest.fixtures.Bits;
+import unittest.fixtures.BitFixture;
 import unittest.fixtures.IdentifierFixture;
 
 class IdentifierTest {
@@ -189,7 +188,7 @@ class IdentifierTest {
     HashSet<Identifier> identifiers = new HashSet<>();
 
     for (int i = 0; i < 1_000_000; i++) {
-      String bitString = Bits.BitStringFixture(Identifier.Size * 8);
+      String bitString = BitFixture.newBitString(Identifier.Size * 8);
       Assertions.assertFalse(bitStrings.contains(bitString));
       bitStrings.add(bitString);
       Identifier identifier = Identifier.bitStringToIdentifier(bitString);

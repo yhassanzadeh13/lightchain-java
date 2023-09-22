@@ -5,7 +5,7 @@ import java.util.Random;
 /**
  * Bit Fixture class that creates random bit objects to be used in testing.
  */
-public class Bits {
+public class BitFixture {
   /**
    * Random object used to generate random bits.
    */
@@ -17,7 +17,7 @@ public class Bits {
    * @param length length of bit string.
    * @return random bit string.
    */
-  public static String BitStringFixture(int length) {
+  public static String newBitString(int length) {
     StringBuilder bitString = new StringBuilder();
     for (int i = 0; i < length; i++) {
       if (random.nextBoolean()) {

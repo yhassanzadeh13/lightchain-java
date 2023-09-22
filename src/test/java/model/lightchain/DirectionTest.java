@@ -6,8 +6,12 @@ import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import org.junit.jupiter.api.Test;
 
+/**
+ * Tests the Direction data type.
+ */
 public class DirectionTest {
 
   @Test

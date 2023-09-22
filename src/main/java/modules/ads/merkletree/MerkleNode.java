@@ -5,7 +5,6 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import model.Entity;
 import model.crypto.Sha3256Hash;
 import model.lightchain.Direction;
-import org.reflections.vfs.Vfs;
 
 /**
  * A node in the Merkle tree.
@@ -31,7 +30,7 @@ public class MerkleNode {
   /**
    * Constructor with entity and isLeft.
    *
-   * @param e      input entity
+   * @param e         input entity
    * @param direction whether the node is left child or right child of its parent.
    */
   public MerkleNode(Entity e, Direction direction) {
@@ -45,7 +44,7 @@ public class MerkleNode {
   /**
    * Constructor with parent and isLeft.
    *
-   * @param parent the parent of the node
+   * @param parent    the parent of the node
    * @param direction boolean that specifies if the node is left child or not
    */
   @SuppressFBWarnings(value = "EI_EXPOSE_REP2", justification = "parent is intentionally mutable externally")
@@ -60,9 +59,9 @@ public class MerkleNode {
   /**
    * Constructor with parent, isLeft and hash.
    *
-   * @param parent the parent of the node
+   * @param parent    the parent of the node
    * @param direction whether the node is left child or right child of its parent.
-   * @param hash   input hash of the entity corresponding to that node
+   * @param hash      input hash of the entity corresponding to that node
    */
   @SuppressFBWarnings(value = "EI_EXPOSE_REP2", justification = "parent is intentionally mutable externally")
   public MerkleNode(MerkleNode parent, Direction direction, Sha3256Hash hash) {
