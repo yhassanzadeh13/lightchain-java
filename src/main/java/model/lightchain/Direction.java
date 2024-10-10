@@ -3,7 +3,8 @@ package model.lightchain;
 import java.io.Serializable;
 
 /**
- * Represents the semantic of direction.
+ * Represents the semantic of direction that is used for
+ * traversing data structures, e.g., Merkle trees.
  * A Direction can be either LEFT or RIGHT.
  */
 public class Direction implements Serializable {
